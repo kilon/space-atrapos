@@ -1,0 +1,485 @@
+{
+ "id": "0022",
+ "title": "Loading in the browser",
+ "date": "2026-11-24",
+ "summary": "Patch 0022 makes the browser build load reliably: twice the worker threads (the terrain's first patches no longer wait behind long jobs - loads now take 13 to 23 seconds instead of anything up to two and a half minutes), and a loading screen that waits for the world instead of giving up after half a minute.",
+ "steps": [
+  {
+   "title": "How it was measured",
+   "text": "The web build was served from this machine and played in Chromium, its frames counted from the page each second, its screen captured every few seconds, and - for a test build - the load's state printed to the browser's console once a second: whether the scene was built, and how many of each planet's first terrain patches were ready. Some loads took 15 s, others 140 s; the log showed why.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "HOW IT WAS MEASURED",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      110
+     ],
+     "label": "the web build\nserved locally",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      332,
+      155.0
+     ],
+     "to": [
+      348,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      110
+     ],
+     "label": "played in\nChromium",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      652,
+      155.0
+     ],
+     "to": [
+      668,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      110
+     ],
+     "label": "frames counted\neach second",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      290,
+      300,
+      110
+     ],
+     "label": "screen captured\nevery few seconds",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      290,
+      300,
+      110
+     ],
+     "label": "the load's state\nlogged",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      290,
+      300,
+      110
+     ],
+     "label": "15 s to 140 s:\nwhy",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "badge",
+     "at": [
+      260,
+      470
+     ],
+     "text": "Chromium",
+     "color": "green",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      740,
+      470
+     ],
+     "text": "a log",
+     "color": "gold",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "title": "Twice the worker threads",
+   "text": "Logged in the browser as it loaded: at times the terrain's first patch builds sat 140 s in the queue while the web build's four worker threads (the export's default) were all held by long jobs started at load. It now has eight, and the page sixteen threads: three loads in a row came in 13 to 23 seconds after Start game.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "TWICE THE WORKER THREADS",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      110
+     ],
+     "label": "4 worker threads\nin the browser",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      332,
+      155.0
+     ],
+     "to": [
+      348,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      110
+     ],
+     "label": "long jobs\nheld them all",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      652,
+      155.0
+     ],
+     "to": [
+      668,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      110
+     ],
+     "label": "terrain queued\nup to 140 s",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      290,
+      300,
+      110
+     ],
+     "label": "8 worker threads,\n16 for the page",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      290,
+      300,
+      110
+     ],
+     "label": "no more\nwaiting in line",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      290,
+      300,
+      110
+     ],
+     "label": "in 13-23 s\nafter Start",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "badge",
+     "at": [
+      260,
+      470
+     ],
+     "text": "8 threads",
+     "color": "green",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      740,
+      470
+     ],
+     "text": "13-23 s",
+     "color": "gold",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "title": "The loading screen waits",
+   "text": "The browser's loading screen gave up after 30 seconds and left a dark screen while the world was still being built. There it now waits up to four minutes, its bar showing, till the game's ready; the desktop keeps its 30 seconds.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "THE LOADING SCREEN WAITS",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      110
+     ],
+     "label": "gave up\nafter 30 s",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      332,
+      155.0
+     ],
+     "to": [
+      348,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      110
+     ],
+     "label": "a dark screen\nmeanwhile",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      652,
+      155.0
+     ],
+     "to": [
+      668,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      110
+     ],
+     "label": "the world still\nbeing built",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      290,
+      300,
+      110
+     ],
+     "label": "waits up to\n4 minutes",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      290,
+      300,
+      110
+     ],
+     "label": "its bar\nshowing",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      290,
+      300,
+      110
+     ],
+     "label": "desktop:\n30 s as before",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "badge",
+     "at": [
+      260,
+      470
+     ],
+     "text": "240 s",
+     "color": "green",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      740,
+      470
+     ],
+     "text": "web only",
+     "color": "gold",
+     "size": 16
+    }
+   ]
+  }
+ ],
+ "review": {
+  "intro": "The code behind patch 0022: the browser build's loading - its thread pools and its loading screen's patience.",
+  "files": [
+   {
+    "path": "data/patches/version_0.31_empires_at_war.json",
+    "kind": "modified",
+    "explanation": "Version 0.31's page for patch 0021 drawn properly: its text and a diagram of what it mended.",
+    "hunks": [
+     {
+      "diff": "@@ -1395,63 +1395,134 @@ \n   {\n    \"patch\": \"0021\",\n    \"title\": \"Patch 0021 - The web build starts\",\n-   \"text\": \"Patch 0021 mends the browser version. Its title no longer freezes while shaders compile - they compile under a loading screen that now shows, with its bar, in the browser; the terrain no longer runs the web renderer out of its instance slots (one value a patch on the desktop, none in the browser), and planets' skies, the sea and the vein hologram read the depth buffer the way the web's renderer stores it - the sky is blue again.\",\n+   \"text\": \"The browser version mended: a title that answers at once, a loading screen with its bar while the world builds, terrain that no longer runs the web renderer out of its instance slots, and blue skies again.\",\n    \"diagram\": [\n+    {\n+     \"t\": \"text\",\n+     \"at\": [\n+      500,\n+      45\n+     ],\n+     \"text\": \"PATCH 0021 - THE WEB BUILD STARTS\",\n+     \"size\": 22,\n+     \"color\": \"gold\",\n+     \"align\": \"center\"\n+    },\n     {\n      \"t\": \"box\",\n      \"rect\": [\n-      200,\n-      40,\n-      600,\n-      80\n+      30,\n+      100,\n+      300,\n+      110\n      ],\n-     \"label\": \"PATCH 0021\\nThe web build starts\",\n-     \"size\": 18,\n+     \"label\": \"title: 60 FPS\\nat once\",\n+     \"size\": 16,\n+     \"stroke\": \"cyan\"\n+    },\n+    {\n+     \"t\": \"arrow\",\n+     \"from\": [\n+      332,\n+      155.0\n+     ],\n+     \"to\": [\n+      348,\n+      155.0\n+     ],\n+     \"color\": \"gold\"\n+    },\n+    {\n+     \"t\": \"box\",\n+     \"rect\": [\n+      350,\n+      100,\n+      300,\n+      110\n+     ],\n+     \"label\": \"shaders compile\\nunder the loading\",\n+     \"size\": 16,\n+     \"stroke\": \"gold\"\n+    },\n+    {\n+     \"t\": \"arrow\",\n+     \"from\": [\n+      652,\n+      155.0\n+     ],\n+     \"to\": [\n+      668,\n+      155.0\n+     ],\n+     \"color\": \"gold\"\n+    },\n+    {\n+     \"t\": \"box\",\n+     \"rect\": [\n+      670,\n+      100,\n+      300,\n+      110\n+     ],\n+     \"label\": \"a loading screen\\nin the browser\",\n+     \"size\": 16,\n+     \"stroke\": \"green\"\n+    },\n+    {\n+     \"t\": \"box\",\n+     \"rect\": [\n+      30,\n+      290,\n+      300,\n+      110\n+     ],\n+     \"label\": \"terrain: no instance\\nslots on the web\",\n+     \"size\": 16,\n+     \"stroke\": \"purple\"\n+    },\n+    {\n+     \"t\": \"box\",\n+     \"rect\": [\n+      350,\n+      290,\n+      300,\n+      110\n+     ],\n+     \"label\": \"depth read in\\nOpenGL's range\",\n+     \"size\": 16,\n+     \"stroke\": \"cyan\"\n+    },\n+    {\n+     \"t\": \"box\",\n+     \"rect\": [\n+      670,\n+      290,\n+      300,\n+      110\n+     ],\n+     \"label\": \"a blue sky\\nagain\",\n+     \"size\": 16,\n      \"stroke\": \"gold\"\n     },\n     {\n      \"t\": \"badge\",\n      \"at\": [\n-      210,\n-      200\n+      260,\n+      470\n      ],\n-     \"text\": \"A title that answers\",\n-     \"color\": \"cyan\",\n-     \"size\": 15,\n-     \"delay\": 0.3\n+     \"text\": \"0 errors\",\n+     \"color\": \"green\",\n+     \"size\": 16\n     },\n     {\n      \"t\": \"badge\",\n      \"at\": [\n-      500,\n-      200\n+      740,\n+      470\n      ],\n-     \"text\": \"A loading screen in the browser\",\n-     \"color\": \"green\",\n-     \"size\": 15,\n-     \"delay\": 0.44999999999999996\n-    },\n-    {\n-     \"t\": \"badge\",\n-     \"at\": [\n-      790,\n-      200\n-     ],\n-     \"text\": \"Terrain without instance uniforms\",\n-     \"color\": \"purple\",\n-     \"size\": 15,\n-     \"delay\": 0.6\n-    },\n-    {\n-     \"t\": \"badge\",\n-     \"at\": [\n-      210,\n-      290\n-     ],\n-     \"text\": \"The sky back\",\n+     \"text\": \"web\",\n      \"color\": \"gold\",\n-     \"size\": 15,\n-     \"delay\": 0.75\n+     \"size\": 16\n     }\n    ]\n   }",
+      "added": 111,
+      "removed": 40,
+      "title": "Patch 0021's page",
+      "note": "The web build's fixes at a glance: the title, the loading screen, the terrain's instance slots, the sky."
+     }
+    ],
+    "added": 111,
+    "removed": 40
+   },
+   {
+    "path": "export_presets.cfg",
+    "kind": "modified",
+    "explanation": "The web build gets twice the worker threads: with the export's default four, long jobs started at load (towns, hulls, background loads) could hold them all and the terrain's first patches waited in the queue for up to 140 s.",
+    "hunks": [
+     {
+      "diff": "@@ -79,6 +79,8 @@ \n \n variant/extensions_support=false\n variant/thread_support=true\n+threads/emscripten_pool_size=16\n+threads/godot_pool_size=8\n vram_texture_compression/for_desktop=true\n vram_texture_compression/for_mobile=true\n html/export_icon=true",
+      "added": 2,
+      "removed": 0,
+      "title": "Bigger thread pools",
+      "note": "8 worker threads for Godot's pool (was 4), 16 browser threads for the page (was 8).",
+      "bubbles": [
+       {
+        "at": "threads/godot_pool_size=8",
+        "text": "The WorkerThreadPool's threads in the browser: the terrain's patch builds no longer starve behind long jobs."
+       }
+      ]
+     }
+    ],
+    "added": 2,
+    "removed": 0
+   },
+   {
+    "path": "scripts/core/load_veil.gd",
+    "kind": "modified",
+    "explanation": "In a browser the loading screen waits up to four minutes for the world, not 30 s: it gave up before the world was built and left a dark screen.",
+    "hunks": [
+     {
+      "diff": "@@ -14,6 +14,8 @@ ##   LoadVeil.change_to\n ##   LoadVeil.change_to(\"res://main.tscn\", \"Loading slot 2\")\n \n const TIMEOUT := 30.0\n+## (In a browser the world can take a minute or more to build: the screen stays till it's ready.)\n+const WEB_TIMEOUT := 240.0\n const FADE := 0.3\n ## Of the bar: the space scene; the rest, a planet's surface if there's one.\n const SPACE_SHARE := 0.3",
+      "added": 2,
+      "removed": 0,
+      "title": "The browser's time-out",
+      "note": "A longer limit for the browser.",
+      "bubbles": [
+       {
+        "at": "const WEB_TIMEOUT := 240.0",
+        "text": "Long enough for a slow machine's first build; the desktop keeps 30 s."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -148,7 +150,7 @@ func _process\n \t\t_ready_frames += 1\n \t\t_shown = 1.0\n \t_bar.value = _shown\n-\tif _ready_frames >= 3 or (_t > TIMEOUT and not _art_wait):   # (a few frames for the first picture)\n+\tif _ready_frames >= 3 or (_t > (WEB_TIMEOUT if OS.has_feature(\"web\") else TIMEOUT) and not _art_wait):   # (a few frames for the first picture)\n \t\t_close()\n \n ",
+      "added": 1,
+      "removed": 1,
+      "title": "Which time-out",
+      "note": "The browser's limit when running in one.",
+      "bubbles": [
+       {
+        "at": "OS.has_feature(\"web\")",
+        "text": "A browser: WEB_TIMEOUT."
+       }
+      ]
+     }
+    ],
+    "added": 3,
+    "removed": 1
+   }
+  ]
+ }
+}

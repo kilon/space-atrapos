@@ -1,0 +1,2498 @@
+{
+	"version": 1,
+	"categories": [
+		"Basic",
+		"Round",
+		"Architecture",
+		"Mechanical",
+		"Organic",
+		"Sci-fi"
+	],
+	"shapes": {
+		"cube": {
+			"name": "Cube",
+			"cat": "Basic",
+			"gen": "box",
+			"params": {},
+			"builtin": true
+		},
+		"long_box": {
+			"name": "Long box",
+			"cat": "Basic",
+			"gen": "box",
+			"params": {
+				"w": 2.0,
+				"h": 0.5,
+				"d": 0.5
+			},
+			"builtin": true
+		},
+		"bevel_box": {
+			"name": "Bevelled box",
+			"cat": "Basic",
+			"gen": "box",
+			"params": {
+				"bevel": 0.08,
+				"bevel_segs": 1
+			},
+			"builtin": true
+		},
+		"rounded_box": {
+			"name": "Rounded box",
+			"cat": "Basic",
+			"gen": "box",
+			"params": {
+				"bevel": 0.15,
+				"bevel_segs": 4
+			},
+			"builtin": true
+		},
+		"plane": {
+			"name": "Plane",
+			"cat": "Basic",
+			"gen": "plane",
+			"params": {},
+			"builtin": true
+		},
+		"grid_plane": {
+			"name": "Grid plane",
+			"cat": "Basic",
+			"gen": "plane",
+			"params": {
+				"w": 2.0,
+				"d": 2.0,
+				"subdiv": 8
+			},
+			"builtin": true
+		},
+		"wedge": {
+			"name": "Wedge",
+			"cat": "Basic",
+			"gen": "wedge",
+			"params": {},
+			"builtin": true
+		},
+		"ramp": {
+			"name": "Ramp",
+			"cat": "Basic",
+			"gen": "wedge",
+			"params": {
+				"w": 1.0,
+				"h": 0.4,
+				"d": 2.0
+			},
+			"builtin": true
+		},
+		"pyramid": {
+			"name": "Pyramid",
+			"cat": "Basic",
+			"gen": "cylinder",
+			"params": {
+				"r": 0.7071,
+				"r_top": 0.0,
+				"segs": 4,
+				"phase": 45.0
+			},
+			"builtin": true
+		},
+		"tri_pyramid": {
+			"name": "Triangular pyramid",
+			"cat": "Basic",
+			"gen": "cylinder",
+			"params": {
+				"r": 0.6,
+				"r_top": 0.0,
+				"segs": 3
+			},
+			"builtin": true
+		},
+		"tri_prism": {
+			"name": "Triangular prism",
+			"cat": "Basic",
+			"gen": "cylinder",
+			"params": {
+				"r": 0.55,
+				"r_top": 0.55,
+				"segs": 3
+			},
+			"builtin": true
+		},
+		"hex_prism": {
+			"name": "Hexagonal prism",
+			"cat": "Basic",
+			"gen": "cylinder",
+			"params": {
+				"segs": 6
+			},
+			"builtin": true
+		},
+		"oct_prism": {
+			"name": "Octagonal prism",
+			"cat": "Basic",
+			"gen": "cylinder",
+			"params": {
+				"segs": 8
+			},
+			"builtin": true
+		},
+		"cylinder": {
+			"name": "Cylinder",
+			"cat": "Basic",
+			"gen": "cylinder",
+			"params": {},
+			"builtin": true
+		},
+		"cone": {
+			"name": "Cone",
+			"cat": "Basic",
+			"gen": "cylinder",
+			"params": {
+				"r_top": 0.0
+			},
+			"builtin": true
+		},
+		"frustum": {
+			"name": "Frustum",
+			"cat": "Basic",
+			"gen": "cylinder",
+			"params": {
+				"r_top": 0.25
+			},
+			"builtin": true
+		},
+		"disc": {
+			"name": "Disc",
+			"cat": "Basic",
+			"gen": "cylinder",
+			"params": {
+				"h": 0.08,
+				"segs": 48
+			},
+			"builtin": true
+		},
+		"tube": {
+			"name": "Tube",
+			"cat": "Basic",
+			"gen": "cylinder",
+			"params": {
+				"hole": 0.38
+			},
+			"builtin": true
+		},
+		"uv_sphere": {
+			"name": "UV sphere",
+			"cat": "Round",
+			"gen": "sphere",
+			"params": {},
+			"builtin": true
+		},
+		"ico_sphere": {
+			"name": "Ico sphere",
+			"cat": "Round",
+			"gen": "ico",
+			"params": {
+				"subdiv": 2
+			},
+			"builtin": true
+		},
+		"geodesic": {
+			"name": "Geodesic ball",
+			"cat": "Round",
+			"gen": "ico",
+			"params": {
+				"subdiv": 1,
+				"faceted": 1
+			},
+			"builtin": true
+		},
+		"icosahedron": {
+			"name": "Icosahedron",
+			"cat": "Round",
+			"gen": "ico",
+			"params": {
+				"subdiv": 0,
+				"faceted": 1
+			},
+			"builtin": true
+		},
+		"hemisphere": {
+			"name": "Hemisphere",
+			"cat": "Round",
+			"gen": "sphere",
+			"params": {
+				"lat0": 0.0
+			},
+			"builtin": true
+		},
+		"dome_shell": {
+			"name": "Dome shell",
+			"cat": "Round",
+			"gen": "sphere",
+			"params": {
+				"lat0": 0.0,
+				"thickness": 0.05
+			},
+			"builtin": true
+		},
+		"spheroid": {
+			"name": "Spheroid",
+			"cat": "Round",
+			"gen": "superellipsoid",
+			"params": {
+				"h": 0.6
+			},
+			"builtin": true
+		},
+		"egg": {
+			"name": "Egg",
+			"cat": "Round",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-0.5
+					],
+					[
+						0.1987,
+						-0.4375
+					],
+					[
+						0.2667,
+						-0.375
+					],
+					[
+						0.3091,
+						-0.3125
+					],
+					[
+						0.3367,
+						-0.25
+					],
+					[
+						0.3538,
+						-0.1875
+					],
+					[
+						0.3625,
+						-0.125
+					],
+					[
+						0.3643,
+						-0.0625
+					],
+					[
+						0.36,
+						0.0
+					],
+					[
+						0.35,
+						0.0625
+					],
+					[
+						0.3346,
+						0.125
+					],
+					[
+						0.3137,
+						0.1875
+					],
+					[
+						0.2868,
+						0.25
+					],
+					[
+						0.2529,
+						0.3125
+					],
+					[
+						0.2095,
+						0.375
+					],
+					[
+						0.1499,
+						0.4375
+					],
+					[
+						0,
+						0.5
+					]
+				],
+				"segs": 32
+			},
+			"builtin": true
+		},
+		"capsule": {
+			"name": "Capsule",
+			"cat": "Round",
+			"gen": "capsule",
+			"params": {},
+			"builtin": true
+		},
+		"pill": {
+			"name": "Pill",
+			"cat": "Round",
+			"gen": "capsule",
+			"params": {
+				"r": 0.15,
+				"h": 0.7
+			},
+			"builtin": true
+		},
+		"torus": {
+			"name": "Torus",
+			"cat": "Round",
+			"gen": "torus",
+			"params": {},
+			"builtin": true
+		},
+		"thin_ring": {
+			"name": "Thin ring",
+			"cat": "Round",
+			"gen": "torus",
+			"params": {
+				"R": 0.45,
+				"r": 0.03,
+				"sides": 10,
+				"segs": 48
+			},
+			"builtin": true
+		},
+		"half_torus": {
+			"name": "Half torus",
+			"cat": "Round",
+			"gen": "torus",
+			"params": {
+				"angle": 180.0
+			},
+			"builtin": true
+		},
+		"quarter_torus": {
+			"name": "Quarter torus",
+			"cat": "Round",
+			"gen": "torus",
+			"params": {
+				"angle": 90.0
+			},
+			"builtin": true
+		},
+		"soft_cube": {
+			"name": "Soft cube",
+			"cat": "Round",
+			"gen": "superellipsoid",
+			"params": {
+				"e1": 0.25,
+				"e2": 0.25
+			},
+			"builtin": true
+		},
+		"pillow": {
+			"name": "Pillow",
+			"cat": "Round",
+			"gen": "superellipsoid",
+			"params": {
+				"h": 0.35,
+				"e1": 0.5,
+				"e2": 0.2
+			},
+			"builtin": true
+		},
+		"star_ball": {
+			"name": "Star ball",
+			"cat": "Round",
+			"gen": "superellipsoid",
+			"params": {
+				"e1": 3.0,
+				"e2": 3.0,
+				"res": 16
+			},
+			"builtin": true
+		},
+		"lens": {
+			"name": "Lens",
+			"cat": "Round",
+			"gen": "sphere",
+			"params": {
+				"sy": 0.3
+			},
+			"builtin": true
+		},
+		"doric_column": {
+			"name": "Doric column",
+			"cat": "Architecture",
+			"gen": "column",
+			"params": {
+				"capital": 1,
+				"base": 0,
+				"flutes": 20
+			},
+			"builtin": true
+		},
+		"ionic_column": {
+			"name": "Ionic column",
+			"cat": "Architecture",
+			"gen": "column",
+			"params": {
+				"capital": 2,
+				"base": 1,
+				"flutes": 24,
+				"r": 0.2,
+				"h": 2.4,
+				"taper": 0.9,
+				"depth": 0.015
+			},
+			"builtin": true
+		},
+		"corinthian_column": {
+			"name": "Corinthian column",
+			"cat": "Architecture",
+			"gen": "column",
+			"params": {
+				"capital": 3,
+				"base": 1,
+				"flutes": 24,
+				"r": 0.2,
+				"h": 2.6,
+				"taper": 0.9,
+				"depth": 0.015
+			},
+			"builtin": true
+		},
+		"tuscan_column": {
+			"name": "Tuscan column",
+			"cat": "Architecture",
+			"gen": "column",
+			"params": {
+				"capital": 1,
+				"base": 2,
+				"flutes": 0,
+				"segs": 48
+			},
+			"builtin": true
+		},
+		"minoan_column": {
+			"name": "Minoan column",
+			"cat": "Architecture",
+			"gen": "column",
+			"params": {
+				"capital": 4,
+				"base": 0,
+				"flutes": 0,
+				"taper": 1.25,
+				"segs": 48
+			},
+			"builtin": true
+		},
+		"square_pillar": {
+			"name": "Square pillar",
+			"cat": "Architecture",
+			"gen": "box",
+			"params": {
+				"w": 0.4,
+				"h": 2.4,
+				"d": 0.4,
+				"bevel": 0.02,
+				"bevel_segs": 1
+			},
+			"builtin": true
+		},
+		"plinth": {
+			"name": "Plinth",
+			"cat": "Architecture",
+			"gen": "box",
+			"params": {
+				"w": 1.0,
+				"h": 0.3,
+				"d": 1.0,
+				"bevel": 0.03,
+				"bevel_segs": 2
+			},
+			"builtin": true
+		},
+		"round_arch": {
+			"name": "Round arch",
+			"cat": "Architecture",
+			"gen": "arch",
+			"params": {},
+			"builtin": true
+		},
+		"pointed_arch": {
+			"name": "Pointed arch",
+			"cat": "Architecture",
+			"gen": "arch",
+			"params": {
+				"pointed": 1.0,
+				"segs": 20
+			},
+			"builtin": true
+		},
+		"gateway": {
+			"name": "Gateway",
+			"cat": "Architecture",
+			"gen": "arch",
+			"params": {
+				"w": 3.0,
+				"h": 3.0,
+				"d": 0.6,
+				"opening": 2.0,
+				"spring": 1.6,
+				"segs": 24
+			},
+			"builtin": true
+		},
+		"stairs": {
+			"name": "Stairs",
+			"cat": "Architecture",
+			"gen": "stairs",
+			"params": {},
+			"builtin": true
+		},
+		"grand_stairs": {
+			"name": "Grand stairs",
+			"cat": "Architecture",
+			"gen": "stairs",
+			"params": {
+				"steps": 10,
+				"w": 3.0,
+				"h": 1.6,
+				"d": 3.0
+			},
+			"builtin": true
+		},
+		"floating_stairs": {
+			"name": "Floating stairs",
+			"cat": "Architecture",
+			"gen": "stairs",
+			"params": {
+				"steps": 8,
+				"under": 0
+			},
+			"builtin": true
+		},
+		"spiral_stairs": {
+			"name": "Spiral stairs",
+			"cat": "Architecture",
+			"gen": "spiral_stairs",
+			"params": {},
+			"builtin": true
+		},
+		"dome": {
+			"name": "Dome",
+			"cat": "Architecture",
+			"gen": "sphere",
+			"params": {
+				"r": 1.0,
+				"lat0": 0.0,
+				"thickness": 0.06,
+				"segs": 48,
+				"rings": 24
+			},
+			"builtin": true
+		},
+		"onion_dome": {
+			"name": "Onion dome",
+			"cat": "Architecture",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-0.75
+					],
+					[
+						0.5,
+						-0.75
+					],
+					[
+						0.5,
+						-0.65
+					],
+					[
+						0.55,
+						-0.5
+					],
+					[
+						0.6,
+						-0.3
+					],
+					[
+						0.55,
+						-0.1
+					],
+					[
+						0.4,
+						0.1
+					],
+					[
+						0.2,
+						0.3
+					],
+					[
+						0.06,
+						0.5
+					],
+					[
+						0.02,
+						0.7
+					],
+					[
+						0,
+						0.75
+					]
+				],
+				"segs": 40
+			},
+			"builtin": true
+		},
+		"pediment": {
+			"name": "Pediment",
+			"cat": "Architecture",
+			"gen": "extrude",
+			"params": {
+				"points": [
+					[
+						-1,
+						-0.175
+					],
+					[
+						1,
+						-0.175
+					],
+					[
+						0,
+						0.175
+					]
+				],
+				"h": 0.3,
+				"axis": "z"
+			},
+			"builtin": true
+		},
+		"obelisk": {
+			"name": "Obelisk",
+			"cat": "Architecture",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-1.25
+					],
+					[
+						0.25,
+						-1.25
+					],
+					[
+						0.18,
+						0.95
+					],
+					[
+						0,
+						1.25
+					]
+				],
+				"segs": 4,
+				"phase": 45.0
+			},
+			"builtin": true
+		},
+		"step_pyramid": {
+			"name": "Step pyramid",
+			"cat": "Architecture",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-0.5
+					],
+					[
+						1.0,
+						-0.5
+					],
+					[
+						1.0,
+						-0.25
+					],
+					[
+						0.8,
+						-0.25
+					],
+					[
+						0.8,
+						0.0
+					],
+					[
+						0.6,
+						0.0
+					],
+					[
+						0.6,
+						0.25
+					],
+					[
+						0.4,
+						0.25
+					],
+					[
+						0.4,
+						0.5
+					],
+					[
+						0,
+						0.5
+					]
+				],
+				"segs": 4,
+				"phase": 45.0
+			},
+			"builtin": true
+		},
+		"amphora": {
+			"name": "Amphora",
+			"cat": "Architecture",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-0.68
+					],
+					[
+						0.12,
+						-0.68
+					],
+					[
+						0.1,
+						-0.63
+					],
+					[
+						0.16,
+						-0.48
+					],
+					[
+						0.28,
+						-0.18
+					],
+					[
+						0.3,
+						0.02
+					],
+					[
+						0.24,
+						0.27
+					],
+					[
+						0.12,
+						0.42
+					],
+					[
+						0.1,
+						0.62
+					],
+					[
+						0.15,
+						0.68
+					],
+					[
+						0.12,
+						0.68
+					],
+					[
+						0.075,
+						0.62
+					],
+					[
+						0.09,
+						0.42
+					],
+					[
+						0.21,
+						0.27
+					],
+					[
+						0.27,
+						0.02
+					],
+					[
+						0.25,
+						-0.18
+					],
+					[
+						0.13,
+						-0.48
+					],
+					[
+						0,
+						-0.53
+					]
+				],
+				"segs": 40
+			},
+			"builtin": true
+		},
+		"krater": {
+			"name": "Krater (mixing bowl)",
+			"cat": "Architecture",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-0.4
+					],
+					[
+						0.2,
+						-0.4
+					],
+					[
+						0.18,
+						-0.36
+					],
+					[
+						0.08,
+						-0.3
+					],
+					[
+						0.09,
+						-0.2
+					],
+					[
+						0.25,
+						-0.1
+					],
+					[
+						0.38,
+						0.1
+					],
+					[
+						0.42,
+						0.35
+					],
+					[
+						0.47,
+						0.4
+					],
+					[
+						0.43,
+						0.4
+					],
+					[
+						0.38,
+						0.35
+					],
+					[
+						0.34,
+						0.1
+					],
+					[
+						0.22,
+						-0.07
+					],
+					[
+						0,
+						-0.13
+					]
+				],
+				"segs": 48
+			},
+			"builtin": true
+		},
+		"hydria": {
+			"name": "Hydria (water jar)",
+			"cat": "Architecture",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-0.52
+					],
+					[
+						0.14,
+						-0.52
+					],
+					[
+						0.13,
+						-0.48
+					],
+					[
+						0.2,
+						-0.32
+					],
+					[
+						0.3,
+						-0.07
+					],
+					[
+						0.3,
+						0.08
+					],
+					[
+						0.22,
+						0.26
+					],
+					[
+						0.09,
+						0.36
+					],
+					[
+						0.08,
+						0.48
+					],
+					[
+						0.12,
+						0.52
+					],
+					[
+						0.09,
+						0.52
+					],
+					[
+						0.055,
+						0.48
+					],
+					[
+						0.065,
+						0.36
+					],
+					[
+						0.19,
+						0.26
+					],
+					[
+						0.27,
+						0.08
+					],
+					[
+						0.27,
+						-0.07
+					],
+					[
+						0.17,
+						-0.32
+					],
+					[
+						0,
+						-0.44
+					]
+				],
+				"segs": 40
+			},
+			"builtin": true
+		},
+		"kylix": {
+			"name": "Kylix (drinking cup)",
+			"cat": "Architecture",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-0.145
+					],
+					[
+						0.12,
+						-0.145
+					],
+					[
+						0.1,
+						-0.125
+					],
+					[
+						0.025,
+						-0.095
+					],
+					[
+						0.025,
+						-0.005
+					],
+					[
+						0.2,
+						0.055
+					],
+					[
+						0.36,
+						0.125
+					],
+					[
+						0.38,
+						0.145
+					],
+					[
+						0.35,
+						0.145
+					],
+					[
+						0.2,
+						0.085
+					],
+					[
+						0,
+						0.035
+					]
+				],
+				"segs": 48
+			},
+			"builtin": true
+		},
+		"baluster": {
+			"name": "Baluster",
+			"cat": "Architecture",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-0.43
+					],
+					[
+						0.12,
+						-0.43
+					],
+					[
+						0.12,
+						-0.37
+					],
+					[
+						0.09,
+						-0.35
+					],
+					[
+						0.1,
+						-0.28
+					],
+					[
+						0.14,
+						-0.13
+					],
+					[
+						0.12,
+						0.02
+					],
+					[
+						0.06,
+						0.17
+					],
+					[
+						0.05,
+						0.27
+					],
+					[
+						0.08,
+						0.32
+					],
+					[
+						0.12,
+						0.37
+					],
+					[
+						0.12,
+						0.43
+					],
+					[
+						0,
+						0.43
+					]
+				],
+				"segs": 32
+			},
+			"builtin": true
+		},
+		"fountain_basin": {
+			"name": "Fountain basin",
+			"cat": "Architecture",
+			"gen": "dish",
+			"params": {
+				"r": 1.0,
+				"depth": 0.3,
+				"t": 0.08,
+				"foot": 0.4,
+				"segs": 48
+			},
+			"builtin": true
+		},
+		"horns_of_consecration": {
+			"name": "Horns of consecration",
+			"cat": "Architecture",
+			"gen": "extrude",
+			"params": {
+				"points": [
+					[
+						-0.6,
+						-0.375
+					],
+					[
+						0.6,
+						-0.375
+					],
+					[
+						0.6,
+						-0.225
+					],
+					[
+						0.5,
+						-0.175
+					],
+					[
+						0.55,
+						0.325
+					],
+					[
+						0.45,
+						0.375
+					],
+					[
+						0.38,
+						-0.075
+					],
+					[
+						0.2,
+						-0.155
+					],
+					[
+						0,
+						-0.175
+					],
+					[
+						-0.2,
+						-0.155
+					],
+					[
+						-0.38,
+						-0.075
+					],
+					[
+						-0.45,
+						0.375
+					],
+					[
+						-0.55,
+						0.325
+					],
+					[
+						-0.5,
+						-0.175
+					],
+					[
+						-0.6,
+						-0.225
+					]
+				],
+				"h": 0.25,
+				"axis": "z",
+				"bevel": 0.01
+			},
+			"builtin": true
+		},
+		"beehive_tomb": {
+			"name": "Beehive tomb (tholos)",
+			"cat": "Architecture",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-1.025
+					],
+					[
+						1.0,
+						-1.025
+					],
+					[
+						0.98,
+						-0.625
+					],
+					[
+						0.9,
+						-0.125
+					],
+					[
+						0.7,
+						0.375
+					],
+					[
+						0.4,
+						0.775
+					],
+					[
+						0.15,
+						0.975
+					],
+					[
+						0,
+						1.025
+					]
+				],
+				"segs": 40
+			},
+			"builtin": true
+		},
+		"gear": {
+			"name": "Gear",
+			"cat": "Mechanical",
+			"gen": "gear",
+			"params": {},
+			"builtin": true
+		},
+		"gear_24": {
+			"name": "Gear, 24 teeth",
+			"cat": "Mechanical",
+			"gen": "gear",
+			"params": {
+				"teeth": 24,
+				"r": 0.6,
+				"depth": 0.05
+			},
+			"builtin": true
+		},
+		"gear_hub": {
+			"name": "Gear with a hub hole",
+			"cat": "Mechanical",
+			"gen": "gear",
+			"params": {
+				"teeth": 16,
+				"bore": 0.12
+			},
+			"builtin": true
+		},
+		"pinion": {
+			"name": "Pinion",
+			"cat": "Mechanical",
+			"gen": "gear",
+			"params": {
+				"teeth": 8,
+				"r": 0.25,
+				"h": 0.3,
+				"depth": 0.07
+			},
+			"builtin": true
+		},
+		"sprocket": {
+			"name": "Sprocket",
+			"cat": "Mechanical",
+			"gen": "gear",
+			"params": {
+				"teeth": 20,
+				"tooth_w": 0.35,
+				"depth": 0.07,
+				"h": 0.08,
+				"bore": 0.2
+			},
+			"builtin": true
+		},
+		"hex_nut": {
+			"name": "Hex nut",
+			"cat": "Mechanical",
+			"gen": "gear",
+			"params": {
+				"teeth": 0,
+				"sides": 6,
+				"r": 0.15,
+				"h": 0.12,
+				"bore": 0.07
+			},
+			"builtin": true
+		},
+		"washer": {
+			"name": "Washer",
+			"cat": "Mechanical",
+			"gen": "gear",
+			"params": {
+				"teeth": 0,
+				"sides": 40,
+				"r": 0.15,
+				"h": 0.025,
+				"bore": 0.07
+			},
+			"builtin": true
+		},
+		"hex_bolt": {
+			"name": "Hex bolt",
+			"cat": "Mechanical",
+			"gen": "bolt",
+			"params": {},
+			"builtin": true
+		},
+		"round_screw": {
+			"name": "Round-head screw",
+			"cat": "Mechanical",
+			"gen": "bolt",
+			"params": {
+				"head_sides": 0,
+				"pitch": 0.02,
+				"length": 0.4,
+				"r": 0.04,
+				"head_r": 0.08,
+				"head_h": 0.04
+			},
+			"builtin": true
+		},
+		"pipe": {
+			"name": "Pipe",
+			"cat": "Mechanical",
+			"gen": "cylinder",
+			"params": {
+				"r": 0.15,
+				"r_top": 0.15,
+				"h": 2.0,
+				"hole": 0.12,
+				"segs": 24
+			},
+			"builtin": true
+		},
+		"pipe_elbow": {
+			"name": "Pipe elbow",
+			"cat": "Mechanical",
+			"gen": "torus",
+			"params": {
+				"R": 0.4,
+				"r": 0.12,
+				"angle": 90.0,
+				"segs": 24
+			},
+			"builtin": true
+		},
+		"u_bend": {
+			"name": "U-bend",
+			"cat": "Mechanical",
+			"gen": "torus",
+			"params": {
+				"R": 0.3,
+				"r": 0.08,
+				"angle": 180.0
+			},
+			"builtin": true
+		},
+		"pipe_flange": {
+			"name": "Pipe flange",
+			"cat": "Mechanical",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0.1,
+						-0.3
+					],
+					[
+						0.25,
+						-0.3
+					],
+					[
+						0.25,
+						-0.24
+					],
+					[
+						0.13,
+						-0.24
+					],
+					[
+						0.13,
+						0.3
+					],
+					[
+						0.1,
+						0.3
+					]
+				],
+				"segs": 40
+			},
+			"builtin": true
+		},
+		"spring": {
+			"name": "Spring",
+			"cat": "Mechanical",
+			"gen": "spring",
+			"params": {},
+			"builtin": true
+		},
+		"tight_coil": {
+			"name": "Tight coil",
+			"cat": "Mechanical",
+			"gen": "spring",
+			"params": {
+				"turns": 12.0,
+				"h": 0.6,
+				"r": 0.025,
+				"R": 0.2
+			},
+			"builtin": true
+		},
+		"conical_spring": {
+			"name": "Conical spring",
+			"cat": "Mechanical",
+			"gen": "spring",
+			"params": {
+				"taper": 0.6
+			},
+			"builtin": true
+		},
+		"i_beam": {
+			"name": "I-beam",
+			"cat": "Mechanical",
+			"gen": "extrude",
+			"params": {
+				"points": [
+					[
+						-0.1,
+						-0.15
+					],
+					[
+						0.1,
+						-0.15
+					],
+					[
+						0.1,
+						-0.12
+					],
+					[
+						0.02,
+						-0.12
+					],
+					[
+						0.02,
+						0.12
+					],
+					[
+						0.1,
+						0.12
+					],
+					[
+						0.1,
+						0.15
+					],
+					[
+						-0.1,
+						0.15
+					],
+					[
+						-0.1,
+						0.12
+					],
+					[
+						-0.02,
+						0.12
+					],
+					[
+						-0.02,
+						-0.12
+					],
+					[
+						-0.1,
+						-0.12
+					]
+				],
+				"h": 2.0
+			},
+			"builtin": true
+		},
+		"l_beam": {
+			"name": "L-beam",
+			"cat": "Mechanical",
+			"gen": "extrude",
+			"params": {
+				"points": [
+					[
+						-0.075,
+						-0.075
+					],
+					[
+						0.075,
+						-0.075
+					],
+					[
+						0.075,
+						-0.055
+					],
+					[
+						-0.055,
+						-0.055
+					],
+					[
+						-0.055,
+						0.075
+					],
+					[
+						-0.075,
+						0.075
+					]
+				],
+				"h": 2.0
+			},
+			"builtin": true
+		},
+		"t_beam": {
+			"name": "T-beam",
+			"cat": "Mechanical",
+			"gen": "extrude",
+			"params": {
+				"points": [
+					[
+						-0.1,
+						-0.1
+					],
+					[
+						0.1,
+						-0.1
+					],
+					[
+						0.1,
+						-0.08
+					],
+					[
+						0.01,
+						-0.08
+					],
+					[
+						0.01,
+						0.1
+					],
+					[
+						-0.01,
+						0.1
+					],
+					[
+						-0.01,
+						-0.08
+					],
+					[
+						-0.1,
+						-0.08
+					]
+				],
+				"h": 2.0
+			},
+			"builtin": true
+		},
+		"channel": {
+			"name": "Channel",
+			"cat": "Mechanical",
+			"gen": "extrude",
+			"params": {
+				"points": [
+					[
+						-0.1,
+						-0.075
+					],
+					[
+						0.1,
+						-0.075
+					],
+					[
+						0.1,
+						0.075
+					],
+					[
+						0.08,
+						0.075
+					],
+					[
+						0.08,
+						-0.055
+					],
+					[
+						-0.08,
+						-0.055
+					],
+					[
+						-0.08,
+						0.075
+					],
+					[
+						-0.1,
+						0.075
+					]
+				],
+				"h": 2.0
+			},
+			"builtin": true
+		},
+		"chain_link": {
+			"name": "Chain link",
+			"cat": "Mechanical",
+			"gen": "chain",
+			"params": {},
+			"builtin": true
+		},
+		"pulley": {
+			"name": "Pulley",
+			"cat": "Mechanical",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0.05,
+						-0.08
+					],
+					[
+						0.4,
+						-0.08
+					],
+					[
+						0.4,
+						-0.05
+					],
+					[
+						0.33,
+						0.0
+					],
+					[
+						0.4,
+						0.05
+					],
+					[
+						0.4,
+						0.08
+					],
+					[
+						0.05,
+						0.08
+					]
+				],
+				"segs": 48
+			},
+			"builtin": true
+		},
+		"piston": {
+			"name": "Piston",
+			"cat": "Mechanical",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-0.175
+					],
+					[
+						0.3,
+						-0.175
+					],
+					[
+						0.3,
+						-0.125
+					],
+					[
+						0.29,
+						-0.115
+					],
+					[
+						0.3,
+						-0.105
+					],
+					[
+						0.3,
+						-0.075
+					],
+					[
+						0.29,
+						-0.065
+					],
+					[
+						0.3,
+						-0.055
+					],
+					[
+						0.3,
+						0.175
+					],
+					[
+						0,
+						0.175
+					]
+				],
+				"segs": 40
+			},
+			"builtin": true
+		},
+		"rock": {
+			"name": "Rock",
+			"cat": "Organic",
+			"gen": "ico",
+			"params": {
+				"subdiv": 2,
+				"noise": 0.35,
+				"faceted": 1,
+				"seed": 3,
+				"sy": 0.7
+			},
+			"builtin": true
+		},
+		"boulder": {
+			"name": "Boulder",
+			"cat": "Organic",
+			"gen": "ico",
+			"params": {
+				"subdiv": 3,
+				"noise": 0.25,
+				"freq": 1.2,
+				"sx": 1.2,
+				"sy": 0.8
+			},
+			"builtin": true
+		},
+		"pebble": {
+			"name": "Pebble",
+			"cat": "Organic",
+			"gen": "ico",
+			"params": {
+				"subdiv": 3,
+				"noise": 0.08,
+				"sx": 1.2,
+				"sy": 0.45
+			},
+			"builtin": true
+		},
+		"blob": {
+			"name": "Blob",
+			"cat": "Organic",
+			"gen": "ico",
+			"params": {
+				"subdiv": 3,
+				"noise": 0.5,
+				"freq": 0.8,
+				"seed": 5
+			},
+			"builtin": true
+		},
+		"crystal": {
+			"name": "Crystal",
+			"cat": "Organic",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-0.525
+					],
+					[
+						0.15,
+						-0.375
+					],
+					[
+						0.15,
+						0.275
+					],
+					[
+						0,
+						0.525
+					]
+				],
+				"segs": 6
+			},
+			"builtin": true
+		},
+		"gem": {
+			"name": "Gem",
+			"cat": "Organic",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-0.21
+					],
+					[
+						0.4,
+						0.09
+					],
+					[
+						0.3,
+						0.21
+					],
+					[
+						0,
+						0.21
+					]
+				],
+				"segs": 8
+			},
+			"builtin": true
+		},
+		"horn": {
+			"name": "Horn",
+			"cat": "Organic",
+			"gen": "horn",
+			"params": {},
+			"builtin": true
+		},
+		"tentacle": {
+			"name": "Tentacle",
+			"cat": "Organic",
+			"gen": "horn",
+			"params": {
+				"r": 0.12,
+				"length": 1.6,
+				"curl": 140.0,
+				"spiral": 0.3,
+				"ribs": 10,
+				"segs": 64
+			},
+			"builtin": true
+		},
+		"spiral_shell": {
+			"name": "Spiral shell",
+			"cat": "Organic",
+			"gen": "horn",
+			"params": {
+				"r": 0.25,
+				"curl": 900.0,
+				"spiral": 0.6,
+				"rise": 0.35,
+				"segs": 160,
+				"length": 2.0
+			},
+			"builtin": true
+		},
+		"trefoil_knot": {
+			"name": "Trefoil knot",
+			"cat": "Organic",
+			"gen": "knot",
+			"params": {},
+			"builtin": true
+		},
+		"cinquefoil_knot": {
+			"name": "Cinquefoil knot",
+			"cat": "Organic",
+			"gen": "knot",
+			"params": {
+				"p": 2,
+				"q": 5,
+				"segs": 260
+			},
+			"builtin": true
+		},
+		"star_knot": {
+			"name": "Star knot",
+			"cat": "Organic",
+			"gen": "knot",
+			"params": {
+				"p": 3,
+				"q": 7,
+				"r": 0.05,
+				"segs": 320
+			},
+			"builtin": true
+		},
+		"mushroom": {
+			"name": "Mushroom",
+			"cat": "Organic",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-0.45
+					],
+					[
+						0.12,
+						-0.45
+					],
+					[
+						0.1,
+						-0.15
+					],
+					[
+						0.08,
+						0.05
+					],
+					[
+						0.12,
+						0.1
+					],
+					[
+						0.35,
+						0.1
+					],
+					[
+						0.42,
+						0.17
+					],
+					[
+						0.38,
+						0.3
+					],
+					[
+						0.25,
+						0.4
+					],
+					[
+						0,
+						0.45
+					]
+				],
+				"segs": 32
+			},
+			"builtin": true
+		},
+		"gourd": {
+			"name": "Gourd",
+			"cat": "Organic",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-0.55
+					],
+					[
+						0.2,
+						-0.53
+					],
+					[
+						0.3,
+						-0.4
+					],
+					[
+						0.28,
+						-0.2
+					],
+					[
+						0.16,
+						-0.05
+					],
+					[
+						0.13,
+						0.05
+					],
+					[
+						0.16,
+						0.2
+					],
+					[
+						0.12,
+						0.33
+					],
+					[
+						0.04,
+						0.4
+					],
+					[
+						0.03,
+						0.55
+					],
+					[
+						0,
+						0.55
+					]
+				],
+				"segs": 32
+			},
+			"builtin": true
+		},
+		"tree_trunk": {
+			"name": "Tree trunk",
+			"cat": "Organic",
+			"gen": "column",
+			"params": {
+				"flutes": 9,
+				"depth": 0.03,
+				"capital": 0,
+				"base": 0,
+				"taper": 0.7,
+				"r": 0.25,
+				"h": 2.0,
+				"segs": 72
+			},
+			"builtin": true
+		},
+		"leaf": {
+			"name": "Leaf",
+			"cat": "Organic",
+			"gen": "extrude",
+			"params": {
+				"points": [
+					[
+						0.0,
+						-0.5
+					],
+					[
+						0.0421,
+						-0.4375
+					],
+					[
+						0.081,
+						-0.375
+					],
+					[
+						0.1154,
+						-0.3125
+					],
+					[
+						0.1439,
+						-0.25
+					],
+					[
+						0.1658,
+						-0.1875
+					],
+					[
+						0.1804,
+						-0.125
+					],
+					[
+						0.1875,
+						-0.0625
+					],
+					[
+						0.187,
+						0.0
+					],
+					[
+						0.1794,
+						0.0625
+					],
+					[
+						0.1651,
+						0.125
+					],
+					[
+						0.1452,
+						0.1875
+					],
+					[
+						0.1206,
+						0.25
+					],
+					[
+						0.0924,
+						0.3125
+					],
+					[
+						0.0621,
+						0.375
+					],
+					[
+						0.0308,
+						0.4375
+					],
+					[
+						0.0,
+						0.5
+					],
+					[
+						-0.0308,
+						0.4375
+					],
+					[
+						-0.0621,
+						0.375
+					],
+					[
+						-0.0924,
+						0.3125
+					],
+					[
+						-0.1206,
+						0.25
+					],
+					[
+						-0.1452,
+						0.1875
+					],
+					[
+						-0.1651,
+						0.125
+					],
+					[
+						-0.1794,
+						0.0625
+					],
+					[
+						-0.187,
+						0.0
+					],
+					[
+						-0.1875,
+						-0.0625
+					],
+					[
+						-0.1804,
+						-0.125
+					],
+					[
+						-0.1658,
+						-0.1875
+					],
+					[
+						-0.1439,
+						-0.25
+					],
+					[
+						-0.1154,
+						-0.3125
+					],
+					[
+						-0.081,
+						-0.375
+					],
+					[
+						-0.0421,
+						-0.4375
+					]
+				],
+				"h": 0.02,
+				"bevel": 0.006
+			},
+			"builtin": true
+		},
+		"greeble_panel": {
+			"name": "Greeble panel",
+			"cat": "Sci-fi",
+			"gen": "greeble",
+			"params": {},
+			"builtin": true
+		},
+		"dense_greebles": {
+			"name": "Dense greebles",
+			"cat": "Sci-fi",
+			"gen": "greeble",
+			"params": {
+				"count": 40,
+				"height": 0.04,
+				"seed": 7
+			},
+			"builtin": true
+		},
+		"vent_panel": {
+			"name": "Vent panel",
+			"cat": "Sci-fi",
+			"gen": "greeble",
+			"params": {
+				"kind": 1,
+				"count": 8
+			},
+			"builtin": true
+		},
+		"pipe_panel": {
+			"name": "Pipe panel",
+			"cat": "Sci-fi",
+			"gen": "greeble",
+			"params": {
+				"kind": 2,
+				"count": 6,
+				"height": 0.08
+			},
+			"builtin": true
+		},
+		"tile_panel": {
+			"name": "Tile panel",
+			"cat": "Sci-fi",
+			"gen": "greeble",
+			"params": {
+				"kind": 3,
+				"count": 16,
+				"height": 0.03
+			},
+			"builtin": true
+		},
+		"hex_plate": {
+			"name": "Hex plate",
+			"cat": "Sci-fi",
+			"gen": "cylinder",
+			"params": {
+				"segs": 6,
+				"h": 0.06,
+				"bevel": 0.015
+			},
+			"builtin": true
+		},
+		"hull_plate": {
+			"name": "Hull plate",
+			"cat": "Sci-fi",
+			"gen": "box",
+			"params": {
+				"w": 1.5,
+				"h": 0.06,
+				"d": 1.0,
+				"bevel": 0.02,
+				"bevel_segs": 2
+			},
+			"builtin": true
+		},
+		"thruster": {
+			"name": "Thruster nozzle",
+			"cat": "Sci-fi",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0.44,
+						-0.375
+					],
+					[
+						0.48,
+						-0.375
+					],
+					[
+						0.31,
+						-0.055
+					],
+					[
+						0.2,
+						0.175
+					],
+					[
+						0.22,
+						0.245
+					],
+					[
+						0.22,
+						0.375
+					],
+					[
+						0,
+						0.375
+					],
+					[
+						0,
+						0.125
+					],
+					[
+						0.16,
+						0.145
+					],
+					[
+						0.28,
+						-0.075
+					]
+				],
+				"segs": 40
+			},
+			"builtin": true
+		},
+		"fuel_tank": {
+			"name": "Fuel tank",
+			"cat": "Sci-fi",
+			"gen": "capsule",
+			"params": {
+				"r": 0.3,
+				"h": 1.4,
+				"segs": 32
+			},
+			"builtin": true
+		},
+		"antenna": {
+			"name": "Antenna",
+			"cat": "Sci-fi",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-0.655
+					],
+					[
+						0.08,
+						-0.655
+					],
+					[
+						0.08,
+						-0.605
+					],
+					[
+						0.02,
+						-0.585
+					],
+					[
+						0.015,
+						0.545
+					],
+					[
+						0.04,
+						0.565
+					],
+					[
+						0.05,
+						0.605
+					],
+					[
+						0.04,
+						0.645
+					],
+					[
+						0,
+						0.655
+					]
+				],
+				"segs": 16
+			},
+			"builtin": true
+		},
+		"dish_antenna": {
+			"name": "Dish antenna",
+			"cat": "Sci-fi",
+			"gen": "dish",
+			"params": {
+				"r": 0.6,
+				"depth": 0.25,
+				"t": 0.02,
+				"foot": 0.15
+			},
+			"builtin": true
+		},
+		"reactor_core": {
+			"name": "Reactor core",
+			"cat": "Sci-fi",
+			"gen": "lathe",
+			"params": {
+				"points": [
+					[
+						0,
+						-0.46
+					],
+					[
+						0.45,
+						-0.46
+					],
+					[
+						0.45,
+						-0.36
+					],
+					[
+						0.35,
+						-0.34
+					],
+					[
+						0.35,
+						-0.16
+					],
+					[
+						0.42,
+						-0.14
+					],
+					[
+						0.42,
+						-0.06
+					],
+					[
+						0.35,
+						-0.04
+					],
+					[
+						0.35,
+						0.14
+					],
+					[
+						0.42,
+						0.16
+					],
+					[
+						0.42,
+						0.24
+					],
+					[
+						0.3,
+						0.29
+					],
+					[
+						0.2,
+						0.44
+					],
+					[
+						0,
+						0.46
+					]
+				],
+				"segs": 40
+			},
+			"builtin": true
+		},
+		"pylon": {
+			"name": "Pylon",
+			"cat": "Sci-fi",
+			"gen": "loft",
+			"params": {
+				"sides_a": 4,
+				"sides_b": 4,
+				"r_a": 0.4,
+				"r_b": 0.15,
+				"h": 2.0,
+				"twist": 45.0,
+				"layers": 12
+			},
+			"builtin": true
+		},
+		"twisted_tower": {
+			"name": "Twisted tower",
+			"cat": "Sci-fi",
+			"gen": "loft",
+			"params": {
+				"sides_a": 6,
+				"sides_b": 6,
+				"r_a": 0.5,
+				"r_b": 0.35,
+				"h": 2.5,
+				"twist": 120.0,
+				"layers": 24
+			},
+			"builtin": true
+		},
+		"square_to_round": {
+			"name": "Square to round",
+			"cat": "Sci-fi",
+			"gen": "loft",
+			"params": {
+				"sides_a": 4,
+				"sides_b": 32,
+				"r_a": 0.5,
+				"r_b": 0.35,
+				"h": 1.0,
+				"layers": 8
+			},
+			"builtin": true
+		},
+		"docking_ring": {
+			"name": "Docking ring",
+			"cat": "Sci-fi",
+			"gen": "torus",
+			"params": {
+				"R": 1.0,
+				"r": 0.08,
+				"sy": 2.5,
+				"segs": 64
+			},
+			"builtin": true
+		},
+		"energy_cell": {
+			"name": "Energy cell",
+			"cat": "Sci-fi",
+			"gen": "cylinder",
+			"params": {
+				"segs": 6,
+				"h": 0.5,
+				"r": 0.15,
+				"r_top": 0.15,
+				"bevel": 0.03
+			},
+			"builtin": true
+		},
+		"wing": {
+			"name": "Wing",
+			"cat": "Sci-fi",
+			"gen": "extrude",
+			"params": {
+				"points": [
+					[
+						-0.625,
+						-0.45
+					],
+					[
+						0.575,
+						-0.1
+					],
+					[
+						0.625,
+						0.1
+					],
+					[
+						-0.625,
+						0.45
+					]
+				],
+				"h": 0.05,
+				"bevel": 0.01
+			},
+			"builtin": true
+		}
+	}
+}

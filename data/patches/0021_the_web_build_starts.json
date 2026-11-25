@@ -1,0 +1,1022 @@
+{
+ "id": "0021",
+ "title": "The web build starts",
+ "date": "2026-11-24",
+ "summary": "Patch 0021 mends the browser version. Its title no longer freezes while shaders compile - they compile under a loading screen that now shows, with its bar, in the browser; the terrain no longer runs the web renderer out of its instance slots (one value a patch on the desktop, none in the browser), and planets' skies, the sea and the vein hologram read the depth buffer the way the web's renderer stores it - the sky is blue again.",
+ "steps": [
+  {
+   "title": "A title that answers",
+   "text": "In a browser the title screen froze for about 15 seconds - one to four frames a second - while it compiled every 3D shader in turn, and Start game seemed dead. There the title now only loads in the background; the shaders compile under the loading screen. The title runs at 60 FPS from its first second.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "A TITLE THAT ANSWERS",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      110
+     ],
+     "label": "title: 1-4 FPS\nfor ~15 s",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      332,
+      155.0
+     ],
+     "to": [
+      348,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      110
+     ],
+     "label": "each shader's compile\nstops the page",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      652,
+      155.0
+     ],
+     "to": [
+      668,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      110
+     ],
+     "label": "Start game\nseemed dead",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      290,
+      300,
+      110
+     ],
+     "label": "in a browser: only\nthe background loads",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      290,
+      300,
+      110
+     ],
+     "label": "shaders compile\nunder the loading",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      290,
+      300,
+      110
+     ],
+     "label": "title: 60 FPS\nat once",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "badge",
+     "at": [
+      260,
+      470
+     ],
+     "text": "web only",
+     "color": "green",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      740,
+      470
+     ],
+     "text": "60 FPS",
+     "color": "gold",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "title": "A loading screen in the browser",
+   "text": "On the desktop the game has no loading screen: the world shows as it's made, in a second or two. In a browser it takes about half a minute, and a black screen looked like nothing was happening - there the loading screen and its bar show now.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "A LOADING SCREEN IN THE BROWSER",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      110
+     ],
+     "label": "desktop: the world\nshows as it's made",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      332,
+      155.0
+     ],
+     "to": [
+      348,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      110
+     ],
+     "label": "browser: ~30 s\nof black",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      652,
+      155.0
+     ],
+     "to": [
+      668,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      110
+     ],
+     "label": "looked dead",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      290,
+      300,
+      110
+     ],
+     "label": "the loading screen\nand its bar",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      290,
+      300,
+      110
+     ],
+     "label": "shown only\nin a browser",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      290,
+      300,
+      110
+     ],
+     "label": "then the game,\n60 FPS",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "badge",
+     "at": [
+      260,
+      470
+     ],
+     "text": "~30 s",
+     "color": "green",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      740,
+      470
+     ],
+     "text": "a bar",
+     "color": "gold",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "title": "Terrain without instance uniforms",
+   "text": "The web's renderer gives each instance with instance uniforms 16 of its 4096 slots - 256 instances in all - and a planet's terrain has some 730 patches: 492 errors at every load. There the terrain works out each vertex's place from the planet's transform, set every frame, and finds the carves near it itself; the dug ground is marked in its mesh. On the desktop a patch keeps one value instead of three.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "TERRAIN WITHOUT INSTANCE UNIFORMS",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      110
+     ],
+     "label": "16 slots an\ninstance: 256 in all",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      332,
+      155.0
+     ],
+     "to": [
+      348,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      110
+     ],
+     "label": "~730 terrain\npatches",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      652,
+      155.0
+     ],
+     "to": [
+      668,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      110
+     ],
+     "label": "492 errors\na load",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      290,
+      300,
+      110
+     ],
+     "label": "the planet's\ntransform each frame",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      290,
+      300,
+      110
+     ],
+     "label": "carves near:\nper vertex",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      290,
+      300,
+      110
+     ],
+     "label": "0 errors",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "badge",
+     "at": [
+      260,
+      470
+     ],
+     "text": "1 value, not 3",
+     "color": "green",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      740,
+      470
+     ],
+     "text": "0 errors",
+     "color": "gold",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "title": "The sky back",
+   "text": "Planets' skies were black in a browser: the atmosphere read the depth buffer in the desktop renderer's range (reversed, 0 to 1), not OpenGL's (-1 to 1), and took the ground to be at your eye. The atmosphere, the sea's underwater pass and the vein hologram now read it the right way for each renderer.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "THE SKY BACK",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      110
+     ],
+     "label": "the sky black\nin a browser",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      332,
+      155.0
+     ],
+     "to": [
+      348,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      110
+     ],
+     "label": "depth read in\nthe wrong range",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      652,
+      155.0
+     ],
+     "to": [
+      668,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      110
+     ],
+     "label": "ground taken to be\nat the eye",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      290,
+      300,
+      110
+     ],
+     "label": "converted for\nthe web's renderer",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      290,
+      300,
+      110
+     ],
+     "label": "atmosphere, sea,\nvein hologram",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      290,
+      300,
+      110
+     ],
+     "label": "a blue sky",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "badge",
+     "at": [
+      260,
+      470
+     ],
+     "text": "3 shaders",
+     "color": "green",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      740,
+      470
+     ],
+     "text": "blue sky",
+     "color": "gold",
+     "size": 16
+    }
+   ]
+  }
+ ],
+ "review": {
+  "intro": "The code behind patch 0021: the web build fixed - a title that no longer freezes while shaders compile, a loading screen in the browser, terrain without instance uniforms in the web's renderer, and the depth buffer read in its range (the sky, the sea, the vein hologram).",
+  "files": [
+   {
+    "path": "data/docs/shots/manifest.json",
+    "kind": "modified",
+    "explanation": "The screenshots' record: the four retaken shots' dates and checksums.",
+    "hunks": [
+     {
+      "diff": "@@ -80,8 +80,8 @@ \n   \"taken\": \"2026-11-21 10:20\"\n  },\n  \"space3d\": {\n-  \"hash\": \"fc51ae5c4946418770e9429d228d2cca\",\n-  \"taken\": \"2026-11-23 22:32\"\n+  \"hash\": \"38d72b836966c224acc149cbec5a7d64\",\n+  \"taken\": \"2026-11-24 00:00\"\n  },\n  \"space3d_building\": {\n   \"hash\": \"d498e93120b37a0940ab1192575c1ef9\",",
+      "added": 2,
+      "removed": 2,
+      "title": "Retaken",
+      "note": "A retaken shot's new date and checksum."
+     },
+     {
+      "diff": "@@ -96,8 +96,8 @@ \n   \"taken\": \"2026-11-23 22:32\"\n  },\n  \"space3d_digging\": {\n-  \"hash\": \"a9c2fa71aea0af33854a6c9397fb3288\",\n-  \"taken\": \"2026-11-23 22:32\"\n+  \"hash\": \"41158cc6dd3ac66493b83d3e951bc82a\",\n+  \"taken\": \"2026-11-24 00:00\"\n  },\n  \"space3d_dungeon\": {\n   \"hash\": \"3a255aba064c5d2a5f1add33eba1850b\",",
+      "added": 2,
+      "removed": 2,
+      "title": "Retaken",
+      "note": "A retaken shot's new date and checksum."
+     },
+     {
+      "diff": "@@ -112,8 +112,8 @@ \n   \"taken\": \"2026-11-23 22:32\"\n  },\n  \"space3d_ground\": {\n-  \"hash\": \"5c09503af4f7b9a5ea3057e01f95dc57\",\n-  \"taken\": \"2026-11-23 22:32\"\n+  \"hash\": \"9c9b6da0ca67cfe5582ec4e81443ac8b\",\n+  \"taken\": \"2026-11-24 00:00\"\n  },\n  \"space3d_hangar\": {\n   \"hash\": \"d3be4e3f37fd2c6b752bdbdff9f6ebdc\",",
+      "added": 2,
+      "removed": 2,
+      "title": "Retaken",
+      "note": "A retaken shot's new date and checksum."
+     },
+     {
+      "diff": "@@ -160,8 +160,8 @@ \n   \"taken\": \"2026-11-23 22:07\"\n  },\n  \"space3d_vein\": {\n-  \"hash\": \"33a63bb60b59ac5ee7b5bb26a27562f2\",\n-  \"taken\": \"2026-11-23 22:32\"\n+  \"hash\": \"80dd8ef6121464b0d31d58caff92b550\",\n+  \"taken\": \"2026-11-24 00:00\"\n  },\n  \"space_combat\": {\n   \"hash\": \"062332a8dc5ee68a2f46672087637f18\",",
+      "added": 2,
+      "removed": 2,
+      "title": "Retaken",
+      "note": "A retaken shot's new date and checksum."
+     }
+    ],
+    "added": 8,
+    "removed": 8
+   },
+   {
+    "path": "data/docs/shots/space3d.jpg",
+    "kind": "modified",
+    "explanation": "The guide's picture retaken: the terrain shader changed, so the shots showing the ground were older than it.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/docs/shots/space3d_digging.jpg",
+    "kind": "modified",
+    "explanation": "The guide's picture retaken: the terrain shader changed, so the shots showing the ground were older than it.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/docs/shots/space3d_ground.jpg",
+    "kind": "modified",
+    "explanation": "The guide's picture retaken: the terrain shader changed, so the shots showing the ground were older than it.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/docs/shots/space3d_vein.jpg",
+    "kind": "modified",
+    "explanation": "The guide's picture retaken: the terrain shader changed, so the shots showing the ground were older than it.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/patches/version_0.31_empires_at_war.json",
+    "kind": "modified",
+    "explanation": "Version 0.31's page for patch 0020 drawn properly - six boxes of what it brought, its text, two badges - in place of the generated badges; and its line in the summary.",
+    "hunks": [
+     {
+      "diff": "@@ -1260,96 +1260,134 @@ \n   {\n    \"patch\": \"0020\",\n    \"title\": \"Patch 0020 - Build your own\",\n-   \"text\": \"Patch 0020 lets you build. A builder on the toolbar and a kit of 43 snapping pieces - foundations, floors, walls, doors, windows, roofs, stairs, columns, fences and furniture - in four tiers and six empire styles, held up by what's under them and worn down by fire; the towns themselves are now built from the same kit.\",\n+   \"text\": \"You build now: a builder and 43 snapping pieces in four tiers and six empire styles, held up by what's under them, worn down by fire - and the towns are built from the same kit. The game gets its own typeface and a new flight HUD, a free mouse and HUD buttons, veins seen as holograms as you dig, maps that open on you, swimming and diving, mended rides, and the automaton you shaped yourself.\",\n    \"diagram\": [\n+    {\n+     \"t\": \"text\",\n+     \"at\": [\n+      500,\n+      45\n+     ],\n+     \"text\": \"PATCH 0020 - BUILD YOUR OWN\",\n+     \"size\": 22,\n+     \"color\": \"gold\",\n+     \"align\": \"center\"\n+    },\n     {\n      \"t\": \"box\",\n      \"rect\": [\n-      200,\n-      40,\n-      600,\n-      80\n+      30,\n+      100,\n+      300,\n+      110\n      ],\n-     \"label\": \"PATCH 0020\\nBuild your own\",\n-     \"size\": 18,\n+     \"label\": \"43 pieces,\\n4 tiers, 6 styles\",\n+     \"size\": 16,\n+     \"stroke\": \"cyan\"\n+    },\n+    {\n+     \"t\": \"arrow\",\n+     \"from\": [\n+      332,\n+      155.0\n+     ],\n+     \"to\": [\n+      348,\n+      155.0\n+     ],\n+     \"color\": \"gold\"\n+    },\n+    {\n+     \"t\": \"box\",\n+     \"rect\": [\n+      350,\n+      100,\n+      300,\n+      110\n+     ],\n+     \"label\": \"held up or\\nthey fall\",\n+     \"size\": 16,\n+     \"stroke\": \"gold\"\n+    },\n+    {\n+     \"t\": \"arrow\",\n+     \"from\": [\n+      652,\n+      155.0\n+     ],\n+     \"to\": [\n+      668,\n+      155.0\n+     ],\n+     \"color\": \"gold\"\n+    },\n+    {\n+     \"t\": \"box\",\n+     \"rect\": [\n+      670,\n+      100,\n+      300,\n+      110\n+     ],\n+     \"label\": \"drag runs, modes,\\nfree building\",\n+     \"size\": 16,\n+     \"stroke\": \"green\"\n+    },\n+    {\n+     \"t\": \"box\",\n+     \"rect\": [\n+      30,\n+      290,\n+      300,\n+      110\n+     ],\n+     \"label\": \"towns from\\nthe kit\",\n+     \"size\": 16,\n+     \"stroke\": \"purple\"\n+    },\n+    {\n+     \"t\": \"box\",\n+     \"rect\": [\n+      350,\n+      290,\n+      300,\n+      110\n+     ],\n+     \"label\": \"Atrapos Sans,\\na new flight HUD\",\n+     \"size\": 16,\n+     \"stroke\": \"cyan\"\n+    },\n+    {\n+     \"t\": \"box\",\n+     \"rect\": [\n+      670,\n+      290,\n+      300,\n+      110\n+     ],\n+     \"label\": \"veins as holograms,\\nswimming, maps\",\n+     \"size\": 16,\n      \"stroke\": \"gold\"\n     },\n     {\n      \"t\": \"badge\",\n      \"at\": [\n-      210,\n-      200\n+      260,\n+      470\n      ],\n-     \"text\": \"Building: a kit of snapping pieces\",\n-     \"color\": \"cyan\",\n-     \"size\": 15,\n-     \"delay\": 0.3\n+     \"text\": \"builder on 5\",\n+     \"color\": \"green\",\n+     \"size\": 16\n     },\n     {\n      \"t\": \"badge\",\n      \"at\": [\n-      500,\n-      200\n+      740,\n+      470\n      ],\n-     \"text\": \"Holding up, tiers and styles\",\n-     \"color\": \"green\",\n-     \"size\": 15,\n-     \"delay\": 0.44999999999999996\n-    },\n-    {\n-     \"t\": \"badge\",\n-     \"at\": [\n-      790,\n-      200\n-     ],\n-     \"text\": \"Building tools\",\n-     \"color\": \"purple\",\n-     \"size\": 15,\n-     \"delay\": 0.6\n-    },\n-    {\n-     \"t\": \"badge\",\n-     \"at\": [\n-      210,\n-      290\n-     ],\n-     \"text\": \"Doors, furniture, wear\",\n+     \"text\": \"200 files\",\n      \"color\": \"gold\",\n-     \"size\": 15,\n-     \"delay\": 0.75\n-    },\n-    {\n-     \"t\": \"badge\",\n-     \"at\": [\n-      500,\n-      290\n-     ],\n-     \"text\": \"Towns from the kit; free building\",\n-     \"color\": \"red\",\n-     \"size\": 15,\n-     \"delay\": 0.8999999999999999\n-    },\n-    {\n-     \"t\": \"badge\",\n-     \"at\": [\n-      790,\n-      290\n-     ],\n-     \"text\": \"Atrapos Sans\",\n-     \"color\": \"blue\",\n-     \"size\": 15,\n-     \"delay\": 1.05\n-    },\n-    {\n-     \"t\": \"text\",\n-     \"at\": [\n-      500,\n-      400\n-     ],\n-     \"text\": \"... and 5 more steps\",\n-     \"size\": 15,\n-     \"color\": \"dim\",\n-     \"align\": \"center\"\n+     \"size\": 16\n     }\n    ]\n   }",
+      "added": 111,
+      "removed": 73,
+      "title": "Patch 0020's page",
+      "note": "Its title, text and diagram: the kit, holding up, the tools, towns from the kit, the typeface and HUD, veins, swimming and maps."
+     }
+    ],
+    "added": 111,
+    "removed": 73
+   },
+   {
+    "path": "external/2d_game/shaders/noise.gdshaderinc",
+    "kind": "new",
+    "explanation": "Now tracked: shader include files (.gdshaderinc) were missing from the patch tracker's text types - this one appears whole, as new to it. (The old 2D game's copy, kept for reference.)",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,34 @@ \n+// Shared value-noise helpers for the procedural background shaders.\n+\n+// Integer hash: exact for any lattice point, so neighbouring cells always\n+// agree on shared corners (float sin/fract hashes lose precision and leave\n+// visible seams at larger coordinates).\n+float hash21(vec2 p) {\n+\tuvec2 q = uvec2(ivec2(p)) * uvec2(1597334673u, 3812015801u);\n+\tuint n = (q.x ^ q.y) * 1597334673u;\n+\treturn float(n) * (1.0 / 4294967295.0);\n+}\n+\n+float vnoise(vec2 p) {\n+\tvec2 i = floor(p);\n+\tvec2 f = fract(p);\n+\tvec2 u = f * f * (3.0 - 2.0 * f);\n+\tfloat a = hash21(i);\n+\tfloat b = hash21(i + vec2(1.0, 0.0));\n+\tfloat c = hash21(i + vec2(0.0, 1.0));\n+\tfloat d = hash21(i + vec2(1.0, 1.0));\n+\treturn mix(mix(a, b, u.x), mix(c, d, u.x), u.y);\n+}\n+\n+float fbm(vec2 p) {\n+\tfloat value = 0.0;\n+\tfloat amp = 0.5;\n+\t// Rotating each octave hides the axis-aligned grid of value noise.\n+\tmat2 rot = mat2(vec2(0.8, 0.6), vec2(-0.6, 0.8));\n+\tfor (int i = 0; i < 5; i++) {\n+\t\tvalue += amp * vnoise(p);\n+\t\tp = rot * p * 2.03 + vec2(17.1, 9.7);\n+\t\tamp *= 0.5;\n+\t}\n+\treturn value;\n+}",
+      "added": 34,
+      "removed": 0,
+      "title": "Noise helpers (2D reference)",
+      "note": "The 2D game's noise functions - unchanged, first seen by the tracker."
+     }
+    ],
+    "added": 34,
+    "removed": 0
+   },
+   {
+    "path": "external/2d_game/shaders/noise3.gdshaderinc",
+    "kind": "new",
+    "explanation": "Now tracked: shader include files (.gdshaderinc) were missing from the patch tracker's text types - this one appears whole, as new to it. (The old 2D game's copy, kept for reference.)",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,48 @@ \n+// 3D value noise for the planet and star shaders (surfaces on a sphere).\n+\n+float hash31(vec3 p) {\n+\tuvec3 q = uvec3(ivec3(p)) * uvec3(1597334673u, 3812015801u, 2798796415u);\n+\tuint n = (q.x ^ q.y ^ q.z) * 1597334673u;\n+\treturn float(n) * (1.0 / 4294967295.0);\n+}\n+\n+float vnoise3(vec3 p) {\n+\tvec3 i = floor(p);\n+\tvec3 f = fract(p);\n+\tvec3 u = f * f * (3.0 - 2.0 * f);\n+\tfloat a = mix(hash31(i), hash31(i + vec3(1, 0, 0)), u.x);\n+\tfloat b = mix(hash31(i + vec3(0, 1, 0)), hash31(i + vec3(1, 1, 0)), u.x);\n+\tfloat c = mix(hash31(i + vec3(0, 0, 1)), hash31(i + vec3(1, 0, 1)), u.x);\n+\tfloat d = mix(hash31(i + vec3(0, 1, 1)), hash31(i + vec3(1, 1, 1)), u.x);\n+\treturn mix(mix(a, b, u.y), mix(c, d, u.y), u.z);\n+}\n+\n+const mat3 OCT = mat3(vec3(0.0, 0.8, 0.6), vec3(-0.8, 0.36, -0.48), vec3(-0.6, -0.48, 0.64));\n+\n+float fbm3(vec3 p, int oct) {\n+\tfloat v = 0.0, a = 0.5, n = 0.0;\n+\tfor (int i = 0; i < 8; i++) {\n+\t\tif (i >= oct) break;\n+\t\tv += a * vnoise3(p);\n+\t\tn += a;\n+\t\tp = OCT * p * 2.03 + vec3(11.7, 3.1, 7.9);\n+\t\ta *= 0.5;\n+\t}\n+\treturn v / n;\n+}\n+\n+// Ridged multifractal: sharp crests where the noise crosses its middle.\n+float ridged3(vec3 p, int oct) {\n+\tfloat v = 0.0, a = 0.5, n = 0.0, w = 1.0;\n+\tfor (int i = 0; i < 8; i++) {\n+\t\tif (i >= oct) break;\n+\t\tfloat r = 1.0 - abs(vnoise3(p) * 2.0 - 1.0);\n+\t\tr *= r;\n+\t\tv += a * r * w;\n+\t\tn += a;\n+\t\tw = clamp(r * 1.6, 0.0, 1.0);\n+\t\tp = OCT * p * 2.1 + vec3(5.3, 8.7, 1.9);\n+\t\ta *= 0.5;\n+\t}\n+\treturn v / n;\n+}",
+      "added": 48,
+      "removed": 0,
+      "title": "3D noise helpers (2D reference)",
+      "note": "The 2D game's 3D noise functions - unchanged, first seen by the tracker."
+     }
+    ],
+    "added": 48,
+    "removed": 0
+   },
+   {
+    "path": "external/doc_shots_raw/space3d.png",
+    "kind": "modified",
+    "explanation": "The guide's picture retaken: the terrain shader changed, so the shots showing the ground were older than it.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "external/doc_shots_raw/space3d_digging.png",
+    "kind": "modified",
+    "explanation": "The guide's picture retaken: the terrain shader changed, so the shots showing the ground were older than it.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "external/doc_shots_raw/space3d_ground.png",
+    "kind": "modified",
+    "explanation": "The guide's picture retaken: the terrain shader changed, so the shots showing the ground were older than it.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "external/doc_shots_raw/space3d_vein.png",
+    "kind": "modified",
+    "explanation": "The guide's picture retaken: the terrain shader changed, so the shots showing the ground were older than it.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "scripts/core/load_veil.gd",
+    "kind": "modified",
+    "explanation": "The loading screen shows in a browser: there the world takes about half a minute to build, and a black screen with nothing on it looked like the game had died.",
+    "hunks": [
+     {
+      "diff": "@@ -103,8 +103,9 @@ func _build\n \t_stage.add_theme_color_override(\"font_color\", Color(NeonTheme.HEAD, 0.85))\n \t_stage.text = \"Restoring the galaxy\"\n \tbox.add_child(_stage)\n-\t# (No loading screen: the game shows as it's made.)\n-\t_root.visible = false\n+\t# (No loading screen: the game shows as it's made - but in a browser, where the\n+\t# world takes half a minute to build, the screen and its bar: else it looked dead.)\n+\t_root.visible = OS.has_feature(\"web\")\n \t_root.mouse_filter = Control.MOUSE_FILTER_IGNORE\n \n ",
+      "added": 3,
+      "removed": 2,
+      "title": "Shown on the web",
+      "note": "Still hidden on the desktop (the game shows as it's made), visible in a browser with its bar.",
+      "bubbles": [
+       {
+        "at": "_root.visible = OS.has_feature(\"web\")",
+        "text": "Only a browser build shows the screen and its progress bar."
+       }
+      ]
+     }
+    ],
+    "added": 3,
+    "removed": 2
+   },
+   {
+    "path": "scripts/world/models/cosmos_warm.gd",
+    "kind": "modified",
+    "explanation": "In a browser the title no longer draws one of every 3D thing: each shader's compile stopped the page for up to a second and the title froze for ~15 s, so clicking Start game seemed to do nothing.",
+    "hunks": [
+     {
+      "diff": "@@ -67,6 +67,12 @@ func _ready\n \tspot.spot_range = 10.0\n \tspot.shadow_enabled = false\n \t_vp.add_child(spot)\n+\tif OS.has_feature(\"web\"):\n+\t\t# (In a browser each shader's compile stops the page for up to a second: drawn here, the\n+\t\t# title froze for ~15 s and Start game seemed dead. There they're compiled under the\n+\t\t# loading veil instead, as the world first draws behind it; the loads above still run.)\n+\t\t_queue.append(_text)\n+\t\treturn\n \t_queue.append(_sky)\n \tfor f in [_terrain, _water, _atmosphere, _clouds, _gas, _ring, _star, _glow, _gate, _engine, _rocks, _deposit, _minoan, _flora, _creature, _veins, _underwater, _hulls, _walker, _pirate, _citizen, _town, _builds, _maps, _text]:\n \t\t_queue.append(f)",
+      "added": 6,
+      "removed": 0,
+      "title": "Not at the title in a browser",
+      "note": "Only the background loads and the HUD's text there; the shaders compile under the loading screen as the world first draws.",
+      "bubbles": [
+       {
+        "at": "if OS.has_feature(\"web\"):",
+        "text": "The browser's path: the queue gets only the text, then returns before the 3D things are queued."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -167,7 +173,7 @@ func _terrain\n \t\tst.add_vertex(v)\n \tst.index()\n \tvar mi := _put(st.commit(), _shader(\"res://shaders/world/terrain.gdshader\"), Vector3.ZERO, true)\n-\tmi.set_instance_shader_parameter(\"patch_centre\", Vector3(0, 0, 1000))\n+\tmi.set_instance_shader_parameter(\"patch_info\", Vector4(0, 0, 1000, 0))\n \n \n func _water() -> void:",
+      "added": 1,
+      "removed": 1,
+      "title": "The terrain's one value",
+      "note": "The warm-up's terrain sample sets the new packed instance value.",
+      "bubbles": [
+       {
+        "at": "patch_info",
+        "text": "Its centre in xyz, no flags."
+       }
+      ]
+     }
+    ],
+    "added": 7,
+    "removed": 1
+   },
+   {
+    "path": "scripts/world/space/cosmos_planet.gd",
+    "kind": "modified",
+    "explanation": "The terrain without instance uniforms in the web's renderer: the planet hands the terrain shader its inverse transform every frame, just before drawing, and patches only set their packed value in Forward+.",
+    "hunks": [
+     {
+      "diff": "@@ -41,6 +41,8 @@ ## buffer: the halo from space, the sky and the haze on the \n var max_level := 6\n var sun_dir := Vector3.UP       # (to the star, world - set by Cosmos)\n var material: ShaderMaterial\n+## The web's renderer (Compatibility): its terrain without instance uniforms (terrain.gdshader).\n+static var COMPAT := RenderingServer.get_current_rendering_method() == \"gl_compatibility\"\n var atmo_radius := 0.0\n var _roots: Array = []\n var _busy: Array = []           # patches whose builds are running",
+      "added": 2,
+      "removed": 0,
+      "title": "Which renderer",
+      "note": "COMPAT: the Compatibility renderer (the web's) - its terrain has no instance uniforms.",
+      "bubbles": [
+       {
+        "at": "static var COMPAT",
+        "text": "Read once from the RenderingServer."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -528,12 +530,12 @@ func _collect\n \t\tmi.material_override = material\n \t\tmi.position = p.centre\n \t\tmi.visible = p.shown and p.mi != null   # (built again - dug: in place of the old one)\n-\t\tmi.set_instance_shader_parameter(\"cut_on\", 0.0 if p.digs.is_empty() else 1.0)   # (carves near: not drawn inside them)\n \t\tif p.mi:\n \t\t\tp.mi.queue_free()\n \t\tp.rocks = p.rocks_new\n \t\tp.rocks_new = []\n-\t\tmi.set_instance_shader_parameter(\"patch_centre\", p.centre)\n+\t\tif not COMPAT:   # (the web's renderer: none - see terrain.gdshader)\n+\t\t\tmi.set_instance_shader_parameter(\"patch_info\", Vector4(p.centre.x, p.centre.y, p.centre.z, 0.0 if p.digs.is_empty() else 1.0))   # (its centre; 1: carves near - not drawn inside them)\n \t\tmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if p.level >= max_level - 1 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF\n \t\tadd_child(mi)\n \t\tp.mi = mi",
+      "added": 2,
+      "removed": 2,
+      "title": "One value a patch",
+      "note": "A patch's centre and its 'carves near' flag in one vec4 - and none at all in Compatibility.",
+      "bubbles": [
+       {
+        "at": "if not COMPAT:",
+        "text": "In Compatibility each instance with instance uniforms takes 16 of 4096 slots (256 in all) - the ~730 patches overflowed it."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -825,7 +827,22 @@ func set_sun\n \t\tmaterial.set_shader_parameter(\"sun_dir\", dir)\n \n \n+func _enter_tree() -> void:\n+\tif COMPAT and not RenderingServer.frame_pre_draw.is_connected(_pre_draw):\n+\t\tRenderingServer.frame_pre_draw.connect(_pre_draw)\n+\n+\n+## (The web's renderer) The terrain's planet transform, just before each frame is drawn\n+## (after everything's moved): there the shader has no instance uniforms for its patches'\n+## centres (each instance takes 16 of 4096 slots) - it works them out from this.\n+func _pre_draw() -> void:\n+\tif material and is_inside_tree():\n+\t\tmaterial.set_shader_parameter(\"planet_inv\", Projection(global_transform.affine_inverse()))\n+\n+\n func _exit_tree() -> void:\n+\tif RenderingServer.frame_pre_draw.is_connected(_pre_draw):\n+\t\tRenderingServer.frame_pre_draw.disconnect(_pre_draw)\n \tif _flora_task != -1:\n \t\tWorkerThreadPool.wait_for_task_completion(_flora_task)\n \t\t_flora_task = -1",
+      "added": 15,
+      "removed": 0,
+      "title": "The planet's transform each frame",
+      "note": "Connected to frame_pre_draw: set after everything's moved, so the terrain never lags the planet.",
+      "bubbles": [
+       {
+        "at": "func _pre_draw() -> void:",
+        "text": "The inverse of the planet's transform as a mat4: the shader takes each vertex back into the planet's frame with it."
+       }
+      ]
+     }
+    ],
+    "added": 19,
+    "removed": 2
+   },
+   {
+    "path": "scripts/world/space/cosmos_voxels.gd",
+    "kind": "modified",
+    "explanation": "The dug ground marks itself in its UVs (y 1) instead of an instance flag, and sets no instance value in Compatibility.",
+    "hunks": [
+     {
+      "diff": "@@ -121,9 +121,8 @@ func _process\n \t\t\tmi.material_override = planet.material\n \t\t\tmi.position = Vector3(k) * CHUNK\n \t\t\tadd_child(mi)\n-\t\t\tmi.set_instance_shader_parameter(\"patch_centre\", mi.position)\n-\t\t\tmi.set_instance_shader_parameter(\"cut_on\", 0.0)\n-\t\t\tmi.set_instance_shader_parameter(\"voxel\", 1.0)   # (the dug ground: a vein's ore shows in its walls)\n+\t\t\tif not CosmosPlanet.COMPAT:\n+\t\t\t\tmi.set_instance_shader_parameter(\"patch_info\", Vector4(mi.position.x, mi.position.y, mi.position.z, 0.0))   # (its centre; the dug ground says so in its UVs)\n \t\t\tch[\"mi\"] = mi\n \t\tif ch[\"dirty\"]:\n \t\t\t_queue.append(k)",
+      "added": 2,
+      "removed": 3,
+      "title": "No instance value on the web",
+      "note": "Its centre only in Forward+; the dug-ground flag is in the mesh now.",
+      "bubbles": [
+       {
+        "at": "if not CosmosPlanet.COMPAT:",
+        "text": "Compatibility: nothing per instance."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -238,7 +237,7 @@ static func mesh_chunk\n \t\t\t\tvid[(k * C + j) * C + i] = verts.size()\n \t\t\t\tverts.append(lp)\n \t\t\t\tnorms.append(g.normalized() if g.length() > 0.0001 else (o + lp).normalized())\n-\t\t\t\tuvs.append(Vector2((o + lp).length() - R, 0.0))\n+\t\t\t\tuvs.append(Vector2((o + lp).length() - R, 1.0))   # (y 1: the carved ground - terrain.gdshader shows a vein's ore in it)\n \t# Quads: across each crossed edge this chunk owns (from samples 0 .. N-1 of it).\n \tvar idx := PackedInt32Array()\n \tvar near_carve := func(p: Vector3) -> bool:",
+      "added": 1,
+      "removed": 1,
+      "title": "Marked in its UVs",
+      "note": "UV.y 1 on every vertex of a dug chunk - the terrain shader shows a vein's ore in it.",
+      "bubbles": [
+       {
+        "at": "R, 1.0))",
+        "text": "y 1: the carved ground."
+       }
+      ]
+     }
+    ],
+    "added": 3,
+    "removed": 4
+   },
+   {
+    "path": "shaders/noise.gdshaderinc",
+    "kind": "new",
+    "explanation": "Now tracked: shader include files (.gdshaderinc) were missing from the patch tracker's text types - this one appears whole, as new to it.",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,34 @@ \n+// Shared value-noise helpers for the procedural background shaders.\n+\n+// Integer hash: exact for any lattice point, so neighbouring cells always\n+// agree on shared corners (float sin/fract hashes lose precision and leave\n+// visible seams at larger coordinates).\n+float hash21(vec2 p) {\n+\tuvec2 q = uvec2(ivec2(p)) * uvec2(1597334673u, 3812015801u);\n+\tuint n = (q.x ^ q.y) * 1597334673u;\n+\treturn float(n) * (1.0 / 4294967295.0);\n+}\n+\n+float vnoise(vec2 p) {\n+\tvec2 i = floor(p);\n+\tvec2 f = fract(p);\n+\tvec2 u = f * f * (3.0 - 2.0 * f);\n+\tfloat a = hash21(i);\n+\tfloat b = hash21(i + vec2(1.0, 0.0));\n+\tfloat c = hash21(i + vec2(0.0, 1.0));\n+\tfloat d = hash21(i + vec2(1.0, 1.0));\n+\treturn mix(mix(a, b, u.x), mix(c, d, u.x), u.y);\n+}\n+\n+float fbm(vec2 p) {\n+\tfloat value = 0.0;\n+\tfloat amp = 0.5;\n+\t// Rotating each octave hides the axis-aligned grid of value noise.\n+\tmat2 rot = mat2(vec2(0.8, 0.6), vec2(-0.6, 0.8));\n+\tfor (int i = 0; i < 5; i++) {\n+\t\tvalue += amp * vnoise(p);\n+\t\tp = rot * p * 2.03 + vec2(17.1, 9.7);\n+\t\tamp *= 0.5;\n+\t}\n+\treturn value;\n+}",
+      "added": 34,
+      "removed": 0,
+      "title": "Noise helpers",
+      "note": "Shared noise functions - unchanged, first seen by the tracker."
+     }
+    ],
+    "added": 34,
+    "removed": 0
+   },
+   {
+    "path": "shaders/noise3.gdshaderinc",
+    "kind": "new",
+    "explanation": "Now tracked: shader include files (.gdshaderinc) were missing from the patch tracker's text types - this one appears whole, as new to it.",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,48 @@ \n+// 3D value noise for the planet and star shaders (surfaces on a sphere).\n+\n+float hash31(vec3 p) {\n+\tuvec3 q = uvec3(ivec3(p)) * uvec3(1597334673u, 3812015801u, 2798796415u);\n+\tuint n = (q.x ^ q.y ^ q.z) * 1597334673u;\n+\treturn float(n) * (1.0 / 4294967295.0);\n+}\n+\n+float vnoise3(vec3 p) {\n+\tvec3 i = floor(p);\n+\tvec3 f = fract(p);\n+\tvec3 u = f * f * (3.0 - 2.0 * f);\n+\tfloat a = mix(hash31(i), hash31(i + vec3(1, 0, 0)), u.x);\n+\tfloat b = mix(hash31(i + vec3(0, 1, 0)), hash31(i + vec3(1, 1, 0)), u.x);\n+\tfloat c = mix(hash31(i + vec3(0, 0, 1)), hash31(i + vec3(1, 0, 1)), u.x);\n+\tfloat d = mix(hash31(i + vec3(0, 1, 1)), hash31(i + vec3(1, 1, 1)), u.x);\n+\treturn mix(mix(a, b, u.y), mix(c, d, u.y), u.z);\n+}\n+\n+const mat3 OCT = mat3(vec3(0.0, 0.8, 0.6), vec3(-0.8, 0.36, -0.48), vec3(-0.6, -0.48, 0.64));\n+\n+float fbm3(vec3 p, int oct) {\n+\tfloat v = 0.0, a = 0.5, n = 0.0;\n+\tfor (int i = 0; i < 8; i++) {\n+\t\tif (i >= oct) break;\n+\t\tv += a * vnoise3(p);\n+\t\tn += a;\n+\t\tp = OCT * p * 2.03 + vec3(11.7, 3.1, 7.9);\n+\t\ta *= 0.5;\n+\t}\n+\treturn v / n;\n+}\n+\n+// Ridged multifractal: sharp crests where the noise crosses its middle.\n+float ridged3(vec3 p, int oct) {\n+\tfloat v = 0.0, a = 0.5, n = 0.0, w = 1.0;\n+\tfor (int i = 0; i < 8; i++) {\n+\t\tif (i >= oct) break;\n+\t\tfloat r = 1.0 - abs(vnoise3(p) * 2.0 - 1.0);\n+\t\tr *= r;\n+\t\tv += a * r * w;\n+\t\tn += a;\n+\t\tw = clamp(r * 1.6, 0.0, 1.0);\n+\t\tp = OCT * p * 2.1 + vec3(5.3, 8.7, 1.9);\n+\t\ta *= 0.5;\n+\t}\n+\treturn v / n;\n+}",
+      "added": 48,
+      "removed": 0,
+      "title": "3D noise helpers",
+      "note": "Shared 3D noise functions - unchanged, first seen by the tracker."
+     }
+    ],
+    "added": 48,
+    "removed": 0
+   },
+   {
+    "path": "shaders/world/atmosphere.gdshader",
+    "kind": "modified",
+    "explanation": "The sky on planets in a browser: the depth buffer read in the web renderer's range.",
+    "hunks": [
+     {
+      "diff": "@@ -22,6 +22,9 @@ \n \tvec3 wp = (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;\n \tvec3 rd = normalize(wp - ro);\n \tfloat depth = texture(depth_tex, SCREEN_UV).r;\n+#if CURRENT_RENDERER == RENDERER_COMPATIBILITY\n+\tdepth = depth * 2.0 - 1.0;   // (the web's renderer: OpenGL's depth, -1..1 - raw, the ground read as at the eye and the sky came out black)\n+#endif\n \tvec4 vpos = INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, depth, 1.0);\n \tfloat scene_d = length(vpos.xyz / vpos.w);\n \tvec3 oc = ro - c;",
+      "added": 3,
+      "removed": 0,
+      "title": "OpenGL's depth",
+      "note": "Compatibility's depth is -1..1, not Forward+'s reversed 0..1: read raw, the ground seemed to be at the eye and the sky came out black.",
+      "bubbles": [
+       {
+        "at": "depth = depth * 2.0 - 1.0;",
+        "text": "Converted only under CURRENT_RENDERER == RENDERER_COMPATIBILITY."
+       }
+      ]
+     }
+    ],
+    "added": 3,
+    "removed": 0
+   },
+   {
+    "path": "shaders/world/terrain.gdshader",
+    "kind": "modified",
+    "explanation": "Two ways to know where a vertex is on its planet: Forward+ keeps one instance vec4 a patch (was three values); the web's renderer, which can't afford instance uniforms for ~730 patches, works it out from MODEL_MATRIX and the planet's inverse transform, and finds nearby carves per vertex. The dug ground is told by its UVs.",
+    "hunks": [
+     {
+      "diff": "@@ -11,11 +11,19 @@ \n shader_type spatial;\n render_mode cull_back, specular_disabled;\n \n-instance uniform vec3 patch_centre;      // the patch's centre, planet-local\n-instance uniform float cut_on = 0.0;     // (carves near this patch: not drawn inside them - CosmosVoxels draws the ground there)\n+// Where a vertex is on its planet (v_local) and whether carves are near it (v_cut: not drawn inside\n+// them - CosmosVoxels draws the ground there). The carved ground's own chunks say so in UV.y (1).\n+#if CURRENT_RENDERER == RENDERER_COMPATIBILITY\n+// (The web's renderer: no instance uniforms - each instance takes 16 of its 4096 slots, 256 in all,\n+// and there are ~700 patches. The planet's inverse transform instead, set every frame - CosmosPlanet.)\n+uniform mat4 planet_inv;\n+#else\n+instance uniform vec4 patch_info;        // xyz the patch's centre, planet-local; w 1: carves near it\n+#endif\n uniform vec4 cuts[128];                  // the carves nearest you: planet-local middle, radius (out to their roughest)\n uniform int cut_n = 0;\n-instance uniform float voxel = 0.0;      // (the carved ground's chunks - CosmosVoxels: the veins' ore shows in them)\n+varying float v_cut;\n+varying float v_vox;\n const int VEINS = 16;\n uniform int vein_n = 0;                  // the veins known round you (the nearest; 0 on other worlds)\n uniform int ghost_n = 0;                 // the first of them the scanner's shown (their ghosts)",
+      "added": 11,
+      "removed": 3,
+      "title": "Two paths",
+      "note": "Under CURRENT_RENDERER: a planet_inv uniform in Compatibility, the packed instance value elsewhere.",
+      "bubbles": [
+       {
+        "at": "uniform mat4 planet_inv;",
+        "text": "Set by CosmosPlanet every frame before drawing."
+       },
+       {
+        "at": "instance uniform vec4 patch_info;",
+        "text": "xyz the patch's centre; w 1 when carves are near it."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -49,7 +57,21 @@ \n varying vec4 v_ore;                      // (to light(): the ore's sheen - its tint, how much)\n \n void vertex() {\n-\tv_local = VERTEX + patch_centre;\n+\tv_vox = UV.y;\n+#if CURRENT_RENDERER == RENDERER_COMPATIBILITY\n+\tv_local = (planet_inv * (MODEL_MATRIX * vec4(VERTEX, 1.0))).xyz;\n+\tv_cut = 0.0;\n+\tif (v_vox < 0.5) {\n+\t\tfor (int i = 0; i < cut_n; i++) {   // (a carve near this vertex: its triangles look at the carves)\n+\t\t\tif (length(v_local - cuts[i].xyz) < cuts[i].w + 8.0) {\n+\t\t\t\tv_cut = 1.0;\n+\t\t\t}\n+\t\t}\n+\t}\n+#else\n+\tv_local = VERTEX + patch_info.xyz;\n+\tv_cut = patch_info.w;\n+#endif\n \tv_h = UV.x;\n }\n ",
+      "added": 15,
+      "removed": 1,
+      "title": "Where the vertex is",
+      "note": "Its planet-local place and whether carves are near, worked out in the vertex stage.",
+      "bubbles": [
+       {
+        "at": "v_local = (planet_inv * (MODEL_MATRIX * vec4(VERTEX, 1.0))).xyz;",
+        "text": "The vertex in the world, then back into the planet's frame."
+       },
+       {
+        "at": "cuts[i].w + 8.0",
+        "text": "A carve within its radius and 8 m: its triangles test the carves (not the dug ground's own)."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -147,7 +169,7 @@ \n }\n \n void fragment() {\n-\tif (cut_on > 0.5) {\n+\tif (v_cut > 0.0) {   // (carves near)\n \t\tfor (int i = 0; i < cut_n; i++) {\n \t\t\tvec3 dl = v_local - cuts[i].xyz;\n \t\t\tif (dot(dl, dl) < cuts[i].w * cuts[i].w) {",
+      "added": 1,
+      "removed": 1,
+      "title": "Carves near",
+      "note": "The discard loop runs where v_cut says carves are near."
+     },
+     {
+      "diff": "@@ -202,7 +224,7 @@ \n \tv_ore = vec4(0.0);\n \t// Dug into a vein: its ore in the walls - the mineral's colour, banded\n \t// and veined, metal glinting or crystals catching the light.\n-\tif (voxel > 0.5 && vein_n > 0) {\n+\tif (v_vox > 0.5 && vein_n > 0) {   // (the carved ground)\n \t\tvec2 ore = vein_ore(v_local);\n \t\tif (ore.x >= 0.0) {\n \t\t\tint i = int(ore.x);",
+      "added": 1,
+      "removed": 1,
+      "title": "The dug ground's ore",
+      "note": "v_vox (from UV.y) tells the carved ground's chunks."
+     },
+     {
+      "diff": "@@ -227,7 +249,7 @@ \n \t\t\temit += (oc * lk.y * 1.5 + o * 0.22 + oc * glint * 0.15) * ore.y;   // (its own glow if it has one; the sky's light off it down in the pit's shade)\n \t\t}\n \t}\n-\tif (ghost_k > 0.0 && ghost_n > 0 && voxel < 0.5) {   // (the scanner's shown the veins here: glowing through the ground - not in a pit's walls: the ore itself there)\n+\tif (ghost_k > 0.0 && ghost_n > 0 && v_vox < 0.5) {   // (the scanner's shown the veins here: glowing through the ground - not in a pit's walls: the ore itself there)\n \t\tvec4 g = vein_ghost(v_local, up);\n \t\tcol = mix(col, g.rgb * 0.3, min(g.a, 1.0) * 0.8);\n \t\temit += g.rgb * g.a * 0.5;",
+      "added": 1,
+      "removed": 1,
+      "title": "No ghost in a pit",
+      "note": "The scanned veins' glow skips the dug ground, as before - by v_vox now."
+     }
+    ],
+    "added": 29,
+    "removed": 7
+   },
+   {
+    "path": "shaders/world/underwater.gdshaderinc",
+    "kind": "new",
+    "explanation": "Under the sea in a browser: the depth buffer read in the web renderer's range, and 'nothing there' told the OpenGL way. Now tracked: shader include files (.gdshaderinc) were missing from the patch tracker's text types - this one appears whole, as new to it.",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,75 @@ \n+// Under the sea (CosmosUnderwater): what its two full-screen passes share -\n+// the uniforms the script sets (on both), the caustics' and shafts' noise\n+// net, and each pixel's view ray against the depth buffer and the sea's\n+// surface (seen from inside its sphere). Depth only - no copy of the\n+// screen: the absorption is a multiply pass (underwater.gdshader), the\n+// water's own light an additive one (underwater_glow.gdshader).\n+\n+uniform sampler2D depth_tex : hint_depth_texture, filter_nearest, repeat_disable;\n+uniform sampler3D noise_tex : filter_linear, repeat_enable;\n+uniform vec3 eye_rel = vec3(0.0, 2990.0, 0.0);   // the camera from the planet's centre (world axes, m)\n+uniform vec3 up = vec3(0.0, 1.0, 0.0);           // at the camera\n+uniform float radius = 3000.0;                   // the sea's surface\n+uniform float eye_depth = 10.0;                  // m under it\n+uniform vec3 light_dir = vec3(0.0, 1.0, 0.0);    // towards the sun, under the water (refracted)\n+uniform vec3 sun_dir = vec3(0.0, 1.0, 0.0);      // towards the sun, above it\n+uniform vec3 axis_u = vec3(1.0, 0.0, 0.0);       // the floor's plane, for the caustics' pattern\n+uniform vec3 axis_v = vec3(0.0, 0.0, 1.0);\n+uniform vec3 anchor = vec3(0.0, 2990.0, 0.0);    // (the pattern's origin, near the camera: small numbers)\n+uniform vec3 absorb = vec3(0.16, 0.045, 0.032);  // per m: sunlight lost on its way down\n+uniform vec3 extinct = vec3(0.13, 0.052, 0.042); // per m: along the view\n+uniform vec4 water : source_color = vec4(0.1, 0.42, 0.5, 1.0);   // the sea's own scattered colour\n+uniform vec4 sky : source_color = vec4(0.55, 0.75, 0.95, 1.0);   // the sky through the window\n+uniform float light = 1.0;                       // the sun's strength now (night: low)\n+\n+// Where two drifting noise fields cross the same value, a thin bright line:\n+// a churning net, like the light the waves focus.\n+float uw_net(vec2 p, float t) {\n+\tfloat a = texture(noise_tex, vec3(p, t * 0.05)).r;\n+\tfloat b = texture(noise_tex, vec3(p + 0.31, 0.5 - t * 0.043)).r;\n+\tfloat l = 1.0 - min(abs(a - b) * 5.0, 1.0);\n+\treturn l * l * l * l;\n+}\n+\n+// The caustics: two scales of the net, the second turned (no tiling seen), near.\n+float uw_caustic(vec2 p, float t, float dist) {\n+\tfloat c = uw_net(p * 0.075, t);\n+\tif (dist < 28.0) {   // (the fine net only near: further it's lost in the murk)\n+\t\tvec2 r = vec2(p.x * 0.8 - p.y * 0.6, p.x * 0.6 + p.y * 0.8);\n+\t\tc += uw_net(r * 0.17 + 0.4, t * 1.4) * 0.6 * (1.0 - smoothstep(18.0, 28.0, dist));\n+\t}\n+\treturn c;\n+}\n+\n+vec2 uw_plane(vec3 p) {\n+\treturn vec2(dot(p - anchor, axis_u), dot(p - anchor, axis_v));\n+}\n+\n+// This pixel's ray (world), what it hits (view-space point, distance; 1e6:\n+// nothing) and where it leaves the sea (t_s along it).\n+void uw_ray(vec2 uv, mat4 inv_proj, mat4 inv_view, out vec3 rd, out vec3 vpos, out float dist, out float t_s) {\n+\tfloat z = texture(depth_tex, uv).r;\n+#if CURRENT_RENDERER == RENDERER_COMPATIBILITY\n+\tbool hit = z < 1.0;   // (the web's renderer: OpenGL's depth - far is 1, the range -1..1)\n+\tz = z * 2.0 - 1.0;\n+#else\n+\tbool hit = z > 0.0;   // (reversed depth: far is 0)\n+#endif\n+\tvec4 nv = inv_proj * vec4(uv * 2.0 - 1.0, 1.0, 1.0);\n+\trd = normalize(mat3(inv_view) * normalize(nv.xyz / nv.w));\n+\tdist = 1e6;\n+\tvpos = vec3(0.0);\n+\tif (hit) {\n+\t\tvec4 vp = inv_proj * vec4(uv * 2.0 - 1.0, z, 1.0);\n+\t\tvpos = vp.xyz / vp.w;\n+\t\tdist = length(vpos);\n+\t}\n+\tfloat b = dot(eye_rel, rd);\n+\tfloat c = -eye_depth * (2.0 * radius - eye_depth);\n+\tt_s = -b + sqrt(max(b * b - c, 0.0));\n+}\n+\n+// The sun's strength under the water now (its height over the horizon, the night).\n+float uw_sun() {\n+\treturn light * smoothstep(-0.05, 0.15, dot(sun_dir, up));\n+}",
+      "added": 75,
+      "removed": 0,
+      "title": "The sea's ray",
+      "note": "Each pixel's ray against the depth buffer and the sea's surface; in Compatibility depth is -1..1 and far is 1, in Forward+ reversed with far 0.",
+      "bubbles": [
+       {
+        "at": "bool hit = z < 1.0;",
+        "text": "OpenGL: something drawn here unless at the far plane."
+       },
+       {
+        "at": "bool hit = z > 0.0;",
+        "text": "Forward+'s reversed depth: far is 0."
+       }
+      ]
+     }
+    ],
+    "added": 75,
+    "removed": 0
+   },
+   {
+    "path": "shaders/world/vein_holo.gdshader",
+    "kind": "modified",
+    "explanation": "The vein hologram in a browser: the depth buffer read in the web renderer's range, so 'under the ground' is judged right.",
+    "hunks": [
+     {
+      "diff": "@@ -24,6 +24,9 @@ \n \n void fragment() {\n \tfloat d = texture(depth_tex, SCREEN_UV).r;\n+#if CURRENT_RENDERER == RENDERER_COMPATIBILITY\n+\td = d * 2.0 - 1.0;   // (the web's renderer: OpenGL's depth range)\n+#endif\n \tvec4 v = INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, d, 1.0);\n \tfloat scene = -v.z / v.w;   // (how far what's drawn there is)\n \tfloat me = -VERTEX.z;",
+      "added": 3,
+      "removed": 0,
+      "title": "OpenGL's depth",
+      "note": "Converted under CURRENT_RENDERER == RENDERER_COMPATIBILITY.",
+      "bubbles": [
+       {
+        "at": "d = d * 2.0 - 1.0;",
+        "text": "The web's renderer: -1..1."
+       }
+      ]
+     }
+    ],
+    "added": 3,
+    "removed": 0
+   },
+   {
+    "path": "tools/patch.py",
+    "kind": "modified",
+    "explanation": "Shader include files (.gdshaderinc) are tracked now - the underwater pass's changes were invisible to the tracker.",
+    "hunks": [
+     {
+      "diff": "@@ -39,7 +39,7 @@ \n SNAP = os.path.join(TRACK, \"snapshot\")\n MANIFEST = os.path.join(TRACK, \"manifest.json\")\n PENDING = os.path.join(TRACK, \"pending.md\")\n-TEXT = (\".gd\", \".tscn\", \".tres\", \".gdshader\", \".json\", \".md\", \".cfg\", \".py\", \".godot\", \".txt\", \".svg\")\n+TEXT = (\".gd\", \".tscn\", \".tres\", \".gdshader\", \".gdshaderinc\", \".json\", \".md\", \".cfg\", \".py\", \".godot\", \".txt\", \".svg\")\n BINARY = (\".png\", \".jpg\", \".jpeg\", \".webp\", \".wav\", \".ogg\", \".mp3\", \".ttf\", \".otf\")\n SKIP_DIRS = {\".godot\", \".git\", \".import\", \"__pycache__\"}\n ROOT_SKIP = {\"build\", \"export\"}   # (build outputs - only at the project's root: scripts/world/build is code)",
+      "added": 1,
+      "removed": 1,
+      "title": "Includes tracked",
+      "note": ".gdshaderinc joins the text types.",
+      "bubbles": [
+       {
+        "at": "\".gdshaderinc\"",
+        "text": "Shader includes: diffed like any shader."
+       }
+      ]
+     }
+    ],
+    "added": 1,
+    "removed": 1
+   }
+  ]
+ }
+}

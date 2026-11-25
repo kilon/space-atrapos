@@ -1,0 +1,92 @@
+Create a single game tile sheet image for an isometric 2D game: a MINOAN TEMPLE building set,
+in the style of 1980s anime background art (cel-painted, clean bold ink outlines, flat colour
+areas with 2-3 tone cel shading, crisp highlights, saturated but warm palette, hand-painted
+detail like an 80s anime film's backgrounds). Theme: a sacred Minoan sci-fi sanctuary - the
+peak sanctuaries and palace shrines of Bronze Age Crete reimagined with ancient technology:
+pale gypsum and alabaster ashlar walls, deep Minoan red and saffron-yellow plaster, frescoes
+(priestesses with offerings, the snake goddess, griffins, lilies and saffron crocus, bull-leaping,
+dolphins and octopus, spirals and running waves), tapering red columns with black cushion
+capitals, gold horns of consecration, double axes (labrys) of bronze and gold, deep blue panels
+with glowing cyan sacred light (energy channels, crystal lamps), incense smoke. Must sit with
+the existing Minoan palace tile set (attach minoan_palace_tile_sheet.png as the reference for
+scale, projection and layout) but have its own sacred, solemn character.
+
+=== CANVAS (exact) ===
+- Image size: exactly 2048 x 1920 pixels.
+- Background: one flat solid colour, pure magenta #FF00FF, everywhere that is not a piece.
+  No gradient, no texture, no vignette, no grid lines, no borders, no frames, no labels,
+  no text, no title, no numbers, no drop shadows on the background.
+- Grid: 8 columns x 6 rows of invisible cells, each cell exactly 256 x 320 pixels
+  (cell x = col*256, cell y = row*320). Exactly ONE piece per cell, never crossing its cell.
+
+=== PROJECTION (exact, no perspective) ===
+- True 2:1 isometric (dimetric) projection: every receding edge rises exactly 1 pixel
+  vertically per 2 pixels horizontally (26.565 deg). Vertical edges stay perfectly vertical.
+  NO perspective, NO vanishing points, NO camera tilt - parallel lines stay parallel.
+  Every piece uses this same projection and the same scale.
+- Light comes from the upper-left for every piece. Faces turned to the left/front-left are
+  lit; faces turned to the right are about 20% darker (flat cel shadow, not a gradient).
+
+=== PIECE GEOMETRY (exact, in pixels, relative to each cell's top-left corner) ===
+FLOOR / ROOF TILE = a flat diamond, 256 wide x 128 tall, corners at
+  top (128,176), right (256,240), bottom (128,304), left (0,240).
+  Flat top surface only, no side thickness. It must tile seamlessly with copies of itself
+  edge to edge (patterns continue across edges).
+
+WALL "LEFT" (wall running down-right, facing the viewer's left) = a parallelogram,
+  corners (64,8) -> (192,72) -> (192,312) -> (64,248).
+  i.e. 128 px wide, 240 px tall, top and bottom edges slope DOWN to the right at 2:1.
+
+WALL "RIGHT" (wall running up-right, facing the viewer's right) = a parallelogram,
+  corners (64,72) -> (192,8) -> (192,248) -> (64,312).
+  i.e. top and bottom edges slope UP to the right at 2:1.
+  Walls are seen face-on: draw only the front face (no top thickness, no side), filling
+  the parallelogram completely. Left and right ends of each wall must tile seamlessly
+  with the next wall segment (stone courses, friezes and trim continue across the joint).
+  Every wall has the same base: a dark grey-blue stone dado along the bottom 12%, and a
+  gold-and-red running-spiral cornice band along the top 6%.
+
+DOORWAY WALL: same parallelogram, but the door opening is fully transparent (magenta)
+  from 27% to 73% of the wall's width and from 36% of its height down to the bottom,
+  framed by a gold door frame with horns of consecration above it.
+
+STANDING OBJECTS (columns, props, decor): stand upright, centred horizontally in the cell,
+  base touching y = 304 at x = 128, never wider than 220 px or taller than 300 px.
+  Include only a small soft contact shadow directly under the object, nothing else.
+
+=== CELL CONTENTS (row by row, columns 0..7) ===
+Row 0 - FLOOR TILES (diamond): 0 pale gypsum flagstones, 1 gypsum flagstones variant,
+  2 red-ochre sacred floor with white inlaid spiral, 3 blue-and-gold mosaic of an octopus,
+  4 mosaic of lilies and saffron crocus, 5 glowing cyan energy-channel floor panel (lines
+  of light in dark blue stone), 6 alabaster floor with a gold labrys inlay in the middle,
+  7 worn, cracked temple paving.
+Row 1 - WALLS facing LEFT (parallelogram "LEFT"): 0 plain saffron-yellow plaster,
+  1 pale gypsum ashlar, 2 fresco procession of priestesses carrying offerings,
+  3 fresco griffins among lilies, 4 fresco of the snake goddess with raised arms,
+  5 shrine niche (a recessed alcove with a small gold labrys and a cyan glow),
+  6 tall narrow window of glowing cyan crystal in a gold frame, 7 DOORWAY.
+Row 2 - WALLS facing RIGHT (parallelogram "RIGHT"): the same eight designs as row 1,
+  in the same order, drawn for this orientation and lighting (re-drawn, not mirrored,
+  so the frescoes still read correctly).
+Row 3 - ROOF TILES (diamond): 0 flat gypsum roof terrace, 1 red-plastered roof with a
+  gold spiral border, 2 roof with a round skylight of cyan crystal, 3 roof garden of lilies
+  and crocus, 4 roof with a row of small horns of consecration along its edge, 5 roof with
+  a glowing sacred-fire vent, 6 gold-trimmed blue roof slab, 7 plain dark roof.
+Row 4 - ARCHITECTURAL PIECES (standing objects): 0 red Minoan column (tapering downward,
+  black cushion capital, gold bands) exactly 272 px tall, 1 alabaster column with gold
+  capital, 272 px tall, 2 great gold horns of consecration, 3 tall bronze labrys on a
+  stepped pedestal, 4 crystal obelisk glowing cyan, 5 roof corner cap with horns,
+  6 red banner with a gold labrys on a pole, 7 sacred-fire tripod (gold bowl with flames).
+Row 5 - DECOR (standing objects): 0 stone altar with gold horns, 1 snake-goddess statue on
+  a pedestal, 2 bull's-head rhyton on a stand, 3 large painted pithos with octopus motif,
+  4 offering table with fruit and cups, 5 incense burner with a thin wisp of smoke,
+  6 potted lilies in a painted pot, 7 lustral basin with steps (a sunken stone bath with
+  glowing water, drawn flat on the floor, filling a floor diamond).
+
+=== RULES ===
+- Keep every piece inside its cell; leave at least 4 px of magenta around each piece.
+- Use the exact sizes above so all pieces share one scale: a wall is exactly one storey
+  (240 px), a floor/roof tile is exactly 256 x 128.
+- No floor tile, plinth or ground patch under standing objects - only their own base.
+- Do not use magenta (#FF00FF) or near-magenta colours anywhere in the artwork.
+- No people, no text, no labels, no captions, no watermark anywhere on the image.

@@ -1,0 +1,77 @@
+Create a single game tile sheet image for an isometric 2D game. Theme: Minoan sci-fi palace
+architecture — cream limestone and red-plastered walls, Minoan frescoes (charging bull,
+bull-leapers, dolphins, lilies, spirals, waves), red tapering Minoan columns with black
+capitals, gold trim, deep blue tech panels with glowing cyan light strips, horns of
+consecration. Painted, detailed, clean edges, consistent style across all pieces.
+
+=== CANVAS (exact) ===
+- Image size: exactly 2048 x 1920 pixels.
+- Background: one flat solid colour, pure magenta #FF00FF, everywhere that is not a piece.
+  No gradient, no texture, no vignette, no grid lines, no borders, no frames, no labels,
+  no text, no title, no numbers, no drop shadows on the background.
+- Grid: 8 columns x 6 rows of invisible cells, each cell exactly 256 x 320 pixels
+  (cell x = col*256, cell y = row*320). Exactly ONE piece per cell, never crossing its cell.
+
+=== PROJECTION (exact, no perspective) ===
+- True 2:1 isometric (dimetric) pixel-art projection: every receding edge rises exactly
+  1 pixel vertically per 2 pixels horizontally (angle 26.565°). Vertical edges stay perfectly
+  vertical. NO perspective, NO vanishing points, NO camera tilt, NO fisheye — parallel lines
+  stay parallel. Every piece in the sheet uses this same projection and the same scale.
+- Light comes from the upper-left for every piece. Faces turned to the left/front-left are
+  lit; faces turned to the right are about 20% darker.
+
+=== PIECE GEOMETRY (exact, in pixels, relative to each cell's top-left corner) ===
+FLOOR / ROOF TILE = a flat diamond, 256 wide x 128 tall, corners at
+  top (128,176), right (256,240), bottom (128,304), left (0,240).
+  Flat top surface only, no side thickness. It must tile seamlessly with copies of itself
+  edge to edge (patterns continue across edges).
+
+WALL "LEFT" (wall running down-right, facing the viewer's left) = a parallelogram,
+  corners (64,8) -> (192,72) -> (192,312) -> (64,248).
+  i.e. 128 px wide, 240 px tall, top and bottom edges slope DOWN to the right at 2:1.
+
+WALL "RIGHT" (wall running up-right, facing the viewer's right) = a parallelogram,
+  corners (64,72) -> (192,8) -> (192,248) -> (64,312).
+  i.e. top and bottom edges slope UP to the right at 2:1.
+  Walls are seen face-on: draw only the front face (no top thickness, no side), filling
+  the parallelogram completely. Left and right ends of each wall must tile seamlessly
+  with the next wall segment (stone courses, friezes and trim continue across the joint).
+  Every wall has the same base: a dark stone dado along the bottom 12%, and a cream cornice
+  band along the top 6%.
+
+DOORWAY WALL: same parallelogram, but the door opening is fully transparent (magenta)
+  from 27% to 73% of the wall's width and from 36% of its height down to the bottom,
+  framed by a gold/bronze door frame.
+
+STANDING OBJECTS (columns, props, decor): stand upright, centred horizontally in the cell,
+  base touching y = 304 at x = 128, never wider than 220 px or taller than 300 px.
+  Include only a small soft contact shadow directly under the object, nothing else.
+
+=== CELL CONTENTS (row by row, columns 0..7) ===
+Row 0 — FLOOR TILES (diamond): 0 cream stone paving, 1 cream stone paving variant,
+  2 large limestone slabs, 3 blue-and-gold Minoan mosaic with spiral, 4 mosaic variant
+  (dolphins), 5 glowing cyan tech floor panel, 6 red-ochre courtyard tiles, 7 worn stone.
+Row 1 — WALLS facing LEFT (parallelogram "LEFT"): 0 plain red plaster, 1 plain cream
+  ashlar stone, 2 fresco charging bull, 3 fresco bull-leapers, 4 fresco dolphins,
+  5 small window (dark glass, gold frame), 6 tech window with cyan glow, 7 DOORWAY.
+Row 2 — WALLS facing RIGHT (parallelogram "RIGHT"): the same eight designs as row 1,
+  in the same order, drawn for this orientation and lighting (not mirrored text/images —
+  re-drawn so frescoes still read correctly).
+Row 3 — ROOF TILES (diamond): 0 flat cream roof terrace, 1 blue tech roof slab with panels,
+  2 roof slab with skylight, 3 roof with solar panel, 4 roof garden (grass + flowers),
+  5 roof slab with vent grilles, 6 gold-trimmed roof terrace, 7 plain dark roof.
+Row 4 — ARCHITECTURAL PIECES (standing objects): 0 red Minoan column (tapering downward,
+  black round capital, gold bands) exactly 272 px tall, 1 gold column 272 px tall,
+  2 horns of consecration (gold), 3 small roof dome (blue glass, gold frame),
+  4 antenna mast, 5 roof corner cap, 6 red banner with a double axe (labrys) on a pole,
+  7 holographic beacon (blue glowing sphere on a pedestal).
+Row 5 — DECOR (standing objects): 0 large painted urn (pithos), 1 small amphora,
+  2 olive tree in a pot, 3 cypress tree, 4 bronze fire brazier, 5 stack of supply crates,
+  6 tech cargo container (glowing cyan), 7 flower bed with lilies.
+
+=== RULES ===
+- Keep every piece inside its cell; leave at least 4 px of magenta around each piece.
+- Use the exact sizes above so all pieces share one scale: a wall is exactly one storey
+  (240 px), a floor/roof tile is exactly 256 x 128.
+- Do not use magenta (#FF00FF) or near-magenta colours anywhere in the artwork.
+- No text, no labels, no captions, no watermark anywhere on the image.

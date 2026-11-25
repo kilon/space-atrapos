@@ -1,0 +1,769 @@
+{
+ "kind": "version",
+ "id": "0.31",
+ "title": "Empires at war",
+ "date": "2026-11-11",
+ "summary": "Version 0.31 turns the sector into a living galaxy of empires that trade, compete and go to war. Patch 0010 grew it to 58 systems and six empires with the Cycladic Isles, gave every empire its own stations and ships beside the neutral Independents, and replaced pledges with a reputation you earn. It added a commodities market and trade routes on the maps, war fleets that besiege stations until they burn or fall, gear with damage types, and landable planets and moons everywhere. It also redesigned the interface in amber, made every control rebindable with gamepad support, and turned the Library into an asset browser, all at 240 FPS or more. Patch 0011 gave wars teeth - combined invasions, distress calls and war missions - and added wrecks to salvage, fuel, the rings' local spaces, equipment screens by area, five new arms, save slots and autosaves, and a Talos reorganised around one rail that switches tools in a millisecond. Patch 0012 gave every empire its own story, look and people, made Kilon Alios the narrator of New Hellas with every line voiced, and added a loading screen and screens that fit at any text size. Then wounds, repairs and industry (patch 0013). Patch 0014 made everything stream: the game in a browser and on phones, no loading screens, procedural placeholders, chunked planets, streamed systems with surfaces built ahead, a memory pool with its console, and a liquid health gauge. Patch 0015 brought navigation reports to sell across the galaxy, placeholders on planets, a fuel ring on the gauge, one tabbed console and probes moved as a group.",
+ "patches": [
+  "0010",
+  "0011",
+  "0012",
+  "0013",
+  "0014",
+  "0015"
+ ],
+ "steps": [
+  {
+   "patch": "0010",
+   "title": "Patch 0010 - Empires, trade and war",
+   "text": "58 systems and six empires (the Cycladic Isles new), each with its own stations and ships, and the Independents between them. Reputation instead of pledges. A commodities market and trade routes. War fleets, sieges, burning and destroyed stations. Gear with damage types, landable planets and moons, the amber Helm interface, rebindable keys and a gamepad, and the Library as an asset browser.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      200,
+      30,
+      600,
+      70
+     ],
+     "label": "PATCH 0010\nEmpires, trade and war",
+     "size": 18,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      140,
+      290,
+      120
+     ],
+     "label": "GALAXY\n58 systems \u00b7 6 empires\nplanets and moons",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      355,
+      140,
+      290,
+      120
+     ],
+     "label": "EMPIRES\nown stations and ships\nIndependents \u00b7 reputation",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      140,
+      290,
+      120
+     ],
+     "label": "WAR\nfleets of 3-12\nsieges \u00b7 burning stations",
+     "size": 16,
+     "stroke": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      290,
+      290,
+      120
+     ],
+     "label": "TRADE\ncommodities market\nroutes on the maps",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      355,
+      290,
+      290,
+      120
+     ],
+     "label": "GEAR\nqualities E-A\ndamage types",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      290,
+      290,
+      120
+     ],
+     "label": "HELM\namber interface\nkeys \u00b7 gamepad",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "badge",
+     "at": [
+      260,
+      470
+     ],
+     "text": "asset browser",
+     "color": "purple",
+     "size": 15
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      470
+     ],
+     "text": "240+ FPS",
+     "color": "green",
+     "size": 15
+    },
+    {
+     "t": "badge",
+     "at": [
+      740,
+      470
+     ],
+     "text": "205 tests",
+     "color": "cyan",
+     "size": 15
+    }
+   ]
+  },
+  {
+   "patch": "0011",
+   "title": "Patch 0011 - Salvage, new arms and a new Talos",
+   "text": "Wars that call for help: invasions combine fleets, besieged stations call allies, four war missions. Wrecks to salvage, fuel and the Star Energizer, the rings' local spaces, equipment screens by area, five new arms, save slots and autosaves, pages that never scroll - and Talos reorganised around one rail, every tool kept alive.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      250,
+      30,
+      500,
+      70
+     ],
+     "label": "PATCH 0011\nSalvage, new arms and a new Talos",
+     "size": 17,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      140,
+      300,
+      120
+     ],
+     "label": "WAR\ninvasions gather fleets\ndistress calls \u00b7 4 missions",
+     "size": 15,
+     "stroke": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      140,
+      300,
+      120
+     ],
+     "label": "SALVAGE \u00b7 FUEL\nwrecks \u00b7 Salvage Rig\ntanks \u00b7 Star Energizer",
+     "size": 15,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      140,
+      300,
+      120
+     ],
+     "label": "RINGS\nlocal space \u00b7 ice\nminers \u00b7 pirates",
+     "size": 15,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      290,
+      300,
+      120
+     ],
+     "label": "ARMS\nElectro \u00b7 Bouncer \u00b7 Beam\nCloak \u00b7 Projection Array",
+     "size": 15,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      290,
+      300,
+      120
+     ],
+     "label": "SAVES\n6 slots \u00b7 on planets\nquick \u00b7 auto",
+     "size": 15,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      290,
+      300,
+      120
+     ],
+     "label": "TALOS\none rail \u00b7 tools kept\nVersions on top",
+     "size": 15,
+     "stroke": "gold"
+    },
+    {
+     "t": "badge",
+     "at": [
+      220,
+      470
+     ],
+     "text": "equipment by area",
+     "color": "cyan",
+     "size": 15
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      470
+     ],
+     "text": "no page scrolls",
+     "color": "green",
+     "size": 15
+    },
+    {
+     "t": "badge",
+     "at": [
+      780,
+      470
+     ],
+     "text": "91 scenarios \u2265 240 FPS",
+     "color": "gold",
+     "size": 15
+    }
+   ]
+  },
+  {
+   "patch": "0012",
+   "title": "Patch 0012 - The empires' stories",
+   "text": "Each empire gained its own main quest, told in the old poets' manner, with its own procedurally drawn buildings, furniture and dinosaur citizens. Kilon Alios became the narrator on every world, with 303 voiced lines. Quests keep their ships waiting in other systems, saves load behind a loading screen, and every page fits at 150% text.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      250,
+      30,
+      500,
+      70
+     ],
+     "label": "PATCH 0012\nThe empires' stories",
+     "size": 18,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      140,
+      175,
+      110
+     ],
+     "label": "ATHENS\nits quest,\nbuildings, people",
+     "size": 16,
+     "stroke": "blue"
+    },
+    {
+     "t": "box",
+     "rect": [
+      222,
+      140,
+      175,
+      110
+     ],
+     "label": "SPARTA\nits quest,\nbuildings, people",
+     "size": 16,
+     "stroke": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      414,
+      140,
+      175,
+      110
+     ],
+     "label": "MYCENAE\nits quest,\nbuildings, people",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      606,
+      140,
+      175,
+      110
+     ],
+     "label": "IONIA\nits quest,\nbuildings, people",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      798,
+      140,
+      175,
+      110
+     ],
+     "label": "CYCLADES\nits quest,\nbuildings, people",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      300,
+      450,
+      110
+     ],
+     "label": "KILON ALIOS\nnarrator on every world\n303 voiced lines",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      520,
+      300,
+      450,
+      110
+     ],
+     "label": "QUESTS THAT WAIT\nships and items kept\nin other systems",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "badge",
+     "at": [
+      190,
+      480
+     ],
+     "text": "loading screen",
+     "color": "cyan",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      480
+     ],
+     "text": "fits at 150% text",
+     "color": "green",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      810,
+      480
+     ],
+     "text": "Esc closes windows",
+     "color": "purple",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "patch": "0013",
+   "title": "Patch 0013 - Wounds, repairs and industry",
+   "text": "Damage got a body: damaged parts become afflictions you can see, the screen fails near death, and every shot can miss. Repairs are hands-on - a Repair Bay of rendered machinery and surgery through the automaton's anatomy - or bought from a station after an itemised evaluation, along with upgrades to 48 stats. A probe scanner finds what hides in a system, mining became a cutting game of veins and heat feeding an on-board refinery and fabricator, ships carry up to 24 sized weapons, and the game runs at 600 frames a second.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "WOUNDS, REPAIRS AND INDUSTRY",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      90
+     ],
+     "label": "DAMAGE\nparts, afflictions,\nfailing screen",
+     "size": 16,
+     "stroke": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      90
+     ],
+     "label": "REPAIR\nby hand, surgery,\nstation service",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      90
+     ],
+     "label": "UPGRADES\n48 stats,\n5 levels",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      240,
+      300,
+      90
+     ],
+     "label": "ACCURACY\nevery shot\ncan miss",
+     "size": 16,
+     "stroke": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      240,
+      300,
+      90
+     ],
+     "label": "PROBES\nfind anomalies,\nships, bodies",
+     "size": 16,
+     "stroke": "blue"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      240,
+      300,
+      90
+     ],
+     "label": "INDUSTRY\nmine, refine,\nfabricate",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "badge",
+     "at": [
+      170,
+      410
+     ],
+     "text": "24 hardpoints, 6 sizes",
+     "color": "gold",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      410
+     ],
+     "text": "140 market goods",
+     "color": "green",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      830,
+      410
+     ],
+     "text": "600 FPS",
+     "color": "gold",
+     "size": 16
+    },
+    {
+     "t": "text",
+     "at": [
+      500,
+      510
+     ],
+     "text": "347 files changed, 619 code hunks reviewed",
+     "size": 16,
+     "color": "dim",
+     "align": "center"
+    }
+   ]
+  },
+  {
+   "patch": "0014",
+   "title": "Patch 0014 - Everything streams",
+   "text": "The game plays in a browser and on phones as well as on Linux and Windows, with no loading screens: every sprite shows first as a procedural placeholder, planets are made chunk by chunk, a solar system streams in nearest first and every planet's surface is built ahead. One memory pool keeps what you use, a loading console maps it, and a liquid gauge of your ship's outline inside a shield ring shows hull and shields - the automaton has a shield too.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "EVERYTHING STREAMS",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      100
+     ],
+     "label": "web, Linux,\nWindows,\ntouch",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      100
+     ],
+     "label": "no loading\nscreens",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      100
+     ],
+     "label": "placeholders\nfirst",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      240,
+      300,
+      100
+     ],
+     "label": "planets chunk\nby chunk",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      240,
+      300,
+      100
+     ],
+     "label": "systems stream\nin, surfaces\nbuilt ahead",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      240,
+      300,
+      100
+     ],
+     "label": "memory pool\nand console",
+     "size": 16,
+     "stroke": "blue"
+    },
+    {
+     "t": "circle",
+     "at": [
+      380,
+      450
+     ],
+     "r": 40,
+     "fill": "blue",
+     "stroke": "cyan"
+    },
+    {
+     "t": "circle",
+     "at": [
+      380,
+      450
+     ],
+     "r": 22,
+     "fill": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      460,
+      410,
+      510,
+      80
+     ],
+     "label": "the health gauge and\nthe automaton's shield",
+     "size": 16,
+     "stroke": "red"
+    }
+   ]
+  },
+  {
+   "patch": "0015",
+   "title": "Patch 0015 - Navigation reports",
+   "text": "Scanning a nav beacon gives you a navigation report of the system - its stations, gates, planets and moons, the ships about - which stations in other systems buy, paying more the further away. Planets show at once with placeholders for their pictures. The gauge gained a fuel ring and lost its panel, the log and the loading console became one tabbed console, probes move as a group, and shields and hull burn fuel to recharge.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "NAVIGATION REPORTS",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      100
+     ],
+     "label": "scan the\nbeacon:\na report",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      332,
+      150.0
+     ],
+     "to": [
+      348,
+      150.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      100
+     ],
+     "label": "sell it in\nother systems",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      652,
+      150.0
+     ],
+     "to": [
+      668,
+      150.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      100
+     ],
+     "label": "the further,\nthe more",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      250,
+      300,
+      100
+     ],
+     "label": "planets show\nat once",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      250,
+      300,
+      100
+     ],
+     "label": "fuel ring,\none console",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      250,
+      300,
+      100
+     ],
+     "label": "probes as\na group",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      450
+     ],
+     "text": "shields and hull burn fuel",
+     "color": "red",
+     "size": 16
+    }
+   ]
+  }
+ ],
+ "open": true
+}

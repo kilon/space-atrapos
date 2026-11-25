@@ -1,0 +1,1307 @@
+{
+ "_about": "Screenshots of the game for the guide (data/docs/game.md), the tutorial and the encyclopedia - shown where their text has ![caption](shot:id). tests/doc_shots.gd sets each moment up; tools/doc_shots.py takes them, draws the notes over them (an infographic: labels with arrows, boxes, numbered steps - in 1920 x 1080 screen units) and saves data/docs/shots/<id>.jpg. 'sources': the files the picture shows - when one changes, the shot is out of date (test_doc_shots) until taken again.",
+ "shots": {
+  "space3d": {
+   "caption": "3D space (preview): an ocean world below - real procedural ground from orbit down - its clouds and air; your ship from behind, over the sights, the compass bar and the flight panel.",
+   "sources": [
+    "scripts/world/space/cosmos.gd",
+    "scripts/world/space/cosmos_planet.gd",
+    "scripts/world/space/planet_shape.gd",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/player/cosmos_ship.gd",
+    "shaders/world/terrain.gdshader",
+    "shaders/world/atmosphere.gdshader",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      560,
+      160
+     ],
+     "text": "The readout: the drive, the throttle, latitude and longitude",
+     "to": [
+      470,
+      70
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1150,
+      230
+     ],
+     "text": "The compass bar: your heading, what's known round you",
+     "to": [
+      1210,
+      60
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      430,
+      300
+     ],
+     "text": "Your health: shields, hull, fuel",
+     "to": [
+      250,
+      230
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1150,
+      400
+     ],
+     "text": "ALT: your height over the world below",
+     "to": [
+      1143,
+      505
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      60,
+      790
+     ],
+     "text": "VEL: your speed",
+     "to": [
+      777,
+      505
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1250,
+      690
+     ],
+     "text": "The virtual stick: the mouse steers",
+     "to": [
+      930,
+      537
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1500,
+      800
+     ],
+     "text": "Real ground, seen from orbit: seas, coasts, clouds",
+     "to": [
+      1250,
+      870
+     ]
+    }
+   ]
+  },
+  "space3d_ground": {
+   "caption": "Low over the same world: its sky, clouds overhead, sea and coast - the ground finer the closer you are.",
+   "sources": [
+    "scripts/world/space/cosmos.gd",
+    "scripts/world/space/cosmos_planet.gd",
+    "scripts/world/space/planet_shape.gd",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/player/cosmos_ship.gd",
+    "shaders/world/terrain.gdshader",
+    "shaders/world/atmosphere.gdshader",
+    "shaders/world/water.gdshader",
+    "shaders/world/clouds.gdshader",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      880,
+      300
+     ],
+     "text": "Its own sky: air and clouds",
+     "to": [
+      1000,
+      330
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1520,
+      640
+     ],
+     "text": "Coast and sea - finer the lower you fly",
+     "to": [
+      1650,
+      820
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      360,
+      860
+     ],
+     "text": "The plumes follow the throttle",
+     "to": [
+      840,
+      820
+     ]
+    }
+   ]
+  },
+  "space3d_foot": {
+   "caption": "On foot on an ocean world: the 2D game's animals in 3D - a herd of mushroom mammoths, an eagle overhead.",
+   "sources": [
+    "scripts/world/space/cosmos.gd",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/player/cosmos_walker.gd",
+    "scripts/world/life/cosmos_flora.gd",
+    "scripts/world/life/cosmos_fauna.gd",
+    "scripts/world/life/cosmos_creature.gd",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1450,
+      560
+     ],
+     "text": "A herd of mushroom mammoths",
+     "to": [
+      1200,
+      330
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      420,
+      620
+     ],
+     "text": "You, on foot: W A S D, Shift runs",
+     "to": [
+      880,
+      600
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      560,
+      330
+     ],
+     "text": "Your health",
+     "to": [
+      250,
+      230
+     ]
+    }
+   ]
+  },
+  "space3d_fight": {
+   "caption": "Pirate raiders: the target's shields and hull, where to aim to hit it, your lasers.",
+   "sources": [
+    "scripts/world/space/cosmos.gd",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/space/cosmos_npc_ship.gd",
+    "scripts/world/space/cosmos_hull.gd",
+    "scripts/world/space/cosmos_bolt.gd",
+    "scripts/world/player/cosmos_ship.gd",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1500,
+      250
+     ],
+     "text": "The raider, targeted: its shields and hull on the panel",
+     "to": [
+      1010,
+      598
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      20,
+      800
+     ],
+     "text": "Your target's window: it, live - shields, hull, speed, weapons",
+     "to": [
+      200,
+      640
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1500,
+      720
+     ],
+     "text": "Your lasers' bolts",
+     "to": [
+      1058,
+      540
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      700,
+      700
+     ],
+     "text": "Ring: aim there to hit it (the lead)",
+     "to": [
+      1004,
+      600
+     ]
+    }
+   ]
+  },
+  "space3d_hangar": {
+   "caption": "Docked: down the lift into the port under the platform - out of your ship on the hall's floor, the concourse's doors and windows ahead.",
+   "sources": [
+    "scripts/world/space/cosmos.gd",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/station/cosmos_hangar.gd",
+    "scripts/world/player/cosmos_walker.gd",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1180,
+      140
+     ],
+     "text": "The empire's emblem over the port's hall",
+     "to": [
+      900,
+      200
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      160,
+      560
+     ],
+     "text": "Doors to the concourse and the rooms: bar, lounge, offices, services",
+     "to": [
+      640,
+      480
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1200,
+      720
+     ],
+     "text": "The lift you came down on",
+     "to": [
+      1500,
+      640
+     ]
+    }
+   ]
+  },
+  "space3d_pad": {
+   "caption": "Docking by hand: the pad outlined with a line dropped from your ship to its deck, and the landing display - the pad from above (its top edge bold, its axis and chevron), your heading off its axis, the height tape, the level bubble, the signed thrust.",
+   "sources": [
+    "scripts/world/space/cosmos.gd",
+    "scripts/world/space/cosmos_station.gd",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/player/cosmos_ship.gd",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1150,
+      810
+     ],
+     "text": "Heading: your nose off the pad's axis - set down square",
+     "to": [
+      1680,
+      607
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      60,
+      700
+     ],
+     "text": "Your pad, outlined - the line drops to the deck under you",
+     "to": [
+      880,
+      790
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      200,
+      300
+     ],
+     "text": "The pad from above: steer the square under your ship",
+     "to": [
+      1650,
+      430
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1320,
+      1000
+     ],
+     "text": "Level, speed, thrust: touch down in green",
+     "to": [
+      1570,
+      670
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1060,
+      230
+     ],
+     "text": "Height over the deck, climbing or sinking",
+     "to": [
+      1815,
+      470
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      560,
+      180
+     ],
+     "text": "The station's core and ring",
+     "to": [
+      880,
+      300
+     ]
+    }
+   ]
+  },
+  "space3d_town": {
+   "caption": "A town on an ocean world: the palace's court and its red columns, the wings round it, its people about their day - in its empire's colours.",
+   "sources": [
+    "scripts/world/life/cosmos_town.gd",
+    "shaders/world/building.gdshader",
+    "scripts/world/life/cosmos_npc.gd",
+    "scripts/world/models/cosmos_models.gd",
+    "shaders/pbr_vc.gdshader",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      330,
+      560
+     ],
+     "text": "The grand staircase up onto the roofs",
+     "to": [
+      620,
+      440
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      760,
+      120
+     ],
+     "text": "Fresco bands, cornices: the palace's wings round its court",
+     "to": [
+      1250,
+      330
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1500,
+      680
+     ],
+     "text": "Its people, in the empire's colours",
+     "to": [
+      955,
+      455
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1500,
+      560
+     ],
+     "text": "The altar with its horns",
+     "to": [
+      1030,
+      520
+     ]
+    }
+   ]
+  },
+  "space3d_monster": {
+   "caption": "An unknown bio-signature: one of the old monsters at its lair, coming for you.",
+   "sources": [
+    "scripts/world/space/cosmos_monster.gd",
+    "shaders/world/monster.gdshader",
+    "scripts/world/space/cosmos_lair.gd",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1450,
+      560
+     ],
+     "text": "One of the old monsters, hundreds of metres long",
+     "to": [
+      900,
+      450
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      560,
+      560
+     ],
+     "text": "Its shields and hull",
+     "to": [
+      230,
+      365
+     ]
+    }
+   ]
+  },
+  "space3d_people": {
+   "caption": "A Minoan city's people: a palace guard, the androids with their laser rifle, laser bow and labrys.",
+   "sources": [
+    "scripts/world/life/cosmos_npc.gd",
+    "scripts/world/models/cosmos_models.gd",
+    "art/minoan_3d/model.json",
+    "art/guard_3d/model.json",
+    "art/kilon_3d/model.json"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      330,
+      800
+     ],
+     "text": "A Minoan android with its labrys",
+     "to": [
+      640,
+      560
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      880,
+      150
+     ],
+     "text": "An android with its laser bow",
+     "to": [
+      880,
+      500
+     ]
+    }
+   ]
+  },
+  "space3d_inside": {
+   "caption": "Inside a palace: the throne room - walk in through the doorways off the court.",
+   "sources": [
+    "scripts/world/life/cosmos_town.gd",
+    "shaders/world/building.gdshader"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1450,
+      180
+     ],
+     "text": "The throne, gypsum, benches either side",
+     "to": [
+      990,
+      470
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      400,
+      300
+     ],
+     "text": "Painted panels behind it",
+     "to": [
+      820,
+      380
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1500,
+      800
+     ],
+     "text": "Indoors a warm light goes with you",
+     "to": [
+      1300,
+      560
+     ]
+    }
+   ]
+  },
+  "space3d_dungeon": {
+   "caption": "Below a world: an old labyrinth's halls, its torches, its dead - skeleton warriors and a demon.",
+   "sources": [
+    "scripts/world/life/cosmos_dungeon.gd",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/life/cosmos_npc.gd",
+    "art/skeleton_3d/model.json",
+    "art/demon_3d/model.json",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      330,
+      300
+     ],
+     "text": "Skeleton warriors: sword and shield",
+     "to": [
+      640,
+      470
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1500,
+      210
+     ],
+     "text": "A demon: fire from afar, claws up close",
+     "to": [
+      1110,
+      420
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1500,
+      700
+     ],
+     "text": "Torches light the old halls",
+     "to": [
+      1190,
+      265
+     ]
+    }
+   ]
+  },
+  "space3d_cave": {
+   "caption": "A cave system: rough rock, boulders, stalagmites, torches - and what lives down there.",
+   "sources": [
+    "scripts/world/life/cosmos_dungeon.gd",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/life/cosmos_npc.gd",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      300,
+      300
+     ],
+     "text": "A skeleton warrior",
+     "to": [
+      500,
+      560
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1500,
+      230
+     ],
+     "text": "Something worse, deeper in",
+     "to": [
+      1160,
+      370
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1450,
+      760
+     ],
+     "text": "Rough rock, stalactites, stalagmites",
+     "to": [
+      1130,
+      500
+     ]
+    }
+   ]
+  },
+  "space3d_mining": {
+   "caption": "Mining an asteroid: the rock scanned, its veins marked on it, the beam cutting one - its heat held in the green band.",
+   "sources": [
+    "scripts/world/space/cosmos_mining.gd",
+    "scripts/world/space/cosmos_rocks.gd",
+    "shaders/world/rock.gdshader",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      330,
+      450
+     ],
+     "text": "The mining beam, cutting a vein",
+     "to": [
+      900,
+      500
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1560,
+      400
+     ],
+     "text": "Its veins, marked once it's scanned",
+     "to": [
+      1172,
+      497
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1500,
+      900
+     ],
+     "text": "Heat in the green: resonance builds",
+     "to": [
+      1100,
+      790
+     ]
+    }
+   ]
+  },
+  "space3d_dig": {
+   "caption": "Mining on foot: a mineral deposit under your sights, the mining beam cutting it - its heat on the bar, what you've dug beneath.",
+   "sources": [
+    "scripts/world/space/cosmos_deposits.gd",
+    "shaders/world/deposit.gdshader",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/player/cosmos_walker.gd",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      150,
+      300
+     ],
+     "text": "A deposit: crystals of the world's minerals",
+     "to": [
+      930,
+      480
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1300,
+      250
+     ],
+     "text": "The mining beam on it (fire)",
+     "to": [
+      960,
+      540
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1300,
+      760
+     ],
+     "text": "What's left, the beam's heat, what you've dug",
+     "to": [
+      1060,
+      600
+     ]
+    }
+   ]
+  },
+  "space3d_digging": {
+   "caption": "Digging: the terrain digger out (V), its beam carving the ground - a trench swept through it, solid voxels round the carves.",
+   "sources": [
+    "scripts/world/space/cosmos_deposits.gd",
+    "scripts/world/space/planet_shape.gd",
+    "scripts/world/space/cosmos_planet.gd",
+    "scripts/world/space/cosmos_voxels.gd",
+    "shaders/world/terrain.gdshader",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1240,
+      240
+     ],
+     "text": "Carved ground: voxels round the carves",
+     "to": [
+      1000,
+      420
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1240,
+      800
+     ],
+     "text": "The digger out (V): its sights and heat",
+     "to": [
+      1000,
+      560
+     ]
+    }
+   ]
+  },
+  "space3d_start": {
+   "caption": "A new game: on foot on Amnissos by a city's landing field - its ore buyer, courier's office and local pilot - the tutorial's panel top right, the scanner's marks.",
+   "sources": [
+    "scripts/world/game/cosmos_sandbox.gd",
+    "scripts/world/game/cosmos_tutor.gd",
+    "scripts/world/game/cosmos_game.gd",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1150,
+      420
+     ],
+     "text": "The tutorial: the next step, what it pays",
+     "to": [
+      1700,
+      250
+     ]
+    }
+   ]
+  },
+  "space3d_trader": {
+   "caption": "Aboard a trader down in the port: up its stern ramp into its hold - its rooms fitted inside its hull, the quarters and the bridge on ahead.",
+   "sources": [
+    "scripts/world/space/cosmos_npc_interior.gd",
+    "scripts/world/space/cosmos_npc_ship.gd",
+    "scripts/world/space/cosmos.gd",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1150,
+      200
+     ],
+     "text": "The doorway on to its crew quarters",
+     "to": [
+      945,
+      470
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      60,
+      300
+     ],
+     "text": "Its cargo along the hold's sides",
+     "to": [
+      330,
+      700
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1200,
+      1000
+     ],
+     "text": "Where you are aboard",
+     "to": [
+      1100,
+      840
+     ]
+    }
+   ]
+  },
+  "space3d_port": {
+   "caption": "The port's bar: its keeper behind the counter, the windows out to space - E to talk (news, work).",
+   "sources": [
+    "scripts/world/space/cosmos.gd",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/station/cosmos_hangar.gd",
+    "scripts/world/player/cosmos_walker.gd",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      160,
+      140
+     ],
+     "text": "E beside them: talk - who they are, the news, work",
+     "to": [
+      800,
+      520
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1260,
+      120
+     ],
+     "text": "Windows out to space",
+     "to": [
+      1720,
+      400
+     ]
+    }
+   ]
+  },
+  "map3d": {
+   "caption": "The solar map: Knossos in 3D - its worlds on their orbits, the stations and gates on their stems over the system's plane, the swept part bright, a world picked and its details beside the map, a course set to a station.",
+   "sources": [
+    "scripts/ui/pages/map_page.gd",
+    "scripts/ui/maps/map_3d_view.gd",
+    "scripts/ui/maps/map_kit.gd",
+    "shaders/maps/map_body.gdshader",
+    "shaders/maps/map_plane.gdshader",
+    "shaders/maps/map_line.gdshader"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      470,
+      1010
+     ],
+     "text": "A world, picked: its orbit, stem and ring",
+     "to": [
+      868,
+      795
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      380,
+      300
+     ],
+     "text": "Stations and gates over the system's plane",
+     "to": [
+      630,
+      630
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1170,
+      815
+     ],
+     "text": "Its details - set a course to it",
+     "to": [
+      1540,
+      514
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1230,
+      955
+     ],
+     "text": "Everything known here, nearest first",
+     "to": [
+      1480,
+      740
+     ]
+    }
+   ]
+  },
+  "galaxy3d": {
+   "caption": "The galaxy map: the systems you've been in, in 3D over the galactic plane - the empires' territories glowing round them, lanes fading off to uncharted systems, a route plotted and the picked system's details.",
+   "sources": [
+    "scripts/ui/pages/galaxy_page.gd",
+    "scripts/ui/maps/map_3d_view.gd",
+    "scripts/ui/maps/map_kit.gd",
+    "scripts/sim/galaxy.gd",
+    "shaders/maps/map_glow.gdshader",
+    "shaders/maps/map_line.gdshader"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      330,
+      880
+     ],
+     "text": "Only the systems you've been in show",
+     "to": [
+      700,
+      620
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1000,
+      980
+     ],
+     "text": "Lanes fade off to uncharted systems",
+     "to": [
+      995,
+      735
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      640,
+      330
+     ],
+     "text": "Your route, flowing to its end",
+     "to": [
+      900,
+      525
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1530,
+      780
+     ],
+     "text": "The system's details; plot a route",
+     "to": [
+      1370,
+      408
+     ]
+    }
+   ]
+  },
+  "planet3d": {
+   "caption": "The planet map: the world you're on as a 3D globe of its real ground - what you've explored of it bright, the rest under the fog; its towns, caves and camps marked where you've seen them, you and your ship, a town picked and its details.",
+   "sources": [
+    "scripts/ui/pages/planet_map_page.gd",
+    "scripts/ui/pages/maps_page.gd",
+    "scripts/ui/maps/map_3d_view.gd",
+    "scripts/ui/maps/map_kit.gd",
+    "shaders/maps/map_globe.gdshader",
+    "scripts/sim/planet_fog.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      330,
+      300
+     ],
+     "text": "The ground you've seen; the rest under the fog",
+     "to": [
+      345,
+      495
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      700,
+      250
+     ],
+     "text": "The map's own tabs: planet, solar system, galaxy",
+     "to": [
+      195,
+      175
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      380,
+      1000
+     ],
+     "text": "A town you've walked into: click it for its plan",
+     "to": [
+      768,
+      853
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1150,
+      760
+     ],
+     "text": "Pirate camps, where you've seen them",
+     "to": [
+      968,
+      662
+     ]
+    }
+   ]
+  },
+  "town_plan3d": {
+   "caption": "A town's plan: a city you've walked into, from above, north up - its palace, houses, shrine and storehouse, the landing field and the people by it named: the ore buyer, the courier's office and the local pilot.",
+   "sources": [
+    "scripts/ui/pages/planet_map_page.gd",
+    "scripts/world/life/cosmos_town.gd",
+    "scripts/world/game/cosmos_sandbox.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      230,
+      900
+     ],
+     "text": "The ore buyer, courier and pilot by the landing field",
+     "to": [
+      555,
+      670
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1050,
+      1000
+     ],
+     "text": "The palace in the middle of the city",
+     "to": [
+      905,
+      637
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1150,
+      430
+     ],
+     "text": "North up",
+     "to": [
+      1462,
+      282
+     ]
+    }
+   ]
+  },
+  "space3d_vein": {
+   "caption": "The scanner's pulse (right click): a vein of ore under the ground glows through it in its mineral's colour - on the ground only, whatever stands on it in front; where to dig with the terrain digger (the parts dug into grey; dug, its ore shows in the pit's walls); its mark gives the mineral, what's in it and how deep.",
+   "sources": [
+    "scripts/world/space/cosmos_veins.gd",
+    "shaders/world/terrain.gdshader",
+    "shaders/world/vein_holo.gdshader",
+    "scripts/world/game/cosmos_sandbox.gd",
+    "scripts/world/player/cosmos_hud.gd",
+    "scripts/world/player/compass_icons.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1250,
+      250
+     ],
+     "text": "The vein's hologram, through the ground",
+     "to": [
+      1240,
+      515
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      150,
+      250
+     ],
+     "text": "Its mark: mineral, units, depth",
+     "to": [
+      790,
+      425
+     ]
+    }
+   ]
+  },
+  "space3d_underwater": {
+   "caption": "Diving under the sea of an ocean world: the light falling through the water, caustics on the floor, kelp, corals, sponges and the sea's animals round you.",
+   "sources": [
+    "scripts/world/life/cosmos_underwater.gd",
+    "shaders/world/underwater.gdshader",
+    "shaders/world/underwater_glow.gdshader",
+    "shaders/world/underwater_flora.gdshader",
+    "shaders/world/underwater_life.gdshader",
+    "scripts/world/player/cosmos_walker.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      150,
+      250
+     ],
+     "text": "Kelp and sea grass swaying in the current",
+     "to": [
+      705,
+      400
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1300,
+      300
+     ],
+     "text": "Corals, sponges, boulders on the floor",
+     "to": [
+      1080,
+      465
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1150,
+      860
+     ],
+     "text": "Caustics: the surface's light on the floor",
+     "to": [
+      1450,
+      640
+     ]
+    }
+   ]
+  },
+  "space3d_building": {
+   "caption": "Building: a Minoan house put up from the kit's pieces - foundations, walls, a door, windows, a porch of red columns under a triangle roof, front steps, a balustrade over the front - and the builder in hand, a window's green preview on the open edge.",
+   "sources": [
+    "scripts/world/build/build_kit.gd",
+    "scripts/world/build/build_plan.gd",
+    "scripts/world/build/cosmos_structure.gd",
+    "scripts/world/build/cosmos_builds.gd",
+    "scripts/world/build/cosmos_solids.gd",
+    "shaders/world/building.gdshader",
+    "scripts/world/player/cosmos_hud.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1330,
+      470
+     ],
+     "text": "The preview: green where it fits, snapped to the open edge",
+     "to": [
+      1010,
+      450
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1330,
+      760
+     ],
+     "text": "The piece in hand, its cost - or why it won't go",
+     "to": [
+      1290,
+      890
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1330,
+      240
+     ],
+     "text": "A porch: red columns, a triangle roof",
+     "to": [
+      1150,
+      330
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      110,
+      240
+     ],
+     "text": "A balustrade round the roof",
+     "to": [
+      640,
+      290
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      110,
+      640
+     ],
+     "text": "Front steps up to the door",
+     "to": [
+      700,
+      505
+     ]
+    }
+   ]
+  }
+ }
+}

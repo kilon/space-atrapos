@@ -1,0 +1,71 @@
+{
+ "parts": {
+  "tentacles": [
+   189,
+   446
+  ],
+  "left_upper": [
+   445,
+   244
+  ],
+  "left_fore": [
+   276,
+   269
+  ],
+  "right_upper": [
+   852,
+   244
+  ],
+  "right_fore": [
+   953,
+   289
+  ],
+  "torso": [
+   491,
+   -45
+  ]
+ },
+ "eyes": [
+  [
+   775,
+   340
+  ],
+  [
+   829,
+   345
+  ]
+ ],
+ "mouth": [
+  800,
+  386
+ ],
+ "hub": [
+  790,
+  690
+ ],
+ "tentacle_at": [
+  804,
+  370
+ ],
+ "tentacle_scale": 1.19,
+ "size": [
+  1536,
+  1024
+ ],
+ "left_shoulder": [
+  636,
+  330
+ ],
+ "left_elbow": [
+  548,
+  372
+ ],
+ "right_shoulder": [
+  936,
+  335
+ ],
+ "right_elbow": [
+  1040,
+  392
+ ]
+}

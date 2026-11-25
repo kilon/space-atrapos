@@ -1,0 +1,109 @@
+{
+ "kind": "version",
+ "id": "0.32",
+ "title": "Make it yours",
+ "date": "2026-11-24",
+ "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Then mods, meshes and the Live Editor (patch 0023).",
+ "patches": [
+  "0023"
+ ],
+ "steps": [
+  {
+   "patch": "0023",
+   "title": "Patch 0023 - Mods, meshes and the Live Editor",
+   "text": "Patch 0023 opens the whole game to change: mods that can replace or merge into any of its files, and a Mod Editor to make them; a mesh editor in Talos with edit mode, proportional editing, mirror and symmetry, 120 editable shapes, booleans, a knife, n-gon faces, loop cuts, insets, curve deform, a material editor, saves kept as overrides with variants, and parts bound to a character's skeleton; an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which changes anything in the world while the game runs and keeps the edit for every thing of that kind. Patch Notes moves to the title screen (the SVG editor is gone), every control has a tooltip, bodies turn and animate without snaps, the rifle is slung, drawn and aimed where the shots go, and the browser build starts in 6-7 seconds instead of up to two minutes.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      200,
+      40,
+      600,
+      80
+     ],
+     "label": "PATCH 0023\nMods, meshes and the Live Editor",
+     "size": 18,
+     "stroke": "gold"
+    },
+    {
+     "t": "badge",
+     "at": [
+      210,
+      200
+     ],
+     "text": "Patch Notes on the title screen",
+     "color": "cyan",
+     "size": 15,
+     "delay": 0.3
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      200
+     ],
+     "text": "Mods and the Mod Editor",
+     "color": "green",
+     "size": 15,
+     "delay": 0.44999999999999996
+    },
+    {
+     "t": "badge",
+     "at": [
+      790,
+      200
+     ],
+     "text": "The mesh editor",
+     "color": "purple",
+     "size": 15,
+     "delay": 0.6
+    },
+    {
+     "t": "badge",
+     "at": [
+      210,
+      290
+     ],
+     "text": "Working in the mesh editor",
+     "color": "gold",
+     "size": 15,
+     "delay": 0.75
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      290
+     ],
+     "text": "120 shapes and booleans",
+     "color": "red",
+     "size": 15,
+     "delay": 0.8999999999999999
+    },
+    {
+     "t": "badge",
+     "at": [
+      790,
+      290
+     ],
+     "text": "Faces, the knife, dissolve",
+     "color": "blue",
+     "size": 15,
+     "delay": 1.05
+    },
+    {
+     "t": "text",
+     "at": [
+      500,
+      400
+     ],
+     "text": "... and 8 more steps",
+     "size": 15,
+     "color": "dim",
+     "align": "center"
+    }
+   ]
+  }
+ ],
+ "open": true
+}

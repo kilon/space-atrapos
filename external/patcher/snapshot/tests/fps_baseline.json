@@ -1,0 +1,470 @@
+{
+	"3d space: a dogfight with raiders": {
+		"fps": 804.3,
+		"p95_ms": 1.89
+	},
+	"3d space: a fight at a pirate camp": {
+		"fps": 573.7,
+		"p95_ms": 2.83
+	},
+	"3d space: a space monster's attack": {
+		"fps": 964.0,
+		"p95_ms": 1.46
+	},
+	"3d space: by the station": {
+		"fps": 852.5,
+		"p95_ms": 1.75
+	},
+	"3d space: in a dungeon": {
+		"fps": 656.4,
+		"p95_ms": 1.86
+	},
+	"3d space: in a station's hangar": {
+		"fps": 882.6,
+		"p95_ms": 1.4
+	},
+	"3d space: low over the sea": {
+		"fps": 594.4,
+		"p95_ms": 2.85
+	},
+	"3d space: on foot among plants and animals": {
+		"fps": 694.3,
+		"p95_ms": 2.02
+	},
+	"3d space: over a volcanic world": {
+		"fps": 707.9,
+		"p95_ms": 2.19
+	},
+	"3d space: over an ocean world": {
+		"fps": 894.1,
+		"p95_ms": 1.59
+	},
+	"3d space: the Hyperion drive down to a planet": {
+		"fps": 893.9,
+		"p95_ms": 1.83
+	},
+	"3d space: walking through a town": {
+		"fps": 532.7,
+		"p95_ms": 2.64
+	},
+	"landing on thalassa (animation, the surface building)": {
+		"fps": 555.6,
+		"p95_ms": 2.36
+	},
+	"signal site: anomaly": {
+		"fps": 566.1,
+		"p95_ms": 2.43
+	},
+	"signal site: deathtrap": {
+		"fps": 602.3,
+		"p95_ms": 2.19
+	},
+	"signal site: monster": {
+		"fps": 697.4,
+		"p95_ms": 2.12
+	},
+	"signal site: ring": {
+		"fps": 579.8,
+		"p95_ms": 2.55
+	},
+	"signal site: stranded": {
+		"fps": 911.8,
+		"p95_ms": 1.64
+	},
+	"signal site: under_attack": {
+		"fps": 546.2,
+		"p95_ms": 2.67
+	},
+	"signal site: wreck": {
+		"fps": 665.7,
+		"p95_ms": 2.11
+	},
+	"space: Ship Computer, encyclopedia": {
+		"fps": 859.8,
+		"p95_ms": 1.61
+	},
+	"space: Ship Computer, galaxy": {
+		"fps": 588.9,
+		"p95_ms": 2.19
+	},
+	"space: Ship Computer, inventory": {
+		"fps": 789.1,
+		"p95_ms": 1.71
+	},
+	"space: Ship Computer, quest": {
+		"fps": 954.9,
+		"p95_ms": 1.44
+	},
+	"space: Ship Computer, system map": {
+		"fps": 659.3,
+		"p95_ms": 3.66
+	},
+	"space: Ship Computer, tech tree": {
+		"fps": 871.1,
+		"p95_ms": 1.59
+	},
+	"space: Ship Computer, tutorial": {
+		"fps": 887.0,
+		"p95_ms": 1.57
+	},
+	"space: a siege, a burning station": {
+		"fps": 550.7,
+		"p95_ms": 2.62
+	},
+	"space: battle, 6 pirates": {
+		"fps": 445.4,
+		"p95_ms": 3.67
+	},
+	"space: biggest system (22 planets and moons), flying": {
+		"fps": 478.6,
+		"p95_ms": 3.18
+	},
+	"space: biggest system (23 planets and moons), flying": {
+		"fps": 686.8,
+		"p95_ms": 2.52
+	},
+	"space: flying across the system": {
+		"fps": 669.9,
+		"p95_ms": 2.02
+	},
+	"space: home system, idle": {
+		"fps": 895.2,
+		"p95_ms": 1.73
+	},
+	"space: keros (cyclades), flying": {
+		"fps": 595.9,
+		"p95_ms": 2.69
+	},
+	"space: kyros (sparta), flying": {
+		"fps": 587.9,
+		"p95_ms": 2.72
+	},
+	"space: miletos (ionia), flying": {
+		"fps": 726.4,
+		"p95_ms": 2.16
+	},
+	"space: nav beacon, charted (nebula trails)": {
+		"fps": 883.4,
+		"p95_ms": 1.8
+	},
+	"space: naxos (mycenae), flying": {
+		"fps": 814.7,
+		"p95_ms": 1.77
+	},
+	"space: nyx (athens), flying": {
+		"fps": 760.6,
+		"p95_ms": 1.88
+	},
+	"space: sparta station, missions (painted portraits)": {
+		"fps": 1054.0,
+		"p95_ms": 1.5
+	},
+	"space: station, designer": {
+		"fps": 717.7,
+		"p95_ms": 1.98
+	},
+	"space: station, empire": {
+		"fps": 524.2,
+		"p95_ms": 2.35
+	},
+	"space: station, main quests": {
+		"fps": 832.6,
+		"p95_ms": 1.76
+	},
+	"space: station, market": {
+		"fps": 694.8,
+		"p95_ms": 1.96
+	},
+	"space: station, missions": {
+		"fps": 686.9,
+		"p95_ms": 2.4
+	},
+	"space: station, outfitting": {
+		"fps": 698.5,
+		"p95_ms": 1.97
+	},
+	"space: station, repair": {
+		"fps": 784.7,
+		"p95_ms": 1.75
+	},
+	"space: station, reputation": {
+		"fps": 755.7,
+		"p95_ms": 1.85
+	},
+	"space: station, sell": {
+		"fps": 775.1,
+		"p95_ms": 1.85
+	},
+	"space: station, shipyard": {
+		"fps": 712.3,
+		"p95_ms": 1.94
+	},
+	"space: tartaros (pirates), flying": {
+		"fps": 958.0,
+		"p95_ms": 1.53
+	},
+	"space: the Minotaur boss": {
+		"fps": 616.8,
+		"p95_ms": 2.34
+	},
+	"surface akrotiri (vo): Field Computer, inventory": {
+		"fps": 1171.9,
+		"p95_ms": 1.07
+	},
+	"surface akrotiri (vo): Field Computer, map": {
+		"fps": 1103.3,
+		"p95_ms": 1.39
+	},
+	"surface akrotiri (vo): Field Computer, the Spell Book": {
+		"fps": 1032.0,
+		"p95_ms": 1.3
+	},
+	"surface akrotiri (vo): a brawl with skills (4 pirates, every blow and spell)": {
+		"fps": 939.0,
+		"p95_ms": 1.5
+	},
+	"surface akrotiri (vo): cargo transfer at the ship": {
+		"fps": 1715.0,
+		"p95_ms": 0.63
+	},
+	"surface akrotiri (vo): fight, a pack of 5 pyrohound": {
+		"fps": 966.4,
+		"p95_ms": 1.48
+	},
+	"surface akrotiri (vo): idle at the ship": {
+		"fps": 1250.9,
+		"p95_ms": 1.06
+	},
+	"surface akrotiri (vo): walking (streaming)": {
+		"fps": 1184.5,
+		"p95_ms": 1.17
+	},
+	"surface kronos (gg): Field Computer, inventory": {
+		"fps": 1276.2,
+		"p95_ms": 1.09
+	},
+	"surface kronos (gg): Field Computer, map": {
+		"fps": 1267.8,
+		"p95_ms": 1.2
+	},
+	"surface kronos (gg): Field Computer, the Spell Book": {
+		"fps": 1098.0,
+		"p95_ms": 1.2
+	},
+	"surface kronos (gg): a brawl with skills (4 pirates, every blow and spell)": {
+		"fps": 1010.0,
+		"p95_ms": 1.4
+	},
+	"surface kronos (gg): cargo transfer at the ship": {
+		"fps": 1949.5,
+		"p95_ms": 0.6
+	},
+	"surface kronos (gg): idle at the ship": {
+		"fps": 1331.3,
+		"p95_ms": 0.91
+	},
+	"surface kronos (gg): walking (streaming)": {
+		"fps": 1284.5,
+		"p95_ms": 1.01
+	},
+	"surface krystallos (ic): Field Computer, inventory": {
+		"fps": 782.9,
+		"p95_ms": 1.78
+	},
+	"surface krystallos (ic): Field Computer, map": {
+		"fps": 713.1,
+		"p95_ms": 2.17
+	},
+	"surface krystallos (ic): Field Computer, the Spell Book": {
+		"fps": 926.0,
+		"p95_ms": 1.4
+	},
+	"surface krystallos (ic): a brawl with skills (4 pirates, every blow and spell)": {
+		"fps": 690.0,
+		"p95_ms": 2.0
+	},
+	"surface krystallos (ic): cargo transfer at the ship": {
+		"fps": 1194.0,
+		"p95_ms": 0.89
+	},
+	"surface krystallos (ic): fight, a pack of 5 frostwolf": {
+		"fps": 696.7,
+		"p95_ms": 1.98
+	},
+	"surface krystallos (ic): idle at the ship": {
+		"fps": 705.9,
+		"p95_ms": 2.02
+	},
+	"surface krystallos (ic): inside a building": {
+		"fps": 584.7,
+		"p95_ms": 2.46
+	},
+	"surface krystallos (ic): walking (streaming)": {
+		"fps": 738.4,
+		"p95_ms": 1.97
+	},
+	"surface selene (ic): Field Computer, inventory": {
+		"fps": 965.8,
+		"p95_ms": 1.41
+	},
+	"surface selene (ic): Field Computer, map": {
+		"fps": 857.6,
+		"p95_ms": 1.66
+	},
+	"surface selene (ic): a brawl with skills (4 pirates, every blow and spell)": {
+		"fps": 800.0,
+		"p95_ms": 1.8
+	},
+	"surface selene (ic): cargo transfer at the ship": {
+		"fps": 1393.7,
+		"p95_ms": 0.77
+	},
+	"surface selene (ic): fight, a pack of 5 frostwolf": {
+		"fps": 814.9,
+		"p95_ms": 1.7
+	},
+	"surface selene (ic): idle at the ship": {
+		"fps": 821.2,
+		"p95_ms": 1.68
+	},
+	"surface selene (ic): inside a building": {
+		"fps": 722.4,
+		"p95_ms": 1.93
+	},
+	"surface selene (ic): walking (streaming)": {
+		"fps": 880.5,
+		"p95_ms": 1.58
+	},
+	"surface thalassa (fo): Field Computer, inventory": {
+		"fps": 727.7,
+		"p95_ms": 1.84
+	},
+	"surface thalassa (fo): Field Computer, map": {
+		"fps": 665.2,
+		"p95_ms": 2.11
+	},
+	"surface thalassa (fo): Field Computer, the Spell Book": {
+		"fps": 668.0,
+		"p95_ms": 1.9
+	},
+	"surface thalassa (fo): a brawl with skills (4 pirates, every blow and spell)": {
+		"fps": 482.0,
+		"p95_ms": 3.0
+	},
+	"surface thalassa (fo): cargo transfer at the ship": {
+		"fps": 1039.6,
+		"p95_ms": 1.02
+	},
+	"surface thalassa (fo): fight, a pack of 5 wolf": {
+		"fps": 478.0,
+		"p95_ms": 2.84
+	},
+	"surface thalassa (fo): idle at the ship": {
+		"fps": 614.8,
+		"p95_ms": 2.23
+	},
+	"surface thalassa (fo): inside a building": {
+		"fps": 542.4,
+		"p95_ms": 2.69
+	},
+	"surface thalassa (fo): walking (streaming)": {
+		"fps": 587.6,
+		"p95_ms": 2.42
+	},
+	"talos: animation editor": {
+		"fps": 1230.0,
+		"p95_ms": 0.9
+	},
+	"talos: chapters": {
+		"fps": 2083.6,
+		"p95_ms": 0.58
+	},
+	"talos: citizens": {
+		"fps": 1595.3,
+		"p95_ms": 0.69
+	},
+	"talos: dialogue": {
+		"fps": 1465.6,
+		"p95_ms": 0.74
+	},
+	"talos: effects editor": {
+		"fps": 1109.0,
+		"p95_ms": 1.0
+	},
+	"talos: library room asteroids": {
+		"fps": 1523.8,
+		"p95_ms": 0.76
+	},
+	"talos: library room buildings": {
+		"fps": 1019.3,
+		"p95_ms": 1.18
+	},
+	"talos: library room characters": {
+		"fps": 712.3,
+		"p95_ms": 1.55
+	},
+	"talos: library room effects": {
+		"fps": 1522.0,
+		"p95_ms": 0.72
+	},
+	"talos: library room gui": {
+		"fps": 1158.9,
+		"p95_ms": 0.93
+	},
+	"talos: library room monsters": {
+		"fps": 589.2,
+		"p95_ms": 3.77
+	},
+	"talos: library room nebulae": {
+		"fps": 1508.6,
+		"p95_ms": 0.84
+	},
+	"talos: library room planets": {
+		"fps": 1042.9,
+		"p95_ms": 1.15
+	},
+	"talos: library room ships": {
+		"fps": 1380.1,
+		"p95_ms": 0.8
+	},
+	"talos: library room stations": {
+		"fps": 1503.1,
+		"p95_ms": 0.72
+	},
+	"talos: library room suns": {
+		"fps": 691.0,
+		"p95_ms": 1.65
+	},
+	"talos: library, asset browser": {
+		"fps": 1458.7,
+		"p95_ms": 0.74
+	},
+	"talos: lore": {
+		"fps": 2085.8,
+		"p95_ms": 0.54
+	},
+	"talos: mesh editor": {
+		"fps": 1253.0,
+		"p95_ms": 0.9
+	},
+	"talos: patch notes, infographic animating": {
+		"fps": 945.0,
+		"p95_ms": 1.1
+	},
+	"talos: scenarios": {
+		"fps": 877.6,
+		"p95_ms": 1.22
+	},
+	"talos: sprites": {
+		"fps": 1543.2,
+		"p95_ms": 0.7
+	},
+	"talos: switching tools on the rail": {
+		"fps": 876.1,
+		"p95_ms": 3.65
+	},
+	"title screen": {
+		"fps": 1373.8,
+		"p95_ms": 0.77
+	}
+}

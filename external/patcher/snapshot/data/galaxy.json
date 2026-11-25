@@ -1,0 +1,2696 @@
+{
+	"first_links": 88,
+	"key": "366278424",
+	"links": [
+		[
+			"keros",
+			"pylos"
+		],
+		[
+			"keros",
+			"miletos"
+		],
+		[
+			"atrapos",
+			"klotho"
+		],
+		[
+			"atrapos",
+			"lachesis"
+		],
+		[
+			"atrapos",
+			"delos"
+		],
+		[
+			"klotho",
+			"erebos"
+		],
+		[
+			"klotho",
+			"nyx"
+		],
+		[
+			"nyx",
+			"erebos"
+		],
+		[
+			"nyx",
+			"hekate"
+		],
+		[
+			"lachesis",
+			"hekate"
+		],
+		[
+			"lachesis",
+			"tartaros"
+		],
+		[
+			"lachesis",
+			"pylos"
+		],
+		[
+			"delos",
+			"kyros"
+		],
+		[
+			"delos",
+			"naxos"
+		],
+		[
+			"kyros",
+			"naxos"
+		],
+		[
+			"kyros",
+			"thera"
+		],
+		[
+			"kyros",
+			"pylos"
+		],
+		[
+			"thera",
+			"pylos"
+		],
+		[
+			"pylos",
+			"tartaros"
+		],
+		[
+			"naxos",
+			"skylla"
+		],
+		[
+			"thera",
+			"skylla"
+		],
+		[
+			"hekate",
+			"tartaros"
+		],
+		[
+			"thera",
+			"miletos"
+		],
+		[
+			"miletos",
+			"ephesos"
+		],
+		[
+			"miletos",
+			"samos"
+		],
+		[
+			"ephesos",
+			"samos"
+		],
+		[
+			"skylla",
+			"ephesos"
+		],
+		[
+			"delos",
+			"g1_sitia"
+		],
+		[
+			"nyx",
+			"g2_chalkis"
+		],
+		[
+			"thera",
+			"g3_tegea"
+		],
+		[
+			"g3_tegea",
+			"pylos"
+		],
+		[
+			"naxos",
+			"g4_argolis"
+		],
+		[
+			"samos",
+			"g5_assos"
+		],
+		[
+			"keros",
+			"g6_melos"
+		],
+		[
+			"tartaros",
+			"g7_shardana"
+		],
+		[
+			"g1_sitia",
+			"g8_kissamos"
+		],
+		[
+			"g2_chalkis",
+			"g9_eretria"
+		],
+		[
+			"kyros",
+			"g10_mantineia"
+		],
+		[
+			"g10_mantineia",
+			"delos"
+		],
+		[
+			"g4_argolis",
+			"g11_perseia"
+		],
+		[
+			"g5_assos",
+			"g12_adramyttion"
+		],
+		[
+			"g6_melos",
+			"g13_syros"
+		],
+		[
+			"g7_shardana",
+			"g14_tursha"
+		],
+		[
+			"g8_kissamos",
+			"g15_lyttos"
+		],
+		[
+			"g9_eretria",
+			"g16_plataiai"
+		],
+		[
+			"g16_plataiai",
+			"g2_chalkis"
+		],
+		[
+			"thera",
+			"g17_ithome"
+		],
+		[
+			"g17_ithome",
+			"g3_tegea"
+		],
+		[
+			"g11_perseia",
+			"g18_danaia"
+		],
+		[
+			"g18_danaia",
+			"g4_argolis"
+		],
+		[
+			"g12_adramyttion",
+			"g19_kyzikos"
+		],
+		[
+			"g13_syros",
+			"g20_naxia"
+		],
+		[
+			"g14_tursha",
+			"g21_danuna"
+		],
+		[
+			"g15_lyttos",
+			"g22_axos"
+		],
+		[
+			"g16_plataiai",
+			"g23_megara"
+		],
+		[
+			"g23_megara",
+			"g9_eretria"
+		],
+		[
+			"thera",
+			"g24_megalopolis"
+		],
+		[
+			"g24_megalopolis",
+			"miletos"
+		],
+		[
+			"g18_danaia",
+			"g25_pelopia"
+		],
+		[
+			"g25_pelopia",
+			"g11_perseia"
+		],
+		[
+			"g12_adramyttion",
+			"g26_lampsakos"
+		],
+		[
+			"g26_lampsakos",
+			"g19_kyzikos"
+		],
+		[
+			"g20_naxia",
+			"g27_paros"
+		],
+		[
+			"g15_lyttos",
+			"g28_phalasarna"
+		],
+		[
+			"g28_phalasarna",
+			"g8_kissamos"
+		],
+		[
+			"g23_megara",
+			"g29_karystos"
+		],
+		[
+			"g29_karystos",
+			"g16_plataiai"
+		],
+		[
+			"thera",
+			"g30_phigaleia"
+		],
+		[
+			"g30_phigaleia",
+			"skylla"
+		],
+		[
+			"g18_danaia",
+			"g31_atreia"
+		],
+		[
+			"g31_atreia",
+			"g25_pelopia"
+		],
+		[
+			"g5_assos",
+			"g32_abydos"
+		],
+		[
+			"g32_abydos",
+			"g12_adramyttion"
+		],
+		[
+			"g13_syros",
+			"g33_siphnos"
+		],
+		[
+			"g33_siphnos",
+			"g27_paros"
+		],
+		[
+			"g29_karystos",
+			"g34_styra"
+		],
+		[
+			"g34_styra",
+			"g23_megara"
+		],
+		[
+			"g31_atreia",
+			"g35_tirynthia"
+		],
+		[
+			"g26_lampsakos",
+			"g36_sinope"
+		],
+		[
+			"g27_paros",
+			"g37_keos"
+		],
+		[
+			"g37_keos",
+			"g33_siphnos"
+		],
+		[
+			"g29_karystos",
+			"g38_tanagra"
+		],
+		[
+			"g38_tanagra",
+			"g34_styra"
+		],
+		[
+			"g19_kyzikos",
+			"g39_trapezous"
+		],
+		[
+			"g20_naxia",
+			"g40_delos"
+		],
+		[
+			"g40_delos",
+			"g27_paros"
+		],
+		[
+			"g3_tegea",
+			"g41_elis"
+		],
+		[
+			"g41_elis",
+			"keros"
+		],
+		[
+			"g28_phalasarna",
+			"g42_elyros"
+		],
+		[
+			"g42_elyros",
+			"g15_lyttos"
+		],
+		[
+			"g9_eretria",
+			"g43_oinophyta"
+		],
+		[
+			"g43_oinophyta",
+			"erebos"
+		],
+		[
+			"g17_ithome",
+			"g44_olympia"
+		],
+		[
+			"g44_olympia",
+			"g3_tegea"
+		],
+		[
+			"g44_olympia",
+			"keros"
+		],
+		[
+			"g4_argolis",
+			"g45_heraion"
+		],
+		[
+			"g45_heraion",
+			"g18_danaia"
+		],
+		[
+			"g32_abydos",
+			"g46_olbia"
+		],
+		[
+			"g46_olbia",
+			"g19_kyzikos"
+		],
+		[
+			"g46_olbia",
+			"g12_adramyttion"
+		],
+		[
+			"g27_paros",
+			"g47_thera_isle"
+		],
+		[
+			"g47_thera_isle",
+			"g40_delos"
+		],
+		[
+			"g7_shardana",
+			"g48_weshwesh"
+		],
+		[
+			"g48_weshwesh",
+			"g14_tursha"
+		],
+		[
+			"g22_axos",
+			"g49_lappa"
+		],
+		[
+			"g34_styra",
+			"g50_skione"
+		],
+		[
+			"g44_olympia",
+			"g51_sikyon"
+		],
+		[
+			"g35_tirynthia",
+			"g52_kalaureia"
+		],
+		[
+			"g52_kalaureia",
+			"g31_atreia"
+		],
+		[
+			"g32_abydos",
+			"g53_pantikapaion"
+		],
+		[
+			"g13_syros",
+			"g54_pholegandros"
+		],
+		[
+			"g54_pholegandros",
+			"g40_delos"
+		],
+		[
+			"g54_pholegandros",
+			"g20_naxia"
+		],
+		[
+			"g48_weshwesh",
+			"g55_tjekker"
+		],
+		[
+			"g8_kissamos",
+			"g56_knossia"
+		],
+		[
+			"g56_knossia",
+			"g28_phalasarna"
+		],
+		[
+			"g23_megara",
+			"g57_amphipolis"
+		],
+		[
+			"g51_sikyon",
+			"g58_phleious"
+		],
+		[
+			"g31_atreia",
+			"g59_kenchreai"
+		],
+		[
+			"g59_kenchreai",
+			"g52_kalaureia"
+		],
+		[
+			"g46_olbia",
+			"g60_massalia"
+		],
+		[
+			"g40_delos",
+			"g61_kimolos"
+		],
+		[
+			"g61_kimolos",
+			"g47_thera_isle"
+		],
+		[
+			"g55_tjekker",
+			"g62_ashkelon"
+		],
+		[
+			"g15_lyttos",
+			"g63_hierapytna"
+		],
+		[
+			"g63_hierapytna",
+			"g22_axos"
+		],
+		[
+			"g34_styra",
+			"g64_potidaia"
+		],
+		[
+			"g58_phleious",
+			"g65_kythera_gate"
+		],
+		[
+			"g45_heraion",
+			"g66_korakou"
+		],
+		[
+			"g39_trapezous",
+			"g67_elea"
+		],
+		[
+			"g67_elea",
+			"g60_massalia"
+		],
+		[
+			"g54_pholegandros",
+			"g68_anaphe"
+		],
+		[
+			"g68_anaphe",
+			"g27_paros"
+		],
+		[
+			"g48_weshwesh",
+			"g69_gaza"
+		],
+		[
+			"g69_gaza",
+			"g14_tursha"
+		],
+		[
+			"g42_elyros",
+			"g70_priansos"
+		],
+		[
+			"g70_priansos",
+			"g63_hierapytna"
+		],
+		[
+			"g50_skione",
+			"g71_thasos_polis"
+		],
+		[
+			"g71_thasos_polis",
+			"g64_potidaia"
+		],
+		[
+			"g65_kythera_gate",
+			"g72_messene"
+		],
+		[
+			"g72_messene",
+			"g58_phleious"
+		],
+		[
+			"g18_danaia",
+			"g73_gonia"
+		],
+		[
+			"g73_gonia",
+			"g35_tirynthia"
+		],
+		[
+			"g53_pantikapaion",
+			"g74_naukratis"
+		],
+		[
+			"g68_anaphe",
+			"g75_ios"
+		],
+		[
+			"g69_gaza",
+			"g76_ekron"
+		],
+		[
+			"g76_ekron",
+			"g55_tjekker"
+		],
+		[
+			"g63_hierapytna",
+			"g77_rhaukos"
+		],
+		[
+			"g57_amphipolis",
+			"g78_naupaktos"
+		],
+		[
+			"g65_kythera_gate",
+			"g79_pharai"
+		],
+		[
+			"g66_korakou",
+			"g80_arne"
+		],
+		[
+			"g67_elea",
+			"g81_kalchedon"
+		],
+		[
+			"g40_delos",
+			"g82_gyaros"
+		],
+		[
+			"g82_gyaros",
+			"g20_naxia"
+		],
+		[
+			"g14_tursha",
+			"g83_gath"
+		],
+		[
+			"g83_gath",
+			"g21_danuna"
+		],
+		[
+			"g49_lappa",
+			"g84_biannos"
+		],
+		[
+			"g64_potidaia",
+			"g85_sestos"
+		],
+		[
+			"g51_sikyon",
+			"g86_methone"
+		],
+		[
+			"g86_methone",
+			"g58_phleious"
+		],
+		[
+			"g66_korakou",
+			"g87_ornea"
+		],
+		[
+			"g87_ornea",
+			"g73_gonia"
+		],
+		[
+			"g87_ornea",
+			"g80_arne"
+		],
+		[
+			"g53_pantikapaion",
+			"g88_perinthos"
+		],
+		[
+			"g88_perinthos",
+			"g46_olbia"
+		],
+		[
+			"g88_perinthos",
+			"g74_naukratis"
+		],
+		[
+			"g20_naxia",
+			"g89_rheneia"
+		],
+		[
+			"g89_rheneia",
+			"g82_gyaros"
+		],
+		[
+			"g55_tjekker",
+			"g90_akko"
+		],
+		[
+			"g90_akko",
+			"g62_ashkelon"
+		],
+		[
+			"g42_elyros",
+			"g91_polyrrhenia"
+		],
+		[
+			"g91_polyrrhenia",
+			"g63_hierapytna"
+		],
+		[
+			"g78_naupaktos",
+			"g92_byzantion"
+		],
+		[
+			"g92_byzantion",
+			"g57_amphipolis"
+		],
+		[
+			"g79_pharai",
+			"g93_korone"
+		],
+		[
+			"g87_ornea",
+			"g94_lessa"
+		],
+		[
+			"g94_lessa",
+			"g73_gonia"
+		],
+		[
+			"g32_abydos",
+			"g95_amisos"
+		],
+		[
+			"g95_amisos",
+			"g53_pantikapaion"
+		],
+		[
+			"g89_rheneia",
+			"g96_christiana"
+		],
+		[
+			"g96_christiana",
+			"g82_gyaros"
+		],
+		[
+			"g62_ashkelon",
+			"g97_sumur"
+		],
+		[
+			"g77_rhaukos",
+			"g98_tarrha"
+		],
+		[
+			"g79_pharai",
+			"g99_dyme"
+		],
+		[
+			"g99_dyme",
+			"g93_korone"
+		],
+		[
+			"g21_danuna",
+			"g100_hamath"
+		],
+		[
+			"g97_sumur",
+			"g101_emar"
+		],
+		[
+			"g101_emar",
+			"g90_akko"
+		],
+		[
+			"g48_weshwesh",
+			"g102_alalakh"
+		],
+		[
+			"g102_alalakh",
+			"g62_ashkelon"
+		],
+		[
+			"g102_alalakh",
+			"g69_gaza"
+		],
+		[
+			"g97_sumur",
+			"g103_kadesh"
+		]
+	],
+	"systems": [
+		{
+			"id": "atrapos",
+			"name": "Knossos",
+			"owner": "minoa",
+			"pirates": 0.45,
+			"pos": [
+				430.0,
+				330.0
+			],
+			"pos3": [
+				430.0,
+				0.0,
+				330.0
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "klotho",
+			"name": "Phaistos",
+			"owner": "minoa",
+			"pirates": 0.25,
+			"pos": [
+				290.0,
+				240.0
+			],
+			"pos3": [
+				290.0,
+				103.6868,
+				240.0
+			],
+			"star": "white"
+		},
+		{
+			"id": "lachesis",
+			"name": "Malia",
+			"owner": "minoa",
+			"pirates": 0.4,
+			"pos": [
+				350.0,
+				470.0
+			],
+			"pos3": [
+				350.0,
+				92.1038,
+				470.0
+			],
+			"star": "orange"
+		},
+		{
+			"id": "delos",
+			"name": "Zakros",
+			"owner": "minoa",
+			"pirates": 0.3,
+			"pos": [
+				560.0,
+				220.0
+			],
+			"pos3": [
+				560.0,
+				168.1947,
+				220.0
+			],
+			"star": "blue"
+		},
+		{
+			"id": "kyros",
+			"name": "Sparta",
+			"owner": "sparta",
+			"pirates": 0.15,
+			"pos": [
+				710.0,
+				330.0
+			],
+			"pos3": [
+				710.0,
+				283.5792,
+				330.0
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "naxos",
+			"name": "Mykenai",
+			"owner": "mycenae",
+			"pirates": 0.3,
+			"pos": [
+				830.0,
+				190.0
+			],
+			"pos3": [
+				830.0,
+				184.6025,
+				190.0
+			],
+			"star": "orange"
+		},
+		{
+			"id": "thera",
+			"name": "Thermopylai",
+			"owner": "sparta",
+			"pirates": 0.4,
+			"pos": [
+				790.0,
+				480.0
+			],
+			"pos3": [
+				790.0,
+				290.6518,
+				480.0
+			],
+			"star": "red"
+		},
+		{
+			"id": "pylos",
+			"name": "Pylos",
+			"owner": "mycenae",
+			"pirates": 0.5,
+			"pos": [
+				620.0,
+				530.0
+			],
+			"pos3": [
+				620.0,
+				218.6556,
+				530.0
+			],
+			"star": "white"
+		},
+		{
+			"id": "nyx",
+			"name": "Athenai",
+			"owner": "athens",
+			"pirates": 0.2,
+			"pos": [
+				150.0,
+				370.0
+			],
+			"pos3": [
+				150.0,
+				-48.9192,
+				370.0
+			],
+			"star": "blue"
+		},
+		{
+			"id": "erebos",
+			"name": "Marathon",
+			"owner": "athens",
+			"pirates": 0.3,
+			"pos": [
+				130.0,
+				190.0
+			],
+			"pos3": [
+				130.0,
+				-78.231,
+				190.0
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "hekate",
+			"name": "Piraeus",
+			"owner": "athens",
+			"pirates": 0.4,
+			"pos": [
+				200.0,
+				550.0
+			],
+			"pos3": [
+				200.0,
+				35.3401,
+				550.0
+			],
+			"star": "white"
+		},
+		{
+			"id": "tartaros",
+			"name": "Ugarit",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				470.0,
+				620.0
+			],
+			"pos3": [
+				470.0,
+				119.6029,
+				620.0
+			],
+			"star": "brown"
+		},
+		{
+			"id": "skylla",
+			"name": "Lukka",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				940.0,
+				340.0
+			],
+			"pos3": [
+				940.0,
+				381.9299,
+				340.0
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "miletos",
+			"name": "Miletos",
+			"owner": "ionia",
+			"pirates": 0.2,
+			"pos": [
+				960.0,
+				560.0
+			],
+			"pos3": [
+				960.0,
+				186.9411,
+				560.0
+			],
+			"star": "blue"
+		},
+		{
+			"id": "ephesos",
+			"name": "Ephesos",
+			"owner": "ionia",
+			"pirates": 0.25,
+			"pos": [
+				1090.0,
+				430.0
+			],
+			"pos3": [
+				1090.0,
+				235.0842,
+				430.0
+			],
+			"star": "white"
+		},
+		{
+			"id": "samos",
+			"name": "Samos",
+			"owner": "ionia",
+			"pirates": 0.35,
+			"pos": [
+				1080.0,
+				650.0
+			],
+			"pos3": [
+				1080.0,
+				151.0993,
+				650.0
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "keros",
+			"name": "Keros",
+			"owner": "cyclades",
+			"pirates": 0.2,
+			"pos": [
+				800.0,
+				790.0
+			],
+			"pos3": [
+				800.0,
+				161.7121,
+				790.0
+			],
+			"star": "white"
+		},
+		{
+			"id": "g1_sitia",
+			"name": "Sitia",
+			"owner": "minoa",
+			"pirates": 0.2,
+			"pos": [
+				472.0698,
+				91.4745
+			],
+			"pos3": [
+				472.0698,
+				82.225,
+				91.4745
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "g2_chalkis",
+			"name": "Chalkis",
+			"owner": "athens",
+			"pirates": 0.2,
+			"pos": [
+				16.0323,
+				439.6005
+			],
+			"pos3": [
+				16.0323,
+				-90.8166,
+				439.6005
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g3_tegea",
+			"name": "Tegea",
+			"owner": "sparta",
+			"pirates": 0.45,
+			"pos": [
+				747.272,
+				586.9553
+			],
+			"pos3": [
+				747.272,
+				291.4315,
+				586.9553
+			],
+			"star": "orange"
+		},
+		{
+			"id": "g4_argolis",
+			"name": "Argolis",
+			"owner": "mycenae",
+			"pirates": 0.2,
+			"pos": [
+				862.6769,
+				22.9974
+			],
+			"pos3": [
+				862.6769,
+				104.1248,
+				22.9974
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g5_assos",
+			"name": "Assos",
+			"owner": "ionia",
+			"pirates": 0.25,
+			"pos": [
+				1231.084,
+				678.0013
+			],
+			"pos3": [
+				1231.084,
+				37.0834,
+				678.0013
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g6_melos",
+			"name": "Melos",
+			"owner": "cyclades",
+			"pirates": 0.25,
+			"pos": [
+				835.2269,
+				959.717
+			],
+			"pos3": [
+				835.2269,
+				-21.31,
+				959.717
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "g7_shardana",
+			"name": "Shardana",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				439.4196,
+				785.5784
+			],
+			"pos3": [
+				439.4196,
+				-85.5104,
+				785.5784
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g8_kissamos",
+			"name": "Kissamos",
+			"owner": "minoa",
+			"pirates": 0.4,
+			"pos": [
+				444.0511,
+				-34.3632
+			],
+			"pos3": [
+				444.0511,
+				-130.4152,
+				-34.3632
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "g9_eretria",
+			"name": "Eretria",
+			"owner": "athens",
+			"pirates": 0.4,
+			"pos": [
+				-88.1689,
+				372.9355
+			],
+			"pos3": [
+				-88.1689,
+				-190.1687,
+				372.9355
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "g10_mantineia",
+			"name": "Mantineia",
+			"owner": "sparta",
+			"pirates": 0.25,
+			"pos": [
+				695.7236,
+				213.8668
+			],
+			"pos3": [
+				695.7236,
+				206.2497,
+				213.8668
+			],
+			"star": "orange"
+		},
+		{
+			"id": "g11_perseia",
+			"name": "Perseia",
+			"owner": "mycenae",
+			"pirates": 0.3,
+			"pos": [
+				916.0962,
+				-125.5579
+			],
+			"pos3": [
+				916.0962,
+				-99.1256,
+				-125.5579
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g12_adramyttion",
+			"name": "Adramyttion",
+			"owner": "ionia",
+			"pirates": 0.4,
+			"pos": [
+				1340.8817,
+				721.1789
+			],
+			"pos3": [
+				1340.8817,
+				-170.3127,
+				721.1789
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "g13_syros",
+			"name": "Syros",
+			"owner": "cyclades",
+			"pirates": 0.45,
+			"pos": [
+				929.2632,
+				1054.5828
+			],
+			"pos3": [
+				929.2632,
+				29.9708,
+				1054.5828
+			],
+			"star": "blue"
+		},
+		{
+			"id": "g14_tursha",
+			"name": "Tursha",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				433.3568,
+				954.3766
+			],
+			"pos3": [
+				433.3568,
+				-137.0882,
+				954.3766
+			],
+			"star": "white"
+		},
+		{
+			"id": "g15_lyttos",
+			"name": "Lyttos",
+			"owner": "minoa",
+			"pirates": 0.45,
+			"pos": [
+				356.8378,
+				-174.8144
+			],
+			"pos3": [
+				356.8378,
+				-132.9879,
+				-174.8144
+			],
+			"star": "blue"
+		},
+		{
+			"id": "g16_plataiai",
+			"name": "Plataiai",
+			"owner": "athens",
+			"pirates": 0.3,
+			"pos": [
+				-174.1939,
+				471.3276
+			],
+			"pos3": [
+				-174.1939,
+				-123.7317,
+				471.3276
+			],
+			"star": "white"
+		},
+		{
+			"id": "g17_ithome",
+			"name": "Ithome",
+			"owner": "sparta",
+			"pirates": 0.5,
+			"pos": [
+				846.1957,
+				637.4672
+			],
+			"pos3": [
+				846.1957,
+				239.353,
+				637.4672
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "g18_danaia",
+			"name": "Danaia",
+			"owner": "mycenae",
+			"pirates": 0.25,
+			"pos": [
+				1030.6155,
+				-101.9995
+			],
+			"pos3": [
+				1030.6155,
+				-18.2237,
+				-101.9995
+			],
+			"star": "orange"
+		},
+		{
+			"id": "g19_kyzikos",
+			"name": "Kyzikos",
+			"owner": "ionia",
+			"pirates": 0.35,
+			"pos": [
+				1455.5756,
+				755.8284
+			],
+			"pos3": [
+				1455.5756,
+				-128.9166,
+				755.8284
+			],
+			"star": "orange"
+		},
+		{
+			"id": "g20_naxia",
+			"name": "Naxia",
+			"owner": "cyclades",
+			"pirates": 0.45,
+			"pos": [
+				906.9169,
+				1176.8058
+			],
+			"pos3": [
+				906.9169,
+				-18.4933,
+				1176.8058
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "g21_danuna",
+			"name": "Danuna",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				400.959,
+				1078.4094
+			],
+			"pos3": [
+				400.959,
+				-129.1543,
+				1078.4094
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g22_axos",
+			"name": "Axos",
+			"owner": "minoa",
+			"pirates": 0.45,
+			"pos": [
+				253.2167,
+				-244.2921
+			],
+			"pos3": [
+				253.2167,
+				-65.8777,
+				-244.2921
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g23_megara",
+			"name": "Megara",
+			"owner": "athens",
+			"pirates": 0.45,
+			"pos": [
+				-271.8515,
+				407.8148
+			],
+			"pos3": [
+				-271.8515,
+				-73.3142,
+				407.8148
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g24_megalopolis",
+			"name": "Megalopolis",
+			"owner": "sparta",
+			"pirates": 0.35,
+			"pos": [
+				941.2842,
+				452.5904
+			],
+			"pos3": [
+				941.2842,
+				297.2569,
+				452.5904
+			],
+			"star": "white"
+		},
+		{
+			"id": "g25_pelopia",
+			"name": "Pelopia",
+			"owner": "mycenae",
+			"pirates": 0.35,
+			"pos": [
+				1007.9448,
+				-217.3718
+			],
+			"pos3": [
+				1007.9448,
+				-215.4446,
+				-217.3718
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "g26_lampsakos",
+			"name": "Lampsakos",
+			"owner": "ionia",
+			"pirates": 0.25,
+			"pos": [
+				1344.6675,
+				840.1287
+			],
+			"pos3": [
+				1344.6675,
+				-126.6474,
+				840.1287
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "g27_paros",
+			"name": "Paros",
+			"owner": "cyclades",
+			"pirates": 0.35,
+			"pos": [
+				991.7573,
+				1260.7117
+			],
+			"pos3": [
+				991.7573,
+				88.5152,
+				1260.7117
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "g28_phalasarna",
+			"name": "Phalasarna",
+			"owner": "minoa",
+			"pirates": 0.4,
+			"pos": [
+				462.8264,
+				-226.4857
+			],
+			"pos3": [
+				462.8264,
+				-202.8011,
+				-226.4857
+			],
+			"star": "orange"
+		},
+		{
+			"id": "g29_karystos",
+			"name": "Karystos",
+			"owner": "athens",
+			"pirates": 0.2,
+			"pos": [
+				-333.3234,
+				505.7194
+			],
+			"pos3": [
+				-333.3234,
+				-115.9099,
+				505.7194
+			],
+			"star": "white"
+		},
+		{
+			"id": "g30_phigaleia",
+			"name": "Phigaleia",
+			"owner": "sparta",
+			"pirates": 0.3,
+			"pos": [
+				839.2882,
+				372.4945
+			],
+			"pos3": [
+				839.2882,
+				333.9178,
+				372.4945
+			],
+			"star": "blue"
+		},
+		{
+			"id": "g31_atreia",
+			"name": "Atreia",
+			"owner": "mycenae",
+			"pirates": 0.2,
+			"pos": [
+				1110.579,
+				-190.34
+			],
+			"pos3": [
+				1110.579,
+				-181.5322,
+				-190.34
+			],
+			"star": "orange"
+		},
+		{
+			"id": "g32_abydos",
+			"name": "Abydos",
+			"owner": "ionia",
+			"pirates": 0.25,
+			"pos": [
+				1320.9969,
+				594.5425
+			],
+			"pos3": [
+				1320.9969,
+				-16.2219,
+				594.5425
+			],
+			"star": "white"
+		},
+		{
+			"id": "g33_siphnos",
+			"name": "Siphnos",
+			"owner": "cyclades",
+			"pirates": 0.35,
+			"pos": [
+				1009.9436,
+				1160.8481
+			],
+			"pos3": [
+				1009.9436,
+				34.5088,
+				1160.8481
+			],
+			"star": "red"
+		},
+		{
+			"id": "g34_styra",
+			"name": "Styra",
+			"owner": "athens",
+			"pirates": 0.35,
+			"pos": [
+				-463.0714,
+				454.1528
+			],
+			"pos3": [
+				-463.0714,
+				-120.7877,
+				454.1528
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "g35_tirynthia",
+			"name": "Tirynthia",
+			"owner": "mycenae",
+			"pirates": 0.2,
+			"pos": [
+				1227.584,
+				-216.2927
+			],
+			"pos3": [
+				1227.584,
+				-100.2325,
+				-216.2927
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g36_sinope",
+			"name": "Sinope",
+			"owner": "ionia",
+			"pirates": 0.3,
+			"pos": [
+				1363.9578,
+				957.4044
+			],
+			"pos3": [
+				1363.9578,
+				10.464,
+				957.4044
+			],
+			"star": "blue"
+		},
+		{
+			"id": "g37_keos",
+			"name": "Keos",
+			"owner": "cyclades",
+			"pirates": 0.3,
+			"pos": [
+				1112.6698,
+				1303.0421
+			],
+			"pos3": [
+				1112.6698,
+				109.6218,
+				1303.0421
+			],
+			"star": "orange"
+		},
+		{
+			"id": "g38_tanagra",
+			"name": "Tanagra",
+			"owner": "athens",
+			"pirates": 0.3,
+			"pos": [
+				-410.4785,
+				596.6111
+			],
+			"pos3": [
+				-410.4785,
+				28.8866,
+				596.6111
+			],
+			"star": "red"
+		},
+		{
+			"id": "g39_trapezous",
+			"name": "Trapezous",
+			"owner": "ionia",
+			"pirates": 0.3,
+			"pos": [
+				1567.8484,
+				708.941
+			],
+			"pos3": [
+				1567.8484,
+				-300.6963,
+				708.941
+			],
+			"star": "red"
+		},
+		{
+			"id": "g40_delos",
+			"name": "Delos",
+			"owner": "cyclades",
+			"pirates": 0.3,
+			"pos": [
+				835.0322,
+				1272.5973
+			],
+			"pos3": [
+				835.0322,
+				40.9311,
+				1272.5973
+			],
+			"star": "orange"
+		},
+		{
+			"id": "g41_elis",
+			"name": "Elis",
+			"owner": "sparta",
+			"pirates": 0.4,
+			"pos": [
+				741.6718,
+				703.1818
+			],
+			"pos3": [
+				741.6718,
+				106.8773,
+				703.1818
+			],
+			"star": "blue"
+		},
+		{
+			"id": "g42_elyros",
+			"name": "Elyros",
+			"owner": "minoa",
+			"pirates": 0.35,
+			"pos": [
+				352.392,
+				-233.8772
+			],
+			"pos3": [
+				352.392,
+				-341.5161,
+				-233.8772
+			],
+			"star": "orange"
+		},
+		{
+			"id": "g43_oinophyta",
+			"name": "Oinophyta",
+			"owner": "athens",
+			"pirates": 0.5,
+			"pos": [
+				-62.2005,
+				198.6453
+			],
+			"pos3": [
+				-62.2005,
+				-217.8789,
+				198.6453
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g44_olympia",
+			"name": "Olympia",
+			"owner": "sparta",
+			"pirates": 0.45,
+			"pos": [
+				829.3923,
+				729.8405
+			],
+			"pos3": [
+				829.3923,
+				384.6337,
+				729.8405
+			],
+			"star": "red"
+		},
+		{
+			"id": "g45_heraion",
+			"name": "Heraion",
+			"owner": "mycenae",
+			"pirates": 0.2,
+			"pos": [
+				1005.5303,
+				-64.382
+			],
+			"pos3": [
+				1005.5303,
+				179.0742,
+				-64.382
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "g46_olbia",
+			"name": "Olbia",
+			"owner": "ionia",
+			"pirates": 0.45,
+			"pos": [
+				1483.6719,
+				594.1626
+			],
+			"pos3": [
+				1483.6719,
+				-45.5187,
+				594.1626
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "g47_thera_isle",
+			"name": "Thera Isle",
+			"owner": "cyclades",
+			"pirates": 0.4,
+			"pos": [
+				884.5195,
+				1390.4824
+			],
+			"pos3": [
+				884.5195,
+				138.2357,
+				1390.4824
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g48_weshwesh",
+			"name": "Weshwesh",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				381.1321,
+				771.5092
+			],
+			"pos3": [
+				381.1321,
+				-261.6918,
+				771.5092
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "g49_lappa",
+			"name": "Lappa",
+			"owner": "minoa",
+			"pirates": 0.3,
+			"pos": [
+				352.5749,
+				-397.4371
+			],
+			"pos3": [
+				352.5749,
+				-32.3277,
+				-397.4371
+			],
+			"star": "blue"
+		},
+		{
+			"id": "g50_skione",
+			"name": "Skione",
+			"owner": "athens",
+			"pirates": 0.45,
+			"pos": [
+				-580.0989,
+				585.1942
+			],
+			"pos3": [
+				-580.0989,
+				-192.7288,
+				585.1942
+			],
+			"star": "red"
+		},
+		{
+			"id": "g51_sikyon",
+			"name": "Sikyon",
+			"owner": "sparta",
+			"pirates": 0.4,
+			"pos": [
+				802.0314,
+				807.9547
+			],
+			"pos3": [
+				802.0314,
+				483.7954,
+				807.9547
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "g52_kalaureia",
+			"name": "Kalaureia",
+			"owner": "mycenae",
+			"pirates": 0.2,
+			"pos": [
+				1256.8369,
+				-358.2853
+			],
+			"pos3": [
+				1256.8369,
+				-197.4679,
+				-358.2853
+			],
+			"star": "blue"
+		},
+		{
+			"id": "g53_pantikapaion",
+			"name": "Pantikapaion",
+			"owner": "ionia",
+			"pirates": 0.15,
+			"pos": [
+				1317.7344,
+				419.9984
+			],
+			"pos3": [
+				1317.7344,
+				-51.4289,
+				419.9984
+			],
+			"star": "blue"
+		},
+		{
+			"id": "g54_pholegandros",
+			"name": "Pholegandros",
+			"owner": "cyclades",
+			"pirates": 0.3,
+			"pos": [
+				860.1318,
+				1129.8368
+			],
+			"pos3": [
+				860.1318,
+				175.3813,
+				1129.8368
+			],
+			"star": "red"
+		},
+		{
+			"id": "g55_tjekker",
+			"name": "Tjekker",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				497.4931,
+				764.8636
+			],
+			"pos3": [
+				497.4931,
+				-394.3834,
+				764.8636
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "g56_knossia",
+			"name": "Knossia",
+			"owner": "minoa",
+			"pirates": 0.5,
+			"pos": [
+				546.3994,
+				-73.521
+			],
+			"pos3": [
+				546.3994,
+				-281.4611,
+				-73.521
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g57_amphipolis",
+			"name": "Amphipolis",
+			"owner": "athens",
+			"pirates": 0.2,
+			"pos": [
+				-320.0334,
+				257.7302
+			],
+			"pos3": [
+				-320.0334,
+				-157.7008,
+				257.7302
+			],
+			"star": "blue"
+		},
+		{
+			"id": "g58_phleious",
+			"name": "Phleious",
+			"owner": "sparta",
+			"pirates": 0.35,
+			"pos": [
+				695.1177,
+				928.081
+			],
+			"pos3": [
+				695.1177,
+				555.9836,
+				928.081
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "g59_kenchreai",
+			"name": "Kenchreai",
+			"owner": "mycenae",
+			"pirates": 0.4,
+			"pos": [
+				1124.4137,
+				-321.6941
+			],
+			"pos3": [
+				1124.4137,
+				-287.1101,
+				-321.6941
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g60_massalia",
+			"name": "Massalia",
+			"owner": "ionia",
+			"pirates": 0.45,
+			"pos": [
+				1658.639,
+				578.8441
+			],
+			"pos3": [
+				1658.639,
+				-104.6903,
+				578.8441
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "g61_kimolos",
+			"name": "Kimolos",
+			"owner": "cyclades",
+			"pirates": 0.2,
+			"pos": [
+				736.5045,
+				1402.105
+			],
+			"pos3": [
+				736.5045,
+				52.5276,
+				1402.105
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "g62_ashkelon",
+			"name": "Ashkelon",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				408.8485,
+				684.7019
+			],
+			"pos3": [
+				408.8485,
+				-515.9437,
+				684.7019
+			],
+			"star": "red"
+		},
+		{
+			"id": "g63_hierapytna",
+			"name": "Hierapytna",
+			"owner": "minoa",
+			"pirates": 0.35,
+			"pos": [
+				221.0846,
+				-252.927
+			],
+			"pos3": [
+				221.0846,
+				-226.8967,
+				-252.927
+			],
+			"star": "red"
+		},
+		{
+			"id": "g64_potidaia",
+			"name": "Potidaia",
+			"owner": "athens",
+			"pirates": 0.35,
+			"pos": [
+				-602.9498,
+				381.4344
+			],
+			"pos3": [
+				-602.9498,
+				-28.0856,
+				381.4344
+			],
+			"star": "white"
+		},
+		{
+			"id": "g65_kythera_gate",
+			"name": "Kythera Gate",
+			"owner": "sparta",
+			"pirates": 0.15,
+			"pos": [
+				530.8918,
+				973.5302
+			],
+			"pos3": [
+				530.8918,
+				518.0981,
+				973.5302
+			],
+			"star": "red"
+		},
+		{
+			"id": "g66_korakou",
+			"name": "Korakou",
+			"owner": "mycenae",
+			"pirates": 0.35,
+			"pos": [
+				926.0167,
+				-220.7534
+			],
+			"pos3": [
+				926.0167,
+				191.8915,
+				-220.7534
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "g67_elea",
+			"name": "Elea",
+			"owner": "ionia",
+			"pirates": 0.4,
+			"pos": [
+				1668.7709,
+				767.2717
+			],
+			"pos3": [
+				1668.7709,
+				-175.06,
+				767.2717
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g68_anaphe",
+			"name": "Anaphe",
+			"owner": "cyclades",
+			"pirates": 0.5,
+			"pos": [
+				1002.1233,
+				1179.0737
+			],
+			"pos3": [
+				1002.1233,
+				263.6952,
+				1179.0737
+			],
+			"star": "orange"
+		},
+		{
+			"id": "g69_gaza",
+			"name": "Gaza",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				300.1654,
+				902.249
+			],
+			"pos3": [
+				300.1654,
+				-329.4028,
+				902.249
+			],
+			"star": "white"
+		},
+		{
+			"id": "g70_priansos",
+			"name": "Priansos",
+			"owner": "minoa",
+			"pirates": 0.4,
+			"pos": [
+				194.2789,
+				-149.3524
+			],
+			"pos3": [
+				194.2789,
+				-362.5652,
+				-149.3524
+			],
+			"star": "orange"
+		},
+		{
+			"id": "g71_thasos_polis",
+			"name": "Thasos Polis",
+			"owner": "athens",
+			"pirates": 0.2,
+			"pos": [
+				-711.1712,
+				532.5043
+			],
+			"pos3": [
+				-711.1712,
+				-72.8624,
+				532.5043
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "g72_messene",
+			"name": "Messene",
+			"owner": "sparta",
+			"pirates": 0.4,
+			"pos": [
+				589.8307,
+				1107.0033
+			],
+			"pos3": [
+				589.8307,
+				542.4592,
+				1107.0033
+			],
+			"star": "blue"
+		},
+		{
+			"id": "g73_gonia",
+			"name": "Gonia",
+			"owner": "mycenae",
+			"pirates": 0.4,
+			"pos": [
+				1094.2201,
+				-249.8105
+			],
+			"pos3": [
+				1094.2201,
+				24.8662,
+				-249.8105
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "g74_naukratis",
+			"name": "Naukratis",
+			"owner": "ionia",
+			"pirates": 0.4,
+			"pos": [
+				1367.7201,
+				466.3869
+			],
+			"pos3": [
+				1367.7201,
+				-214.099,
+				466.3869
+			],
+			"star": "white"
+		},
+		{
+			"id": "g75_ios",
+			"name": "Ios",
+			"owner": "cyclades",
+			"pirates": 0.45,
+			"pos": [
+				1129.7113,
+				1203.9835
+			],
+			"pos3": [
+				1129.7113,
+				402.1235,
+				1203.9835
+			],
+			"star": "white"
+		},
+		{
+			"id": "g76_ekron",
+			"name": "Ekron",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				397.8911,
+				960.4726
+			],
+			"pos3": [
+				397.8911,
+				-475.9993,
+				960.4726
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "g77_rhaukos",
+			"name": "Rhaukos",
+			"owner": "minoa",
+			"pirates": 0.45,
+			"pos": [
+				33.6027,
+				-235.0009
+			],
+			"pos3": [
+				33.6027,
+				-201.9749,
+				-235.0009
+			],
+			"star": "orange"
+		},
+		{
+			"id": "g78_naupaktos",
+			"name": "Naupaktos",
+			"owner": "athens",
+			"pirates": 0.3,
+			"pos": [
+				-228.4485,
+				162.8496
+			],
+			"pos3": [
+				-228.4485,
+				-34.31,
+				162.8496
+			],
+			"star": "blue"
+		},
+		{
+			"id": "g79_pharai",
+			"name": "Pharai",
+			"owner": "sparta",
+			"pirates": 0.45,
+			"pos": [
+				376.7964,
+				985.7096
+			],
+			"pos3": [
+				376.7964,
+				458.5341,
+				985.7096
+			],
+			"star": "red"
+		},
+		{
+			"id": "g80_arne",
+			"name": "Arne",
+			"owner": "mycenae",
+			"pirates": 0.2,
+			"pos": [
+				1002.3599,
+				-271.4043
+			],
+			"pos3": [
+				1002.3599,
+				347.524,
+				-271.4043
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "g81_kalchedon",
+			"name": "Kalchedon",
+			"owner": "ionia",
+			"pirates": 0.35,
+			"pos": [
+				1827.8865,
+				785.4286
+			],
+			"pos3": [
+				1827.8865,
+				-86.0253,
+				785.4286
+			],
+			"star": "white"
+		},
+		{
+			"id": "g82_gyaros",
+			"name": "Gyaros",
+			"owner": "cyclades",
+			"pirates": 0.2,
+			"pos": [
+				931.2411,
+				1376.663
+			],
+			"pos3": [
+				931.2411,
+				-66.9222,
+				1376.663
+			],
+			"star": "white"
+		},
+		{
+			"id": "g83_gath",
+			"name": "Gath",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				301.8859,
+				972.39
+			],
+			"pos3": [
+				301.8859,
+				-6.0924,
+				972.39
+			],
+			"star": "white"
+		},
+		{
+			"id": "g84_biannos",
+			"name": "Biannos",
+			"owner": "minoa",
+			"pirates": 0.3,
+			"pos": [
+				426.2932,
+				-496.0483
+			],
+			"pos3": [
+				426.2932,
+				94.3422,
+				-496.0483
+			],
+			"star": "white"
+		},
+		{
+			"id": "g85_sestos",
+			"name": "Sestos",
+			"owner": "athens",
+			"pirates": 0.15,
+			"pos": [
+				-716.6334,
+				250.1753
+			],
+			"pos3": [
+				-716.6334,
+				-20.6397,
+				250.1753
+			],
+			"star": "blue"
+		},
+		{
+			"id": "g86_methone",
+			"name": "Methone",
+			"owner": "sparta",
+			"pirates": 0.35,
+			"pos": [
+				750.3975,
+				760.0378
+			],
+			"pos3": [
+				750.3975,
+				643.0807,
+				760.0378
+			],
+			"star": "orange"
+		},
+		{
+			"id": "g87_ornea",
+			"name": "Ornea",
+			"owner": "mycenae",
+			"pirates": 0.45,
+			"pos": [
+				1021.9905,
+				-358.515
+			],
+			"pos3": [
+				1021.9905,
+				145.8563,
+				-358.515
+			],
+			"star": "blue"
+		},
+		{
+			"id": "g88_perinthos",
+			"name": "Perinthos",
+			"owner": "ionia",
+			"pirates": 0.3,
+			"pos": [
+				1484.1941,
+				430.6012
+			],
+			"pos3": [
+				1484.1941,
+				-94.0554,
+				430.6012
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g89_rheneia",
+			"name": "Rheneia",
+			"owner": "cyclades",
+			"pirates": 0.3,
+			"pos": [
+				823.2358,
+				1252.7739
+			],
+			"pos3": [
+				823.2358,
+				-139.8238,
+				1252.7739
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "g90_akko",
+			"name": "Akko",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				596.0864,
+				762.4496
+			],
+			"pos3": [
+				596.0864,
+				-537.4798,
+				762.4496
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g91_polyrrhenia",
+			"name": "Polyrrhenia",
+			"owner": "minoa",
+			"pirates": 0.2,
+			"pos": [
+				222.5738,
+				-317.7444
+			],
+			"pos3": [
+				222.5738,
+				-384.9647,
+				-317.7444
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "g92_byzantion",
+			"name": "Byzantion",
+			"owner": "athens",
+			"pirates": 0.4,
+			"pos": [
+				-384.7696,
+				93.03
+			],
+			"pos3": [
+				-384.7696,
+				-3.7976,
+				93.03
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "g93_korone",
+			"name": "Korone",
+			"owner": "sparta",
+			"pirates": 0.3,
+			"pos": [
+				213.0315,
+				1041.8033
+			],
+			"pos3": [
+				213.0315,
+				484.7558,
+				1041.8033
+			],
+			"star": "yellow"
+		},
+		{
+			"id": "g94_lessa",
+			"name": "Lessa",
+			"owner": "mycenae",
+			"pirates": 0.45,
+			"pos": [
+				1029.4113,
+				-473.0266
+			],
+			"pos3": [
+				1029.4113,
+				-3.1322,
+				-473.0266
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "g95_amisos",
+			"name": "Amisos",
+			"owner": "ionia",
+			"pirates": 0.35,
+			"pos": [
+				1329.6742,
+				505.0276
+			],
+			"pos3": [
+				1329.6742,
+				138.4331,
+				505.0276
+			],
+			"star": "blue"
+		},
+		{
+			"id": "g96_christiana",
+			"name": "Christiana",
+			"owner": "cyclades",
+			"pirates": 0.3,
+			"pos": [
+				991.1178,
+				1270.1748
+			],
+			"pos3": [
+				991.1178,
+				-194.5059,
+				1270.1748
+			],
+			"star": "white"
+		},
+		{
+			"id": "g97_sumur",
+			"name": "Sumur",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				485.098,
+				522.0872
+			],
+			"pos3": [
+				485.098,
+				-568.1906,
+				522.0872
+			],
+			"star": "red"
+		},
+		{
+			"id": "g98_tarrha",
+			"name": "Tarrha",
+			"owner": "minoa",
+			"pirates": 0.4,
+			"pos": [
+				-1.9521,
+				-183.7501
+			],
+			"pos3": [
+				-1.9521,
+				-24.6559,
+				-183.7501
+			],
+			"star": "magnetar"
+		},
+		{
+			"id": "g99_dyme",
+			"name": "Dyme",
+			"owner": "sparta",
+			"pirates": 0.5,
+			"pos": [
+				290.4582,
+				876.1524
+			],
+			"pos3": [
+				290.4582,
+				586.0078,
+				876.1524
+			],
+			"star": "orange"
+		},
+		{
+			"id": "g100_hamath",
+			"name": "Hamath",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				391.3398,
+				1235.1287
+			],
+			"pos3": [
+				391.3398,
+				-209.8661,
+				1235.1287
+			],
+			"star": "red"
+		},
+		{
+			"id": "g101_emar",
+			"name": "Emar",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				594.4579,
+				617.224
+			],
+			"pos3": [
+				594.4579,
+				-686.0333,
+				617.224
+			],
+			"star": "red"
+		},
+		{
+			"id": "g102_alalakh",
+			"name": "Alalakh",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				271.9665,
+				670.1919
+			],
+			"pos3": [
+				271.9665,
+				-362.6738,
+				670.1919
+			],
+			"star": "pulsar"
+		},
+		{
+			"id": "g103_kadesh",
+			"name": "Kadesh",
+			"owner": "pirates",
+			"pirates": 1.0,
+			"pos": [
+				525.8417,
+				356.064
+			],
+			"pos3": [
+				525.8417,
+				-524.4937,
+				356.064
+			],
+			"star": "magnetar"
+		}
+	]
+}

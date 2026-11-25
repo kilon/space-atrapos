@@ -1,0 +1,79 @@
+Create a single game tile sheet image for an isometric 2D game: FURNITURE AND OBJECTS for the
+inside of Minoan sci-fi palace buildings. It must match the existing Minoan building tile set
+exactly (attach minoan_palace_tile_sheet.png as the style reference): cream limestone, red
+plaster, Minoan frescoes and motifs (charging bull, bull-leapers, dolphins, lilies, spirals,
+waves, double axes, horns of consecration), red tapering Minoan columns with black capitals,
+polished bronze and gold trim, deep blue tech panels with glowing cyan light strips, warm
+terracotta pottery, dark red and cream cloth. Painted, detailed, clean edges, the same
+rendering style, line weight and colour palette as the reference sheet across all pieces.
+
+=== CANVAS (exact) ===
+- Image size: exactly 2048 x 1920 pixels.
+- Background: one flat solid colour, pure magenta #FF00FF, everywhere that is not a piece.
+  No gradient, no texture, no vignette, no grid lines, no borders, no frames, no labels,
+  no text, no title, no numbers, no drop shadows on the background.
+- Grid: 8 columns x 6 rows of invisible cells, each cell exactly 256 x 320 pixels
+  (cell x = col*256, cell y = row*320). Exactly ONE piece per cell, never crossing its cell.
+
+=== PROJECTION (exact, no perspective) ===
+- True 2:1 isometric (dimetric) pixel-art projection, the same as the building tiles: every
+  receding edge rises exactly 1 pixel vertically per 2 pixels horizontally (26.565 deg).
+  Vertical edges stay perfectly vertical. NO perspective, NO vanishing points, NO camera
+  tilt - parallel lines stay parallel. Same projection and same scale for every piece.
+- Light comes from the upper-left for every piece. Faces turned to the left/front-left are
+  lit; faces turned to the right are about 20% darker.
+
+=== SCALE AND PLACEMENT (exact, in pixels, relative to each cell's top-left corner) ===
+- Scale: one floor tile (the diamond 256 x 128) is 2 x 2 metres; a wall storey is 240 px
+  tall (3 metres), so 1 metre of height is 80 px. A chair seat is ~36 px above the floor,
+  a table top ~60 px, a bed ~40 px, a cabinet ~150 px, a person would be ~140 px tall.
+- The cell's floor diamond: top (128,176), right (256,240), bottom (128,304), left (0,240).
+  Every object stands on that diamond, centred on it, its footprint inside it (big pieces
+  like the bed and the long table fill most of it; small ones sit in its middle).
+  Nothing wider than 240 px or taller than 300 px.
+- Only a small soft contact shadow directly under each object, nothing else around it.
+- "FACING LEFT" = the object's front turned toward the viewer's lower-left (its back runs
+  along a wall going up-right). "FACING RIGHT" = front turned toward the lower-right.
+  Rows 0 and 1 are the same eight objects in the two facings: re-drawn for each facing and
+  its lighting (not mirrored), same size and design.
+
+=== CELL CONTENTS (row by row, columns 0..7) ===
+Row 0 - SEATS, BEDS AND TABLES, FACING LEFT:
+  0 gryphon throne (tall gypsum throne with a wavy back, gryphons painted beside it),
+  1 chair (bronze frame, red cushion), 2 stone bench (cream limestone, spiral frieze),
+  3 couch / kline (bronze legs, cream mattress, red cushions),
+  4 bed (wooden frame with gold inlays, red and cream bedding, a bolster),
+  5 long dining table (dark wood, gold edge, a few cups and a fruit bowl on it),
+  6 tech desk (cream stone desk with a blue holo screen glowing cyan above it),
+  7 tall cabinet / shelf against a wall (wood and bronze, jars and scrolls on the shelves).
+Row 1 - the same eight objects as row 0, in the same order, FACING RIGHT.
+Row 2 - STORAGE AND KITCHEN (round or symmetric, one facing):
+  0 group of three large pithoi (storage jars with rope patterns),
+  1 wooden chest with bronze bands, 2 round three-legged table with a jug and cups,
+  3 bronze tripod cauldron, 4 hearth (round clay hearth with embers),
+  5 basket of fruit and bread on a low stool, 6 stack of amphorae in a rack,
+  7 water basin on a stone stand.
+Row 3 - SHRINE AND RITUAL:
+  0 altar with gold horns of consecration, 1 snake-goddess statue on a pedestal,
+  2 bull-head rhyton on a pedestal, 3 tall bronze double axe (labrys) on a stepped stand,
+  4 offering table with libation cups, 5 tall bronze oil-lamp stand (small flame),
+  6 incense burner with a thin wisp of smoke, 7 lustral basin (sunken stone basin with
+  steps, water inside - drawn as a flat floor-level piece filling the diamond).
+Row 4 - TECH AND WORK:
+  0 control console (blue panels, cyan screens, gold trim), 1 holo-table (round, a cyan
+  hologram of a planet above it), 2 power core (glowing cyan cylinder in a bronze cage),
+  3 medical pod (cream capsule, cyan glass lid), 4 weapon rack (a laser bow, a laser rifle
+  and a labrys hanging on it), 5 android charging alcove (bronze frame, cyan glow, empty),
+  6 workbench with tools and a half-built bronze arm, 7 storage locker (blue and gold).
+Row 5 - FLOOR ITEMS AND SMALL DECOR:
+  0 rug with a red spiral pattern (flat on the floor, filling the diamond, no thickness),
+  1 rug with blue dolphins and waves (flat, filling the diamond),
+  2 pile of cushions, 3 potted lilies, 4 small olive tree in a painted pot,
+  5 clay tablets and scrolls on a low stand, 6 loom with half-woven red cloth,
+  7 broken pottery shards on the floor.
+
+=== RULES ===
+- Keep every piece inside its cell; leave at least 4 px of magenta around each piece.
+- All pieces share one scale (the metres above) and stand on the same floor diamond.
+- Do not use magenta (#FF00FF) or near-magenta colours anywhere in the artwork.
+- No people, no text, no labels, no captions, no watermark anywhere on the image.

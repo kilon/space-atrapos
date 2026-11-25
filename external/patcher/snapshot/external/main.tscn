@@ -1,0 +1,114 @@
+[gd_scene format=3 uid="uid://d1t86o1ai82u4"]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/starfield.gd" id="2_stars"]
+[ext_resource type="Script" path="res://scripts/target_marker.gd" id="3_marker"]
+[ext_resource type="Script" path="res://scripts/ship.gd" id="4_ship"]
+[ext_resource type="PackedScene" path="res://main_menu.tscn" id="6_menu"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="7_hud"]
+[ext_resource type="PackedScene" path="res://scenes/station.tscn" id="10_station"]
+[ext_resource type="Script" path="res://scripts/player_data.gd" id="11_pdata"]
+[ext_resource type="PackedScene" path="res://scenes/ship_menu.tscn" id="12_inv"]
+[ext_resource type="PackedScene" path="res://scenes/station_menu.tscn" id="13_stmenu"]
+[ext_resource type="Script" path="res://scripts/missions.gd" id="14_missions"]
+[ext_resource type="Script" path="res://scripts/quest.gd" id="15_quest"]
+[ext_resource type="Script" path="res://scripts/dialogue.gd" id="16_dialogue"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Background" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="Starfield" type="Node2D" parent="Background"]
+script = ExtResource("2_stars")
+
+[node name="Nebulae" type="Parallax2D" parent="."]
+z_index = -100
+scroll_scale = Vector2(0.06, 0.06)
+
+[node name="Stations" type="Node2D" parent="."]
+
+[node name="AtraposStation" parent="Stations" instance=ExtResource("10_station")]
+position = Vector2(1300, -900)
+station_name = "Knossos Station"
+accent = Color(0.3, 0.85, 1, 1)
+radius = 170.0
+
+[node name="HeliosDock" parent="Stations" instance=ExtResource("10_station")]
+position = Vector2(-4200, -2700)
+station_name = "Helios Dock"
+accent = Color(1, 0.7, 0.25, 1)
+radius = 200.0
+
+[node name="KephalaOutpost" parent="Stations" instance=ExtResource("10_station")]
+position = Vector2(4600, 2900)
+station_name = "Kephala Outpost"
+accent = Color(0.4, 1, 0.5, 1)
+radius = 150.0
+
+[node name="NyxRelay" parent="Stations" instance=ExtResource("10_station")]
+position = Vector2(-2600, 4700)
+station_name = "Nyx Relay"
+accent = Color(0.85, 0.45, 1, 1)
+radius = 160.0
+
+[node name="TargetMarker" type="Node2D" parent="."]
+visible = false
+script = ExtResource("3_marker")
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="Asteroids" type="Node2D" parent="."]
+
+[node name="Neutrals" type="Node2D" parent="."]
+
+[node name="Ship" type="Node2D" parent="."]
+script = ExtResource("4_ship")
+
+[node name="Sprite2D" type="Sprite2D" parent="Ship"]
+scale = Vector2(0.3, 0.3)
+
+[node name="Camera2D" type="Camera2D" parent="Ship"]
+ignore_rotation = true
+position_smoothing_enabled = true
+position_smoothing_speed = 3.0
+
+[node name="FX" type="Node2D" parent="." groups=["fx_layer"]]
+z_index = 5
+
+[node name="HUD" parent="." instance=ExtResource("7_hud")]
+
+[node name="PlayerData" type="Node" parent="."]
+script = ExtResource("11_pdata")
+
+[node name="Missions" type="Node" parent="."]
+script = ExtResource("14_missions")
+
+[node name="Quest" type="Node" parent="."]
+script = ExtResource("15_quest")
+
+[node name="Panels" type="CanvasLayer" parent="."]
+process_mode = 3
+layer = 5
+
+[node name="ShipMenu" parent="Panels" instance=ExtResource("12_inv")]
+
+[node name="StationMenu" parent="Panels" instance=ExtResource("13_stmenu")]
+
+[node name="Dialogue" type="Control" parent="Panels"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("16_dialogue")
+
+[node name="PauseLayer" type="CanvasLayer" parent="."]
+process_mode = 2
+layer = 10
+
+[node name="PauseMenu" parent="PauseLayer" instance=ExtResource("6_menu")]
+visible = false
+overlay = true

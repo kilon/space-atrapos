@@ -1,0 +1,49 @@
+=== CYCLADIC CIVILISATION: SHIPS PROMPT TEMPLATE ==================================
+
+A new star nation (not in the game yet): the Cycladic islands of the early Bronze
+Age, reborn among the stars. This makes its 12 ship classes, in the layout of the
+other ship sheets (minoan_ships_1.png: 4 x 3, noses pointing right) - tools/
+extract_sprites.py cuts it by grid into ship_traced_cyclades_<key>.
+
+----------------------------------------------------------------------------------
+HOW TO USE
+----------------------------------------------------------------------------------
+ 1. Attach minoan_ships_1.png (the layout, scale, camera and painted finish) and
+    send PROMPT A.
+ 2. Check it against the CHECKLIST; regenerate until it passes.
+ 3. Save it as external/images/cycladic_ships_1.png (or leave it in Downloads)
+    and ask Claude to cut it in (keys in brackets, CYCLADES in extract_sprites.py)
+    and to add the Cycladic empire to the game.
+
+----------------------------------------------------------------------------------
+PROMPT A
+----------------------------------------------------------------------------------
+Make a sprite sheet of 12 spaceships in exactly the same painted style, scale, camera and layout as the attached sheet: 1536 x 1024 pixels, pure black background, a 4 x 3 grid of 12 spaceships, each centred in its cell with clear black space all round it (no part touching another cell), seen straight from above, nose pointing RIGHT, no text or labels, no shadows on the background. Make them the ships of the Cycladic civilisation:
+
+The Cycladic islands: the oldest seafarers of the Aegean, reborn among the stars - island-hopping traders, quarrymen and sculptors. Their ships are pure and minimal like their marble figurines: smooth white Parian marble hulls with soft sculpted curves and few seams, glossy black volcanic obsidian blades and panels, sea-turquoise and deep Aegean blue glow strips, faint traces of red-ochre and blue painted lines; carved running spirals, oared longboats and a fish emblem like the incised clay "frying pans", the folded-arm figurines' clean geometry (an almond head, crossed arms, a lyre-shaped outline). Turquoise engine glow. Calm, abstract, elegant, almost featureless shapes - never the Minoans' busy frescoes and red, never the Athenians' gold and navy, never the Spartans' crimson and lambdas.
+
+Row 1:
+1. [figurine]  Fighter: shaped like a folded-arm marble figurine - almond-head cockpit, crossed arms as swept wings.
+2. [harpist]   Interceptor: the frame of a harp, a slim marble arc with obsidian strings as cannons.
+3. [longboat]  Frigate: a long many-oared hull, rows of oar-like fins, a tall prow with a fish emblem.
+4. [pan]       Gunship: a round "frying pan" disc carved with a running spiral, a short handle as its bridge.
+Row 2:
+5. [spiral]    Fighter: two spiral-carved wings curling round a slender marble body.
+6. [obsidian]  Interceptor: a sharp black obsidian blade with a thin marble spine.
+7. [kandila]   Gunship: a collared jar shape with lug handles holding turrets.
+8. [marble]    Freighter: a broad trader carrying cradled blocks of white marble.
+Row 3:
+9. [quarry]    Mining barge: quarry drills and cutting arms at the prow, ore bins behind.
+10. [oarsman]  Courier: a slim fast longboat with oar fins along both sides.
+11. [voyager]  Explorer: a longboat with a tall fish-banner sensor mast and a star-chart dish.
+12. [sanctuary] Frigate: a heavy ship with a circular sanctuary deck, figurines standing round it.
+
+----------------------------------------------------------------------------------
+CHECKLIST
+----------------------------------------------------------------------------------
+[ ] 1536 x 1024, black background, 4 columns x 3 rows, nothing crossing a cell
+[ ] top-down; noses point right
+[ ] white marble, black obsidian, turquoise and Aegean blue, faint ochre;
+    spirals, longboats, fish, figurine shapes - not the other empires' colours
+[ ] no text, numbers or watermarks
+[ ] all 12 clearly different

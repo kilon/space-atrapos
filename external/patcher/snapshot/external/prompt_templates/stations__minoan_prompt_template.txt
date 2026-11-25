@@ -1,0 +1,70 @@
+=== MINOAN THALASSOCRACY: SPACE STATIONS PROMPT TEMPLATE ===========================
+
+The Minoans have no stations of their own yet: their two old designs (Lotus
+Gardens, Violet Sun) went to the Independents, and Minoan stations fly
+placeholders until this sheet exists (station_minoa_halo / _wheel / _gateway:
+other designs recoloured terracotta with tools/recolor_sprite.py).
+This makes the Minoans' own 12 stations, in the style of their ships
+(minoan_ships_1.png) and the layout of the Ionians' station sheet
+(ionian_spacestations_1.png) - tools/extract_sprites.py cuts it by grid.
+
+----------------------------------------------------------------------------------
+HOW TO USE
+----------------------------------------------------------------------------------
+ 1. Attach minoan_ships_1.png (the look: palette, motifs, materials) AND
+    ionian_spacestations_1.png (the layout, scale and camera) and send PROMPT A.
+ 2. Check it against the CHECKLIST; regenerate until it passes.
+ 3. Save it as external/images/minoan_spacestations_1.png and ask Claude to cut it
+    in: the cells map, row by row, to the keys in brackets below
+    (station_minoa_<key>), listed in tools/extract_sprites.py as MINOA_STATIONS.
+
+----------------------------------------------------------------------------------
+THE MINOANS (the look of their ships - copy unchanged)
+----------------------------------------------------------------------------------
+The Minoan Thalassocracy: the oldest star nation, a maritime empire of research
+palaces ruled from the orbital palace of Knossos - Bronze Age Crete reborn among
+the stars. Hulls of warm cream and ivory ceramic plating, with terracotta red,
+deep teal and navy blue panels, gold and saffron trim, a little violet; painted
+like Minoan frescoes and pottery: running spirals, wave and meander bands,
+dolphins, octopus, lilies and rosettes, bull heads and horns of consecration,
+the double axe (labrys). Blue-cyan engine and window glow, gold-orange lights.
+Elegant, curved, organic shapes - never the Ionians' columns, laurels and lapis,
+never the Athenians' owls.
+
+----------------------------------------------------------------------------------
+PROMPT A
+----------------------------------------------------------------------------------
+Make a sprite sheet of 12 space stations in exactly the same style, scale, camera
+and layout as the attached station sheet: 1536 x 1024 pixels, pure black
+background, a 4 x 3 grid, each station centred in its cell with clear black space
+all round it (no part touching another cell), seen straight from above (top-down,
+roughly round or symmetric silhouettes that read well while slowly spinning), no
+text or labels. Give them the look of the attached Minoan ships:
+{THE MINOANS}
+Row 1:
+ 1 [palace]   The orbital palace: a ring of palace wings with red columns round a
+              central courtyard dome, horns of consecration on the roofs.
+ 2 [horns]    Two great curved horns of consecration framing a docking hub.
+ 3 [labrys]   A double-axe station: two crescent blades on a central spindle.
+ 4 [octopus]  An octopus station: eight curling arms of docking spurs round a
+              round body painted with an octopus.
+Row 2:
+ 5 [dolphins] A ring of leaping dolphin-shaped wings round a teal hub.
+ 6 [spiral]   A spiral station: one great running spiral of habitat modules.
+ 7 [lily]     A lily station: six petal-shaped wings in cream and saffron.
+ 8 [nautilus] A nautilus-shell research station, spiral chambers round a lab.
+Row 3:
+ 9 [rosette]  A rosette station: eight-petal flower of solar panels, violet core.
+10 [bull]     A bull's-head station: horned hub, shipyard arms below.
+11 [wave]     A wave ring: a ring painted with running waves, with docking arms.
+12 [meander]  A square fortress-port framed by meander (key-pattern) walls.
+
+----------------------------------------------------------------------------------
+CHECKLIST
+----------------------------------------------------------------------------------
+[ ] 1536 x 1024, black background, 4 columns x 3 rows, nothing crossing a cell
+[ ] top-down, symmetric enough to spin
+[ ] the Minoan ships' palette and motifs (cream, terracotta, teal, navy, gold;
+    spirals, dolphins, octopus, lilies, bull horns, labrys) - not the Ionians'
+[ ] no text, numbers or watermarks
+[ ] all 12 clearly different, and different from the Ionian stations

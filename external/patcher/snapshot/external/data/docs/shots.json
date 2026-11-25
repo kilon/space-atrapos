@@ -1,0 +1,1438 @@
+{
+ "_about": "Screenshots of the game for the guide (data/docs/game.md), the tutorial and the encyclopedia - shown where their text has ![caption](shot:id). tests/doc_shots.gd sets each moment up; tools/doc_shots.py takes them, draws the notes over them (an infographic: labels with arrows, boxes, numbered steps - in 1920 x 1080 screen units) and saves data/docs/shots/<id>.jpg. 'sources': the files the picture shows - when one changes, the shot is out of date (test_doc_shots) until taken again.",
+ "shots": {
+  "space_hud": {
+   "caption": "Flying in space: your gauge (hull, shields, fuel), the minimap, your objective, the console (event log and loading tabs) and the toolbar.",
+   "sources": [
+    "scripts/hud.gd",
+    "scenes/hud.tscn",
+    "scripts/minimap.gd",
+    "scripts/event_log.gd",
+    "scripts/toolbar.gd",
+    "scripts/health_gauge.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      560,
+      250
+     ],
+     "text": "Hull (red) in its shield ring (blue)",
+     "to": [
+      178,
+      160
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      900,
+      75
+     ],
+     "text": "The system and who holds it",
+     "to": [
+      1000,
+      30
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1000,
+      140
+     ],
+     "text": "Minimap: ships, stations, wrecks in grey",
+     "to": [
+      1700,
+      128
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1300,
+      470
+     ],
+     "text": "Your objective",
+     "to": [
+      1800,
+      352
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1050,
+      600
+     ],
+     "text": "You - click space to fly",
+     "to": [
+      990,
+      560
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      560,
+      760
+     ],
+     "text": "Console tabs: the event log, loading",
+     "to": [
+      88,
+      866
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      560,
+      960
+     ],
+     "text": "Event log: what just happened (L hides it)",
+     "to": [
+      300,
+      940
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1340,
+      1000
+     ],
+     "text": "Toolbar: weapons and systems, keys 1-9",
+     "to": [
+      1310,
+      1015
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      560,
+      345
+     ],
+     "text": "Fuel: the amber outer ring",
+     "to": [
+      226,
+      210
+     ]
+    }
+   ]
+  },
+  "space_combat": {
+   "caption": "A fight: click an enemy to attack it - your guns fire on their own while it's in range.",
+   "sources": [
+    "scripts/ship.gd",
+    "scripts/enemy.gd"
+   ],
+   "notes": []
+  },
+  "mining": {
+   "caption": "Mining: a prospected rock's veins glowing on it, the laser cutting one; the readout holds the rock's mix, the vein's heat in its green band and the resonance building.",
+   "sources": [
+    "scripts/asteroid.gd",
+    "scripts/ship.gd",
+    "scripts/mining_beam.gd",
+    "scripts/mining.gd",
+    "scripts/mining_panel.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1130,
+      170
+     ],
+     "text": "The rock you're mining, and the ore left in it",
+     "to": [
+      1040,
+      290
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1130,
+      470
+     ],
+     "text": "The ore comes to your hold",
+     "to": [
+      1000,
+      450
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      60,
+      690
+     ],
+     "text": "The vein's heat: keep it in the green",
+     "to": [
+      880,
+      840
+     ]
+    }
+   ]
+  },
+  "damage": {
+   "caption": "Near death: afflictions under the bars (the self-repair frozen first), the screen failing, cracks across the glass.",
+   "sources": [
+    "scripts/affliction_bar.gd",
+    "scripts/damage_screen.gd",
+    "scripts/fault_sparks.gd",
+    "scripts/parts.gd",
+    "scripts/health_gauge.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      470,
+      300
+     ],
+     "text": "Afflictions round the gauge: hover one",
+     "to": [
+      250,
+      75
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1480,
+      820
+     ],
+     "text": "Cracks and static near death",
+     "to": [
+      1523,
+      452
+     ]
+    }
+   ]
+  },
+  "salvage": {
+   "caption": "Salvage: with a Salvage Rig fitted, click a wreck - your ship cuts it apart and the salvage drifts out.",
+   "sources": [
+    "scripts/wreck.gd",
+    "scripts/main.gd"
+   ],
+   "notes": []
+  },
+  "signal_site": {
+   "caption": "A signal source: a stranded ship calling for help. The panel says what it is and how hard.",
+   "sources": [
+    "scripts/signal_site.gd",
+    "scripts/signal_sites.gd",
+    "scripts/signal_beacon.gd"
+   ],
+   "notes": []
+  },
+  "nav_beacon": {
+   "caption": "The navigation beacon beside the star: right-click it to scan it - you get the system's navigation report.",
+   "sources": [
+    "scripts/nav_beacon.gd",
+    "scripts/minimap.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      400,
+      290
+     ],
+     "text": "The nav beacon - right-click it to scan",
+     "to": [
+      1262,
+      272
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1290,
+      40
+     ],
+     "text": "On the radar too",
+     "to": [
+      1770,
+      150
+     ]
+    }
+   ]
+  },
+  "station_market": {
+   "caption": "The market: a tab per category, what the station pays and asks, the galactic average, supply and demand - and the selected good on the right.",
+   "sources": [
+    "scripts/pages/market_page.gd",
+    "scripts/station_menu.gd",
+    "scripts/trade_goods.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      470,
+      500
+     ],
+     "text": "A tab per category",
+     "to": [
+      440,
+      290
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      760,
+      560
+     ],
+     "text": "Sell / buy prices, the galactic average",
+     "to": [
+      960,
+      360
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1060,
+      620
+     ],
+     "text": "Supply and demand",
+     "to": [
+      1190,
+      380
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1010,
+      800
+     ],
+     "text": "Buy and sell here - and where it sells best",
+     "to": [
+      1440,
+      620
+     ]
+    }
+   ]
+  },
+  "station_outfitting": {
+   "caption": "Outfitting: a tab per kind of fitting; click one to see it - its picture, and what it would change, before and after.",
+   "sources": [
+    "scripts/station_menu.gd",
+    "scripts/outfit_compare.gd",
+    "scripts/item_portrait.gd",
+    "scripts/shipyard.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      120,
+      640
+     ],
+     "text": "Click one to see it",
+     "to": [
+      200,
+      330
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1060,
+      780
+     ],
+     "text": "A tab per kind of fitting",
+     "to": [
+      1240,
+      290
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1100,
+      50
+     ],
+     "text": "Quality grades",
+     "to": [
+      1400,
+      222
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1270,
+      640
+     ],
+     "text": "Before and after: what it would change",
+     "to": [
+      1500,
+      594
+     ]
+    }
+   ]
+  },
+  "station_weapons": {
+   "caption": "Weapons in sizes: pick a size, buy one - it goes on a free hardpoint that takes it; fitted ones listed by kind and size.",
+   "sources": [
+    "scripts/station_menu.gd",
+    "scripts/outfit_compare.gd",
+    "scripts/hardpoints.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1150,
+      60
+     ],
+     "text": "Sizes XS to XXL",
+     "to": [
+      1450,
+      234
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      120,
+      640
+     ],
+     "text": "Fitted: by kind and size",
+     "to": [
+      200,
+      330
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1270,
+      840
+     ],
+     "text": "What it adds to your firepower",
+     "to": [
+      1470,
+      695
+     ]
+    }
+   ]
+  },
+  "station_shipyard": {
+   "caption": "The shipyard: a tab per class, cheapest first - each ship's hull, shields, speed and hold beside how they compare with yours.",
+   "sources": [
+    "scripts/station_menu.gd",
+    "scripts/shipyard.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      700,
+      760
+     ],
+     "text": "A tab per class",
+     "to": [
+      430,
+      293
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      900,
+      860
+     ],
+     "text": "Green: how much better than your ship",
+     "to": [
+      890,
+      357
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1250,
+      700
+     ],
+     "text": "Buy - your old ship is traded in",
+     "to": [
+      1187,
+      397
+     ]
+    }
+   ]
+  },
+  "station_missions": {
+   "caption": "Missions: jobs on offer (the better ones need a better standing) and the ones you've taken.",
+   "sources": [
+    "scripts/station_menu.gd",
+    "scripts/missions.gd"
+   ],
+   "notes": []
+  },
+  "station_reputation": {
+   "caption": "Reputation: where you stand with every empire, and how it rises and falls.",
+   "sources": [
+    "scripts/station_menu.gd",
+    "scripts/galaxy.gd"
+   ],
+   "notes": []
+  },
+  "station_service": {
+   "caption": "The repair service: the technicians' evaluation - the hull, each damaged part and its faults, each priced; repair one, a part, or everything.",
+   "sources": [
+    "scripts/station_menu.gd",
+    "scripts/repair_service.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1200,
+      940
+     ],
+     "text": "Each item: time, your cost, theirs",
+     "to": [
+      1590,
+      465
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      560,
+      720
+     ],
+     "text": "Everything at once",
+     "to": [
+      262,
+      347
+     ]
+    }
+   ]
+  },
+  "computer_inventory": {
+   "caption": "The Ship Computer's inventory: your ship by its areas, the hold, what you carry on foot, the toolbar and your automaton.",
+   "sources": [
+    "scripts/ship_menu.gd",
+    "scripts/pages/inventory_page.gd",
+    "scripts/loadout_panel.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      60,
+      800
+     ],
+     "text": "Your ship by its areas",
+     "to": [
+      279,
+      400
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      560,
+      660
+     ],
+     "text": "The toolbar: keys 1-9",
+     "to": [
+      700,
+      535
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1100,
+      880
+     ],
+     "text": "The hold - drag stacks to arrange them",
+     "to": [
+      1150,
+      240
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1300,
+      780
+     ],
+     "text": "Your automaton's gear",
+     "to": [
+      1428,
+      580
+     ]
+    }
+   ]
+  },
+  "computer_map": {
+   "caption": "The sector map: stations, planets, ships and your objective in this system.",
+   "sources": [
+    "scripts/ship_menu.gd",
+    "scripts/pages/map_page.gd"
+   ],
+   "notes": []
+  },
+  "probes": {
+   "caption": "The probe scanner: probes on the map round a stretch of the system, the signatures they read - located, or a circle where they might be; the gold handle above them moves them all.",
+   "sources": [
+    "scripts/probe_scanner.gd",
+    "scripts/pages/map_page.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      420,
+      960
+     ],
+     "text": "Probes: drag them, the wheel sets the reach",
+     "to": [
+      790,
+      612
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      960,
+      300
+     ],
+     "text": "Drag the handle: all move",
+     "to": [
+      800,
+      452
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1300,
+      960
+     ],
+     "text": "What they found, strongest first",
+     "to": [
+      1700,
+      800
+     ]
+    }
+   ]
+  },
+  "computer_galaxy": {
+   "caption": "The galaxy map with its trade layer: every system and who holds it, and the best trade runs you know of.",
+   "sources": [
+    "scripts/ship_menu.gd",
+    "scripts/pages/galaxy_page.gd",
+    "scripts/trade_routes.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      60,
+      330
+     ],
+     "text": "Who holds each system",
+     "to": [
+      200,
+      300
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      60,
+      830
+     ],
+     "text": "Green: a trade run and its profit a unit",
+     "to": [
+      720,
+      590
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      820,
+      930
+     ],
+     "text": "The best runs you know of",
+     "to": [
+      1500,
+      452
+     ]
+    }
+   ]
+  },
+  "computer_tech": {
+   "caption": "The Tech Tree: upgrades bought with drachmas and Data Cores.",
+   "sources": [
+    "scripts/ship_menu.gd",
+    "scripts/pages/tech_page.gd",
+    "scripts/tech.gd"
+   ],
+   "notes": []
+  },
+  "computer_quest": {
+   "caption": "The quest journal: the chapters, your objective and everything said so far.",
+   "sources": [
+    "scripts/ship_menu.gd",
+    "scripts/pages/quest_page.gd"
+   ],
+   "notes": []
+  },
+  "industry": {
+   "caption": "Industry: the fabricator's recipes with what you have of each input, the queue at work on the right.",
+   "sources": [
+    "scripts/pages/industry_page.gd",
+    "scripts/industry.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      900,
+      960
+     ],
+     "text": "A recipe: what it takes, what it sells for",
+     "to": [
+      600,
+      480
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1500,
+      640
+     ],
+     "text": "The queue at work",
+     "to": [
+      1690,
+      255
+     ]
+    }
+   ]
+  },
+  "surface_walk": {
+   "caption": "On a planet: you by your ship on the landing pad, Kilon Alios beside it - a yellow triangle marks someone with something for you.",
+   "sources": [
+    "scripts/planet_surface.gd",
+    "scripts/quest_bulb.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      380,
+      300
+     ],
+     "text": "Kilon Alios - click him to talk",
+     "to": [
+      845,
+      470
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1130,
+      520
+     ],
+     "text": "You, by your ship - click it to take off",
+     "to": [
+      975,
+      480
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1300,
+      210
+     ],
+     "text": "A Minoan palace",
+     "to": [
+      1640,
+      70
+     ]
+    }
+   ]
+  },
+  "field_inventory": {
+   "caption": "The Field Computer on foot: you, your automaton's equipment and what you carry.",
+   "sources": [
+    "scripts/field_menu.gd",
+    "scripts/pages/field_inventory_page.gd",
+    "scripts/loadout_panel.gd"
+   ],
+   "notes": []
+  },
+  "surface_map": {
+   "caption": "The planet map: what you've explored, its layers, and the planet's facts.",
+   "sources": [
+    "scripts/surface_map.gd",
+    "scripts/field_menu.gd"
+   ],
+   "notes": []
+  },
+  "repair_bay": {
+   "caption": "The Repair Bay: the engines open on the table - a crack half welded, a leak, a wrecked cell waiting for a spare.",
+   "sources": [
+    "scripts/repair_bay.gd",
+    "scripts/repair_art.gd",
+    "scripts/parts.gd",
+    "scripts/ship_menu.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      120,
+      860
+     ],
+     "text": "The parts: how well each works, ! faults found, ? untraced",
+     "to": [
+      190,
+      700
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      560,
+      1030
+     ],
+     "text": "The operating table: the part opened up",
+     "to": [
+      700,
+      880
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1180,
+      1010
+     ],
+     "text": "Vitals: pulse, heat, pressure",
+     "to": [
+      1640,
+      300
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1180,
+      950
+     ],
+     "text": "Tools and scan modes",
+     "to": [
+      1620,
+      470
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1250,
+      890
+     ],
+     "text": "Spare parts you carry",
+     "to": [
+      1600,
+      660
+     ]
+    }
+   ]
+  },
+  "surgery": {
+   "caption": "The automaton on the table: its arm's anatomy - a tear in the biceps, and incisions held open down to a bleeding artery, a burnt nerve and a fractured bone.",
+   "sources": [
+    "scripts/surgery.gd",
+    "scripts/anatomy_art.gd",
+    "scripts/repair_bay.gd",
+    "scripts/parts.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      560,
+      1000
+     ],
+     "text": "An incision: the layers beneath",
+     "to": [
+      870,
+      880
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1180,
+      1000
+     ],
+     "text": "The four layers",
+     "to": [
+      1700,
+      540
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1180,
+      120
+     ],
+     "text": "A surgeon's tools",
+     "to": [
+      1700,
+      430
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      420,
+      250
+     ],
+     "text": "The part's region of the body",
+     "to": [
+      190,
+      300
+     ]
+    }
+   ]
+  },
+  "archive": {
+   "caption": "The Archive: every book of the game in one window - here the Pilot's Guide open at the Repair Bay.",
+   "sources": [
+    "scripts/archive.gd",
+    "scripts/editor_docs.gd",
+    "data/docs/game.md",
+    "scripts/encyclopedia.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      560,
+      1040
+     ],
+     "text": "Search every book at once",
+     "to": [
+      360,
+      178
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      700,
+      960
+     ],
+     "text": "The shelf: six books",
+     "to": [
+      360,
+      270
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1250,
+      1040
+     ],
+     "text": "Where you are: book and chapter",
+     "to": [
+      880,
+      111
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1300,
+      980
+     ],
+     "text": "Back / Forward, like a browser",
+     "to": [
+      650,
+      111
+     ]
+    }
+   ]
+  },
+  "nav_report": {
+   "caption": "A navigation report: the system's stations, gates, planets and moons and its traffic - a copy in your hold to sell in other systems.",
+   "sources": [
+    "scripts/nav_report_panel.gd",
+    "scripts/nav_reports.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      520,
+      230
+     ],
+     "text": "Stations and jump gates",
+     "to": [
+      450,
+      470
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1520,
+      700
+     ],
+     "text": "Planets and moons - landable in green",
+     "to": [
+      880,
+      470
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1660,
+      560
+     ],
+     "text": "Ships: hostile, friendly, by trade",
+     "to": [
+      1260,
+      500
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      640,
+      830
+     ],
+     "text": "Sell the copy elsewhere: the further, the more",
+     "to": [
+      700,
+      680
+     ]
+    }
+   ]
+  },
+  "skill_book": {
+   "caption": "The Spell Book (K): your level and points, every skill with its rank - the one under the mouse in full on the right.",
+   "sources": [
+    "scripts/pages/skill_book_page.gd",
+    "scripts/skills.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      900,
+      560
+     ],
+     "text": "A point learns a skill, or raises its rank",
+     "to": [
+      392,
+      362
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      330,
+      700
+     ],
+     "text": "Drag an icon onto the toolbar - or hover it and press 1-9",
+     "to": [
+      72,
+      247
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1330,
+      330
+     ],
+     "text": "The skill under the mouse, in full",
+     "to": [
+      1000,
+      300
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      760,
+      95
+     ],
+     "text": "Your level, experience and points",
+     "to": [
+      420,
+      172
+     ]
+    }
+   ]
+  },
+  "skills_fight": {
+   "caption": "A fight on foot with skills: the Aegis Dome up, the eidola out, Keraunos coming down on a pirate.",
+   "sources": [
+    "scripts/skills.gd",
+    "scripts/skill_fx.gd",
+    "scripts/sheet_puppet.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1280,
+      330
+     ],
+     "text": "Keraunos: the thunderbolt leaps from enemy to enemy",
+     "to": [
+      1105,
+      430
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      560,
+      700
+     ],
+     "text": "An eidolon - a spectral fighter of yours",
+     "to": [
+      1040,
+      560
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      420,
+      330
+     ],
+     "text": "You, inside the Aegis Dome",
+     "to": [
+      960,
+      470
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1400,
+      900
+     ],
+     "text": "Skills on the toolbar (4-9) - your level over it",
+     "to": [
+      1080,
+      1000
+     ]
+    }
+   ]
+  },
+  "space3d": {
+   "caption": "3D space (preview): an ocean world below - real procedural ground from orbit down - its clouds and air; your ship from behind, the markers and the flight panel.",
+   "sources": [
+    "scripts/cosmos/cosmos.gd",
+    "scripts/cosmos/cosmos_planet.gd",
+    "scripts/cosmos/planet_shape.gd",
+    "scripts/cosmos/cosmos_hud.gd",
+    "scripts/cosmos/cosmos_ship.gd",
+    "shaders/cosmos/terrain.gdshader",
+    "shaders/cosmos/atmosphere.gdshader"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1420,
+      500
+     ],
+     "text": "Real ground, seen from orbit: seas, coasts, clouds",
+     "to": [
+      1250,
+      880
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      330,
+      560
+     ],
+     "text": "The virtual stick: the mouse steers",
+     "to": [
+      930,
+      540
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1560,
+      1000
+     ],
+     "text": "Speed, throttle, the drive, altitude, target",
+     "to": [
+      1240,
+      960
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      820,
+      330
+     ],
+     "text": "The system and its owner",
+     "to": [
+      470,
+      32
+     ]
+    }
+   ]
+  },
+  "space3d_ground": {
+   "caption": "Low over the same world: its sky, clouds overhead, sea and coast - the ground finer the closer you are.",
+   "sources": [
+    "scripts/cosmos/cosmos.gd",
+    "scripts/cosmos/cosmos_planet.gd",
+    "scripts/cosmos/planet_shape.gd",
+    "scripts/cosmos/cosmos_hud.gd",
+    "scripts/cosmos/cosmos_ship.gd",
+    "shaders/cosmos/terrain.gdshader",
+    "shaders/cosmos/atmosphere.gdshader",
+    "shaders/cosmos/water.gdshader",
+    "shaders/cosmos/clouds.gdshader"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1450,
+      170
+     ],
+     "text": "Its own sky: air and clouds",
+     "to": [
+      1000,
+      330
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1520,
+      640
+     ],
+     "text": "Coast and sea - finer the lower you fly",
+     "to": [
+      1650,
+      820
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      360,
+      860
+     ],
+     "text": "The plumes follow the throttle",
+     "to": [
+      840,
+      820
+     ]
+    }
+   ]
+  },
+  "space3d_foot": {
+   "caption": "On foot on the ocean world: its own plants and animals, boulders, your health, the sights - and your ship's distance.",
+   "sources": [
+    "scripts/cosmos/cosmos.gd",
+    "scripts/cosmos/cosmos_hud.gd",
+    "scripts/cosmos/cosmos_walker.gd",
+    "scripts/cosmos/cosmos_flora.gd",
+    "scripts/cosmos/cosmos_fauna.gd",
+    "scripts/cosmos/cosmos_creature.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1450,
+      620
+     ],
+     "text": "Under the sights: its name and health",
+     "to": [
+      1060,
+      530
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      420,
+      780
+     ],
+     "text": "A predator - its own species on each world",
+     "to": [
+      860,
+      600
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1500,
+      860
+     ],
+     "text": "Your health: it comes back after a while",
+     "to": [
+      1240,
+      1028
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      420,
+      450
+     ],
+     "text": "Your ship: E beside it to board",
+     "to": [
+      110,
+      360
+     ]
+    }
+   ]
+  },
+  "space3d_fight": {
+   "caption": "Pirate raiders: the target's shields and hull, where to aim to hit it, your lasers.",
+   "sources": [
+    "scripts/cosmos/cosmos.gd",
+    "scripts/cosmos/cosmos_hud.gd",
+    "scripts/cosmos/cosmos_npc_ship.gd",
+    "scripts/cosmos/cosmos_hull.gd",
+    "scripts/cosmos/cosmos_bolt.gd",
+    "scripts/cosmos/cosmos_ship.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1500,
+      420
+     ],
+     "text": "The raider: its shields and hull on the panel",
+     "to": [
+      990,
+      268
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      420,
+      700
+     ],
+     "text": "Ring: aim there to hit it (the lead)",
+     "to": [
+      930,
+      282
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1560,
+      780
+     ],
+     "text": "Your shields, hull and credits",
+     "to": [
+      1220,
+      930
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      380,
+      880
+     ],
+     "text": "Your lasers' bolts",
+     "to": [
+      1040,
+      500
+     ]
+    }
+   ]
+  },
+  "space3d_hangar": {
+   "caption": "Docked: the station's hangar - your ship on the pad, the crew, the terminals along the back wall.",
+   "sources": [
+    "scripts/cosmos/cosmos.gd",
+    "scripts/cosmos/cosmos_hud.gd",
+    "scripts/cosmos/cosmos_hangar.gd",
+    "scripts/cosmos/cosmos_walker.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1440,
+      560
+     ],
+     "text": "Your ship on the pad",
+     "to": [
+      1300,
+      520
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      700,
+      180
+     ],
+     "text": "Terminals: market, outfitting, missions, repairs, saving",
+     "to": [
+      1150,
+      390
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      330,
+      800
+     ],
+     "text": "The station's crew",
+     "to": [
+      330,
+      600
+     ]
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,240 @@
+=== MODULAR CHARACTER PROMPT TEMPLATE (any humanoid NPC, any weapon) ==============
+
+Makes a cut-out ("paper puppet") character for the game's RigPuppet system: 5 body-part
+sheets (one per view) + 1 weapon-effects sheet. The game rigs the parts on a skeleton,
+animates idle / walk / attack in 8 directions (it mirrors E, SE, NE to get W, SW, NW),
+and fires the projectiles from the effects sheet.
+
+Everything in {CURLY BRACES} is a placeholder: replace it before sending, and delete any
+line marked (optional) that doesn't apply. Leave every other line exactly as it is - the
+sprite extractor (tools/extract_sprites.py) depends on the canvas, grid and background.
+
+----------------------------------------------------------------------------------
+HOW TO USE
+----------------------------------------------------------------------------------
+ 1. Fill in the CHARACTER CARD below once. Copy it unchanged into every message, so
+    every sheet describes the character with exactly the same words.
+ 2. FIRST SHEET - FRONT 3/4. Attach the character reference image (concept art, or
+    a finished parts sheet of a similar character whose layout and style you want to
+    copy). Send PROMPT A with {VIEW} = the FRONT 3/4 line.
+ 3. Check it against the CHECKLIST at the bottom. Regenerate until it passes: every
+    other sheet copies this one, so its mistakes copy too.
+ 4. OTHER FOUR VIEWS. Send PROMPT A 4 more times, with {VIEW} = FRONT, SIDE, BACK 3/4,
+    BACK. Each time, attach the reference AND the finished FRONT 3/4 sheet, and keep
+    the line "Match the attached FRONT 3/4 sheet..." in the prompt.
+ 5. EFFECTS. Send PROMPT B once, with the weapon's effects filled in.
+ 6. Save the files as:
+      <faction>_npc_<id>_parts_front34.png  ..._front.png  ..._side.png
+      ..._back34.png  ..._back.png           <faction>_fx_<id>.png
+    and add them to RIG_SHEETS / FX_SHEETS in tools/extract_sprites.py.
+
+THE 5 VIEW LINES (paste one as {VIEW}):
+ FRONT 3/4 - turned 45 degrees toward the viewer, facing down-right (south-east); the character's right side (near) is toward the viewer.
+ FRONT - facing the viewer directly (south); the character's right side is on the viewer's left.
+ SIDE - full profile facing RIGHT (east); the character's right side (near) faces the viewer.
+ BACK 3/4 - turned 45 degrees away from the viewer, facing up-right (north-east); we see the back and the right side.
+ BACK - facing directly away from the viewer (north); the character's right side is on the viewer's right.
+
+----------------------------------------------------------------------------------
+CHARACTER CARD (fill in once, paste into every message)
+----------------------------------------------------------------------------------
+{CHARACTER}       who / what it is, in one line.
+                  e.g. "a sci-fi triceratops humanoid female priest-archer"
+{BODY}            build, height, skin / fur / scales, head shape, horns, ears, tail.
+                  e.g. "slim, scaly olive skin, a red-and-cream spiral frill, two brown horns"
+{OUTFIT}          clothes and armour, top to bottom, with colours and ornaments.
+                  e.g. "cream robe with red spiral borders, gold-and-blue armour bands, sandals"
+{CAPE}            the loose back cloth (cape, cloak, banner, quiver, wings, backpack) -
+                  or "none".
+{FRONT CLOTH}     the loose front piece that swings when walking (apron, tabard, kilt
+                  panel, tassels) - or "none".
+{PALETTE}         3-5 main colours, e.g. "cream, brick red, gold, deep blue, glowing cyan".
+{STYLE}           e.g. "painted game art, crisp clean outlines" (keep it the same for
+                  every character in the game).
+{WEAPON}          the weapon at rest, its colours and size.
+                  e.g. "a gold tech longbow with glowing cyan panels, as tall as the character"
+{WEAPON ACTIVE}   the weapon in use.
+                  e.g. "the same bow fully drawn, string pulled back, a glowing arrow nocked"
+                  / "the rifle with its muzzle glowing and vents open"
+{WEAPON ALT}      a second item: sidearm, shield, staff, tool, empty-handed spell glow -
+                  or the weapon from another angle. (optional: "none" leaves the cell empty)
+{HANDS}           the third hand pose the weapon needs.
+                  e.g. "hand pinching a bowstring" / "hand on a trigger" /
+                  "hand open, palm forward, casting"
+{EFFECTS}         what the weapon shoots and how it hits (for PROMPT B).
+                  e.g. "cyan laser arrows, plasma arrows, a release flash, impact bursts"
+
+==================================================================================
+PROMPT A - BODY-PART SHEET (send once per view)
+==================================================================================
+Create a modular cut-out animation sprite sheet of this character:
+{CHARACTER}. {BODY}. Wearing {OUTFIT}. Back cloth: {CAPE}. Front cloth: {FRONT CLOTH}.
+Colours: {PALETTE}. Weapon: {WEAPON}.
+Copy the attached reference exactly: the same design, colours, ornaments and proportions.
+(For views 2-5) Match the attached FRONT 3/4 sheet: the same character, colours, scale,
+part list and cell layout, only seen from a different direction.
+
+VIEW FOR THIS WHOLE SHEET: {VIEW}
+
+The pieces will be rigged on a skeleton and animated in a game (idle, walking, attacking
+with the weapon), so every body part is drawn SEPARATELY, like a paper cut-out puppet
+taken apart at its joints.
+
+=== CANVAS (exact) ===
+- Image size: exactly 2048 x 960 pixels.
+- Background: one flat solid colour, pure magenta #FF00FF, everywhere that is not a piece.
+  No gradient, no texture, no vignette, no shadows, no floor, no grid lines, no frames,
+  no panels, no labels, no text, no arrows, no guide lines.
+- Grid: 8 columns x 3 rows of invisible cells, each cell exactly 256 x 320 pixels
+  (cell x = col*256, cell y = row*320). Exactly ONE piece per cell, never crossing its
+  cell, at least 6 px of magenta around every piece. Pieces in one row never touch
+  pieces in the next row: leave a clear magenta band between the rows.
+- A long weapon must still fit inside its own cell: scale the weapon down rather than
+  letting it cross into the next cell.
+
+=== STYLE AND VIEW ===
+- {STYLE}. No motion blur, no depth of field, no glow bleeding outside the piece.
+- Orthographic, NO perspective. Seen from slightly above (30 degree isometric camera).
+  Every piece is seen from the same view given above.
+- Light from the upper-left on every piece. Even lighting, no cast shadows.
+
+=== SCALE (important) ===
+- Every piece is drawn at EXACTLY the same scale as the assembled figure in row 0, cell 0.
+  Put back together, the pieces rebuild that figure exactly.
+- Head, hands and feet are NOT enlarged, and limbs are NOT shortened to fit their
+  cells: the proportions stay realistic.
+- The head is in proportion to the body (about 1/6 to 1/7 of the standing height for a
+  human build); the neck is short.
+
+=== REST POSE (every body piece is drawn in it) ===
+Standing straight, feet slightly apart, arms hanging straight down a little away from the
+body, palms in, nothing in the hands, mouth closed, eyes open, looking forward, cape and
+cloth hanging straight down.
+
+=== NEAR AND FAR ===
+NEAR = the character's own RIGHT arm and leg. FAR = the LEFT arm and leg.
+- In FRONT 3/4, SIDE and BACK 3/4 the near limbs are the ones closest to the viewer.
+  The far ones are partly behind the body, but are still drawn complete.
+- Both feet always point the same way the body faces in this view, never backwards and
+  never sideways against the view. Toes forward, heel behind.
+- Draw every leg and foot piece the same way round in all five sheets: no mirrored or
+  swapped feet, no left foot in a right-foot cell.
+
+=== JOINTS (important for animation) ===
+- Each limb piece hangs STRAIGHT DOWN, centred horizontally in its cell, with its top
+  joint (the point it rotates around) at the cell's top centre (x = 128, y = 30).
+- Joint ends are ROUNDED and extended about 12% past the joint, like a ball joint, so the
+  part can rotate without opening a gap. Shoulders, elbows, hips and knees are fully
+  painted on BOTH pieces that meet there. Never cut a limb off flat.
+- Pieces are complete: nothing is hidden by another part, even where the body normally
+  covers it. Draw the full far arm, the full far leg, and the torso under the cape.
+- The torso has NO neck stub: it ends flat at the collar. The neck belongs to the head
+  piece.
+- Each piece is one solid shape with no holes, except where the design itself is open.
+- Armour, straps and ornaments stay on the piece they are attached to and do not hang
+  across a joint onto the next piece.
+
+=== CELL CONTENTS ===
+Row 0:
+  0 ASSEMBLED FIGURE in the rest pose, all parts together, weapon carried, feet on the
+    cell bottom (y = 310), head near the top. This is the size reference for every
+    other piece.
+  1 HEAD with all its headgear, hair, horns, frill or ears, and the full neck. Its pivot
+    is the base of the neck at the cell's bottom centre (x = 128, y = 300).
+  2 The same HEAD with its eyes closed (blink). Otherwise identical, in the same position.
+  3 TORSO: chest, armour, collar and shoulders, from the collar to the waist. No arms,
+    no cape, no neck. Its waist is at the bottom centre.
+  4 PELVIS: belt, hips and the skirt / kilt / trousers down to mid-thigh. No legs. Waist
+    joint at the top centre.
+  5 CAPE / BACK CLOTH alone ({CAPE}), hanging straight, its top edge at the top centre.
+    (If "none": leave this cell empty magenta.)
+  6 FRONT CLOTH alone ({FRONT CLOTH}), top edge at the top centre.
+    (If "none": leave this cell empty magenta.)
+  7 WEAPON AT REST: {WEAPON}. Grip at the cell centre; if it has a direction, it points
+    to the RIGHT.
+Row 1 (NEAR side = the character's right):
+  0 UPPER ARM with its shoulder piece (shoulder to elbow). Shoulder joint at top centre.
+  1 FOREARM + OPEN HAND (elbow to fingertips). Elbow at top centre.
+  2 FOREARM + FIST gripping (as if holding the weapon's grip). Elbow at top centre.
+  3 FOREARM + {HANDS}. Elbow at top centre.
+  4 THIGH (hip to knee). Hip joint at top centre.
+  5 SHIN + FOOT (knee to sole), foot flat on the ground. Knee at top centre.
+  6 SHIN + FOOT on its toes (heel raised, for the walk). Knee at top centre.
+  7 WEAPON ACTIVE: {WEAPON ACTIVE}. Its grip is in the same place as in row 0, cell 7.
+Row 2 (FAR side = the character's left, painted slightly darker):
+  0 UPPER ARM.  1 FOREARM + OPEN HAND.  2 FOREARM + FIST gripping.
+  3 FOREARM + {HANDS}.  4 THIGH.  5 SHIN + FOOT flat.  6 SHIN + FOOT on its toes.
+  7 WEAPON ALTERNATE: {WEAPON ALT}. (If "none": leave this cell empty magenta.)
+  (Same joint rules as row 1.)
+
+=== RULES ===
+- Do not use magenta (#FF00FF), pink or purple anywhere in the artwork. Pick other
+  colours for those details.
+- No text, no labels, no numbers, no signature, no watermark.
+- One part per cell. Never draw a part twice, never swap two parts, never put a part
+  in a cell meant for another part.
+- Same character, same colours and same scale as the attached sheets.
+
+==================================================================================
+PROMPT B - WEAPON EFFECTS SHEET (send once)
+==================================================================================
+Create a game sprite sheet of weapon effects for this character: {CHARACTER}, armed with
+{WEAPON}. Effects: {EFFECTS}. Colours to match: {PALETTE}. Glowing energy cores. Match
+the art style of the attached sheet.
+
+=== CANVAS (exact) ===
+- Image size: exactly 2048 x 512 pixels.
+- Background: flat solid pure black #000000 everywhere that is not an effect. The effects
+  are glowing light and are added on top of the game with additive blending. Their
+  darkest parts fade to black, never to a grey or coloured box.
+- No grid lines, no labels, no text, no frames.
+- Grid: 8 columns x 2 rows of cells, each exactly 256 x 256 pixels. One effect per cell,
+  centred, never crossing its cell, at least 8 px of black around it.
+- Orthographic, flat 2D, no perspective.
+
+=== CELL CONTENTS ===
+Row 0 - PROJECTILES, each pointing exactly RIGHT (horizontal, tip toward x = 256),
+  centred on the cell's middle row, about 200 px long or less:
+  0 standard projectile, 1-5 five stronger or elemental versions of it (e.g. fire / plasma,
+  piercing, shock / electric, ice / cryo, heavy / charged), 6 the standard projectile's
+  trail segment alone (fading out to the left), 7 a small spark / ember particle (round,
+  soft).
+Row 1 - FLASHES AND IMPACTS (centred, round-ish, about 200 px wide or less):
+  0 muzzle / release flash (the burst at the weapon when it fires), 1-5 one impact burst
+  for each projectile in row 0 cells 1-5 (same colours), 6 charging / casting glow (a
+  ring or halo), 7 smoke puff (grey, soft).
+
+=== RULES ===
+- No text, no labels, no watermark. Nothing but the effects on pure black.
+- Each projectile and its impact use the same colours.
+
+==================================================================================
+CHECKLIST (check each sheet before moving on)
+==================================================================================
+[ ] Exactly 2048 x 960 (effects: 2048 x 512); flat magenta (effects: black) background,
+    no grid lines or text.
+[ ] 24 cells, one piece in each (empty only where "none"), none crossing its cell, a
+    clear gap between the rows.
+[ ] The pieces rebuild the assembled figure: the same scale, the head not enlarged, the
+    neck short.
+[ ] The torso has no neck stub; the head piece carries the neck.
+[ ] Every limb hangs straight down, its joint at the top centre, with rounded ends.
+[ ] Both feet point the same way as the body, and are drawn the same way round as in the
+    FRONT 3/4 sheet. No backwards or swapped feet.
+[ ] Near (right) limbs in row 1, far (left) limbs in row 2, the far ones slightly darker.
+[ ] The weapon points right, its active version's grip is where the resting one's is.
+[ ] No magenta / pink / purple inside the artwork.
+[ ] The same design, colours and ornaments as the reference and the FRONT 3/4 sheet.
+
+COMMON FIXES (send as a follow-up message with the bad sheet attached)
+- Wrong size / grid: "Redraw at exactly 2048 x 960 px, 8 x 3 cells of 256 x 320 px, one
+  piece per cell."
+- Cropped or cut-off limb: "Draw the whole [part] with rounded joint ends; nothing hidden."
+- Big head: "Draw the head at the same scale as the assembled figure, not enlarged."
+- Backwards feet: "Both feet point [down-right / right / up-right], the same way the body
+  faces, toes forward."
+- Inconsistent character: "Keep exactly the design and colours of the attached FRONT
+  3/4 sheet."
+- Parts merged together: "Draw each part separately in its own cell, with magenta
+  around it."
+- Shadows or a floor under the figure: "No shadow, no floor: flat magenta background."

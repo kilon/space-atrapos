@@ -1,0 +1,25 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+.claude/settings.local.json
+
+# Blender autosave backups and Python caches
+*.blend1
+__pycache__/
+*.pyc
+
+# Reference material, kept out of the repository - except what the project builds from or needs:
+# the user's character overrides, the patch tracking, the live-coding tools, and the Blender
+# scripts that make the characters (their .blend files, renders and caches stay out)
+/external/*
+!/external/blender_overrides/
+!/external/patcher/
+!/external/live_debugger/
+!/external/live_scripts/
+!/external/blender/
+/external/blender/**
+!/external/blender/**/
+!/external/blender/**/*.py
+!/external/blender/**/*.sh
+!/external/blender/**/*.md
+!/external/blender/**/*.json

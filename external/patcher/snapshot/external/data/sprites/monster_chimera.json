@@ -1,0 +1,86 @@
+{
+ "parts": {
+  "serpent": [
+   706,
+   -35
+  ],
+  "goat": [
+   327,
+   -15
+  ],
+  "lion": [
+   448,
+   382
+  ],
+  "front_left_leg": [
+   240,
+   386
+  ],
+  "front_right_leg": [
+   655,
+   652
+  ],
+  "back_right_leg": [
+   904,
+   395
+  ],
+  "body": [
+   507,
+   -35
+  ],
+  "front": [
+   209,
+   -34
+  ]
+ },
+ "mouths": {
+  "serpent": [
+   1170,
+   365
+  ],
+  "goat": [
+   480,
+   470
+  ],
+  "lion": [
+   740,
+   830
+  ]
+ },
+ "hub": [
+  760,
+  450
+ ],
+ "size": [
+  1536,
+  1024
+ ],
+ "serpent_pivot": [
+  930,
+  290
+ ],
+ "goat_pivot": [
+  620,
+  330
+ ],
+ "lion_pivot": [
+  735,
+  520
+ ],
+ "front_left_leg_pivot": [
+  430,
+  500
+ ],
+ "front_right_leg_pivot": [
+  930,
+  790
+ ],
+ "back_right_leg_pivot": [
+  1020,
+  500
+ ],
+ "front_size": [
+  1536,
+  1024
+ ]
+}

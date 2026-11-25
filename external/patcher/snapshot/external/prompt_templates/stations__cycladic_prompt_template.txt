@@ -1,0 +1,50 @@
+=== CYCLADIC CIVILISATION: SPACE STATIONS PROMPT TEMPLATE =========================
+
+A new star nation (not in the game yet): the Cycladic islands of the early Bronze
+Age, reborn among the stars. This makes its 12 stations, in the layout of the
+other station sheets (ionian_spacestations_1.png: 4 x 3, top-down) - tools/
+extract_sprites.py cuts it by grid into station_cyclades_<key>.
+
+----------------------------------------------------------------------------------
+HOW TO USE
+----------------------------------------------------------------------------------
+ 1. Attach ionian_spacestations_1.png (the layout, scale and camera) - and the
+    Cycladic ships sheet if it exists (cycladic_ships_1.png: the look) - and send
+    PROMPT A.
+ 2. Check it against the CHECKLIST; regenerate until it passes.
+ 3. Save it as external/images/cycladic_spacestations_1.png (or leave it in
+    Downloads) and ask Claude to cut it in (keys in brackets, CYCLADES_STATIONS
+    in extract_sprites.py).
+
+----------------------------------------------------------------------------------
+PROMPT A
+----------------------------------------------------------------------------------
+Make a sprite sheet of 12 space stations in exactly the same painted style, scale, camera and layout as the attached station sheet: 1536 x 1024 pixels, pure black background, a 4 x 3 grid, each station centred in its cell with clear black space all round it (no part touching another cell), seen straight from above (top-down, roughly round or symmetric silhouettes that read well while slowly spinning), no text or labels. Make them the stations of the Cycladic civilisation:
+
+The Cycladic islands: the oldest seafarers of the Aegean, reborn among the stars - island-hopping traders, quarrymen and sculptors, their islands set in a circle round a sacred centre. Their stations are pure and minimal like their marble figurines: smooth white Parian marble with soft sculpted curves and few seams, glossy black volcanic obsidian, sea-turquoise and deep Aegean blue glow, faint traces of red-ochre and blue painted lines; carved running spirals, oared longboats and fish like the incised clay "frying pans", the folded-arm figurines' clean geometry. Turquoise lights. Calm, abstract, elegant shapes - never the Minoans' busy frescoes and red, never the Athenians' gold and navy, never the Spartans' crimson and lambdas, never the Ionians' columns and lapis.
+
+Row 1:
+1. [figure]    A colossal folded-arm marble figurine lying in space, docking bays along its arms.
+2. [pan]       A giant "frying pan" disc carved with a running spiral, a handle-shaped docking pier.
+3. [circle]    The island circle: a ring of small marble island-habitats round a sacred central one.
+4. [harbour]   A longboat harbour: a round marina with oared longboats moored like spokes.
+Row 2:
+5. [spiral]    One great carved spiral of marble habitat rings.
+6. [quarry]    A marble quarry: a half-cut block of white marble with cutting arms and cranes.
+7. [obsidian]  An obsidian forge: black glassy blades round a glowing turquoise core.
+8. [harp]      A harp station: a marble harp frame with obsidian strings, docking at its base.
+Row 3:
+9. [kandila]   A collared jar station with four lug handles as docking arms.
+10. [sanctuary] A round sanctuary of standing figurines facing a central altar flame.
+11. [sun]      A sun disc of marble rays round a turquoise core, spirals on each ray.
+12. [lighthouse] A white marble beacon on a small round island-rock, a ring of fish banners.
+
+----------------------------------------------------------------------------------
+CHECKLIST
+----------------------------------------------------------------------------------
+[ ] 1536 x 1024, black background, 4 columns x 3 rows, nothing crossing a cell
+[ ] top-down, symmetric enough to spin
+[ ] white marble, black obsidian, turquoise and Aegean blue, faint ochre;
+    spirals, longboats, fish, figurines - not the other empires' colours or signs
+[ ] no text, numbers or watermarks
+[ ] all 12 clearly different

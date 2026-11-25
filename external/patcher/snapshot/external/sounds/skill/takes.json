@@ -1,0 +1,16 @@
+{
+ "beam": 2,
+ "burst": 2,
+ "cast": 2,
+ "dome": 1,
+ "fire": 2,
+ "guard": 2,
+ "kick": 3,
+ "land": 2,
+ "leap": 2,
+ "levelup": 1,
+ "punch": 4,
+ "summon": 1,
+ "thunder": 2,
+ "whoosh": 3
+}

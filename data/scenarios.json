@@ -1,0 +1,6596 @@
+{
+	"scenarios": [
+		{
+			"id": "missing_freighter",
+			"title": "The Missing Freighter",
+			"description": "Example: the dockmaster asks you to find a freighter lost near Phaistos; raiders wait at the wreck.",
+			"enabled": false,
+			"steps": ["Not started", "Search", "Fight", "Return", "Finished"],
+			"rules": [
+				{
+					"note": "The dockmaster's plea",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Kephala Outpost"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "Not started"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Dockmaster", "A freighter, the [b]Amphora[/b], went silent on the Phaistos run two days ago."],
+									["Dockmaster", "Find her, pilot. Here's something for fuel."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 500
+							}
+						},
+						{
+							"action": "objective",
+							"args": {
+								"text": "Find the freighter Amphora in the Phaistos system"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "Search"
+							}
+						}
+					]
+				},
+				{
+					"note": "Arriving in Klotho: mark the wreck",
+					"once": true,
+					"when": {
+						"event": "entered",
+						"args": {
+							"system": "klotho"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "Search"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "marker",
+							"args": {
+								"marker": "wreck",
+								"beacon": "signal",
+								"place": "point:1600,-900"
+							}
+						},
+						{
+							"action": "objective",
+							"args": {
+								"text": "Investigate the distress beacon"
+							}
+						}
+					]
+				},
+				{
+					"note": "The ambush",
+					"once": true,
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 350,
+							"place": "marker:wreck"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "Search"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [["Raider", "Should have stayed home, little pilot."]]
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 3,
+								"ship_type": "traced_pirate_reaver",
+								"group": "ambush",
+								"place": "marker:wreck"
+							}
+						},
+						{
+							"action": "objective",
+							"args": {
+								"text": "Destroy the raiders"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "Fight"
+							}
+						}
+					]
+				},
+				{
+					"note": "Raiders gone: the black box",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "ambush"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "Fight"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "give_item",
+							"args": {
+								"count": 1,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "wreck"
+							}
+						},
+						{
+							"action": "message",
+							"args": {
+								"text": "You recover the Amphora's black box (a Data Core)."
+							}
+						},
+						{
+							"action": "objective",
+							"args": {
+								"text": "Bring the black box to Kephala Outpost"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "Return"
+							}
+						}
+					]
+				},
+				{
+					"note": "Handing it in",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Kephala Outpost"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "Return"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 1,
+								"item": "data_core"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "take_item",
+							"args": {
+								"count": 1,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Dockmaster", "So that's what happened to her. Thank you, pilot - the families will want to know."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 2000
+							}
+						},
+						{
+							"action": "reputation",
+							"args": {
+								"empire": "minoa",
+								"amount": 10
+							}
+						},
+						{
+							"action": "finish",
+							"args": {}
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "thread_of_ariadne_rules",
+			"title": "The Thread of Ariadne (as rules)",
+			"description": "The main quest, converted to rules from data/main_quest.json: one step per stage. Enable it only if you turn the built-in story off - otherwise both run.",
+			"enabled": false,
+			"steps": ["Not started", "1 Dock at Kephala Outpost", "2 Find the source of the signal", "3 Destroy the raiders at the signal ", "4 Recover the disc fragment", "5 Bring the fragment to Kephala Outp", "6 Bring 4 Energy Cells and 6 Titaniu", "7 Follow Ariadne's Thread: first bea", "8 Follow Ariadne's Thread: second be", "9 Follow Ariadne's Thread: third bea", "10 Defeat Asterion and his escorts", "11 Find the shipwright at Helios Dock", "12 Bring 3 Alien Alloy and 2 Platinum", "13 Return to the Labyrinth with the k", "14 Defeat Talos, the bronze guardian", "15 Enter the heart of the Labyrinth", "16 The thread is complete", "Finished"],
+			"rules": [
+				{
+					"when": {
+						"event": "start",
+						"args": {}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "set_step",
+							"args": {
+								"step": "1 Dock at Kephala Outpost"
+							}
+						}
+					],
+					"once": true,
+					"note": "Begin"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "1 Dock at Kephala Outpost"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Dock at Kephala Outpost"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Narrator", "The Atrapos sector was named by its first surveyors after [b]Atropos[/b] - eldest of the three Fates of Greek myth, the one who cuts the thread of every life."],
+									["Narrator", "Pilots joke that out here, the thread is always short."],
+									["Narrator", "For three nights now, every receiver in the sector has picked up the same faint signal: a slow spiral of symbols, repeating, from somewhere beyond the charted lanes."],
+									["Kephala Outpost", "Kephala Outpost to any independent pilot: Dr. Ariadne Kephala requests assistance with the anomalous signal. Please dock at Kephala Outpost. Paying work."]
+								]
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 1 begins"
+				},
+				{
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Kephala Outpost"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "1 Dock at Kephala Outpost"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "lore",
+							"args": {
+								"lore": "atropos"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "2 Find the source of the signal"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 1 complete"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "2 Find the source of the signal"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Find the source of the signal"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Dr. Ariadne Kephala", "Thank you for coming. I'm an archaeologist - Aegean Bronze Age, Crete mostly. Which is why this signal is keeping me awake."],
+									["Dr. Ariadne Kephala", "It isn't noise. It's 45 distinct symbols, stamped out one by one in a spiral, read from the rim toward the centre."],
+									["Dr. Ariadne Kephala", "That is exactly the structure of the [b]Phaistos Disc[/b] - a clay disc found in a Minoan palace on Crete in 1908. 241 stamped signs, 45 different ones, spiralling on both faces. Nobody has ever read it."],
+									["Dr. Ariadne Kephala", "I've triangulated the source to the east of here. I've marked it on your map. Please - go and look."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "stage1",
+								"beacon": "signal",
+								"place": "point:6200,600"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 2 begins"
+				},
+				{
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 380.0,
+							"place": "point:6200,600"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "2 Find the source of the signal"
+							}
+						},
+						{
+							"cond": "in_system",
+							"args": {
+								"system": "atrapos"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "lore",
+							"args": {
+								"lore": "phaistos_disc"
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "stage1"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "3 Destroy the raiders at the signal "
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 2 complete"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "3 Destroy the raiders at the signal "
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Destroy the raiders at the signal source"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Narrator", "Something is drifting at the heart of the signal - small, reddish, turning slowly. It isn't metal."],
+									["Dr. Ariadne Kephala", "Wait, I'm reading other ships near you. Raiders - they're flying a red bull's head as their banner."],
+									["Dr. Ariadne Kephala", "They must have followed the signal too. Don't let them take it!"]
+								]
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "interceptor",
+								"group": "stage2",
+								"place": "point:5850,350"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "heavy_fighter",
+								"group": "stage2",
+								"place": "point:6580,450"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "stealth_fighter",
+								"group": "stage2",
+								"place": "point:6200,1020"
+							}
+						},
+						{
+							"action": "drop_item",
+							"args": {
+								"item": "phaistos_fragment",
+								"place": "point:6200,600"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 3 begins"
+				},
+				{
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "stage2"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "3 Destroy the raiders at the signal "
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "credits",
+							"args": {
+								"amount": 250
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "4 Recover the disc fragment"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 3 complete"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "4 Recover the disc fragment"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Recover the disc fragment"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Dr. Ariadne Kephala", "The raiders are gone. Can you get close to that object?"],
+									["Dr. Ariadne Kephala", "...It's fired clay. A fragment of a disc, covered in stamped signs. Fired clay, floating in deep space. That's impossible. Bring it in, carefully."]
+								]
+							}
+						},
+						{
+							"action": "drop_item",
+							"args": {
+								"item": "phaistos_fragment",
+								"place": "point:6200,600"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 4 begins"
+				},
+				{
+					"when": {
+						"event": "picked",
+						"args": {
+							"item": "phaistos_fragment"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "4 Recover the disc fragment"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "set_step",
+							"args": {
+								"step": "5 Bring the fragment to Kephala Outp"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 4 complete"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "5 Bring the fragment to Kephala Outp"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Bring the fragment to Kephala Outpost"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Dr. Ariadne Kephala", "Come straight back to Kephala Outpost. I'll have the lab ready."]
+								]
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 5 begins"
+				},
+				{
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Kephala Outpost"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "5 Bring the fragment to Kephala Outp"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "credits",
+							"args": {
+								"amount": 400
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "minoans"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "6 Bring 4 Energy Cells and 6 Titaniu"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 5 complete"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "6 Bring 4 Energy Cells and 6 Titaniu"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Bring 4 Energy Cells and 6 Titanium Ore to Kephala Outpost"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Dr. Ariadne Kephala", "Look at the edge of the fragment. This second band of signs isn't Phaistos-style at all. It's [b]Linear A[/b] - the everyday script of the Minoans."],
+									["Dr. Ariadne Kephala", "Linear A has never been deciphered. The Mycenaean Greeks later adapted it into Linear B, and an English architect, Michael Ventris, cracked Linear B in 1952. But Linear A still keeps its secrets."],
+									["Dr. Ariadne Kephala", "Except - this fragment resonates. Feed it energy and the signs shift, like the disc is trying to teach us to read it."],
+									["Dr. Ariadne Kephala", "I need a resonator: [b]4 Energy Cells[/b] to power it and [b]6 Titanium Ore[/b] for the frame. Wrecks carry cells; titanium comes from the blue-grey asteroids."]
+								]
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 6 begins"
+				},
+				{
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Kephala Outpost"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "6 Bring 4 Energy Cells and 6 Titaniu"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "message",
+							"args": {
+								"text": "Still needed: 4 Energy Cell, 6 Titanium Ore"
+							}
+						}
+					],
+					"once": false,
+					"note": "Stage 6: reminder when something is missing"
+				},
+				{
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Kephala Outpost"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "6 Bring 4 Energy Cells and 6 Titaniu"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 4,
+								"item": "energy_cell"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 6,
+								"item": "titanium_ore"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "take_item",
+							"args": {
+								"count": 4,
+								"item": "energy_cell"
+							}
+						},
+						{
+							"action": "take_item",
+							"args": {
+								"count": 6,
+								"item": "titanium_ore"
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 600
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "linear_a"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "7 Follow Ariadne's Thread: first bea"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 6 complete"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "7 Follow Ariadne's Thread: first bea"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Follow Ariadne's Thread: first beacon"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Dr. Ariadne Kephala", "It worked. The Linear A band is a list of places - star positions. Each one points to the next."],
+									["Dr. Ariadne Kephala", "In the myth, Princess Ariadne of Crete gave Theseus a ball of thread so he could find his way out of the Labyrinth. This is a thread through the dark - and I'm afraid I'm going to name it after her."],
+									["Dr. Ariadne Kephala", "The first point is north of Knossos Station. Follow the thread."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "stage6",
+								"beacon": "thread",
+								"place": "point:2000,-3600"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 7 begins"
+				},
+				{
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 320.0,
+							"place": "point:2000,-3600"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "7 Follow Ariadne's Thread: first bea"
+							}
+						},
+						{
+							"cond": "in_system",
+							"args": {
+								"system": "atrapos"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "lore",
+							"args": {
+								"lore": "ariadne"
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "knossos"
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "stage6"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "8 Follow Ariadne's Thread: second be"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 7 complete"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "8 Follow Ariadne's Thread: second be"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Follow Ariadne's Thread: second beacon"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Narrator", "The beacon wakes as you arrive. A double-headed axe of light turns slowly above it - a [b]labrys[/b]."],
+									["Narrator", "A voice-less message unfolds in Linear A, and the fragment in your hold translates: [i]Ka-no-so. The house of a thousand rooms. Its columns are red, wider at the top than at the foot.[/i]"],
+									["Dr. Ariadne Kephala", "Knossos! The greatest Minoan palace - more than a thousand rooms around a central court, with those famous tapering red columns. Arthur Evans dug it up from 1900 onward."],
+									["Dr. Ariadne Kephala", "There's another position encoded. Keep going."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "stage7",
+								"beacon": "thread",
+								"place": "point:-1200,-5200"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 8 begins"
+				},
+				{
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 320.0,
+							"place": "point:-1200,-5200"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "8 Follow Ariadne's Thread: second be"
+							}
+						},
+						{
+							"cond": "in_system",
+							"args": {
+								"system": "atrapos"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "lore",
+							"args": {
+								"lore": "labrys"
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "stage7"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "9 Follow Ariadne's Thread: third bea"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 8 complete"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "9 Follow Ariadne's Thread: third bea"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Follow Ariadne's Thread: third beacon"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Narrator", "The second beacon shows the labrys again, and a new line: [i]The double axe marks the holy places. Its house is the labyrinth.[/i]"],
+									["Dr. Ariadne Kephala", "One theory says 'labyrinth' really meant 'house of the labrys' - the double axe was the Minoans' most sacred symbol."],
+									["Dr. Ariadne Kephala", "The last point is far to the north-west. Be careful - the raiders with the bull banner have been seen out that way."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "stage8",
+								"beacon": "thread",
+								"place": "point:-5400,-4600"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 9 begins"
+				},
+				{
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 320.0,
+							"place": "point:-5400,-4600"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "9 Follow Ariadne's Thread: third bea"
+							}
+						},
+						{
+							"cond": "in_system",
+							"args": {
+								"system": "atrapos"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "lore",
+							"args": {
+								"lore": "bull_leaping"
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "stage8"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "10 Defeat Asterion and his escorts"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 9 complete"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "10 Defeat Asterion and his escorts"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Defeat Asterion and his escorts"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Narrator", "The third beacon shows a painted scene: young athletes somersaulting over the back of a charging bull. Then a final position - and a structure, vast and old, waiting there."],
+									["Asterion", "Pretty little lights, aren't they? I've followed them for a year. Did the woman at Kephala tell you what's at the end of the thread?"],
+									["Asterion", "They call me [b]Asterion[/b]. The Bull of Minos. Whatever sleeps in that Labyrinth belongs to me - and you are flying straight toward my doorway."],
+									["Dr. Ariadne Kephala", "Asterion - that was the Minotaur's own name in the old stories. He's no monster, just a warlord with a flagship. Take him down!"]
+								]
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "asterion",
+								"group": "stage9",
+								"place": "point:-6300,-2700"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "frigate",
+								"group": "stage9",
+								"place": "point:-6720,-2440"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "gunship",
+								"group": "stage9",
+								"place": "point:-5880,-2440"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 10 begins"
+				},
+				{
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "stage9"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "10 Defeat Asterion and his escorts"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "credits",
+							"args": {
+								"amount": 1000
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 1,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "minotaur"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "11 Find the shipwright at Helios Dock"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 10 complete"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "11 Find the shipwright at Helios Dock"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Find the shipwright at Helios Dock"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Narrator", "Asterion's flagship breaks apart. Beyond the wreckage, the structure is finally clear: a ring of rings, a maze the size of a station, wrapped in a shimmering seal."],
+									["Dr. Ariadne Kephala", "It's a labyrinth - the classic seven-ring Cretan design, the one stamped on the coins of Knossos. And it's sealed."],
+									["Dr. Ariadne Kephala", "There is one person who might build a key: Nikos Daidalos, the shipwright at Helios Dock. Yes, really. He's heard every joke."]
+								]
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 11 begins"
+				},
+				{
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Helios Dock"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "11 Find the shipwright at Helios Dock"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "set_step",
+							"args": {
+								"step": "12 Bring 3 Alien Alloy and 2 Platinum"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 11 complete"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "12 Bring 3 Alien Alloy and 2 Platinum"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Bring 3 Alien Alloy and 2 Platinum Ore to Helios Dock"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Nikos Daidalos", "A labyrinth, a sealed door, and a girl named Ariadne. My namesake would laugh. Daedalus built the Labyrinth for King Minos - and then built wings to escape Crete with his son, Icarus."],
+									["Nikos Daidalos", "I can tune a key to that seal. I'll need [b]3 Alien Alloy[/b] - light as feathers - and [b]2 Platinum Ore[/b]. The gold-veined rocks."],
+									["Nikos Daidalos", "Bring them and I'll build you a key... and a pair of wings while I'm at it."]
+								]
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 12 begins"
+				},
+				{
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Helios Dock"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "12 Bring 3 Alien Alloy and 2 Platinum"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "message",
+							"args": {
+								"text": "Still needed: 3 Alien Alloy, 2 Platinum Ore"
+							}
+						}
+					],
+					"once": false,
+					"note": "Stage 12: reminder when something is missing"
+				},
+				{
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Helios Dock"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "12 Bring 3 Alien Alloy and 2 Platinum"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 3,
+								"item": "alien_alloy"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 2,
+								"item": "platinum_ore"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "take_item",
+							"args": {
+								"count": 3,
+								"item": "alien_alloy"
+							}
+						},
+						{
+							"action": "take_item",
+							"args": {
+								"count": 2,
+								"item": "platinum_ore"
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 500
+							}
+						},
+						{
+							"action": "message",
+							"args": {
+								"text": "Reward: afterburner (equipment rewards aren't a rules action yet)"
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "daedalus"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "13 Return to the Labyrinth with the k"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 12 complete"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "13 Return to the Labyrinth with the k"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Return to the Labyrinth with the key"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Nikos Daidalos", "Your key is fitted. And the wings - an afterburner, tuned by my own hand. Fly fast, but remember Icarus: he flew too close to the sun, the wax melted, and he fell into the sea."],
+									["Nikos Daidalos", "Now go. And if anything in that Labyrinth is made of bronze... call me."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "stage12",
+								"beacon": "none",
+								"place": "point:-7200,100"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 13 begins"
+				},
+				{
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 650.0,
+							"place": "point:-7200,100"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "13 Return to the Labyrinth with the k"
+							}
+						},
+						{
+							"cond": "in_system",
+							"args": {
+								"system": "atrapos"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "stage12"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "14 Defeat Talos, the bronze guardian"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 13 complete"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "14 Defeat Talos, the bronze guardian"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Defeat Talos, the bronze guardian"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Narrator", "As you approach the Labyrinth, something huge unfolds from its outer ring. Bronze plates glow like a forge."],
+									["Dr. Ariadne Kephala", "That's... Talos. The bronze giant who guarded Crete. He walked around the island three times every day, hurling rocks at any ship that came near."],
+									["Nikos Daidalos", "Every Talos has one weakness: a single vein, sealed by a bronze nail at the ankle. Keep hitting him - don't let his shields recover!"]
+								]
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "talos",
+								"group": "stage13",
+								"place": "point:-7200,-450"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 14 begins"
+				},
+				{
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "stage13"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "14 Defeat Talos, the bronze guardian"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "credits",
+							"args": {
+								"amount": 1500
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 2,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "talos"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "15 Enter the heart of the Labyrinth"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 14 complete"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "15 Enter the heart of the Labyrinth"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Enter the heart of the Labyrinth"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Narrator", "Talos falls silent, the glow fading from his bronze. The seal around the Labyrinth flickers, and opens."],
+									["Dr. Ariadne Kephala", "Follow the path to the centre. Like Theseus - except this time, nobody needs to die in there."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "stage14",
+								"beacon": "none",
+								"place": "point:-7200,-1200"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 15 begins"
+				},
+				{
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 260.0,
+							"place": "point:-7200,-1200"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "15 Enter the heart of the Labyrinth"
+							}
+						},
+						{
+							"cond": "in_system",
+							"args": {
+								"system": "atrapos"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "lore",
+							"args": {
+								"lore": "thera"
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "mycenaeans"
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "stage14"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "16 The thread is complete"
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 15 complete"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "16 The thread is complete"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "The thread is complete"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Narrator", "At the centre of the Labyrinth is not a monster, but an archive. Thousands of clay discs turn slowly in the dark, each one stamped in spirals."],
+									["Narrator", "The fragment in your hold slots into an empty place among them. And for the first time in more than three thousand years, the Linear A begins to speak."],
+									["Narrator", "[i]We are the Keftiu - the people of the island the Egyptians traded with. Our palaces had no walls; the sea was our wall.[/i]"],
+									["Narrator", "[i]Then the mountain of Thera tore itself apart, and ash fell like black snow, and the sea rose against our harbours. Later, ships came from the mainland, and other kings sat in our palace and wrote in their own tongue.[/i]"],
+									["Narrator", "[i]We could not keep our island. So we kept our memory. Whoever follows the thread to this place: read us. Remember us.[/i]"],
+									["Dr. Ariadne Kephala", "They wanted to be remembered. That's all. Not treasure - memory. I'll spend the rest of my life reading this archive, and I'll never be bored again."],
+									["Dr. Ariadne Kephala", "Atropos cuts every thread in the end. But not this one. Not today. Thank you, pilot."],
+									["Narrator", "[b]The main quest is complete.[/b] The sector is still yours to explore - and the archive will be waiting."]
+								]
+							}
+						}
+					],
+					"once": true,
+					"note": "Stage 16 begins"
+				},
+				{
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "16 The thread is complete"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "credits",
+							"args": {
+								"amount": 3000
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 3,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "finish",
+							"args": {}
+						}
+					],
+					"once": true,
+					"note": "Stage 16 complete"
+				}
+			]
+		},
+		{
+			"id": "empire_athens",
+			"title": "The Olive and the Owl",
+			"description": "The Athenian League's story: Athena's sacred olive withers with salt in its roots. An oracle, an offering to the Earth-shaker, a battle in the narrows and a runner's race.",
+			"enabled": true,
+			"empire": "athens",
+			"steps": ["Not started", "1 Seek the bronze owl at the mines of Laurio", "2 Destroy the thieves at the cape of Sounion", "3 Bring 10 Food and 4 Luxury Goods to the sh", "4 Return the trident to the cape of Sounion", "5 Join Navarch Themistios at Piraeus Emporio", "6 Hold the narrows at the gate to Ugarit", "7 Destroy the raiders' chief and his gunship", "8 Run the news to Athenai Stoa before the ho", "Finished"],
+			"rules": [
+				{
+					"note": "The quest begins at Athenai Stoa",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Athenai Stoa"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "Not started"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Sing, Muse, of the pilot who came to the city of grey-eyed Athena, when her olive withered and the sea rose against her people."],
+									["Kilon Alios", "Long ago, men say, two gods strove for the land: Poseidon struck the rock with his trident and a salt spring leapt out; Athena planted an olive. The people chose the olive, and the city took her name."],
+									["Archon Kallias", "Welcome, stranger. Sit, eat, and then tell me your name - so the custom of our fathers commands, and so I keep it."],
+									["Archon Kallias", "Hear our grief. The olive in the garden-ring of the Akropolis, grown from the seed of the goddess's own tree, is withering. Salt is in its roots, and no engineer can say how it came there."],
+									["Archon Kallias", "When the wise do not know, the wise ask. Go to the silver mines of Laurion in the Marathon system. The priestess Diotima keeps the bronze owl there; it speaks with the voice of the goddess."]
+								]
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "1 Seek the bronze owl at the mines of Laurio"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 1 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "1 Seek the bronze owl at the mines of Laurio"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Seek the bronze owl at the mines of Laurion (Marathon system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Laurion: a grey moon riddled with old shafts, where the city's silver was dug by men who never saw the sun. There the owl keeps its watch."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m1",
+								"beacon": "signal",
+								"place": "planet:Laurion"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 1 complete",
+					"once": true,
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 600,
+							"place": "planet:Laurion"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "1 Seek the bronze owl at the mines of Laurio"
+							}
+						},
+						{
+							"cond": "in_system",
+							"args": {
+								"system": "erebos"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Diotima", "You come as the goddess said you would - unasked, and in a hurry. Sit. The owl does not speak to the hurried."],
+									["The Bronze Owl", "The sea's lord was robbed and has not forgotten. Where the cape of Sounion faces the dawn, thieves drank from his altar. Find them, and the salt will leave the root."],
+									["Diotima", "Sounion lies in the system of Athenai itself. The Sea Peoples have a den beyond our gates; it was they, surely."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 300
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m1"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "2 Destroy the thieves at the cape of Sounion"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 2 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "2 Destroy the thieves at the cape of Sounion"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Destroy the thieves at the cape of Sounion (Athenai system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "At Sounion the raiders sat round their fires like wolves round a felled stag, and the bronze trident of Poseidon lay among them, black with soot."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m2",
+								"beacon": "signal",
+								"place": "planet:Sounion"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 2,
+								"ship_type": "traced_pirate_reaver",
+								"group": "g2",
+								"place": "planet:Sounion"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 2,
+								"ship_type": "traced_pirate_scythe",
+								"group": "g2",
+								"place": "planet:Sounion"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 2 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g2"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "2 Destroy the thieves at the cape of Sounion"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "So the thieves fell, and the trident of the Earth-shaker lay in the pilot's hold - heavy as a guilty conscience."],
+									["Archon Kallias", "You have the god's trident? Then do not keep it an hour longer than you must. Gods are not asked twice. Bring gifts with it to the harbour-shrine at Piraeus: oil, wine and bread, as our fathers did."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 500
+							}
+						},
+						{
+							"action": "reputation",
+							"args": {
+								"empire": "athens",
+								"amount": 5
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m2"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "3 Bring 10 Food and 4 Luxury Goods to the sh"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 3 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "3 Bring 10 Food and 4 Luxury Goods to the sh"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Bring 10 Food and 4 Luxury Goods to the shrine at Piraeus Emporion (Piraeus system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Archon Kallias", "Do not haggle over the gifts, pilot. A man who bargains with a god has already lost."]
+								]
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 3 complete",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Piraeus Emporion"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "3 Bring 10 Food and 4 Luxury Goods to the sh"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 10,
+								"item": "food"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 4,
+								"item": "luxury_goods"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "take_item",
+							"args": {
+								"count": 10,
+								"item": "food"
+							}
+						},
+						{
+							"action": "take_item",
+							"args": {
+								"count": 4,
+								"item": "luxury_goods"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "They poured the wine on the deck of the harbour-shrine and burned the bread, and the smoke went up to the dark between the stars."],
+									["Priest of Poseidon", "The Earth-shaker has his trident and his gifts. Now set the trident back where it was taken, on the cape of Sounion, and say his name as you do it."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 400
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "4 Return the trident to the cape of Sounion"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 3: still needed",
+					"once": false,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Piraeus Emporion"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "3 Bring 10 Food and 4 Luxury Goods to the sh"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "message",
+							"args": {
+								"text": "Still needed here: 10 Food, 4 Luxury Goods"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 4 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "4 Return the trident to the cape of Sounion"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Return the trident to the cape of Sounion (Athenai system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Then the pilot turned the ship back towards Sounion, carrying the god's own weapon through the god's own sea."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m4",
+								"beacon": "signal",
+								"place": "planet:Sounion"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 4 complete",
+					"once": true,
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 600,
+							"place": "planet:Sounion"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "4 Return the trident to the cape of Sounion"
+							}
+						},
+						{
+							"cond": "in_system",
+							"args": {
+								"system": "nyx"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "The trident was set in its place, and the pilot said the god's name. Far off, the gates of Athenai flickered once, as if a wave had passed through them, and were still."],
+									["Archon Kallias", "The salt is leaving the roots! But listen - the Sea Peoples have heard who robbed them of their prize. Their ships gather beyond Piraeus to burn our harbour."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 300
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 1,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m4"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "5 Join Navarch Themistios at Piraeus Emporio"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 5 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "5 Join Navarch Themistios at Piraeus Emporio"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Join Navarch Themistios at Piraeus Emporion (Piraeus system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "In Piraeus the ships lay side by side like spears in a rack, and their crews sharpened their weapons and said little."]
+								]
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 5 complete",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Piraeus Emporion"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "5 Join Navarch Themistios at Piraeus Emporio"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Navarch Themistios", "They are many and we are few. So we will not meet them in open space. We will meet them in the narrows before the gate to Ugarit, where their numbers are a burden and not a strength."],
+									["Navarch Themistios", "An oracle once told our fathers to trust in wooden walls. Our walls are hulls now. Yours is one of them."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 200
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "6 Hold the narrows at the gate to Ugarit"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 6 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "6 Hold the narrows at the gate to Ugarit"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Hold the narrows at the gate to Ugarit (Piraeus system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "As starlings wheel over a field before rain, so the raiders came through the gate, wheeling and crying on their radios."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m6",
+								"beacon": "signal",
+								"place": "gate:tartaros"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 3,
+								"ship_type": "traced_pirate_banner",
+								"group": "g6",
+								"place": "gate:tartaros"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 2,
+								"ship_type": "traced_pirate_twinaxe",
+								"group": "g6",
+								"place": "gate:tartaros"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 6 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g6"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "6 Hold the narrows at the gate to Ugarit"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Navarch Themistios", "Their van is broken. But see - their great ships come behind, and their chief with them. Do not let them pass."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 500
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m6"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "7 Destroy the raiders' chief and his gunship"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 7 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "7 Destroy the raiders' chief and his gunship"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Destroy the raiders' chief and his gunships in the narrows (Piraeus system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Raider chief", "Owl-folk! I will hang your ships from my mast like a fisher hangs his catch!"]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m7",
+								"beacon": "signal",
+								"place": "gate:tartaros"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "traced_pirate_skullsun",
+								"group": "g7",
+								"place": "gate:tartaros"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 2,
+								"ship_type": "traced_pirate_corsair",
+								"group": "g7",
+								"place": "gate:tartaros"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 7 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g7"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "7 Destroy the raiders' chief and his gunship"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "So the chief fell in the narrows, and the sea of stars was strewn with wrecks as a beach is strewn with weed after a storm."],
+									["Navarch Themistios", "Victory! Now the city must hear it before rumour reaches it first - rumour is quicker than any ship. Run, pilot, to the Stoa at Athenai, and do not stop."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 600
+							}
+						},
+						{
+							"action": "reputation",
+							"args": {
+								"empire": "athens",
+								"amount": 8
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m7"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "8 Run the news to Athenai Stoa before the ho"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 8 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "8 Run the news to Athenai Stoa before the ho"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Run the news to Athenai Stoa before the hour turns (Athenai system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Once a runner ran from Marathon to the city with news of victory, spoke one word, and died. The pilot flew, and hoped for a kinder ending."]
+								]
+							}
+						},
+						{
+							"action": "set_var",
+							"args": {
+								"var": "late",
+								"value": 0
+							}
+						},
+						{
+							"action": "timer",
+							"args": {
+								"timer": "race",
+								"seconds": 240
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 8: too late",
+					"once": true,
+					"when": {
+						"event": "timer",
+						"args": {
+							"timer": "race"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "8 Run the news to Athenai Stoa before the ho"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "set_var",
+							"args": {
+								"var": "late",
+								"value": 1
+							}
+						},
+						{
+							"action": "message",
+							"args": {
+								"text": "Too late - but fly on all the same."
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 8: in time",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Athenai Stoa"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "8 Run the news to Athenai Stoa before the ho"
+							}
+						},
+						{
+							"cond": "var",
+							"args": {
+								"var": "late",
+								"op": "=",
+								"value": 0
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Archon Kallias", "Rejoice - we have won! You came faster than the rumour. The city will remember it."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 500
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 8: late",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Athenai Stoa"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "8 Run the news to Athenai Stoa before the ho"
+							}
+						},
+						{
+							"cond": "var",
+							"args": {
+								"var": "late",
+								"op": "=",
+								"value": 1
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Archon Kallias", "Rumour came before you, pilot, but it told the truth this once. No matter - you are here, and alive."]
+								]
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 8 complete",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Athenai Stoa"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "8 Run the news to Athenai Stoa before the ho"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "That day the people walked in procession round the Akropolis-ring, as at the great festival, and carried a new robe to the goddess."],
+									["Archon Kallias", "And look: the olive puts out new leaves. Grey-eyed Athena has seen it all. Take this, and take the city's thanks - you are a guest-friend of Athens, now and always."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 1500
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 2,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "reputation",
+							"args": {
+								"empire": "athens",
+								"amount": 15
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "athens_contest"
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "athens_salamis"
+							}
+						},
+						{
+							"action": "finish",
+							"args": {}
+						}
+					]
+				}
+			],
+			"walkthrough": [
+				{
+					"event": "docked",
+					"args": {
+						"station": "Athenai Stoa"
+					}
+				},
+				{
+					"near": "planet:Laurion",
+					"system": "erebos"
+				},
+				{
+					"kill": "g2",
+					"count": 4,
+					"system": "nyx"
+				},
+				{
+					"give": {
+						"food": 10,
+						"luxury_goods": 4
+					},
+					"event": "docked",
+					"args": {
+						"station": "Piraeus Emporion"
+					}
+				},
+				{
+					"near": "planet:Sounion",
+					"system": "nyx"
+				},
+				{
+					"event": "docked",
+					"args": {
+						"station": "Piraeus Emporion"
+					}
+				},
+				{
+					"kill": "g6",
+					"count": 5,
+					"system": "hekate"
+				},
+				{
+					"kill": "g7",
+					"count": 3,
+					"system": "hekate"
+				},
+				{
+					"event": "docked",
+					"args": {
+						"station": "Athenai Stoa"
+					}
+				}
+			]
+		},
+		{
+			"id": "empire_sparta",
+			"title": "With Your Shield or On It",
+			"description": "The Spartan Hegemony's story: a trial of the agoge, an oracle against greed, the pass of Thermopylai held against a traitor's raiders, the Twin Stars relit and Cerberus driven back at Tainaron.",
+			"enabled": true,
+			"empire": "sparta",
+			"steps": ["Not started", "1 Destroy the three raiders at the gate to P", "2 Hear the oracle at the shrine of Amyklai", "3 Bring 6 Weapons and 10 Food to Thermopylai", "4 Hold the pass at the gate to Lukka", "5 Hold the pass against the second wave", "6 Destroy the traitor Leotychidas and his es", "7 Relight the beacons of the Twin Stars at K", "8 Drive Cerberus back into the dark at Taina", "9 Return to Sparta Barracks", "Finished"],
+			"rules": [
+				{
+					"note": "The quest begins at Sparta Barracks",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Sparta Barracks"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "Not started"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Sing, Muse, of Lakedaimon, the hollow land, whose people spend few words and many years of training - and of the stranger who stood among them."],
+									["Ephor Chilonis", "You. Pilot. We have a task. We do not give tasks to men we have not tested."],
+									["Ephor Chilonis", "Raiders prowl the gate to Pylos. Three of them. Go alone. Come back."],
+									["Kilon Alios", "When a king of Macedon wrote to them, 'If I enter your land I will destroy you,' the Spartans answered with one word: 'If.'"]
+								]
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "1 Destroy the three raiders at the gate to P"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 1 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "1 Destroy the three raiders at the gate to P"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Destroy the three raiders at the gate to Pylos (Sparta system) - alone"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Spartan boys were sent out alone, with no shoes and one cloak, to live by their wits. The ephor asked the stranger for less than that - and watched closely all the same."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m1",
+								"beacon": "signal",
+								"place": "gate:pylos"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 2,
+								"ship_type": "traced_pirate_reaver",
+								"group": "g1",
+								"place": "gate:pylos"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "traced_pirate_bonescythe",
+								"group": "g1",
+								"place": "gate:pylos"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 1 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g1"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "1 Destroy the three raiders at the gate to P"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Ephor Chilonis", "Good."],
+									["Ephor Chilonis", "Now the real task. Go to the shrine at Amyklai. The priest has an answer from Delphi. We do not like it."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 300
+							}
+						},
+						{
+							"action": "reputation",
+							"args": {
+								"empire": "sparta",
+								"amount": 3
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m1"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "2 Hear the oracle at the shrine of Amyklai"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 2 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "2 Hear the oracle at the shrine of Amyklai"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Hear the oracle at the shrine of Amyklai (Sparta system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Ephor Chilonis", "Amyklai. The shrine of Apollo, where Hyakinthos died. Listen to the priest. Speak little."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m2",
+								"beacon": "signal",
+								"place": "planet:Amyklai"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 2 complete",
+					"once": true,
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 600,
+							"place": "planet:Amyklai"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "2 Hear the oracle at the shrine of Amyklai"
+							}
+						},
+						{
+							"cond": "in_system",
+							"args": {
+								"system": "kyros"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Priest of Apollo", "Far-shooting Apollo gave this answer to our kings long ago, and gives it again: 'Love of money, and nothing else, will destroy Sparta.'"],
+									["Priest of Apollo", "Now hear what the god did not say, but we know. Leotychidas, once our polemarch, was sent into exile for taking a bribe. He has sold the codes of the Thermopylai gate to the Sea Peoples for a sleeve full of gold."],
+									["Priest of Apollo", "The garrison at Thermopylai Citadel must hold the pass. They are few. They are hungry. Bring them what they need."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 200
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m2"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "3 Bring 6 Weapons and 10 Food to Thermopylai"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 3 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "3 Bring 6 Weapons and 10 Food to Thermopylai"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Bring 6 Weapons and 10 Food to Thermopylai Citadel (Thermopylai system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Thermopylai: the hot gates. A narrow way between the mountains and the sea, where a few may hold back many - if they are fed, and armed, and do not run."]
+								]
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 3 complete",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Thermopylai Citadel"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "3 Bring 6 Weapons and 10 Food to Thermopylai"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 6,
+								"item": "weapons"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 10,
+								"item": "food"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "take_item",
+							"args": {
+								"count": 6,
+								"item": "weapons"
+							}
+						},
+						{
+							"action": "take_item",
+							"args": {
+								"count": 10,
+								"item": "food"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Polemarch Dienekes", "Bread and spears. Good. Now we can fight."],
+									["Polemarch Dienekes", "A merchant told me their ships will be so many that their guns will hide the stars. Then we shall fight in the shade. Take your place at the gate to Lukka."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 400
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "4 Hold the pass at the gate to Lukka"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 3: still needed",
+					"once": false,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Thermopylai Citadel"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "3 Bring 6 Weapons and 10 Food to Thermopylai"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "message",
+							"args": {
+								"text": "Still needed here: 6 Weapons, 10 Food"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 4 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "4 Hold the pass at the gate to Lukka"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Hold the pass at the gate to Lukka (Thermopylai system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "They came through the narrow gate as a river comes through a gorge, and the Spartans stood in it like rocks."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m4",
+								"beacon": "signal",
+								"place": "gate:skylla"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 3,
+								"ship_type": "traced_pirate_reaver",
+								"group": "g4",
+								"place": "gate:skylla"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 2,
+								"ship_type": "traced_pirate_scythe",
+								"group": "g4",
+								"place": "gate:skylla"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 4 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g4"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "4 Hold the pass at the gate to Lukka"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [["Polemarch Dienekes", "First wave broken. They will send more. They always do."]]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 400
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m4"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "5 Hold the pass against the second wave"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 5 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "5 Hold the pass against the second wave"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Hold the pass against the second wave (Thermopylai system)"
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m5",
+								"beacon": "signal",
+								"place": "gate:skylla"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 2,
+								"ship_type": "traced_pirate_corsair",
+								"group": "g5",
+								"place": "gate:skylla"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "traced_pirate_ribcage",
+								"group": "g5",
+								"place": "gate:skylla"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 2,
+								"ship_type": "traced_pirate_maw",
+								"group": "g5",
+								"place": "gate:skylla"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 5 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g5"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "5 Hold the pass against the second wave"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Polemarch Dienekes", "There. The traitor's ship. He comes himself, to see what his gold has bought."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 500
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m5"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "6 Destroy the traitor Leotychidas and his es"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 6 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "6 Destroy the traitor Leotychidas and his es"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Destroy the traitor Leotychidas and his escort (Thermopylai system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Leotychidas", "Spartans! I offer you what I was offered - gold, and your lives. Stand aside."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m6",
+								"beacon": "signal",
+								"place": "gate:skylla"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "traced_pirate_galleon",
+								"group": "g6",
+								"place": "gate:skylla"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 2,
+								"ship_type": "traced_pirate_skullbarge",
+								"group": "g6",
+								"place": "gate:skylla"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 6 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g6"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "6 Destroy the traitor Leotychidas and his es"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "The gold in his sleeve did not save him. It never does; that was the meaning of the god's answer."],
+									["Polemarch Dienekes", "The pass holds. Now the Twin Stars. Kastor and Polydeukes, sons of Zeus, guard every sailor - their beacons at the Kastor Phalanx went dark when the raiders came. Relight them."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 800
+							}
+						},
+						{
+							"action": "reputation",
+							"args": {
+								"empire": "sparta",
+								"amount": 8
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m6"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "7 Relight the beacons of the Twin Stars at K"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 7 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "7 Relight the beacons of the Twin Stars at K"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Relight the beacons of the Twin Stars at Kastor Phalanx (Mantineia system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Two stars, side by side, that sailors look for when the storm is worst. Their beacons had gone out the night the traitor's raiders came."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m7",
+								"beacon": "signal",
+								"place": "station:Kastor Phalanx"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 7 complete",
+					"once": true,
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 600,
+							"place": "station:Kastor Phalanx"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "7 Relight the beacons of the Twin Stars at K"
+							}
+						},
+						{
+							"cond": "in_system",
+							"args": {
+								"system": "g10_mantineia"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "When the Twin Stars burn on a ship's mast, sailors say, the storm is over. The pilot set them burning again, and every ship in the lanes saw them."],
+									["Ephor Chilonis", "Bad news. At Tainaron, where the road to Hades opens, the three-headed hound has broken out. Herakles, father of our kings, dragged it up from below once. Now it is your turn."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 400
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 1,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m7"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "8 Drive Cerberus back into the dark at Taina"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 8 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "8 Drive Cerberus back into the dark at Taina"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Drive Cerberus back into the dark at Tainaron (Tegea system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Three heads it had, and a mane of snakes, and its bark shook the hulls of ships as the bark of a dog shakes a sleeping house."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m8",
+								"beacon": "signal",
+								"place": "planet:Tainaron"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "cerberus",
+								"group": "g8",
+								"place": "planet:Tainaron"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 8 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g8"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "8 Drive Cerberus back into the dark at Taina"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "So the hound of Hades went back down the road it came, and the gate of Tainaron was shut."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 1200
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 1,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m8"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "9 Return to Sparta Barracks"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 9 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "9 Return to Sparta Barracks"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Return to Sparta Barracks (Sparta system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [["Ephor Chilonis", "Come back. Report. Keep it short."]]
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 9 complete",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Sparta Barracks"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "9 Return to Sparta Barracks"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Ephor Chilonis", "A Spartan mother tells her son, as she hands him his shield: 'With it, or on it.' You came back with yours."],
+									["Ephor Chilonis", "Take this. Few strangers are called friends of Lakedaimon. You are."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 1500
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 2,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "reputation",
+							"args": {
+								"empire": "sparta",
+								"amount": 15
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "sparta_oracle"
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "sparta_thermopylae"
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "sparta_dioscuri"
+							}
+						},
+						{
+							"action": "finish",
+							"args": {}
+						}
+					]
+				}
+			],
+			"walkthrough": [
+				{
+					"event": "docked",
+					"args": {
+						"station": "Sparta Barracks"
+					}
+				},
+				{
+					"kill": "g1",
+					"count": 3,
+					"system": "kyros"
+				},
+				{
+					"near": "planet:Amyklai",
+					"system": "kyros"
+				},
+				{
+					"give": {
+						"weapons": 6,
+						"food": 10
+					},
+					"event": "docked",
+					"args": {
+						"station": "Thermopylai Citadel"
+					}
+				},
+				{
+					"kill": "g4",
+					"count": 5,
+					"system": "thera"
+				},
+				{
+					"kill": "g5",
+					"count": 5,
+					"system": "thera"
+				},
+				{
+					"kill": "g6",
+					"count": 3,
+					"system": "thera"
+				},
+				{
+					"near": "station:Kastor Phalanx",
+					"system": "g10_mantineia"
+				},
+				{
+					"kill": "g8",
+					"count": 1,
+					"system": "g3_tegea"
+				},
+				{
+					"event": "docked",
+					"args": {
+						"station": "Sparta Barracks"
+					}
+				}
+			]
+		},
+		{
+			"id": "empire_mycenae",
+			"title": "The Mask of Gold",
+			"description": "The Mycenaean Kingdoms' story: the wanax's golden mask is stolen and the Cyclopean walls crack. The Hydra wakes at Lerna, Artemis stills the fleet as at Aulis, and Cetus rises against the homecoming.",
+			"enabled": true,
+			"empire": "mycenae",
+			"steps": ["Not started", "1 Ask the Cyclops-engine Brontes at Tiryns", "2 Bring 10 Iron Ore and 6 Titanium Ore to Ti", "3 Destroy the raiders watching the gate to L", "4 Destroy the Hydra in the marsh of Lerna", "5 Ask the seer Kalchas why the gates are sti", "6 Bring 5 Medicine and 10 Water to Atreus Th", "7 Destroy the thieves holding the golden mas", "8 Kill Cetus, the sea-monster, near Argos", "9 Bring the golden mask home to Mykenai Forg", "Finished"],
+			"rules": [
+				{
+					"note": "The quest begins at Mykenai Forge",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Mykenai Forge"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "Not started"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Sing, Muse, of Mykenai rich in gold, of its walls that the Cyclopes built, and of the curse that runs in its kings' blood like rust in a blade."],
+									["Wanax Agapenor", "Stranger, you stand in the hall of the wanax. Drink from my cup - and then hear me, for the gods have turned their faces from my house."],
+									["Wanax Agapenor", "The golden mask of my fathers was taken from the tholos-tomb, and the next night the Lion Gate's beacon went dark, and the great walls cracked."],
+									["Wanax Agapenor", "Old Brontes, last of the Cyclops-engines, still tends the forge at Tiryns. He built these walls. Ask him what has broken them."]
+								]
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "1 Ask the Cyclops-engine Brontes at Tiryns"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 1 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "1 Ask the Cyclops-engine Brontes at Tiryns"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Ask the Cyclops-engine Brontes at Tiryns (Mykenai system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Tiryns of the great walls: there the Cyclops-engine still beats its anvil, slow as a heart, as it has since the days of Perseus."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m1",
+								"beacon": "signal",
+								"place": "planet:Tiryns"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 1 complete",
+					"once": true,
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 600,
+							"place": "planet:Tiryns"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "1 Ask the Cyclops-engine Brontes at Tiryns"
+							}
+						},
+						{
+							"cond": "in_system",
+							"args": {
+								"system": "naxos"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Brontes", "One eye I have, and with it I have watched three thousand years. Walls do not crack by themselves, little one. A thief opened the tomb, and the dead were angry."],
+									["Brontes", "First mend the walls. Bring iron and titanium to the forge at the Lion Gate of Tirynthia, and I will set the stones as I set them for Perseus."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 300
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m1"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "2 Bring 10 Iron Ore and 6 Titanium Ore to Ti"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 2 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "2 Bring 10 Iron Ore and 6 Titanium Ore to Ti"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Bring 10 Iron Ore and 6 Titanium Ore to Tirynthia Lion Gate (Tirynthia system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Brontes", "Iron for the bones of the wall, titanium for its sinews. Bring them, and I will make it whole."]
+								]
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 2 complete",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Tirynthia Lion Gate"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "2 Bring 10 Iron Ore and 6 Titanium Ore to Ti"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 10,
+								"item": "iron_ore"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 6,
+								"item": "titanium_ore"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "take_item",
+							"args": {
+								"count": 10,
+								"item": "iron_ore"
+							}
+						},
+						{
+							"action": "take_item",
+							"args": {
+								"count": 6,
+								"item": "titanium_ore"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "The forge roared like a lion in a cave, and the walls grew whole again, stone locked on stone, so close that no knife-blade could pass between them."],
+									["Brontes", "The thieves took the mask towards the den of Lukka. Their sentries watch the gate from Mykenai. Clear the road."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 500
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "3 Destroy the raiders watching the gate to L"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 2: still needed",
+					"once": false,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Tirynthia Lion Gate"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "2 Bring 10 Iron Ore and 6 Titanium Ore to Ti"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "message",
+							"args": {
+								"text": "Still needed here: 10 Iron Ore, 6 Titanium Ore"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 3 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "3 Destroy the raiders watching the gate to L"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Destroy the raiders watching the gate to Lukka (Mykenai system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "The pass to Lukka: where the raiders watch, as crows watch a field from the top of a dead tree."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m3",
+								"beacon": "signal",
+								"place": "gate:skylla"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 2,
+								"ship_type": "traced_pirate_reaver",
+								"group": "g3",
+								"place": "gate:skylla"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "traced_pirate_corsair",
+								"group": "g3",
+								"place": "gate:skylla"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "traced_pirate_twinaxe",
+								"group": "g3",
+								"place": "gate:skylla"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 3 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g3"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "3 Destroy the raiders watching the gate to L"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Wanax Agapenor", "The road is open. But a worse thing stirs. In the marsh of Lerna, beside our own world, the many-headed serpent that Herakles killed has grown its heads again."],
+									["Wanax Agapenor", "Herakles cut one head and two grew in its place. Do not be proud, pilot. Be patient."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 500
+							}
+						},
+						{
+							"action": "reputation",
+							"args": {
+								"empire": "mycenae",
+								"amount": 5
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m3"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "4 Destroy the Hydra in the marsh of Lerna"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 4 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "4 Destroy the Hydra in the marsh of Lerna"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Destroy the Hydra in the marsh of Lerna (Mykenai system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Nine heads it had, and its breath was poison, and the marsh boiled where it moved."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m4",
+								"beacon": "signal",
+								"place": "planet:Lerna"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "hydra",
+								"group": "g4",
+								"place": "planet:Lerna"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 4 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g4"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "4 Destroy the Hydra in the marsh of Lerna"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "So the Hydra died a second time; and the pilot did not boast of it, remembering what happens to the proud."],
+									["Wanax Agapenor", "Now we sail to take back the mask. But the fleet cannot jump. The gates are still, as the winds were still at Aulis when Artemis was wronged."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 1000
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 1,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m4"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "5 Ask the seer Kalchas why the gates are sti"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 5 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "5 Ask the seer Kalchas why the gates are sti"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Ask the seer Kalchas why the gates are still (Atreus Tholos, Mykenai system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Wanax Agapenor", "Kalchas sees what was, what is and what will be. He has never told a king good news. Go and hear him anyway."]
+								]
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 5 complete",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Atreus Tholos"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "5 Ask the seer Kalchas why the gates are sti"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kalchas", "Artemis is angry. One of the wanax's captains shot a hind in her sacred grove and boasted that not even the goddess could shoot better."],
+									["Kalchas", "Once, at Aulis, she asked for a king's daughter. But in the better telling she took a hind instead, and carried the girl away to safety. Give her gifts of healing and clean water, and she will be content."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 200
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "6 Bring 5 Medicine and 10 Water to Atreus Th"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 6 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "6 Bring 5 Medicine and 10 Water to Atreus Th"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Bring 5 Medicine and 10 Water to Atreus Tholos for Artemis (Mykenai system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kalchas", "Medicine for her healing hands, water for her clean springs. Artemis loves the wild things, and those who keep them whole."]
+								]
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 6 complete",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Atreus Tholos"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "6 Bring 5 Medicine and 10 Water to Atreus Th"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 5,
+								"item": "medicine"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 10,
+								"item": "water"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "take_item",
+							"args": {
+								"count": 5,
+								"item": "medicine"
+							}
+						},
+						{
+							"action": "take_item",
+							"args": {
+								"count": 10,
+								"item": "water"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "They gave the goddess her gifts, and the captain who boasted gave her his bow. And the gates woke, one after another, like hounds hearing the horn."],
+									["Wanax Agapenor", "To Pylos! The thieves wait by the gate to Ugarit with the mask. Nestor's old city will see us pass."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 400
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "7 Destroy the thieves holding the golden mas"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 6: still needed",
+					"once": false,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Atreus Tholos"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "6 Bring 5 Medicine and 10 Water to Atreus Th"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "message",
+							"args": {
+								"text": "Still needed here: 5 Medicine, 10 Water"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 7 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "7 Destroy the thieves holding the golden mas"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Destroy the thieves holding the golden mask (Pylos system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Sandy Pylos, where old Nestor ruled - he who talked longest of all the Greeks at Troy, and was listened to, for he was wise."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m7",
+								"beacon": "signal",
+								"place": "gate:tartaros"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "traced_pirate_ironwheel",
+								"group": "g7",
+								"place": "gate:tartaros"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 2,
+								"ship_type": "traced_pirate_banner",
+								"group": "g7",
+								"place": "gate:tartaros"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 2,
+								"ship_type": "traced_pirate_scythe",
+								"group": "g7",
+								"place": "gate:tartaros"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 7 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g7"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "7 Destroy the thieves holding the golden mas"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "The thieves fell, and the golden mask lay in the wreckage, still smiling its calm gold smile."],
+									["Wanax Agapenor", "Bring it home - but beware the sea between. Once Poseidon sent a monster, Cetus, against the land of Andromeda, until Perseus of our house killed it. My dreams say it is out again."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 600
+							}
+						},
+						{
+							"action": "reputation",
+							"args": {
+								"empire": "mycenae",
+								"amount": 5
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m7"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "8 Kill Cetus, the sea-monster, near Argos"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 8 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "8 Kill Cetus, the sea-monster, near Argos"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Kill Cetus, the sea-monster, near Argos (Pylos system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "It rose from the dark as a whale rises from the deep, and its jaws could have swallowed a frigate whole."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m8",
+								"beacon": "signal",
+								"place": "planet:Argos"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "cetus",
+								"group": "g8",
+								"place": "planet:Argos"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 8 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g8"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "8 Kill Cetus, the sea-monster, near Argos"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [["Kilon Alios", "So Cetus died, and the homecoming was free."]]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 1200
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 1,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m8"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "9 Bring the golden mask home to Mykenai Forg"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 9 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "9 Bring the golden mask home to Mykenai Forg"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Bring the golden mask home to Mykenai Forge (Mykenai system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "And so the pilot came home with the mask, as Agamemnon came home from Troy - but to a kinder welcome."]
+								]
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 9 complete",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Mykenai Forge"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "9 Bring the golden mask home to Mykenai Forg"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Wanax Agapenor", "The mask is in the tomb again, and the Lion Gate burns. My fathers sleep."],
+									["Wanax Agapenor", "Know this, guest: my house has a curse on it, from the day Atreus served his brother a terrible feast. Each king pays for the pride of the one before. You have bought us a little peace. Take gold for it - but take my friendship more."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 1500
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 2,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "reputation",
+							"args": {
+								"empire": "mycenae",
+								"amount": 15
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "mycenae_walls"
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "mycenae_atreus"
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "mycenae_heroes"
+							}
+						},
+						{
+							"action": "finish",
+							"args": {}
+						}
+					]
+				}
+			],
+			"walkthrough": [
+				{
+					"event": "docked",
+					"args": {
+						"station": "Mykenai Forge"
+					}
+				},
+				{
+					"near": "planet:Tiryns",
+					"system": "naxos"
+				},
+				{
+					"give": {
+						"iron_ore": 10,
+						"titanium_ore": 6
+					},
+					"event": "docked",
+					"args": {
+						"station": "Tirynthia Lion Gate"
+					}
+				},
+				{
+					"kill": "g3",
+					"count": 4,
+					"system": "naxos"
+				},
+				{
+					"kill": "g4",
+					"count": 1,
+					"system": "naxos"
+				},
+				{
+					"event": "docked",
+					"args": {
+						"station": "Atreus Tholos"
+					}
+				},
+				{
+					"give": {
+						"medicine": 5,
+						"water": 10
+					},
+					"event": "docked",
+					"args": {
+						"station": "Atreus Tholos"
+					}
+				},
+				{
+					"kill": "g7",
+					"count": 5,
+					"system": "pylos"
+				},
+				{
+					"kill": "g8",
+					"count": 1,
+					"system": "pylos"
+				},
+				{
+					"event": "docked",
+					"args": {
+						"station": "Mykenai Forge"
+					}
+				}
+			]
+		},
+		{
+			"id": "empire_ionia",
+			"title": "The First Principle",
+			"description": "The Ionian League's story: the sages ask what all things are made of. An eclipse is foretold, the League meets at the Panionion, Herostratos burns the temple of Artemis for fame, and Skylla rises in the dark.",
+			"enabled": true,
+			"empire": "ionia",
+			"steps": ["Not started", "1 Bring the warning to the League's council ", "2 Bring 4 Electronics and 6 Energy Cells to ", "3 Drive off Herostratos's scouts at the stra", "4 Guard the temple-ring of Artemis beside Ep", "5 Destroy Herostratos before he burns the te", "6 Reach the Pythagoras Artemision before the", "7 Destroy Skylla at the strait of Lukka", "8 Hear the singer at Homeros Odeon", "Finished"],
+			"rules": [
+				{
+					"note": "The quest begins at Miletos Agora",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Miletos Agora"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "Not started"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Sing, Muse, of Ionia, where men first asked not which god made the world, but what the world is made of."],
+									["Hekataios the Chronicler", "Welcome, guest. I write down the stories of the Greeks - which are many, and, it seems to me, mostly foolish. Yours I would like to hear when it is finished."],
+									["Hekataios the Chronicler", "Thales of our city foretold an eclipse of the sun, and it came on the day he named. Now the observatories say another is coming - one that will blind the gate-beacons of the whole League for an hour."],
+									["Hekataios the Chronicler", "Worse: a raider named Herostratos boasts he will do a deed so great that men will speak his name for ever. Such men are dangerous. The League's council meets at the Panionion. Go and tell them."]
+								]
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "1 Bring the warning to the League's council "
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 1 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "1 Bring the warning to the League's council "
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Bring the warning to the League's council at the Panionion (Assos system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "The Panionion stands on the headland of Mykale, where the twelve Ionian cities met each year to sacrifice to Poseidon and to quarrel."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m1",
+								"beacon": "signal",
+								"place": "planet:Panionion"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 1 complete",
+					"once": true,
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 600,
+							"place": "planet:Panionion"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "1 Bring the warning to the League's council "
+							}
+						},
+						{
+							"cond": "in_system",
+							"args": {
+								"system": "g5_assos"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Speaker of the Panionion", "Twelve cities sit in this council, and twelve cities never agree. But on this we agree: Ephesos must be guarded, and the eclipse must be measured, so that the gates can be steered by hand while it lasts."],
+									["Speaker of the Panionion", "Theano of Samos, who keeps the school of Pythagoras, is building the instrument. She needs parts. Bring them to the Sappho Observatory."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 300
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m1"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "2 Bring 4 Electronics and 6 Energy Cells to "
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 2 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "2 Bring 4 Electronics and 6 Energy Cells to "
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Bring 4 Electronics and 6 Energy Cells to Sappho Observatory (Samos system)"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 2 complete",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Sappho Observatory"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "2 Bring 4 Electronics and 6 Energy Cells to "
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 4,
+								"item": "electronics"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 6,
+								"item": "energy_cell"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "take_item",
+							"args": {
+								"count": 4,
+								"item": "electronics"
+							}
+						},
+						{
+							"action": "take_item",
+							"args": {
+								"count": 6,
+								"item": "energy_cell"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Theano of Samos", "Pythagoras taught that all things are number: the strings of the lyre, the rings of the planets, even justice. This instrument hears the numbers of the sky, and will tell us the second the shadow falls."],
+									["Theano of Samos", "Herostratos's scouts have been seen at Ephesos, by the strait. Drive them off before they learn too much."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 500
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "3 Drive off Herostratos's scouts at the stra"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 2: still needed",
+					"once": false,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Sappho Observatory"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "2 Bring 4 Electronics and 6 Energy Cells to "
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "message",
+							"args": {
+								"text": "Still needed here: 4 Electronics, 6 Energy Cell"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 3 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "3 Drive off Herostratos's scouts at the stra"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Drive off Herostratos's scouts at the strait of Lukka (Ephesos system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Theano of Samos", "Be quick and be careful. A man who wants to be remembered will do anything to be noticed."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m3",
+								"beacon": "signal",
+								"place": "gate:skylla"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 2,
+								"ship_type": "traced_pirate_bonescythe",
+								"group": "g3",
+								"place": "gate:skylla"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 2,
+								"ship_type": "traced_pirate_twinaxe",
+								"group": "g3",
+								"place": "gate:skylla"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 3 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g3"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "3 Drive off Herostratos's scouts at the stra"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Hekataios the Chronicler", "The scouts carried fire-charges, the kind used to burn a station. Pilot - it is the temple of Artemis he means to burn. It is the greatest wonder of the League. Hurry to the temple-ring beside Ephesos Agora."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 400
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m3"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "4 Guard the temple-ring of Artemis beside Ep"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 4 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "4 Guard the temple-ring of Artemis beside Ep"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Guard the temple-ring of Artemis beside Ephesos Agora (Ephesos system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "The temple of Artemis at Ephesos had a hundred and twenty-seven columns, each the gift of a king. Its ring now shone in the dark beside the Agora like a crown laid on black cloth."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m4",
+								"beacon": "signal",
+								"place": "station:Ephesos Agora"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 4 complete",
+					"once": true,
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 600,
+							"place": "station:Ephesos Agora"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "4 Guard the temple-ring of Artemis beside Ep"
+							}
+						},
+						{
+							"cond": "in_system",
+							"args": {
+								"system": "ephesos"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Priestess of Artemis", "Too late to stop him reaching us - not too late to stop him finishing. He is here. Hear him."],
+									["Herostratos", "Let them burn my body afterwards! My name will outlive their temple, their League and their gods."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 200
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m4"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "5 Destroy Herostratos before he burns the te"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 5 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "5 Destroy Herostratos before he burns the te"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Destroy Herostratos before he burns the temple of Artemis (Ephesos system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Herostratos", "Burn, ring of Artemis! Let the whole League see the fire, and say my name!"]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m5",
+								"beacon": "signal",
+								"place": "station:Ephesos Agora"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "traced_pirate_skullsun",
+								"group": "g5",
+								"place": "station:Ephesos Agora"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 3,
+								"ship_type": "traced_pirate_reaver",
+								"group": "g5",
+								"place": "station:Ephesos Agora"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 5 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g5"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "5 Destroy Herostratos before he burns the te"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "So Herostratos fell, and the temple stood, though its outer ring smoked for days."],
+									["Priestess of Artemis", "The Ephesians have decreed that his name shall never be spoken or written again. That is the punishment the gods give the proud: what they wanted most, taken from them."],
+									["Hekataios the Chronicler", "And yet I have just written it down. Well - a chronicler must. Now: the eclipse. Theano's instrument is at Miletos; be at the Pythagoras Artemision before the shadow falls."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 700
+							}
+						},
+						{
+							"action": "reputation",
+							"args": {
+								"empire": "ionia",
+								"amount": 8
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m5"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "6 Reach the Pythagoras Artemision before the"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 6 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "6 Reach the Pythagoras Artemision before the"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Reach the Pythagoras Artemision before the eclipse (Miletos system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "The pilot flew towards Miletos, and behind the ship the light of the sun began, very slowly, to be eaten."]
+								]
+							}
+						},
+						{
+							"action": "set_var",
+							"args": {
+								"var": "late",
+								"value": 0
+							}
+						},
+						{
+							"action": "timer",
+							"args": {
+								"timer": "race",
+								"seconds": 300
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 6: too late",
+					"once": true,
+					"when": {
+						"event": "timer",
+						"args": {
+							"timer": "race"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "6 Reach the Pythagoras Artemision before the"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "set_var",
+							"args": {
+								"var": "late",
+								"value": 1
+							}
+						},
+						{
+							"action": "message",
+							"args": {
+								"text": "Too late - but fly on all the same."
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 6: in time",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Pythagoras Artemision"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "6 Reach the Pythagoras Artemision before the"
+							}
+						},
+						{
+							"cond": "var",
+							"args": {
+								"var": "late",
+								"op": "=",
+								"value": 0
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Theano of Samos", "In time! The numbers are true; the gates are steered. Thales would be proud - though he would pretend not to be."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 500
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 1,
+								"item": "data_core"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 6: late",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Pythagoras Artemision"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "6 Reach the Pythagoras Artemision before the"
+							}
+						},
+						{
+							"cond": "var",
+							"args": {
+								"var": "late",
+								"op": "=",
+								"value": 1
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Theano of Samos", "The shadow came first - but the gates held, by luck and by the gods' patience. Next time, be quicker than luck."]
+								]
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 6 complete",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Pythagoras Artemision"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "6 Reach the Pythagoras Artemision before the"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "And in the hour of the eclipse, when the stars came out at noon, something rose out of the strait of Lukka - six heads on long necks, and a girdle of barking dogs."],
+									["Hekataios the Chronicler", "Skylla. Homer sang of her. Odysseus lost six men to her and could not fight her. You, at least, have guns."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 400
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "7 Destroy Skylla at the strait of Lukka"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 7 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "7 Destroy Skylla at the strait of Lukka"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Destroy Skylla at the strait of Lukka (Ephesos system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "As a fisherman on a rock lets down his line and pulls up a fish, so she stooped from the dark and pulled ships from the lane."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m7",
+								"beacon": "signal",
+								"place": "gate:skylla"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "skylla",
+								"group": "g7",
+								"place": "gate:skylla"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 7 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g7"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "7 Destroy Skylla at the strait of Lukka"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "So Skylla sank back into the strait, and the eclipse passed, and the sun came back to Ionia."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 1200
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 1,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m7"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "8 Hear the singer at Homeros Odeon"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 8 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "8 Hear the singer at Homeros Odeon"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Hear the singer at Homeros Odeon (Ephesos system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Hekataios the Chronicler", "The singer at the Odeon has asked for you. Singers do not usually ask - they are usually asked. Go."]
+								]
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 8 complete",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Homeros Odeon"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "8 Hear the singer at Homeros Odeon"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Melesigenes the Singer", "Sit, guest. I am a singer, as my fathers were. I have made a new song - about a pilot, a burned temple that did not burn, and a monster that Odysseus could not kill."],
+									["Melesigenes the Singer", "What is everything made of? Thales said water, Anaximenes air, Herakleitos fire, Pythagoras number. I say: stories. Take the League's gold - the song is free."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 1500
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 2,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "reputation",
+							"args": {
+								"empire": "ionia",
+								"amount": 15
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "ionia_arche"
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "ionia_herostratos"
+							}
+						},
+						{
+							"action": "finish",
+							"args": {}
+						}
+					]
+				}
+			],
+			"walkthrough": [
+				{
+					"event": "docked",
+					"args": {
+						"station": "Miletos Agora"
+					}
+				},
+				{
+					"near": "planet:Panionion",
+					"system": "g5_assos"
+				},
+				{
+					"give": {
+						"electronics": 4,
+						"energy_cell": 6
+					},
+					"event": "docked",
+					"args": {
+						"station": "Sappho Observatory"
+					}
+				},
+				{
+					"kill": "g3",
+					"count": 4,
+					"system": "ephesos"
+				},
+				{
+					"near": "station:Ephesos Agora",
+					"system": "ephesos"
+				},
+				{
+					"kill": "g5",
+					"count": 4,
+					"system": "ephesos"
+				},
+				{
+					"event": "docked",
+					"args": {
+						"station": "Pythagoras Artemision"
+					}
+				},
+				{
+					"kill": "g7",
+					"count": 1,
+					"system": "ephesos"
+				},
+				{
+					"event": "docked",
+					"args": {
+						"station": "Homeros Odeon"
+					}
+				}
+			]
+		},
+		{
+			"id": "empire_cyclades",
+			"title": "The Wandering Isle",
+			"description": "The Cycladic Isles' story: sacred Delos breaks from its four pillars and drifts, as it did before Leto bore Apollo and Artemis there. Tithes, obsidian, marble and Ariadne's crown - and Echidna, sent by Hera.",
+			"enabled": true,
+			"empire": "cyclades",
+			"steps": ["Not started", "1 Bring a true tithe of 6 Platinum Ore to Si", "2 Drive the obsidian thieves from Melos", "3 Find the marble-cutters on Saliagos", "4 Bring 8 Titanium Ore to Paros Circle for t", "5 Seek the vine-crown on Aplomata", "6 Destroy Echidna, sent by Hera, before Delo", "7 Raise the four pillars at Delos Circle", "8 Bring 3 Luxury Goods to Keros Quarry for t", "Finished"],
+			"rules": [
+				{
+					"note": "The quest begins at Delos Circle",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Delos Circle"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "Not started"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Sing, Muse, of the Isles that stand in a circle round holy Delos, as dancers stand round an altar."],
+									["Kilon Alios", "Once Delos was a floating island, driven by every wind. When Leto, carrying the children of Zeus, wandered the world, no land would take her in - for they feared white-armed Hera. Only Delos dared. Then Poseidon fixed it to the sea's floor with four pillars, and there Apollo and Artemis were born."],
+									["Hierophant Anthousa", "Guest, the Circle welcomes you - though you find us frightened. The four pillar-engines that anchor Delos are failing. The station has begun to drift, as the island drifted before the god was born."],
+									["Hierophant Anthousa", "Each pillar was made with a gift from one isle: Siphnos gave gold, Melos obsidian, Paros marble, Naxos the vine. We must gather the gifts again. Begin with Siphnos - and remember what happened to the Siphnians who cheated the god."]
+								]
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "1 Bring a true tithe of 6 Platinum Ore to Si"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 1 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "1 Bring a true tithe of 6 Platinum Ore to Si"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Bring a true tithe of 6 Platinum Ore to Siphnos Circle (Siphnos system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "The Siphnians grew rich from their gold mines, and each year sent Apollo a golden egg. One year they sent gilded lead. The sea came into their mines, and they were rich no longer."],
+									["Elder of Siphnos", "A guest from the Circle! Sit; you shall have bread and figs before you have business. Then weigh your metal on our scales, and weigh it fairly."]
+								]
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 1 complete",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Siphnos Circle"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "1 Bring a true tithe of 6 Platinum Ore to Si"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 6,
+								"item": "platinum_ore"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "take_item",
+							"args": {
+								"count": 6,
+								"item": "platinum_ore"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Elder of Siphnos", "True metal, honestly weighed. Our grandfathers should have done as much. The first pillar has its gift."],
+									["Elder of Siphnos", "Melos guards the black glass, obsidian - sharper than any bronze. But raiders have been robbing its quarries. Go carefully."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 400
+							}
+						},
+						{
+							"action": "reputation",
+							"args": {
+								"empire": "cyclades",
+								"amount": 4
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "2 Drive the obsidian thieves from Melos"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 1: still needed",
+					"once": false,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Siphnos Circle"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "1 Bring a true tithe of 6 Platinum Ore to Si"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "message",
+							"args": {
+								"text": "Still needed here: 6 Platinum Ore"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 2 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "2 Drive the obsidian thieves from Melos"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Drive the obsidian thieves from Melos (Melos system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Melos: an island of black glass, whose people cut it into knives and arrow-heads long before the first smith blew on a fire."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m2",
+								"beacon": "signal",
+								"place": "gate:keros"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 2,
+								"ship_type": "traced_pirate_reaver",
+								"group": "g2",
+								"place": "gate:keros"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 2,
+								"ship_type": "traced_pirate_scythe",
+								"group": "g2",
+								"place": "gate:keros"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 2 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g2"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "2 Drive the obsidian thieves from Melos"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Quarry-mother of Melos", "Our black glass is safe again. Take the best of it for the second pillar. Now Paros - the marble-cutters there are waiting for you."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 500
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 1,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m2"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "3 Find the marble-cutters on Saliagos"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 3 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "3 Find the marble-cutters on Saliagos"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Find the marble-cutters on Saliagos (Paros system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Hierophant Anthousa", "Paros. Its marble is so white that sculptors say it glows from inside. Ask for Arkesilas - he will complain, then help."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m3",
+								"beacon": "signal",
+								"place": "planet:Saliagos"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 3 complete",
+					"once": true,
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 600,
+							"place": "planet:Saliagos"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "3 Find the marble-cutters on Saliagos"
+							}
+						},
+						{
+							"cond": "in_system",
+							"args": {
+								"system": "g27_paros"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Arkesilas the Sculptor", "You want marble for a pillar? Then you want white marble, the finest there is - not stone, light that has gone hard. But my cutters need metal for their saws."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 300
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m3"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "4 Bring 8 Titanium Ore to Paros Circle for t"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 4 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "4 Bring 8 Titanium Ore to Paros Circle for t"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Bring 8 Titanium Ore to Paros Circle for the marble-cutters (Paros system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Arkesilas the Sculptor", "Bring metal. Not much - marble is patient, but my saws are not."]
+								]
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 4 complete",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Paros Circle"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "4 Bring 8 Titanium Ore to Paros Circle for t"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 8,
+								"item": "titanium_ore"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "take_item",
+							"args": {
+								"count": 8,
+								"item": "titanium_ore"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Arkesilas the Sculptor", "The third pillar has its marble. One isle is left: Naxos, where Dionysos found Ariadne weeping on the shore, and crowned her with stars."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 500
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "5 Seek the vine-crown on Aplomata"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 4: still needed",
+					"once": false,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Paros Circle"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "4 Bring 8 Titanium Ore to Paros Circle for t"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "message",
+							"args": {
+								"text": "Still needed here: 8 Titanium Ore"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 5 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "5 Seek the vine-crown on Aplomata"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Seek the vine-crown on Aplomata (Naxia system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Theseus left Ariadne asleep on Naxos and sailed for Athens. When she woke, his ship was a speck on the sea. But the god Dionysos came with his singing train, and made her his wife."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m5",
+								"beacon": "signal",
+								"place": "planet:Aplomata"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 5 complete",
+					"once": true,
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 600,
+							"place": "planet:Aplomata"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "5 Seek the vine-crown on Aplomata"
+							}
+						},
+						{
+							"cond": "in_system",
+							"args": {
+								"system": "g20_naxia"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Maenad of Naxos", "This is her crown - the one the god set in the sky as a ring of stars when she died. A copy, but a holy one. Take it to Delos; it is the fourth gift."],
+									["Maenad of Naxos", "But be warned. The white-armed queen of the gods has not forgotten Leto. She sent the serpent after her once. She has sent another."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 400
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m5"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "6 Destroy Echidna, sent by Hera, before Delo"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 6 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "6 Destroy Echidna, sent by Hera, before Delo"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Destroy Echidna, sent by Hera, before Delos Circle (Delos system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Half a nymph she was, with lovely cheeks and bright eyes, and half a dreadful serpent - Echidna, mother of monsters, coiling round the drifting ring."],
+									["Hera's Voice", "Leto's children were born on that rock against my will. Let the rock drift, and let it sink."],
+									["Hierophant Anthousa", "Do not answer her, pilot. One does not argue with the queen of the gods. One simply wins."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m6",
+								"beacon": "signal",
+								"place": "station:Delos Circle"
+							}
+						},
+						{
+							"action": "spawn",
+							"args": {
+								"count": 1,
+								"ship_type": "echidna",
+								"group": "g6",
+								"place": "station:Delos Circle"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 6 complete",
+					"once": true,
+					"when": {
+						"event": "group_gone",
+						"args": {
+							"group": "g6"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "6 Destroy Echidna, sent by Hera, before Delo"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "So the serpent fell, as Python fell to Apollo's arrows; and the ring of Delos stood still on its pillars once more."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 1200
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 1,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m6"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "7 Raise the four pillars at Delos Circle"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 7 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "7 Raise the four pillars at Delos Circle"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Raise the four pillars at Delos Circle (Delos system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Then the pilot brought the four gifts to Delos: gold, black glass, white marble and the vine-crown of Ariadne."]
+								]
+							}
+						},
+						{
+							"action": "marker",
+							"args": {
+								"marker": "m7",
+								"beacon": "signal",
+								"place": "station:Delos Circle"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 7 complete",
+					"once": true,
+					"when": {
+						"event": "near",
+						"args": {
+							"distance": 600,
+							"place": "station:Delos Circle"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "7 Raise the four pillars at Delos Circle"
+							}
+						},
+						{
+							"cond": "in_system",
+							"args": {
+								"system": "g40_delos"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Hierophant Anthousa", "Gold, obsidian, marble and the vine. The pillars are raised. Delos stands where Leto found her rest, and the god's light burns in the Circle."],
+									["Hierophant Anthousa", "One rite remains. On Keros, the old people broke their marble figures and laid them down, all together, in one place. We still do. Bring the offering there."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 500
+							}
+						},
+						{
+							"action": "reputation",
+							"args": {
+								"empire": "cyclades",
+								"amount": 5
+							}
+						},
+						{
+							"action": "remove_marker",
+							"args": {
+								"marker": "m7"
+							}
+						},
+						{
+							"action": "set_step",
+							"args": {
+								"step": "8 Bring 3 Luxury Goods to Keros Quarry for t"
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 8 begins",
+					"once": true,
+					"when": {
+						"event": "step",
+						"args": {
+							"step": "8 Bring 3 Luxury Goods to Keros Quarry for t"
+						}
+					},
+					"if": [],
+					"then": [
+						{
+							"action": "objective",
+							"args": {
+								"text": "Bring 3 Luxury Goods to Keros Quarry for the rite of broken figures (Keros system)"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "Keros: a small island where nobody lives, and where, for a thousand years, the people of the Isles came to break what they had made."]
+								]
+							}
+						}
+					]
+				},
+				{
+					"note": "Step 8 complete",
+					"once": true,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Keros Quarry"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "8 Bring 3 Luxury Goods to Keros Quarry for t"
+							}
+						},
+						{
+							"cond": "has_item",
+							"args": {
+								"count": 3,
+								"item": "luxury_goods"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "take_item",
+							"args": {
+								"count": 3,
+								"item": "luxury_goods"
+							}
+						},
+						{
+							"action": "dialogue",
+							"args": {
+								"lines": [
+									["Kilon Alios", "They broke the white figures with their folded arms and their quiet faces, and laid the pieces down together, as their fathers had for a thousand years. No one now knows why. Perhaps it does not matter."],
+									["Hierophant Anthousa", "The Isles are one circle again. Take our thanks, guest - and our gold, which is honest."]
+								]
+							}
+						},
+						{
+							"action": "credits",
+							"args": {
+								"amount": 1500
+							}
+						},
+						{
+							"action": "give_item",
+							"args": {
+								"count": 2,
+								"item": "data_core"
+							}
+						},
+						{
+							"action": "reputation",
+							"args": {
+								"empire": "cyclades",
+								"amount": 15
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "cyclades_delos"
+							}
+						},
+						{
+							"action": "lore",
+							"args": {
+								"lore": "cyclades_isles"
+							}
+						},
+						{
+							"action": "finish",
+							"args": {}
+						}
+					]
+				},
+				{
+					"note": "Step 8: still needed",
+					"once": false,
+					"when": {
+						"event": "docked",
+						"args": {
+							"station": "Keros Quarry"
+						}
+					},
+					"if": [
+						{
+							"cond": "step_is",
+							"args": {
+								"step": "8 Bring 3 Luxury Goods to Keros Quarry for t"
+							}
+						}
+					],
+					"then": [
+						{
+							"action": "message",
+							"args": {
+								"text": "Still needed here: 3 Luxury Goods"
+							}
+						}
+					]
+				}
+			],
+			"walkthrough": [
+				{
+					"event": "docked",
+					"args": {
+						"station": "Delos Circle"
+					}
+				},
+				{
+					"give": {
+						"platinum_ore": 6
+					},
+					"event": "docked",
+					"args": {
+						"station": "Siphnos Circle"
+					}
+				},
+				{
+					"kill": "g2",
+					"count": 4,
+					"system": "g6_melos"
+				},
+				{
+					"near": "planet:Saliagos",
+					"system": "g27_paros"
+				},
+				{
+					"give": {
+						"titanium_ore": 8
+					},
+					"event": "docked",
+					"args": {
+						"station": "Paros Circle"
+					}
+				},
+				{
+					"near": "planet:Aplomata",
+					"system": "g20_naxia"
+				},
+				{
+					"kill": "g6",
+					"count": 1,
+					"system": "g40_delos"
+				},
+				{
+					"near": "station:Delos Circle",
+					"system": "g40_delos"
+				},
+				{
+					"give": {
+						"luxury_goods": 3
+					},
+					"event": "docked",
+					"args": {
+						"station": "Keros Quarry"
+					}
+				}
+			]
+		}
+	],
+	"_help": "Quest scenarios: rules WHEN event AND conditions THEN actions. Edit them in the Editor > Scenario Editor."
+}

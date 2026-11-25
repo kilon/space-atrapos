@@ -1,0 +1,2074 @@
+{
+ "id": "0007",
+ "title": "Monsters of myth",
+ "date": "2026-11-08",
+ "summary": "Three creatures from Greek myth come to life from your art. Skylla, the sea witch of the monster signals, is now the reference picture itself, cut into a rig - tentacles writhing, hair drifting, arms clawing - and fights with a tentacle sweep and an ink cloud that drags you to a crawl in darkness. The Minotaur is the main quest's new final boss at the heart of the Labyrinth, with bull rushes, twin eye beams and a shield-draining pulse. Cerberus joins the monster signals, fire pouring from all three jaws. Every creature now dies in a shaking, bursting death with a huge explosion while the camera watches. All of it was playtested and tuned to the kill. The scanner's signal paths now fade from the signal toward you, and out-of-range signals are hidden from the maps. The Library gained a MONSTERS room.",
+ "steps": [
+  {
+   "title": "Signal paths, by the signal",
+   "text": "The scanner's paths to located signals are brightest at the signal and fade toward your ship, gone a third of the system across from it (about 7,300 in Atrapos): from farther away, the end near you is clear. The light pulses along them glide four times slower, and the glow falls off smoothly in six fine layers. Out of that range a signal isn't shown on the radar or the system map at all.",
+   "diagram": [
+    {
+     "t": "poly",
+     "points": [
+      [
+       120,
+       300
+      ],
+      [
+       92,
+       286
+      ],
+      [
+       92,
+       314
+      ]
+     ],
+     "closed": true,
+     "width": 2,
+     "stroke": "cyan",
+     "fill": "#123040"
+    },
+    {
+     "t": "text",
+     "at": [
+      110,
+      345
+     ],
+     "text": "you",
+     "size": 15,
+     "color": "cyan",
+     "align": "center"
+    },
+    {
+     "t": "circle",
+     "at": [
+      820,
+      300
+     ],
+     "r": 14,
+     "fill": "#c06bff",
+     "pulse": true
+    },
+    {
+     "t": "text",
+     "at": [
+      820,
+      345
+     ],
+     "text": "signal",
+     "size": 15,
+     "color": "#c06bff",
+     "align": "center"
+    },
+    {
+     "t": "poly",
+     "points": [
+      [
+       690,
+       300
+      ],
+      [
+       820,
+       300
+      ]
+     ],
+     "closed": false,
+     "width": 6,
+     "stroke": "#2a1a3a",
+     "delay": 0.3
+    },
+    {
+     "t": "poly",
+     "points": [
+      [
+       560,
+       300
+      ],
+      [
+       690,
+       300
+      ]
+     ],
+     "closed": false,
+     "width": 6,
+     "stroke": "#4a2a6a",
+     "delay": 0.4
+    },
+    {
+     "t": "poly",
+     "points": [
+      [
+       430,
+       300
+      ],
+      [
+       560,
+       300
+      ]
+     ],
+     "closed": false,
+     "width": 6,
+     "stroke": "#7a40a8",
+     "delay": 0.5
+    },
+    {
+     "t": "poly",
+     "points": [
+      [
+       300,
+       300
+      ],
+      [
+       430,
+       300
+      ]
+     ],
+     "closed": false,
+     "width": 6,
+     "stroke": "#a85ae0",
+     "delay": 0.6000000000000001
+    },
+    {
+     "t": "poly",
+     "points": [
+      [
+       170,
+       300
+      ],
+      [
+       300,
+       300
+      ]
+     ],
+     "closed": false,
+     "width": 6,
+     "stroke": "#c06bff",
+     "delay": 0.7
+    },
+    {
+     "t": "text",
+     "at": [
+      470,
+      250
+     ],
+     "text": "brightest at the signal, fading toward you - gone a third of the system away",
+     "size": 15,
+     "color": "white",
+     "align": "center",
+     "delay": 0.9
+    },
+    {
+     "t": "bar",
+     "rect": [
+      140,
+      410,
+      720,
+      26
+     ],
+     "value": 1.0,
+     "color": "#3a2a5a",
+     "label": "range: a third of the system across (Atrapos ~7,300)",
+     "delay": 1.1
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      490
+     ],
+     "text": "beyond it: not on the radar, not on the system map",
+     "color": "purple",
+     "delay": 1.4
+    }
+   ]
+  },
+  {
+   "title": "Skylla, traced from her art",
+   "text": "Skylla, the sea witch of the monster signals, is no longer redrawn in code: she is your reference art itself, its background removed with an anime-tuned cut-out model and split into six parts - the tentacle cluster, the upper body and each arm as an upper arm and a forearm with the clawed hand. In the game they're put together as in the undivided picture, her body seated deep in the tentacles. Shaders make the tentacles writhe and her hair drift, her arms swing at shoulders and elbows, and the pieces overlap 30 px at every joint so bending never shows a gap. She stays upright on screen as drawn.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      40,
+      60,
+      260,
+      200
+     ],
+     "stroke": "purple",
+     "size": 17,
+     "label": "the reference art\n(Downloads)"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      300,
+      160
+     ],
+     "to": [
+      380,
+      160
+     ],
+     "color": "gold",
+     "delay": 0.4
+    },
+    {
+     "t": "text",
+     "at": [
+      340,
+      300
+     ],
+     "text": "rembg anime cut-out",
+     "size": 14,
+     "color": "dim",
+     "align": "center",
+     "delay": 0.4
+    },
+    {
+     "t": "box",
+     "rect": [
+      390,
+      50,
+      175,
+      62
+     ],
+     "stroke": "#c0306a",
+     "size": 15,
+     "label": "tentacles",
+     "delay": 0.6
+    },
+    {
+     "t": "box",
+     "rect": [
+      580,
+      50,
+      175,
+      62
+     ],
+     "stroke": "#6a5ab0",
+     "size": 15,
+     "label": "torso",
+     "delay": 0.7
+    },
+    {
+     "t": "box",
+     "rect": [
+      390,
+      130,
+      175,
+      62
+     ],
+     "stroke": "#b09060",
+     "size": 15,
+     "label": "left upper arm",
+     "delay": 0.8
+    },
+    {
+     "t": "box",
+     "rect": [
+      580,
+      130,
+      175,
+      62
+     ],
+     "stroke": "#b09060",
+     "size": 15,
+     "label": "left forearm",
+     "delay": 0.9
+    },
+    {
+     "t": "box",
+     "rect": [
+      390,
+      210,
+      175,
+      62
+     ],
+     "stroke": "#b09060",
+     "size": 15,
+     "label": "right upper arm",
+     "delay": 1.0
+    },
+    {
+     "t": "box",
+     "rect": [
+      580,
+      210,
+      175,
+      62
+     ],
+     "stroke": "#b09060",
+     "size": 15,
+     "label": "right forearm",
+     "delay": 1.1
+    },
+    {
+     "t": "text",
+     "at": [
+      870,
+      90
+     ],
+     "text": "6 parts",
+     "size": 18,
+     "color": "gold",
+     "align": "center",
+     "delay": 1.2
+    },
+    {
+     "t": "text",
+     "at": [
+      870,
+      120
+     ],
+     "text": "30 px overlap\nat each joint",
+     "size": 14,
+     "color": "dim",
+     "align": "center",
+     "delay": 1.3
+    },
+    {
+     "t": "badge",
+     "at": [
+      250,
+      350
+     ],
+     "text": "tentacles writhe (shader)",
+     "color": "purple",
+     "delay": 1.5
+    },
+    {
+     "t": "badge",
+     "at": [
+      750,
+      350
+     ],
+     "text": "hair drifts (shader)",
+     "color": "purple",
+     "delay": 1.65
+    },
+    {
+     "t": "badge",
+     "at": [
+      250,
+      420
+     ],
+     "text": "arms reach and claw",
+     "color": "gold",
+     "delay": 1.8
+    },
+    {
+     "t": "badge",
+     "at": [
+      750,
+      420
+     ],
+     "text": "upright; seated on her tentacles",
+     "color": "gold",
+     "delay": 1.95
+    },
+    {
+     "t": "text",
+     "at": [
+      500,
+      500
+     ],
+     "text": "every line, shape and colour of the picture kept",
+     "size": 16,
+     "color": "white",
+     "align": "center",
+     "delay": 2.2
+    }
+   ]
+  },
+  {
+   "title": "Skylla's own attacks",
+   "text": "Playtested with the starting ship, Skylla died in 22 seconds. Now she has 2,800 hull and 800 shields that recover, her orbs are pink and magenta, and she has two attacks of her own. The tentacle sweep: a red arc of her reach follows you for 0.8 seconds, then her tentacles lash across it for 30 damage and throw you back. The ink: she spits a blob at where you were; it bursts into a cloud that lasts 6 seconds, and inside it your ship crawls at 40 % speed while the whole view goes almost black. The fight now lasts about 75 seconds. The boss's name no longer overlaps the system's.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      40,
+      50,
+      280,
+      150
+     ],
+     "stroke": "purple",
+     "size": 16,
+     "label": "ORBS\nring, spiral, fan, bloom\npink and magenta"
+    },
+    {
+     "t": "box",
+     "rect": [
+      360,
+      50,
+      280,
+      150
+     ],
+     "stroke": "red",
+     "size": 15,
+     "label": "TENTACLE SWEEP\na red arc follows you (0.8 s),\nthen the lash: 30 dmg,\nthrown back",
+     "delay": 0.4
+    },
+    {
+     "t": "box",
+     "rect": [
+      680,
+      50,
+      280,
+      150
+     ],
+     "stroke": "dim",
+     "size": 15,
+     "label": "INK CLOUD\nspat at where you were;\n6 s cloud: 40 % speed,\nthe whole view goes black",
+     "delay": 0.8
+    },
+    {
+     "t": "bar",
+     "rect": [
+      140,
+      260,
+      720,
+      26
+     ],
+     "value": 0.275,
+     "color": "#7a2a2a",
+     "label": "before: dead in 22 s, 49 damage taken",
+     "delay": 1.2
+    },
+    {
+     "t": "bar",
+     "rect": [
+      140,
+      310,
+      720,
+      26
+     ],
+     "value": 0.9375,
+     "color": "#7a3a8a",
+     "label": "after: 75 s (2,800 hull + 800 shields), 83 damage",
+     "delay": 1.4
+    },
+    {
+     "t": "text",
+     "at": [
+      500,
+      400
+     ],
+     "text": "both aimed while she winds up, then fixed - move off the line",
+     "size": 16,
+     "color": "white",
+     "align": "center",
+     "delay": 1.7
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      470
+     ],
+     "text": "the boss bar now sits under the system's name",
+     "color": "cyan",
+     "delay": 2.0
+    }
+   ]
+  },
+  {
+   "title": "The Minotaur, the last boss",
+   "text": "The main quest gets a final boss: at the heart of the Labyrinth, after Talos, a ring of gold blazes and the Minotaur rises - the true Asterion, whose name the pirate warlord of chapter 4 only borrowed. He's cut from your art like Skylla - his body with the gold ring and its starfield, both arms and the kicking leg - and his red cape ripples. Beating him pays 2,500 credits, 3 data cores and 5 alien alloy before the archive's ending; four new lines are voiced.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      50
+     ],
+     "text": "Chapter 7: The Labyrinth of Knossos",
+     "size": 18,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      90,
+      200,
+      100
+     ],
+     "stroke": "dim",
+     "size": 16,
+     "label": "Talos falls",
+     "pulse": false,
+     "delay": 0.2
+    },
+    {
+     "t": "arrow",
+     "from": [
+      240,
+      140
+     ],
+     "to": [
+      280,
+      140
+     ],
+     "color": "dim",
+     "delay": 0.3
+    },
+    {
+     "t": "box",
+     "rect": [
+      280,
+      90,
+      200,
+      100
+     ],
+     "stroke": "cyan",
+     "size": 16,
+     "label": "Enter the heart\nof the Labyrinth",
+     "pulse": false,
+     "delay": 0.45
+    },
+    {
+     "t": "arrow",
+     "from": [
+      480,
+      140
+     ],
+     "to": [
+      520,
+      140
+     ],
+     "color": "dim",
+     "delay": 0.55
+    },
+    {
+     "t": "box",
+     "rect": [
+      520,
+      90,
+      200,
+      100
+     ],
+     "stroke": "red",
+     "size": 16,
+     "label": "Defeat the\nMINOTAUR",
+     "pulse": true,
+     "delay": 0.7
+    },
+    {
+     "t": "arrow",
+     "from": [
+      720,
+      140
+     ],
+     "to": [
+      760,
+      140
+     ],
+     "color": "dim",
+     "delay": 0.8
+    },
+    {
+     "t": "box",
+     "rect": [
+      760,
+      90,
+      200,
+      100
+     ],
+     "stroke": "gold",
+     "size": 16,
+     "label": "The archive\nspeaks (end)",
+     "pulse": false,
+     "delay": 0.95
+    },
+    {
+     "t": "text",
+     "at": [
+      500,
+      250
+     ],
+     "text": "the true Asterion - the pirate warlord of chapter 4 only took his name",
+     "size": 15,
+     "color": "white",
+     "align": "center",
+     "delay": 1.3
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      290,
+      440,
+      150
+     ],
+     "stroke": "red",
+     "size": 15,
+     "label": "cut from his art: body (gold ring and\nits starfield), arms, kicking leg;\nthe cape ripples (shader + mask)",
+     "delay": 1.5
+    },
+    {
+     "t": "box",
+     "rect": [
+      520,
+      290,
+      440,
+      150
+     ],
+     "stroke": "gold",
+     "size": 15,
+     "label": "reward: 2,500 credits, 3 data cores,\n5 alien alloy\n(quest rewards can give items now)",
+     "delay": 1.7
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      500
+     ],
+     "text": "4 new voice lines recorded",
+     "color": "purple",
+     "delay": 2.0
+    }
+   ]
+  },
+  {
+   "title": "The Minotaur's weapons",
+   "text": "Playtested to the kill: with the starting ship he first died in 39 seconds. Now he has 5,000 hull and 1,500 recovering shields, and a rotation of attacks: bullet-hell orbs from his eyes; the bull rush - an arrow follows you, then he charges where you were; twin beams from his eyes that track you while he aims, then fire fixed along that line for 1.8 seconds, drawn on top of him; and a golden pulse that kills your shields for 4 seconds before they come back. Below half hull his orbs speed up and he rushes more. The fight now lasts about 2 3/4 minutes.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      30,
+      50,
+      220,
+      170
+     ],
+     "stroke": "gold",
+     "size": 16,
+     "delay": 0.2
+    },
+    {
+     "t": "text",
+     "at": [
+      140,
+      85
+     ],
+     "text": "ORBS",
+     "size": 17,
+     "color": "gold",
+     "align": "center",
+     "delay": 0.25
+    },
+    {
+     "t": "text",
+     "at": [
+      140,
+      125
+     ],
+     "text": "bullet-hell patterns\nfrom his eyes",
+     "size": 14,
+     "color": "white",
+     "align": "center",
+     "delay": 0.3
+    },
+    {
+     "t": "box",
+     "rect": [
+      270,
+      50,
+      220,
+      170
+     ],
+     "stroke": "red",
+     "size": 16,
+     "delay": 0.45
+    },
+    {
+     "t": "text",
+     "at": [
+      380,
+      85
+     ],
+     "text": "BULL RUSH",
+     "size": 17,
+     "color": "red",
+     "align": "center",
+     "delay": 0.5
+    },
+    {
+     "t": "text",
+     "at": [
+      380,
+      125
+     ],
+     "text": "an arrow follows you,\nthen he charges where\nyou were: 28 dmg",
+     "size": 14,
+     "color": "white",
+     "align": "center",
+     "delay": 0.55
+    },
+    {
+     "t": "box",
+     "rect": [
+      510,
+      50,
+      220,
+      170
+     ],
+     "stroke": "red",
+     "size": 16,
+     "delay": 0.7
+    },
+    {
+     "t": "text",
+     "at": [
+      620,
+      85
+     ],
+     "text": "TWIN BEAMS",
+     "size": 17,
+     "color": "red",
+     "align": "center",
+     "delay": 0.75
+    },
+    {
+     "t": "text",
+     "at": [
+      620,
+      125
+     ],
+     "text": "a line from each eye\nfollows you (0.8 s), then\nfires 1.8 s, fixed",
+     "size": 14,
+     "color": "white",
+     "align": "center",
+     "delay": 0.8
+    },
+    {
+     "t": "box",
+     "rect": [
+      750,
+      50,
+      220,
+      170
+     ],
+     "stroke": "gold",
+     "size": 16,
+     "delay": 0.95
+    },
+    {
+     "t": "text",
+     "at": [
+      860,
+      85
+     ],
+     "text": "PULSE",
+     "size": 17,
+     "color": "gold",
+     "align": "center",
+     "delay": 1.0
+    },
+    {
+     "t": "text",
+     "at": [
+      860,
+      125
+     ],
+     "text": "a golden shockwave:\nyour shields dead\nfor 4 s, then back",
+     "size": 14,
+     "color": "white",
+     "align": "center",
+     "delay": 1.05
+    },
+    {
+     "t": "bar",
+     "rect": [
+      140,
+      270,
+      720,
+      26
+     ],
+     "value": 0.22941176470588234,
+     "color": "#7a2a2a",
+     "label": "before: dead in 39 s (1,800 hull)",
+     "delay": 1.4
+    },
+    {
+     "t": "bar",
+     "rect": [
+      140,
+      320,
+      720,
+      26
+     ],
+     "value": 0.9764705882352941,
+     "color": "#7a4a14",
+     "label": "after: 166 s (5,000 hull + 1,500 shields), no deaths",
+     "delay": 1.6
+    },
+    {
+     "t": "text",
+     "at": [
+      500,
+      410
+     ],
+     "text": "phase 2 below half hull: faster orbs, more rushes",
+     "size": 16,
+     "color": "white",
+     "align": "center",
+     "delay": 1.9
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      480
+     ],
+     "text": "his shield glows behind his art, sized to it",
+     "color": "cyan",
+     "delay": 2.1
+    }
+   ]
+  },
+  {
+   "title": "A death to remember",
+   "text": "Every creature now dies hard: it shakes for 2.4 seconds, harder and harder, flickering red-hot with explosions bursting across its body, then goes up in a very large explosion with four more round it. Meanwhile the camera glides over to watch and returns to your ship afterwards - only the creature shakes. The quest moves on, and the signal's loot drops, after the explosion.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      50
+     ],
+     "text": "every creature: Skylla, the Minotaur, Cerberus, the Leviathan",
+     "size": 17,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      100,
+      200,
+      130
+     ],
+     "stroke": "red",
+     "size": 15,
+     "label": "2.4 s of shaking -\nharder, red-hot,\nbursting",
+     "delay": 0.3
+    },
+    {
+     "t": "arrow",
+     "from": [
+      240,
+      165
+     ],
+     "to": [
+      280,
+      165
+     ],
+     "color": "dim",
+     "delay": 0.45
+    },
+    {
+     "t": "box",
+     "rect": [
+      280,
+      100,
+      200,
+      130
+     ],
+     "stroke": "gold",
+     "size": 15,
+     "label": "a very large\nexplosion\n(and four more)",
+     "delay": 0.6
+    },
+    {
+     "t": "arrow",
+     "from": [
+      480,
+      165
+     ],
+     "to": [
+      520,
+      165
+     ],
+     "color": "dim",
+     "delay": 0.75
+    },
+    {
+     "t": "box",
+     "rect": [
+      520,
+      100,
+      200,
+      130
+     ],
+     "stroke": "cyan",
+     "size": 15,
+     "label": "the camera glides\nto it and back\nto your ship",
+     "delay": 0.8999999999999999
+    },
+    {
+     "t": "arrow",
+     "from": [
+      720,
+      165
+     ],
+     "to": [
+      760,
+      165
+     ],
+     "color": "dim",
+     "delay": 1.05
+    },
+    {
+     "t": "box",
+     "rect": [
+      760,
+      100,
+      200,
+      130
+     ],
+     "stroke": "green",
+     "size": 15,
+     "label": "then the quest /\nthe loot",
+     "delay": 1.2
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      330
+     ],
+     "text": "only the creature shakes - not the view",
+     "color": "cyan",
+     "delay": 1.6
+    }
+   ]
+  },
+  {
+   "title": "Cerberus, and a room for monsters",
+   "text": "Cerberus, the three-headed hound, joins the monster signals - each signal is either Skylla or Cerberus, always the same one for that signal. He's cut from your art the same way (the background glow inside his tail's arc cleaned out): his side heads snap out of step, his legs paw and his tail lashes, and his fire comes from all three jaws in turn. The Library has a new MONSTERS room with every creature alive: Skylla, the Minotaur, Cerberus and the Void Leviathan.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      40,
+      50,
+      280,
+      180
+     ],
+     "stroke": "gold",
+     "size": 17,
+     "label": "the art\n(Downloads)"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      320,
+      140
+     ],
+     "to": [
+      390,
+      140
+     ],
+     "color": "gold",
+     "delay": 0.3
+    },
+    {
+     "t": "box",
+     "rect": [
+      400,
+      40,
+      185,
+      56
+     ],
+     "stroke": "#ff8a3a",
+     "size": 15,
+     "label": "body + centre head",
+     "delay": 0.5
+    },
+    {
+     "t": "box",
+     "rect": [
+      600,
+      40,
+      185,
+      56
+     ],
+     "stroke": "#ff8a3a",
+     "size": 15,
+     "label": "tail",
+     "delay": 0.6
+    },
+    {
+     "t": "box",
+     "rect": [
+      400,
+      110,
+      185,
+      56
+     ],
+     "stroke": "#ff8a3a",
+     "size": 15,
+     "label": "left head",
+     "delay": 0.7
+    },
+    {
+     "t": "box",
+     "rect": [
+      600,
+      110,
+      185,
+      56
+     ],
+     "stroke": "#ff8a3a",
+     "size": 15,
+     "label": "right head",
+     "delay": 0.8
+    },
+    {
+     "t": "box",
+     "rect": [
+      400,
+      180,
+      185,
+      56
+     ],
+     "stroke": "#ff8a3a",
+     "size": 15,
+     "label": "4 legs",
+     "delay": 0.9
+    },
+    {
+     "t": "text",
+     "at": [
+      820,
+      320
+     ],
+     "text": "heads snap, legs paw, tail lashes;\nfire from all three jaws in turn",
+     "size": 16,
+     "color": "white",
+     "align": "center",
+     "delay": 1.2
+    },
+    {
+     "t": "badge",
+     "at": [
+      250,
+      420
+     ],
+     "text": "monster signals: Skylla or Cerberus",
+     "color": "gold",
+     "delay": 1.5
+    },
+    {
+     "t": "badge",
+     "at": [
+      720,
+      420
+     ],
+     "text": "the same signal: the same creature",
+     "color": "cyan",
+     "delay": 1.7
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      500
+     ],
+     "text": "the Library's MONSTERS room: all four, alive",
+     "color": "purple",
+     "delay": 1.9
+    }
+   ]
+  }
+ ],
+ "review": {
+  "intro": "Patch 0007 brings three creatures from Greek myth, each built from the reference art itself (cut into parts by a tools/*_parts.py script, rigged and animated in a SpaceMonster subclass): Skylla (sea_witch.gd) for the monster signals, the Minotaur (minotaur_boss.gd) as the main quest's final boss, Cerberus (cerberus_beast.gd) for the monster signals; their own attacks, a shared death sequence (space_monster.gd), and the signal paths fading from the signal with a visibility range.",
+  "files": [
+   {
+    "path": "data/docs/editor.md",
+    "kind": "modified",
+    "explanation": "The Library section lists the MONSTERS room.",
+    "hunks": [
+     {
+      "diff": "@@ -82,10 +82,10 @@ # zoo-ch | The Library\n A live preview of every asset of the game.\n \n ## zoo | The Library\n-Every asset of the game, alive, in ten rooms (keys 1-9 and 0):\n+Every asset of the game, alive, in eleven rooms (keys 1-9 and 0 for the first ten):\n - **Characters** - the rigged archer and the guard (drawn from sprite sheets: a relaxed and an aiming pose, 8 views each - external/images/minoan_npc_guard_idle.png and _aim.png) walking in all 8 directions, idling, shooting and patrolling; the guard's 8 aiming views; the pirate raider (rendered in Blender from a rigged 3D model - external/blender/pirate/: a 12-frame attack and a 28-frame walk cycle - about 25 frames a second - 8 views each) walking with its rifle down, four moments of its attack side by side, and one raising its rifle and firing at a drone; the pilot; your landed ship. You on foot - an armoured android with a rifle, drawn from sprite sheets (external/images/player_on_foot_idle.png and _aim.png): walking round a loop, and its 8 relaxed and 8 aiming views.\n - **Ships** - every class at its in-game size, by empire. **Stations** - every design, spinning. **Planets** - the seven planet templates, the named planets and every planet of the galaxy (generated from the templates, each one different). **Asteroids** - the two rock templates (a contact binary of two fused lobes, a long craggy rock), each ore's asteroids (iron: rust; titanium: glowing cyan veins; platinum: dark with gold veins) and a field of variants, all slowly tumbling. **Suns** - the six star templates and every system's sun (each one different). **Nebulae** - the four backdrop templates (supernova remnant, planetary nebula, emission nebula, spiral galaxy) and every system's nebulae.\n-- **Buildings** - every Minoan wall, floor, roof, column and decor piece; the scenery. **Effects** - the laser arrows on a firing range, and every effect sprite. **GUI** - every kind of widget on a sample board: the interface's own look.\n+- **Buildings** - every Minoan wall, floor, roof, column and decor piece; the scenery. **Effects** - the laser arrows on a firing range, and every effect sprite. **GUI** - every kind of widget on a sample board: the interface's own look. **Monsters** - the creatures of the signal sites, alive: Skylla, the sea witch (cut from her reference art by tools/skylla_parts.py - her tentacles writhing, hair drifting, arms clawing, charging every few seconds) the Minotaur, the main quest's last boss (cut from his reference art by tools/minotaur_parts.py - his cape rippling, arms raking, leg kicking, winding up every few seconds), Cerberus, the three-headed hound of the monster signals (tools/cerberus_parts.py - heads snapping, legs pawing, tail lashing), and the Void Leviathan.\n Drag, WASD or the arrows look around; the wheel or + / - zoom; Home resets the view; Esc returns to the editor. Everything in the Library uses the game's own code, so it shows exactly what the game shows.\n \n ## zoo-properties | Editing assets | keywords: property panel, properties, template, variant, undo, paste, apply to all",
+      "added": 2,
+      "removed": 2,
+      "title": "The Library",
+      "note": "The MONSTERS room: Skylla, the Minotaur, Cerberus, the Leviathan."
+     }
+    ],
+    "added": 2,
+    "removed": 2
+   },
+   {
+    "path": "data/docs/game.md",
+    "kind": "modified",
+    "explanation": "The guide: the monster signal's creatures, and the main quest's bosses.",
+    "hunks": [
+     {
+      "diff": "@@ -44,7 +44,7 @@ ## signals | Signal sources | keywords: Enter, Leave, Signal\n - **Distress call** - a ship out of fuel. Fly up to it and transfer **5 fuel** (or rig its drive with **2 energy cells**) for credits and its empire's thanks. Sometimes it's bait.\n - **Combat signal** - a freighter under attack by pirates. Kill them all while it lives and it pays you.\n - **Debris field** - a wreck with its cargo drifting round it (it doesn't expire). Scavengers may come for it too.\n-- **Unknown bio-signature** - a **Void Leviathan**. It's tough and spits acid; dead, it leaves alien alloy, data cores and credits.\n+- **Unknown bio-signature** - a creature: **Skylla**, a sea witch crowned in gold, rising from eight great writhing tentacles. She draws back her clawed hands, her eyes blaze, energy gathers at her snarling mouth and she fills space with bullet-hell patterns of glowing orbs - rings, spirals, aimed fans, curving blooms; hard to dodge, never impossible. Dead, she leaves alien alloy, data cores and credits. Or **Cerberus**, the three-headed hound in gold armour: every head breathes fire, the patterns coming from all three jaws in turn. Whichever it is, it dies hard - shaking and bursting before it blows apart - and its loot drops after the explosion.\n - **Anomalous readings** - a space anomaly with four nodes. Fly close to each and right-click it to scan; all four give **Anomaly Research Data** (research stations pay well). Its core burns.\n - **Hazard: anomaly field** - a field of unstable anomalies that drain your shields and then burn your hull. Find the gaps and reach the **exit** for the cache there; fly out of its sides and you leave with nothing.\n ",
+      "added": 1,
+      "removed": 1,
+      "title": "Bio-signature",
+      "note": "Skylla or Cerberus, their attacks and their death."
+     },
+     {
+      "diff": "@@ -81,7 +81,7 @@ ## empire | Empires and ranks | keywords: Pledge, Defect, Ac\n At any empire station you can **pledge allegiance**. Pledged pilots take **empire missions** - **Fortify** (deliver strategic goods), **Undermine** (destroy enemy warships), **Secure** (hunt raiders) - earning **merits** and ranks from Recruit to Archon, with discounts and bigger bounties. **Defecting** loses all your merits. Destroying an empire's ships turns it hostile.\n \n ## quests | Main quest and missions | keywords: Accept mission, Abandon, Accept the main quest, Kilon Alios, quest giver, Reputation\n-- **The Thread of Ariadne** is the story campaign in 7 chapters. **Kilon Alios** gives it to you on Thalassa, by the landing pad: click him to talk (his portrait shows in the dialogue box), then **Accept** (or **Not now**); its opening plays there and it starts when you're back in space. Talk to him again later and he tells you where the thread leads now. The station's Main Quests tab shows how far you are; its journal is in the Ship Computer's QUEST tab and the objective shows on the HUD.\n+- **The Thread of Ariadne** is the story campaign in 7 chapters. **Kilon Alios** gives it to you on Thalassa, by the landing pad: click him to talk (his portrait shows in the dialogue box), then **Accept** (or **Not now**); its opening plays there and it starts when you're back in space. Talk to him again later and he tells you where the thread leads now. The station's Main Quests tab shows how far you are; its journal is in the Ship Computer's QUEST tab and the objective shows on the HUD. Its bosses: Asterion's flagship, Talos the bronze guardian, and at the very heart of the Labyrinth **the Minotaur** - the true Asterion, a horned giant crowned in bronze, ringed in gold. He fires bullet-hell patterns of red and gold orbs from the gem on his crest, and every third attack he **lowers his horns and charges** straight at you (his eyes blaze first: sidestep). Defeating him pays 2,500 credits, 3 data cores and 5 alien alloy.\n - **Missions** (each station's Missions tab; eight on offer): up to five at once - Pirate Sweep, Hunt, Courier, Supply Run (deliver trade goods to another station), Salvage Request / Mining Contract (bring salvage or ore here), Survey (fly to an uncharted point, marked on your map). Four tiers - Routine, Trusted, Honoured, Hero - need reputation 0 / 10 / 25 / 50 with the station's empire and pay 1x / 1.5x / 2.2x / 3.2x; the ones you aren't trusted with yet are greyed out and can't be taken. Each finished mission raises your reputation with that empire (+1 / +2 / +3 / +4). **Turn in** salvage and mining jobs for the reward; **Abandon** frees a slot.\n \n # computer-ch | The Ship Computer",
+      "added": 1,
+      "removed": 1,
+      "title": "Main quest",
+      "note": "The Minotaur, his charge, and his reward."
+     }
+    ],
+    "added": 2,
+    "removed": 2
+   },
+   {
+    "path": "data/main_quest.json",
+    "kind": "modified",
+    "explanation": "The new stage: defeat the Minotaur, after entering the heart of the Labyrinth.",
+    "hunks": [
+     {
+      "diff": "@@ -257,6 +257,27 @@ \n \t\t},\n \t\t{\n \t\t\t\"chapter\": 7,\n+\t\t\t\"type\": \"kill\",\n+\t\t\t\"pos\": [-7200.0, -1200.0],\n+\t\t\t\"spawn\": [\n+\t\t\t\t[\"minotaur\", [0.0, -650.0]]\n+\t\t\t],\n+\t\t\t\"objective\": \"Defeat the Minotaur, guardian of the Labyrinth\",\n+\t\t\t\"reward\": {\n+\t\t\t\t\"credits\": 2500,\n+\t\t\t\t\"data_core\": 3,\n+\t\t\t\t\"items\": {\n+\t\t\t\t\t\"alien_alloy\": 5\n+\t\t\t\t}\n+\t\t\t},\n+\t\t\t\"dialogue\": [\n+\t\t\t\t[\"Narrator\", \"At the centre of the Labyrinth a ring of gold blazes to life. Inside it something vast uncurls - horned, crowned in bronze, eyes burning red.\"],\n+\t\t\t\t[\"Dr. Ariadne Kephala\", \"No... Asterion only borrowed the name. [b]That[/b] is the Minotaur - the true Asterion. Whatever they hid in here, he has guarded it for three thousand years.\"],\n+\t\t\t\t[\"Dr. Ariadne Kephala\", \"He won't let us pass. When he lowers his horns, he charges - get out of his way. Bring him down!\"]\n+\t\t\t]\n+\t\t},\n+\t\t{\n+\t\t\t\"chapter\": 7,\n \t\t\t\"type\": \"end\",\n \t\t\t\"objective\": \"The thread is complete\",\n \t\t\t\"reward\": {",
+      "added": 21,
+      "removed": 0,
+      "title": "The Minotaur stage",
+      "note": "Spawned 650 north of the heart; rewards credits, data cores and alien alloy."
+     },
+     {
+      "diff": "@@ -264,7 +285,7 @@ \n \t\t\t\t\"data_core\": 3\n \t\t\t},\n \t\t\t\"dialogue\": [\n-\t\t\t\t[\"Narrator\", \"At the centre of the Labyrinth is not a monster, but an archive. Thousands of clay discs turn slowly in the dark, each one stamped in spirals.\"],\n+\t\t\t\t[\"Narrator\", \"The Minotaur falls, and the golden ring goes dark. Beyond it the centre of the Labyrinth holds no treasure, but an archive. Thousands of clay discs turn slowly in the dark, each one stamped in spirals.\"],\n \t\t\t\t[\"Narrator\", \"The fragment in your hold slots into an empty place among them. And for the first time in more than three thousand years, the Linear A begins to speak.\"],\n \t\t\t\t[\"Narrator\", \"[i]We are the Keftiu - the people of the island the Egyptians traded with. Our palaces had no walls; the sea was our wall.[/i]\"],\n \t\t\t\t[\"Narrator\", \"[i]Then the mountain of Thera tore itself apart, and ash fell like black snow, and the sea rose against our harbours. Later, ships came from the mainland, and other kings sat in our palace and wrote in their own tongue.[/i]\"],",
+      "added": 1,
+      "removed": 1,
+      "title": "The ending's first line",
+      "note": "Now follows his fall."
+     }
+    ],
+    "added": 22,
+    "removed": 1
+   },
+   {
+    "path": "data/masks/monster_minotaur_cape.png",
+    "kind": "new",
+    "explanation": "The Minotaur's cape mask.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/patches/version_0.1_planets_come_alive.json",
+    "kind": "modified",
+    "explanation": "Version 0.1 now holds patches 0001-0006, with pages for 0004-0006.",
+    "hunks": [
+     {
+      "diff": "@@ -1,459 +1,804 @@ \n {\n- \"kind\": \"version\",\n- \"id\": \"0.1\",\n- \"title\": \"Planets come alive\",\n- \"date\": \"2026-11-06\",\n- \"summary\": \"Version 0.1 brings the game's planets to life. Planet surfaces became a hundred times bigger - 880 x 880 tiles with Minoan villages all over them, streamed around you as you walk so landing stays quick and smooth (patch 0001). Pirate raiders now roam every planet in bands, shooting you and the citizens while the guards fight back; everyone on foot has health, fallen pirates drop loot, and fighting is a click (patch 0002). The pirate then became a 3D model rendered into smooth 25-frames-a-second animations, pirates learned to fight back and to run when badly hurt, and shots became impossible to dodge (patch 0003). Along the way the Patcher arrived in Talos, with an infographic and a code review for every patch, and every change is tracked between patches.\",\n- \"patches\": [\n-  \"0001\",\n-  \"0002\",\n-  \"0003\"\n- ],\n- \"steps\": [\n-  {\n-   \"patch\": \"0001\",\n-   \"title\": \"Patch 0001 - Streamed planets: 880 x 880 tiles\",\n-   \"text\": \"Planets became a hundred times bigger, with villages all over them. A worker thread plans the whole planet while you land; the world is then made around you as you walk - scenery in chunks grown on worker threads, buildings and citizens as you come near, a path grid that follows you. Landing takes about 4 s without a stalled frame.\",\n-   \"diagram\": [\n-    {\n-     \"t\": \"box\",\n-     \"rect\": [\n-      40,\n-      70,\n-      170,\n-      170\n-     ],\n-     \"label\": \"88 x 88\",\n-     \"size\": 20,\n-     \"stroke\": \"dim\"\n-    },\n-    {\n-     \"t\": \"arrow\",\n-     \"from\": [\n-      215,\n-      155\n-     ],\n-     \"to\": [\n-      300,\n-      155\n-     ],\n-     \"color\": \"gold\"\n-    },\n-    {\n-     \"t\": \"box\",\n-     \"rect\": [\n-      300,\n-      40,\n-      230,\n-      230\n-     ],\n-     \"label\": \"880 x 880\\ntiles\",\n-     \"size\": 24,\n-     \"stroke\": \"green\",\n-     \"pulse\": true\n-    },\n-    {\n-     \"t\": \"text\",\n-     \"at\": [\n-      415,\n-      300\n-     ],\n-     \"text\": \"x100 the area\",\n-     \"size\": 16,\n-     \"color\": \"green\",\n-     \"align\": \"center\"\n-    },\n-    {\n-     \"t\": \"box\",\n-     \"rect\": [\n-      600,\n-      50,\n-      360,\n-      60\n-     ],\n-     \"label\": \"worker thread plans the planet\",\n-     \"size\": 16,\n-     \"stroke\": \"cyan\"\n-    },\n-    {\n-     \"t\": \"box\",\n-     \"rect\": [\n-      600,\n-      125,\n-      360,\n-      60\n-     ],\n-     \"label\": \"16 x 16-tile chunks stream in / out\",\n-     \"size\": 16,\n-     \"stroke\": \"cyan\"\n-    },\n-    {\n-     \"t\": \"box\",\n-     \"rect\": [\n-      600,\n-      200,\n-      360,\n-      60\n-     ],\n-     \"label\": \"a path grid that follows you\",\n-     \"size\": 16,\n-     \"stroke\": \"cyan\"\n-    },\n-    {\n-     \"t\": \"bar\",\n-     \"rect\": [\n-      60,\n-      380,\n-      880,\n-      30\n-     ],\n-     \"value\": 0.4,\n-     \"color\": \"gold\",\n-     \"label\": \"landing: ~4 s, no stalled frame\",\n-     \"size\": 15\n-    },\n-    {\n-     \"t\": \"badge\",\n-     \"at\": [\n-      250,\n-      470\n-     ],\n-     \"text\": \"villages everywhere\",\n-     \"color\": \"green\",\n-     \"size\": 16\n-    },\n-    {\n-     \"t\": \"badge\",\n-     \"at\": [\n-      500,\n-      470\n-     ],\n-     \"text\": \"planet map: go anywhere\",\n-     \"color\": \"cyan\",\n-     \"size\": 16\n-    },\n-    {\n-     \"t\": \"badge\",\n-     \"at\": [\n-      760,\n-      470\n-     ],\n-     \"text\": \"7 files changed\",\n-     \"color\": \"dim\",\n-     \"size\": 16\n-    }\n-   ]\n-  },\n-  {\n-   \"patch\": \"0002\",\n-   \"title\": \"Patch 0002 - Pirate raiders\",\n-   \"text\": \"Pirate raiders came to every planet - about 320 in 90 bands - shooting you and the citizens while guards and archers shoot back. Everyone on foot got health: fall, and you wake by your ship a tenth of your credits poorer. Fallen pirates drop loot; fighting is a click (or F). And every change began to be tracked between patches, for the Patcher.\",\n-   \"diagram\": [\n-    {\n-     \"t\": \"box\",\n-     \"rect\": [\n-      40,\n-      60,\n-      280,\n-      150\n-     ],\n-     \"label\": \"~320 pirates\\nin 90 bands\\nper planet\",\n-     \"size\": 18,\n-     \"stroke\": \"red\",\n-     \"pulse\": true\n-    },\n-    {\n-     \"t\": \"box\",\n-     \"rect\": [\n-      360,\n-      60,\n-      280,\n-      150\n-     ],\n-     \"label\": \"health for\\neveryone on foot\",\n-     \"size\": 18,\n-     \"stroke\": \"green\"\n-    },\n-    {\n-     \"t\": \"box\",\n-     \"rect\": [\n-      680,\n-      60,\n-      280,\n-      150\n-     ],\n-     \"label\": \"loot chests:\\ncredits & cargo\",\n-     \"size\": 18,\n-     \"stroke\": \"gold\"\n-    },\n-    {\n-     \"t\": \"arrow\",\n-     \"from\": [\n-      180,\n-      215\n-     ],\n-     \"to\": [\n-      180,\n-      290\n-     ],\n-     \"color\": \"red\"\n-    },\n-    {\n-     \"t\": \"box\",\n-     \"rect\": [\n-      40,\n-      290,\n-      280,\n-      90\n-     ],\n-     \"label\": \"they shoot you and\\nthe citizens\",\n-     \"size\": 16,\n-     \"stroke\": \"red\"\n-    },\n-    {\n-     \"t\": \"arrow\",\n-     \"from\": [\n-      500,\n-      215\n-     ],\n-     \"to\": [\n-      500,\n-      290\n-     ],\n-     \"color\": \"green\"\n-    },\n-    {\n-     \"t\": \"box\",\n-     \"rect\": [\n-      360,\n-      290,\n-      280,\n-      90\n-     ],\n-     \"label\": \"knocked out:\\n-10% credits\",\n-     \"size\": 16,\n-     \"stroke\": \"green\"\n-    },\n-    {\n-     \"t\": \"arrow\",\n-     \"from\": [\n-      820,\n-      215\n-     ],\n-     \"to\": [\n-      820,\n-      290\n-     ],\n-     \"color\": \"gold\"\n-    },\n-    {\n-     \"t\": \"box\",\n-     \"rect\": [\n-      680,\n-      290,\n-      280,\n-      90\n-     ],\n-     \"label\": \"click / F to attack\",\n-     \"size\": 16,\n-     \"stroke\": \"gold\"\n-    },\n-    {\n-     \"t\": \"text\",\n-     \"at\": [\n-      500,\n-      450\n-     ],\n-     \"text\": \"every change tracked between patches: external/patcher, tools/patch.py\",\n-     \"size\": 15,\n-     \"color\": \"dim\",\n-     \"align\": \"center\"\n-    },\n-    {\n-     \"t\": \"badge\",\n-     \"at\": [\n-      500,\n-      505\n-     ],\n-     \"text\": \"50 files changed\",\n-     \"color\": \"dim\",\n-     \"size\": 16\n-    }\n-   ]\n-  },\n-  {\n-   \"patch\": \"0003\",\n-   \"title\": \"Patch 0003 - The pirate in 3D\",\n-   \"text\": \"The pirate became a 3D model - your Tripo pirate and rifle, rigged and animated in Blender and rendered into 320 sprites: a 12-frame attack and a 28-frame walk, about 25 frames a second. Pirates now fight back and run when badly hurt, shots can't be dodged, and the Patcher shows pictures, sounds and fonts in its code review.\",\n-   \"diagram\": [\n-    {\n-     \"t\": \"box\",\n-     \"rect\": [\n-      30,\n-      60,\n-      170,\n-      120\n-     ],\n-     \"label\": \"Tripo\\nmodels\",\n-     \"size\": 17,\n-     \"stroke\": \"purple\"\n-    },\n-    {\n-     \"t\": \"arrow\",\n-     \"from\": [\n-      200,\n-      120\n-     ],\n-     \"to\": [\n-      240,\n-      120\n-     ],\n-     \"color\": \"gold\"\n-    },\n-    {\n-     \"t\": \"box\",\n-     \"rect\": [\n-      240,\n-      50,\n-      200,\n-      140\n-     ],\n-     \"label\": \"Blender\\nrig, poses, walk\",\n-     \"size\": 17,\n-     \"stroke\": \"gold\",\n-     \"pulse\": true\n-    },\n-    {\n-     \"t\": \"arrow\",\n-     \"from\": [\n-      440,\n-      120\n-     ],\n-     \"to\": [\n-      480,\n-      120\n-     ],\n-     \"color\": \"gold\"\n-    },\n-    {\n-     \"t\": \"box\",\n-     \"rect\": [\n-      480,\n-      60,\n-      200,\n-      120\n-     ],\n-     \"label\": \"320 sprites\\n8 views\",\n-     \"size\": 17,\n-     \"stroke\": \"green\"\n-    },\n-    {\n-     \"t\": \"box\",\n-     \"rect\": [\n-      720,\n-      40,\n-      250,\n-      70\n-     ],\n-     \"label\": \"fights back\",\n-     \"size\": 17,\n-     \"stroke\": \"red\"\n-    },\n-    {\n-     \"t\": \"box\",\n-     \"rect\": [\n-      720,\n-      125,\n-      250,\n-      70\n-     ],\n-     \"label\": \"runs when badly hurt\",\n-     \"size\": 17,\n-     \"stroke\": \"red\"\n-    },\n-    {\n-     \"t\": \"bar\",\n-     \"rect\": [\n-      60,\n-      260,\n-      880,\n-      28\n-     ],\n-     \"value\": 0.3333333333333333,\n-     \"color\": \"dim\",\n-     \"label\": \"attack before: 4 frames\",\n-     \"size\": 15\n-    },\n-    {\n-     \"t\": \"bar\",\n-     \"rect\": [\n-      60,\n-      298,\n-      880,\n-      28\n-     ],\n-     \"value\": 1.0,\n-     \"color\": \"cyan\",\n-     \"label\": \"attack now: 12 frames\",\n-     \"size\": 15\n-    },\n-    {\n-     \"t\": \"bar\",\n-     \"rect\": [\n-      60,\n-      348,\n-      880,\n-      28\n-     ],\n-     \"value\": 0.2857142857142857,\n-     \"color\": \"dim\",\n-     \"label\": \"walk first: 8 frames\",\n-     \"size\": 15\n-    },\n-    {\n-     \"t\": \"bar\",\n-     \"rect\": [\n-      60,\n-      386,\n-      880,\n-      28\n-     ],\n-     \"value\": 1.0,\n-     \"color\": \"green\",\n-     \"label\": \"walk now: 28 frames  (~25 fps)\",\n-     \"size\": 15\n-    },\n-    {\n-     \"t\": \"badge\",\n-     \"at\": [\n-      260,\n-      480\n-     ],\n-     \"text\": \"homing shots: 2600 px/s\",\n-     \"color\": \"cyan\",\n-     \"size\": 16\n-    },\n-    {\n-     \"t\": \"badge\",\n-     \"at\": [\n-      560,\n-      480\n-     ],\n-     \"text\": \"Patcher shows assets\",\n-     \"color\": \"gold\",\n-     \"size\": 16\n-    },\n-    {\n-     \"t\": \"badge\",\n-     \"at\": [\n-      820,\n-      480\n-     ],\n-     \"text\": \"343 files changed\",\n-     \"color\": \"dim\",\n-     \"size\": 16\n-    }\n-   ]\n-  }\n- ]\n+\t\"kind\": \"version\",\n+\t\"id\": \"0.1\",\n+\t\"title\": \"Planets come alive\",\n+\t\"date\": \"2026-11-08\",\n+\t\"summary\": \"Version 0.1 brings the game's planets, and the sector around them, to life. Planet surfaces became a hundred times bigger, streamed around you as you walk (patch 0001). Pirate raiders came to every planet (patch 0002), then became a 3D model with smooth animations that fights back and runs when badly hurt (patch 0003). The sector found its voice: synthesised sound and music, a spoken story begun by Kilon Alios, a rebalanced economy, missions, fog of war and the ship's scanner (patch 0004). The scanner now finds signal sources with six encounters, including the Void Leviathan; dying keeps your progress; and the title screen plays itself under an arcade-Greek PLEASE INSERT DRACHMA and a CRT filter (patch 0005). Finally the game took the map-console look, with one teal-and-orange GUI, a console-style planet map, map icons, anime exhaust trails and 80s-anime sprites (patch 0006). Along the way the Patcher arrived in Talos, and every change is tracked between patches.\",\n+\t\"patches\": [\n+\t\t\"0001\",\n+\t\t\"0002\",\n+\t\t\"0003\",\n+\t\t\"0004\",\n+\t\t\"0005\",\n+\t\t\"0006\"\n+\t],\n+\t\"steps\": [\n+\t\t{\n+\t\t\t\"patch\": \"0001\",\n+\t\t\t\"title\": \"Patch 0001 - Streamed planets: 880 x 880 tiles\",\n+\t\t\t\"text\": \"Planets became a hundred times bigger, with villages all over them. A worker thread plans the whole planet while you land; the world is then made around you as you walk - scenery in chunks grown on worker threads, buildings and citizens as you come near, a path grid that follows you. Landing takes about 4 s without a stalled frame.\",\n+\t\t\t\"diagram\": [\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t40,\n+\t\t\t\t\t\t70,\n+\t\t\t\t\t\t170,\n+\t\t\t\t\t\t170\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"88 x 88\",\n+\t\t\t\t\t\"size\": 20,\n+\t\t\t\t\t\"stroke\": \"dim\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"arrow\",\n+\t\t\t\t\t\"from\": [\n+\t\t\t\t\t\t215,\n+\t\t\t\t\t\t155\n+\t\t\t\t\t],\n+\t\t\t\t\t\"to\": [\n+\t\t\t\t\t\t300,\n+\t\t\t\t\t\t155\n+\t\t\t\t\t],\n+\t\t\t\t\t\"color\": \"gold\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t300,\n+\t\t\t\t\t\t40,\n+\t\t\t\t\t\t230,\n+\t\t\t\t\t\t230\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"880 x 880\\ntiles\",\n+\t\t\t\t\t\"size\": 24,\n+\t\t\t\t\t\"stroke\": \"green\",\n+\t\t\t\t\t\"pulse\": true\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"text\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t415,\n+\t\t\t\t\t\t300\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"x100 the area\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"color\": \"green\",\n+\t\t\t\t\t\"align\": \"center\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t600,\n+\t\t\t\t\t\t50,\n+\t\t\t\t\t\t360,\n+\t\t\t\t\t\t60\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"worker thread plans the planet\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"cyan\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t600,\n+\t\t\t\t\t\t125,\n+\t\t\t\t\t\t360,\n+\t\t\t\t\t\t60\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"16 x 16-tile chunks stream in / out\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"cyan\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t600,\n+\t\t\t\t\t\t200,\n+\t\t\t\t\t\t360,\n+\t\t\t\t\t\t60\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"a path grid that follows you\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"cyan\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"bar\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t60,\n+\t\t\t\t\t\t380,\n+\t\t\t\t\t\t880,\n+\t\t\t\t\t\t30\n+\t\t\t\t\t],\n+\t\t\t\t\t\"value\": 0.4,\n+\t\t\t\t\t\"color\": \"gold\",\n+\t\t\t\t\t\"label\": \"landing: ~4 s, no stalled frame\",\n+\t\t\t\t\t\"size\": 15\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"badge\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t250,\n+\t\t\t\t\t\t470\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"villages everywhere\",\n+\t\t\t\t\t\"color\": \"green\",\n+\t\t\t\t\t\"size\": 16\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"badge\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t500,\n+\t\t\t\t\t\t470\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"planet map: go anywhere\",\n+\t\t\t\t\t\"color\": \"cyan\",\n+\t\t\t\t\t\"size\": 16\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"badge\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t760,\n+\t\t\t\t\t\t470\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"7 files changed\",\n+\t\t\t\t\t\"color\": \"dim\",\n+\t\t\t\t\t\"size\": 16\n+\t\t\t\t}\n+\t\t\t]\n+\t\t},\n+\t\t{\n+\t\t\t\"patch\": \"0002\",\n+\t\t\t\"title\": \"Patch 0002 - Pirate raiders\",\n+\t\t\t\"text\": \"Pirate raiders came to every planet - about 320 in 90 bands - shooting you and the citizens while guards and archers shoot back. Everyone on foot got health: fall, and you wake by your ship a tenth of your credits poorer. Fallen pirates drop loot; fighting is a click (or F). And every change began to be tracked between patches, for the Patcher.\",\n+\t\t\t\"diagram\": [\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t40,\n+\t\t\t\t\t\t60,\n+\t\t\t\t\t\t280,\n+\t\t\t\t\t\t150\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"~320 pirates\\nin 90 bands\\nper planet\",\n+\t\t\t\t\t\"size\": 18,\n+\t\t\t\t\t\"stroke\": \"red\",\n+\t\t\t\t\t\"pulse\": true\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t360,\n+\t\t\t\t\t\t60,\n+\t\t\t\t\t\t280,\n+\t\t\t\t\t\t150\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"health for\\neveryone on foot\",\n+\t\t\t\t\t\"size\": 18,\n+\t\t\t\t\t\"stroke\": \"green\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t680,\n+\t\t\t\t\t\t60,\n+\t\t\t\t\t\t280,\n+\t\t\t\t\t\t150\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"loot chests:\\ncredits & cargo\",\n+\t\t\t\t\t\"size\": 18,\n+\t\t\t\t\t\"stroke\": \"gold\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"arrow\",\n+\t\t\t\t\t\"from\": [\n+\t\t\t\t\t\t180,\n+\t\t\t\t\t\t215\n+\t\t\t\t\t],\n+\t\t\t\t\t\"to\": [\n+\t\t\t\t\t\t180,\n+\t\t\t\t\t\t290\n+\t\t\t\t\t],\n+\t\t\t\t\t\"color\": \"red\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t40,\n+\t\t\t\t\t\t290,\n+\t\t\t\t\t\t280,\n+\t\t\t\t\t\t90\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"they shoot you and\\nthe citizens\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"red\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"arrow\",\n+\t\t\t\t\t\"from\": [\n+\t\t\t\t\t\t500,\n+\t\t\t\t\t\t215\n+\t\t\t\t\t],\n+\t\t\t\t\t\"to\": [\n+\t\t\t\t\t\t500,\n+\t\t\t\t\t\t290\n+\t\t\t\t\t],\n+\t\t\t\t\t\"color\": \"green\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t360,\n+\t\t\t\t\t\t290,\n+\t\t\t\t\t\t280,\n+\t\t\t\t\t\t90\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"knocked out:\\n-10% credits\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"green\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"arrow\",\n+\t\t\t\t\t\"from\": [\n+\t\t\t\t\t\t820,\n+\t\t\t\t\t\t215\n+\t\t\t\t\t],\n+\t\t\t\t\t\"to\": [\n+\t\t\t\t\t\t820,\n+\t\t\t\t\t\t290\n+\t\t\t\t\t],\n+\t\t\t\t\t\"color\": \"gold\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t680,\n+\t\t\t\t\t\t290,\n+\t\t\t\t\t\t280,\n+\t\t\t\t\t\t90\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"click / F to attack\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"gold\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"text\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t500,\n+\t\t\t\t\t\t450\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"every change tracked between patches: external/patcher, tools/patch.py\",\n+\t\t\t\t\t\"size\": 15,\n+\t\t\t\t\t\"color\": \"dim\",\n+\t\t\t\t\t\"align\": \"center\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"badge\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t500,\n+\t\t\t\t\t\t505\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"50 files changed\",\n+\t\t\t\t\t\"color\": \"dim\",\n+\t\t\t\t\t\"size\": 16\n+\t\t\t\t}\n+\t\t\t]\n+\t\t},\n+\t\t{\n+\t\t\t\"patch\": \"0003\",\n+\t\t\t\"title\": \"Patch 0003 - The pirate in 3D\",\n+\t\t\t\"text\": \"The pirate became a 3D model - your Tripo pirate and rifle, rigged and animated in Blender and rendered into 320 sprites: a 12-frame attack and a 28-frame walk, about 25 frames a second. Pirates now fight back and run when badly hurt, shots can't be dodged, and the Patcher shows pictures, sounds and fonts in its code review.\",\n+\t\t\t\"diagram\": [\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t30,\n+\t\t\t\t\t\t60,\n+\t\t\t\t\t\t170,\n+\t\t\t\t\t\t120\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"Tripo\\nmodels\",\n+\t\t\t\t\t\"size\": 17,\n+\t\t\t\t\t\"stroke\": \"purple\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"arrow\",\n+\t\t\t\t\t\"from\": [\n+\t\t\t\t\t\t200,\n+\t\t\t\t\t\t120\n+\t\t\t\t\t],\n+\t\t\t\t\t\"to\": [\n+\t\t\t\t\t\t240,\n+\t\t\t\t\t\t120\n+\t\t\t\t\t],\n+\t\t\t\t\t\"color\": \"gold\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t240,\n+\t\t\t\t\t\t50,\n+\t\t\t\t\t\t200,\n+\t\t\t\t\t\t140\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"Blender\\nrig, poses, walk\",\n+\t\t\t\t\t\"size\": 17,\n+\t\t\t\t\t\"stroke\": \"gold\",\n+\t\t\t\t\t\"pulse\": true\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"arrow\",\n+\t\t\t\t\t\"from\": [\n+\t\t\t\t\t\t440,\n+\t\t\t\t\t\t120\n+\t\t\t\t\t],\n+\t\t\t\t\t\"to\": [\n+\t\t\t\t\t\t480,\n+\t\t\t\t\t\t120\n+\t\t\t\t\t],\n+\t\t\t\t\t\"color\": \"gold\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t480,\n+\t\t\t\t\t\t60,\n+\t\t\t\t\t\t200,\n+\t\t\t\t\t\t120\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"320 sprites\\n8 views\",\n+\t\t\t\t\t\"size\": 17,\n+\t\t\t\t\t\"stroke\": \"green\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t720,\n+\t\t\t\t\t\t40,\n+\t\t\t\t\t\t250,\n+\t\t\t\t\t\t70\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"fights back\",\n+\t\t\t\t\t\"size\": 17,\n+\t\t\t\t\t\"stroke\": \"red\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t720,\n+\t\t\t\t\t\t125,\n+\t\t\t\t\t\t250,\n+\t\t\t\t\t\t70\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"runs when badly hurt\",\n+\t\t\t\t\t\"size\": 17,\n+\t\t\t\t\t\"stroke\": \"red\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"bar\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t60,\n+\t\t\t\t\t\t260,\n+\t\t\t\t\t\t880,\n+\t\t\t\t\t\t28\n+\t\t\t\t\t],\n+\t\t\t\t\t\"value\": 0.3333333333333333,\n+\t\t\t\t\t\"color\": \"dim\",\n+\t\t\t\t\t\"label\": \"attack before: 4 frames\",\n+\t\t\t\t\t\"size\": 15\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"bar\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t60,\n+\t\t\t\t\t\t298,\n+\t\t\t\t\t\t880,\n+\t\t\t\t\t\t28\n+\t\t\t\t\t],\n+\t\t\t\t\t\"value\": 1.0,\n+\t\t\t\t\t\"color\": \"cyan\",\n+\t\t\t\t\t\"label\": \"attack now: 12 frames\",\n+\t\t\t\t\t\"size\": 15\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"bar\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t60,\n+\t\t\t\t\t\t348,\n+\t\t\t\t\t\t880,\n+\t\t\t\t\t\t28\n+\t\t\t\t\t],\n+\t\t\t\t\t\"value\": 0.2857142857142857,\n+\t\t\t\t\t\"color\": \"dim\",\n+\t\t\t\t\t\"label\": \"walk first: 8 frames\",\n+\t\t\t\t\t\"size\": 15\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"bar\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t60,\n+\t\t\t\t\t\t386,\n+\t\t\t\t\t\t880,\n+\t\t\t\t\t\t28\n+\t\t\t\t\t],\n+\t\t\t\t\t\"value\": 1.0,\n+\t\t\t\t\t\"color\": \"green\",\n+\t\t\t\t\t\"label\": \"walk now: 28 frames  (~25 fps)\",\n+\t\t\t\t\t\"size\": 15\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"badge\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t260,\n+\t\t\t\t\t\t480\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"homing shots: 2600 px/s\",\n+\t\t\t\t\t\"color\": \"cyan\",\n+\t\t\t\t\t\"size\": 16\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"badge\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t560,\n+\t\t\t\t\t\t480\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"Patcher shows assets\",\n+\t\t\t\t\t\"color\": \"gold\",\n+\t\t\t\t\t\"size\": 16\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"badge\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t820,\n+\t\t\t\t\t\t480\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"343 files changed\",\n+\t\t\t\t\t\"color\": \"dim\",\n+\t\t\t\t\t\"size\": 16\n+\t\t\t\t}\n+\t\t\t]\n+\t\t},\n+\t\t{\n+\t\t\t\"patch\": \"0004\",\n+\t\t\t\"title\": \"Patch 0004 - The sector speaks\",\n+\t\t\t\"text\": \"The game got its sound, all synthesised: effects for every ship, weapon, station and planet, and three ambient tracks that follow you from the title screen to space and the planets. The story is spoken, each character in their own voice, and Kilon Alios on Thalassa now gives the main quest. Trading moves prices and bounties pay more, side quests became missions in reputation tiers, the maps have fog of war and the ship got a scanner.\",\n+\t\t\t\"diagram\": [\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t40,\n+\t\t\t\t\t\t50,\n+\t\t\t\t\t\t280,\n+\t\t\t\t\t\t110\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"SOUND\\nsynthesised effects,\\n3 ambient tracks\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"gold\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t360,\n+\t\t\t\t\t\t50,\n+\t\t\t\t\t\t280,\n+\t\t\t\t\t\t110\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"THE STORY SPOKEN\\nPiper voices,\\none per character\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"purple\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t680,\n+\t\t\t\t\t\t50,\n+\t\t\t\t\t\t280,\n+\t\t\t\t\t\t110\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"KILON ALIOS\\ngives the main quest\\non Thalassa\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"green\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t40,\n+\t\t\t\t\t\t200,\n+\t\t\t\t\t\t280,\n+\t\t\t\t\t\t110\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"ECONOMY\\ntrades move prices,\\nbounties x2+\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"cyan\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t360,\n+\t\t\t\t\t\t200,\n+\t\t\t\t\t\t280,\n+\t\t\t\t\t\t110\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"MISSIONS\\nin reputation tiers\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"cyan\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t680,\n+\t\t\t\t\t\t200,\n+\t\t\t\t\t\t280,\n+\t\t\t\t\t\t110\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"FOG OF WAR\\nmaps clear where\\nyou've been\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"cyan\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"bar\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t60,\n+\t\t\t\t\t\t360,\n+\t\t\t\t\t\t880,\n+\t\t\t\t\t\t28\n+\t\t\t\t\t],\n+\t\t\t\t\t\"value\": 0.7,\n+\t\t\t\t\t\"color\": \"#2a6a8a\",\n+\t\t\t\t\t\"label\": \"the ship's scanner: right-click scans rocks and the system\",\n+\t\t\t\t\t\"size\": 15\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"badge\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t250,\n+\t\t\t\t\t\t460\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"furnished buildings\",\n+\t\t\t\t\t\"color\": \"gold\",\n+\t\t\t\t\t\"size\": 16\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"badge\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t520,\n+\t\t\t\t\t\t460\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"Patcher versions\",\n+\t\t\t\t\t\"color\": \"purple\",\n+\t\t\t\t\t\"size\": 16\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"badge\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t780,\n+\t\t\t\t\t\t460\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"following ships\",\n+\t\t\t\t\t\"color\": \"green\",\n+\t\t\t\t\t\"size\": 16\n+\t\t\t\t}\n+\t\t\t]\n+\t\t},\n+\t\t{\n+\t\t\t\"patch\": \"0005\",\n+\t\t\t\"title\": \"Patch 0005 - Signals and drachmas\",\n+\t\t\t\"text\": \"The scanner finds signal sources that lead to six encounters in empty pockets of space, including the Void Leviathan and its bullet-hell orbs and a deathtrap field. Dying now respawns you with your progress kept. Left alone, the title screen plays the game itself under a blinking arcade-Greek PLEASE INSERT DRACHMA and an old-CRT filter, which is also in Settings with its own page. Fixes cover followed ships flying back and forth, dialogues keeping the mouse hidden, and quiet voices.\",\n+\t\t\t\"diagram\": [\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t40,\n+\t\t\t\t\t\t50,\n+\t\t\t\t\t\t300,\n+\t\t\t\t\t\t120\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"SIGNAL SOURCES\\nfound by the scanner,\\nentered like planets\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"cyan\",\n+\t\t\t\t\t\"pulse\": true\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t360,\n+\t\t\t\t\t\t50,\n+\t\t\t\t\t\t280,\n+\t\t\t\t\t\t120\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"6 ENCOUNTERS\\nstranded, attacked, wreck,\\ncreature, anomaly, deathtrap\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"gold\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t660,\n+\t\t\t\t\t\t50,\n+\t\t\t\t\t\t300,\n+\t\t\t\t\t\t120\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"VOID LEVIATHAN\\nbullet-hell orbs:\\nhard, never impossible\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"purple\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t40,\n+\t\t\t\t\t\t210,\n+\t\t\t\t\t\t450,\n+\t\t\t\t\t\t100\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"RESPAWN\\ndying keeps your progress (cargo + 10 % lost)\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"green\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t510,\n+\t\t\t\t\t\t210,\n+\t\t\t\t\t\t450,\n+\t\t\t\t\t\t100\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"ATTRACT MODE\\nthe title screen plays itself after 30 s\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"gold\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"text\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t500,\n+\t\t\t\t\t\t360\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"\u03a1L\u03a3\u039bS\u03a3 \u0399\u039dS\u03a3R\u03a4 \u0394R\u039bC\u0397\u039c\u039b  -  arcade Greek letters  \u00b7  CRT filter (Settings, its own page)\",\n+\t\t\t\t\t\"size\": 17,\n+\t\t\t\t\t\"color\": \"gold\",\n+\t\t\t\t\t\"align\": \"center\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"badge\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t250,\n+\t\t\t\t\t\t460\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"followed ships fly steady\",\n+\t\t\t\t\t\"color\": \"green\",\n+\t\t\t\t\t\"size\": 16\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"badge\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t520,\n+\t\t\t\t\t\t460\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"voices 50 % louder\",\n+\t\t\t\t\t\"color\": \"purple\",\n+\t\t\t\t\t\"size\": 16\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"badge\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t790,\n+\t\t\t\t\t\t460\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"dialogues free the mouse\",\n+\t\t\t\t\t\"color\": \"cyan\",\n+\t\t\t\t\t\"size\": 16\n+\t\t\t\t}\n+\t\t\t]\n+\t\t},\n+\t\t{\n+\t\t\t\"patch\": \"0006\",\n+\t\t\t\"title\": \"Patch 0006 - The console look\",\n+\t\t\t\"text\": \"The whole GUI took the map-console reference's look: dark teal glass, glowing cyan borders and orange highlights, the same everywhere. It brought a planet card, a planet map like the console's terrain map, and matching icons for the system and galaxy maps and the tabs. Every ship leaves an anime-style exhaust trail, the sprites got an 80s-anime cel look, and the scanner draws glowing routes, rings and sweeps.\",\n+\t\t\t\"diagram\": [\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t40,\n+\t\t\t\t\t\t50,\n+\t\t\t\t\t\t440,\n+\t\t\t\t\t\t130\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"ONE CONSOLE LOOK\\ndark teal glass, cyan borders,\\norange highlights - no per-empire palettes\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"cyan\",\n+\t\t\t\t\t\"pulse\": true\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t520,\n+\t\t\t\t\t\t50,\n+\t\t\t\t\t\t440,\n+\t\t\t\t\t\t130\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"PLANET MAP\\nglowing coasts, orange routes,\\ncircled icons, layers, planet card\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"gold\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t40,\n+\t\t\t\t\t\t210,\n+\t\t\t\t\t\t280,\n+\t\t\t\t\t\t110\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"EXHAUST TRAILS\\nblue / orange / magenta\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"purple\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t360,\n+\t\t\t\t\t\t210,\n+\t\t\t\t\t\t280,\n+\t\t\t\t\t\t110\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"80s-ANIME SPRITES\\ncel tones, ink outlines\\n339 sprites\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"red\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"box\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t680,\n+\t\t\t\t\t\t210,\n+\t\t\t\t\t\t280,\n+\t\t\t\t\t\t110\n+\t\t\t\t\t],\n+\t\t\t\t\t\"label\": \"MAP ICONS\\nsystem + galaxy maps,\\ntab icons that fit\",\n+\t\t\t\t\t\"size\": 16,\n+\t\t\t\t\t\"stroke\": \"cyan\"\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"bar\",\n+\t\t\t\t\t\"rect\": [\n+\t\t\t\t\t\t60,\n+\t\t\t\t\t\t360,\n+\t\t\t\t\t\t880,\n+\t\t\t\t\t\t28\n+\t\t\t\t\t],\n+\t\t\t\t\t\"value\": 1.0,\n+\t\t\t\t\t\"color\": \"#7a4a14\",\n+\t\t\t\t\t\"label\": \"the scanner: glowing signal routes, rings and sweeps\",\n+\t\t\t\t\t\"size\": 15\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"badge\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t250,\n+\t\t\t\t\t\t460\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"planet card\",\n+\t\t\t\t\t\"color\": \"cyan\",\n+\t\t\t\t\t\"size\": 16\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"badge\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t500,\n+\t\t\t\t\t\t460\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"Rajdhani headings\",\n+\t\t\t\t\t\"color\": \"gold\",\n+\t\t\t\t\t\"size\": 16\n+\t\t\t\t},\n+\t\t\t\t{\n+\t\t\t\t\t\"t\": \"badge\",\n+\t\t\t\t\t\"at\": [\n+\t\t\t\t\t\t760,\n+\t\t\t\t\t\t460\n+\t\t\t\t\t],\n+\t\t\t\t\t\"text\": \"105 tests pass\",\n+\t\t\t\t\t\"color\": \"green\",\n+\t\t\t\t\t\"size\": 16\n+\t\t\t\t}\n+\t\t\t]\n+\t\t}\n+\t]\n }",
+      "added": 802,
+      "removed": 457,
+      "title": "Version 0.1",
+      "note": "Pages for 0004, 0005, 0006; the summary covers all six."
+     }
+    ],
+    "added": 802,
+    "removed": 457
+   },
+   {
+    "path": "data/sprites/monster_cerberus.json",
+    "kind": "new",
+    "explanation": "A creature's rig: crop origins, pivots, eyes, mouths (written by its tools/*_parts.py).",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,104 @@ \n+{\n+ \"parts\": {\n+  \"tail\": [\n+   432,\n+   -43\n+  ],\n+  \"left_head\": [\n+   252,\n+   277\n+  ],\n+  \"right_head\": [\n+   908,\n+   277\n+  ],\n+  \"left_leg\": [\n+   -48,\n+   367\n+  ],\n+  \"right_leg\": [\n+   1188,\n+   367\n+  ],\n+  \"front_left_leg\": [\n+   141,\n+   607\n+  ],\n+  \"front_right_leg\": [\n+   1014,\n+   607\n+  ],\n+  \"body\": [\n+   55,\n+   -48\n+  ]\n+ },\n+ \"eyes\": [\n+  [\n+   425,\n+   470\n+  ],\n+  [\n+   737,\n+   535\n+  ],\n+  [\n+   828,\n+   535\n+  ],\n+  [\n+   1110,\n+   470\n+  ]\n+ ],\n+ \"mouths\": {\n+  \"left_head\": [\n+   400,\n+   575\n+  ],\n+  \"body\": [\n+   790,\n+   660\n+  ],\n+  \"right_head\": [\n+   1170,\n+   575\n+  ]\n+ },\n+ \"hub\": [\n+  768,\n+  560\n+ ],\n+ \"size\": [\n+  1536,\n+  1024\n+ ],\n+ \"tail_pivot\": [\n+  985,\n+  225\n+ ],\n+ \"left_head_pivot\": [\n+  555,\n+  470\n+ ],\n+ \"right_head_pivot\": [\n+  981,\n+  470\n+ ],\n+ \"left_leg_pivot\": [\n+  250,\n+  470\n+ ],\n+ \"right_leg_pivot\": [\n+  1286,\n+  470\n+ ],\n+ \"front_left_leg_pivot\": [\n+  430,\n+  700\n+ ],\n+ \"front_right_leg_pivot\": [\n+  1106,\n+  700\n+ ]\n+}",
+      "added": 104,
+      "removed": 0,
+      "title": "Rig data",
+      "note": "Written by the parts tool."
+     }
+    ],
+    "added": 104,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_cerberus_body.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_cerberus_front_left_leg.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_cerberus_front_right_leg.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_cerberus_left_head.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_cerberus_left_leg.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_cerberus_right_head.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_cerberus_right_leg.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_cerberus_tail.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_minotaur.json",
+    "kind": "new",
+    "explanation": "A creature's rig: crop origins, pivots, eyes, mouths (written by its tools/*_parts.py).",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,54 @@ \n+{\n+ \"parts\": {\n+  \"left_arm\": [\n+   -48,\n+   178\n+  ],\n+  \"right_arm\": [\n+   609,\n+   640\n+  ],\n+  \"left_leg\": [\n+   96,\n+   694\n+  ],\n+  \"body\": [\n+   -48,\n+   -48\n+  ]\n+ },\n+ \"eyes\": [\n+  [\n+   583,\n+   500\n+  ],\n+  [\n+   690,\n+   512\n+  ]\n+ ],\n+ \"crest\": [\n+  660,\n+  447\n+ ],\n+ \"hub\": [\n+  620,\n+  640\n+ ],\n+ \"size\": [\n+  1254,\n+  1254\n+ ],\n+ \"left_arm_pivot\": [\n+  400,\n+  330\n+ ],\n+ \"right_arm_pivot\": [\n+  885,\n+  720\n+ ],\n+ \"left_leg_pivot\": [\n+  470,\n+  790\n+ ]\n+}",
+      "added": 54,
+      "removed": 0,
+      "title": "Rig data",
+      "note": "Written by the parts tool."
+     }
+    ],
+    "added": 54,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_minotaur_body.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_minotaur_left_arm.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_minotaur_left_leg.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_minotaur_right_arm.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_skylla.json",
+    "kind": "new",
+    "explanation": "A creature's rig: crop origins, pivots, eyes, mouths (written by its tools/*_parts.py).",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,71 @@ \n+{\n+ \"parts\": {\n+  \"tentacles\": [\n+   189,\n+   446\n+  ],\n+  \"left_upper\": [\n+   445,\n+   244\n+  ],\n+  \"left_fore\": [\n+   276,\n+   269\n+  ],\n+  \"right_upper\": [\n+   852,\n+   244\n+  ],\n+  \"right_fore\": [\n+   953,\n+   289\n+  ],\n+  \"torso\": [\n+   491,\n+   -45\n+  ]\n+ },\n+ \"eyes\": [\n+  [\n+   775,\n+   340\n+  ],\n+  [\n+   829,\n+   345\n+  ]\n+ ],\n+ \"mouth\": [\n+  800,\n+  386\n+ ],\n+ \"hub\": [\n+  790,\n+  690\n+ ],\n+ \"tentacle_at\": [\n+  804,\n+  370\n+ ],\n+ \"tentacle_scale\": 1.19,\n+ \"size\": [\n+  1536,\n+  1024\n+ ],\n+ \"left_shoulder\": [\n+  636,\n+  330\n+ ],\n+ \"left_elbow\": [\n+  548,\n+  372\n+ ],\n+ \"right_shoulder\": [\n+  936,\n+  335\n+ ],\n+ \"right_elbow\": [\n+  1040,\n+  392\n+ ]\n+}",
+      "added": 71,
+      "removed": 0,
+      "title": "Rig data",
+      "note": "Written by the parts tool."
+     }
+    ],
+    "added": 71,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_skylla_left_fore.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_skylla_left_upper.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_skylla_right_fore.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_skylla_right_upper.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_skylla_tentacles.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/sprites/monster_skylla_torso.png",
+    "kind": "new",
+    "explanation": "A creature part cut from its reference art.",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "external/images/cerberus/cerberus.png",
+    "kind": "new",
+    "explanation": "The reference art (not in the game).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "external/images/minotaur/minotaur.png",
+    "kind": "new",
+    "explanation": "The reference art (not in the game).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "external/images/skylla/skylla_assembled.png",
+    "kind": "new",
+    "explanation": "The reference art (not in the game).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "external/images/skylla/skylla_parts.png",
+    "kind": "new",
+    "explanation": "The reference art (not in the game).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "external/voices/lines.md",
+    "kind": "modified",
+    "explanation": "The spoken lines list, regenerated with the new lines.",
+    "hunks": [
+     {
+      "diff": "@@ -1,6 +1,6 @@ # Spoken lines\n # Spoken lines\n \n-Made by tools/voice_lines.py (Piper). 78 lines, 3.5 MB.\n+Made by tools/voice_lines.py (Piper). 82 lines, 3.8 MB.\n \n | voice | file | length | line |\n |---|---|---|---|",
+      "added": 1,
+      "removed": 1,
+      "title": "Header",
+      "note": "Header"
+     },
+     {
+      "diff": "@@ -49,7 +49,10 @@ # Spoken lines\n | daidalos | dff3d5c4772b216a | 6.9 s | Every Talos has one weakness: a single vein, sealed by a bronze nail at the ankle. Keep hitting him - don't let his shields recover! |\n | narrator | d5bbfb5841e1355a | 6.8 s | Talos falls silent, the glow fading from his bronze. The seal around the Labyrinth flickers, and opens. |\n | ariadne | 724af2bb75adf54b | 5.9 s | Follow the path to the centre. Like Theseus - except this time, nobody needs to die in there. |\n-| narrator | 3ad86c8cff2829dc | 9.3 s | At the centre of the Labyrinth is not a monster, but an archive. Thousands of clay discs turn slowly in the dark, each one stamped in spirals. |\n+| narrator | 8a3c26cfa3b8e410 | 8.6 s | At the centre of the Labyrinth a ring of gold blazes to life. Inside it something vast uncurls - horned, crowned in bronze, eyes burning red. |\n+| ariadne | b43befc6ab9db880 | 8.8 s | No... Asterion only borrowed the name. That is the Minotaur - the true Asterion. Whatever they hid in here, he has guarded it for three thousand years. |\n+| ariadne | 46f9225d179ea30d | 6.7 s | He won't let us pass. When he lowers his horns, he charges - get out of his way. Bring him down! |\n+| narrator | 16e5c211d0897695 | 12.2 s | The Minotaur falls, and the golden ring goes dark. Beyond it the centre of the Labyrinth holds no treasure, but an archive. Thousands of clay discs turn slowly in the dark, each one stamped in spirals. |\n | narrator | 8b620d0cf8e3eae3 | 7.9 s | The fragment in your hold slots into an empty place among them. And for the first time in more than three thousand years, the Linear A begins to speak. |\n | narrator | 5c18e22b687d65c8 | 7.6 s | We are the Keftiu - the people of the island the Egyptians traded with. Our palaces had no walls; the sea was our wall. |\n | narrator | 60136ea5779f162d | 13.4 s | Then the mountain of Thera tore itself apart, and ash fell like black snow, and the sea rose against our harbours. Later, ships came from the mainland, and other kings sat in our palace and wrote in their own tongue. |",
+      "added": 4,
+      "removed": 1,
+      "title": "New lines",
+      "note": "The Minotaur stage."
+     },
+     {
+      "diff": "@@ -80,5 +83,6 @@ # Spoken lines\n | kilon | 59d20e3bf7b27d36 | 3.0 s | Where it leads now: Return to the Labyrinth with the key. |\n | kilon | 896586e87760dbf5 | 3.4 s | Where it leads now: Defeat Talos, the bronze guardian. |\n | kilon | d2c22c0609e3ed51 | 2.3 s | Where it leads now: Enter the heart of the Labyrinth. |\n+| kilon | 38802f343357b60d | 3.7 s | Where it leads now: Defeat the Minotaur, guardian of the Labyrinth. |\n | kilon | 64dfe4e702e3e6e2 | 2.1 s | Where it leads now: The thread is complete. |\n | kilon | 36d0dc68e9a5c678 | 1.5 s | The thread is in your hands. |",
+      "added": 1,
+      "removed": 0,
+      "title": "Kilon",
+      "note": "His 'where it leads now' line for the new objective."
+     }
+    ],
+    "added": 6,
+    "removed": 2
+   },
+   {
+    "path": "scripts/cerberus_beast.gd",
+    "kind": "new",
+    "explanation": "New: Cerberus' rig from his cut-out parts and his three-jawed fire.",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,154 @@ \n+class_name CerberusBeast\n+extends SpaceMonster\n+## Cerberus, the three-headed hound - a creature of the monster signals\n+## (SignalSite.CREATURES). The reference art itself (external/images/cerberus/),\n+## cut into parts by tools/cerberus_parts.py - the body (with the centre head,\n+## the temple medallion and the shoulder plates), the scorpion-like tail, the\n+## two side heads and the four legs, each running on under the body at its\n+## joint - and assembled here as a rig that moves:\n+##   - the side heads snap and snarl, out of step with each other;\n+##   - the legs paw, the tail lashes;\n+##   - he breathes; the six eyes glow;\n+##   - he stays upright on screen as in the art.\n+## Attacks: SpaceMonster's bullet-hell patterns as fire, each orb from one of\n+## his three jaws in turn; winding up, all three heads rear back and the jaws\n+## glow. Dying: SpaceMonster.death_throes.\n+\n+const ART := \"res://data/sprites/monster_cerberus\"\n+const FIRE := Color(1.0, 0.45, 0.1)\n+const EMBER := Color(1.0, 0.8, 0.3)\n+const JAWS := [\"left_head\", \"body\", \"right_head\"]\n+\n+var meta := {}\n+var art_scale := 0.5\n+var demo := false                   # the Library: no target, he winds up now and then\n+var _rig: Node2D\n+var _body: Node2D\n+var _joints := {}                   # part -> pivot node\n+var _fx: Node2D\n+\n+\n+func _ready() -> void:\n+\tsuper()\n+\tglow = FIRE\n+\tmeta = JSON.parse_string(FileAccess.get_file_as_string(ART + \".json\"))\n+\tart_scale = length * 1.5 / 1536.0\n+\t_rig = Node2D.new()\n+\t_rig.scale = Vector2.ONE * art_scale\n+\tadd_child(_rig)\n+\tvar hub := _v(meta[\"hub\"])\n+\t_body = Node2D.new()\n+\t_rig.add_child(_body)\n+\t# The tail behind the body, the legs and heads in front.\n+\t_joint(\"tail\", hub)\n+\t_body.add_child(_part(\"body\", hub))\n+\tfor p in [\"left_leg\", \"right_leg\", \"front_left_leg\", \"front_right_leg\", \"left_head\", \"right_head\"]:\n+\t\t_joint(p, hub)\n+\t_fx = Node2D.new()\n+\t_fx.draw.connect(_draw_fx)\n+\t_body.add_child(_fx)\n+\n+\n+func _v(a: Array) -> Vector2:\n+\treturn Vector2(float(a[0]), float(a[1]))\n+\n+\n+func _part(part: String, origin: Vector2) -> Sprite2D:\n+\tvar s := Sprite2D.new()\n+\ts.name = part\n+\ts.texture = load(ART + \"_\" + part + \".png\")\n+\ts.centered = false\n+\ts.position = _v(meta[\"parts\"][part]) - origin\n+\ts.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS\n+\treturn s\n+\n+\n+func _joint(part: String, hub: Vector2) -> void:\n+\tvar piv := _v(meta[part + \"_pivot\"])\n+\tvar j := Node2D.new()\n+\tj.position = piv - hub\n+\t_body.add_child(j)\n+\tj.add_child(_part(part, piv))\n+\t_joints[part] = j\n+\n+\n+## The art (1536 x 1024), upright.\n+func visual_size() -> Vector2:\n+\treturn Vector2(1536, 1024) * length * 1.5 / 1536.0\n+\n+\n+## One of his jaws (0 left, 1 centre, 2 right), in world space.\n+func jaw(i: int) -> Vector2:\n+\tif meta.is_empty() or _body == null:\n+\t\treturn super.mouth()\n+\tvar part: String = JAWS[i]\n+\tvar p := _v(meta[\"mouths\"][part])\n+\tif _joints.has(part):   # (a side head turns at its neck)\n+\t\tvar piv := _v(meta[part + \"_pivot\"])\n+\t\tp = piv + (p - piv).rotated(_joints[part].rotation)\n+\treturn _rig.to_global(p - _v(meta[\"hub\"]) + _body.position)\n+\n+\n+func mouth() -> Vector2:\n+\treturn jaw(1)\n+\n+\n+func _charge() -> float:\n+\tif demo:\n+\t\treturn smoothstep(0.55, 0.85, sin(_t * 0.7))\n+\tif pattern == \"\":\n+\t\treturn 0.0\n+\treturn clampf(1.0 + _pt / CHARGE, 0.0, 1.0) if _pt < 0.0 else 1.0\n+\n+\n+## Fire from each jaw in turn.\n+func _orb(vel: Vector2, col: Color) -> Orb:\n+\tvar o := super(vel, col)\n+\to.color = FIRE if col == ORB_COLOR else EMBER\n+\to.global_position = jaw(orbs_fired % 3)\n+\treturn o\n+\n+\n+func _process(delta: float) -> void:\n+\tsuper(delta)\n+\tif _rig == null:\n+\t\treturn\n+\t_rig.global_rotation = 0.0\n+\tvar charge := _charge()\n+\t_body.position = Vector2(sin(_t * 0.8) * 3.0, sin(_t * 1.6) * 4.0 + charge * 8.0) / art_scale\n+\t_body.scale = Vector2.ONE * (1.0 + 0.012 * sin(_t * 1.9))\n+\t# Heads: snapping, out of step; rearing back (outward) as he winds up.\n+\tvar snap := func(ph: float) -> float: return 0.07 * sin(_t * 2.1 + ph) + 0.05 * pow(maxf(0.0, sin(_t * 3.7 + ph * 2.0)), 8.0)\n+\t_joints[\"left_head\"].rotation = snap.call(0.0) + 0.16 * charge\n+\t_joints[\"right_head\"].rotation = -snap.call(1.7) - 0.16 * charge\n+\t# Legs pawing, the tail lashing.\n+\t_joints[\"left_leg\"].rotation = 0.06 * sin(_t * 1.4)\n+\t_joints[\"right_leg\"].rotation = -0.06 * sin(_t * 1.4 + 1.2)\n+\t_joints[\"front_left_leg\"].rotation = 0.05 * sin(_t * 1.4 + 2.0) - 0.06 * charge\n+\t_joints[\"front_right_leg\"].rotation = -0.05 * sin(_t * 1.4 + 3.1) + 0.06 * charge\n+\t_joints[\"tail\"].rotation = 0.12 * sin(_t * 1.1) + 0.05 * sin(_t * 2.9)\n+\t_fx.queue_redraw()\n+\tqueue_redraw()\n+\n+\n+## On the body, in art px: six glowing eyes; the jaws glowing as he winds up.\n+func _draw_fx() -> void:\n+\tvar charge := _charge()\n+\tvar pulse := 0.5 + 0.5 * sin(_t * 3.0)\n+\tvar hub := _v(meta[\"hub\"])\n+\tfor e in meta[\"eyes\"]:\n+\t\tvar p := _v(e) - hub\n+\t\t_fx.draw_circle(p, 16.0 + 10.0 * charge, Color(1.0, 0.25, 0.05, 0.1 + 0.08 * pulse + 0.25 * charge))\n+\tif charge > 0.0:\n+\t\tfor i in 3:\n+\t\t\tvar m := _rig.to_local(jaw(i)) - _body.position\n+\t\t\tfor k in 3:\n+\t\t\t\t_fx.draw_circle(m, (12.0 + 30.0 * charge) * (1.6 - k * 0.4), Color(FIRE, 0.12 + 0.1 * k))\n+\t\t\t_fx.draw_circle(m, 6.0 + 10.0 * charge, Color(1.0, 0.9, 0.6, 0.85))\n+\n+\n+func _draw() -> void:\n+\tvar charge := _charge()\n+\tvar pulse := 0.5 + 0.5 * sin(_t * 2.0)\n+\tfor k in 5:\n+\t\tdraw_circle(Vector2.ZERO, length * (0.7 - k * 0.1), Color(FIRE, (0.01 + 0.006 * pulse + 0.02 * charge) * (k + 1) * 0.6))",
+      "added": 154,
+      "removed": 0,
+      "title": "CerberusBeast",
+      "note": "CerberusBeast",
+      "bubbles": [
+       {
+        "at": "func jaw(i: int) -> Vector2:",
+        "text": "Each jaw in world space, following its head's turn: the fire comes from them in turn."
+       },
+       {
+        "at": "var snap := func",
+        "text": "The side heads snap out of step; they rear back as he winds up."
+       }
+      ]
+     }
+    ],
+    "added": 154,
+    "removed": 0
+   },
+   {
+    "path": "scripts/enemy.gd",
+    "kind": "modified",
+    "explanation": "Creatures: the class by look; shield and hit radius from the art; their slow death.",
+    "hunks": [
+     {
+      "diff": "@@ -174,15 +174,30 @@ func _apply_type\n \tif t.get(\"monster\", false):   # a creature: drawn as a SpaceMonster, not its sizing ship\n \t\tbody.self_modulate = Color(1, 1, 1, 0)\n \t\tif not body.has_node(\"Monster\"):\n-\t\t\tvar m := SpaceMonster.new()\n+\t\t\tvar look: String = t.get(\"look\", \"\")\n+\t\t\tvar m: SpaceMonster\n+\t\t\tmatch look:\n+\t\t\t\t\"sea_witch\": m = SeaWitch.new()\n+\t\t\t\t\"minotaur\": m = MinotaurBoss.new()\n+\t\t\t\t\"cerberus\": m = CerberusBeast.new()\n+\t\t\t\t_: m = SpaceMonster.new()\n \t\t\tm.name = \"Monster\"\n \t\t\tm.length = length\n \t\t\tm.enemy = self\n \t\t\tm.scale = Vector2.ONE / body.scale\n \t\t\tbody.add_child(m)\n \t\tdisplay_name = t[\"name\"]\n+\t\t# Its shield round the creature as drawn (not the hidden sizing ship),\n+\t\t# and shots hit what you see.\n+\t\tvar m2: SpaceMonster = body.get_node(\"Monster\")\n+\t\tsize = m2.visual_size()\n+\t\thit_radius = (size.x + size.y) / 4.0 * 0.62\n+\t\tclick_radius = maxf(hit_radius * 1.1, 40.0)\n \t_shield_fx = ShieldEffect.new().setup(Vector2(size.x * 1.15 + 30.0, size.y * 1.12 + 30.0), shield_col, hit_col)\n \tadd_child(_shield_fx)\n+\tif t.get(\"monster\", false):   # (a creature's shield behind it, and softer: it glows round the art, not over it)\n+\t\tmove_child(_shield_fx, 0)\n+\t\t_shield_fx.modulate.a = 0.45\n \t# The exhaust trail (ExhaustTrail): pirates and Spartans burn orange,\n \t# Athenians and Ionians blue, the others magenta. Creatures have none.\n \tif not t.get(\"monster\", false) and not has_node(\"ExhaustTrail\"):",
+      "added": 16,
+      "removed": 1,
+      "title": "Creature setup",
+      "note": "Creature setup",
+      "bubbles": [
+       {
+        "at": "size = m2.visual_size()",
+        "text": "The shield and hit radius fit the art, not the hidden sizing ship."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -280,7 +295,7 @@ func take_damage\n \t\t_shield_fx.hit(from)\n \tif amount > 0.0:\n \t\thull -= amount\n-\t\tbody.modulate = Color(3, 3, 3)\n+\t\tbody.modulate = Color(1.5, 1.5, 1.5) if body.has_node(\"Monster\") else Color(3, 3, 3)   # (painted creatures: a softer flash)\n \t\tcreate_tween().tween_property(body, \"modulate\", _tint, 0.15)\n \tqueue_redraw()\n \tif hull <= 0.0:",
+      "added": 1,
+      "removed": 1,
+      "title": "Hit flash",
+      "note": "Softer on painted creatures."
+     },
+     {
+      "diff": "@@ -288,8 +303,19 @@ func take_damage\n \n \n func _die() -> void:\n+\tif not _alive:\n+\t\treturn\n \t_alive = false\n-\tEffects.explosion(global_position, clampf(hit_radius / 30.0, 0.8, 2.2), Effects.ship_sound(max_hull + max_shields))\n+\t# A creature dies slowly: it shakes, bursting, then blows up hugely\n+\t# (SpaceMonster.death_throes) - and only then is it gone (the quest moves on).\n+\tvar mon := body.get_node_or_null(\"Monster\") as SpaceMonster\n+\tif mon:\n+\t\tset_process(false)\n+\t\tvelocity = Vector2.ZERO\n+\t\t_shield_fx.visible = false\n+\t\tawait mon.death_throes()\n+\telse:\n+\t\tEffects.explosion(global_position, clampf(hit_radius / 30.0, 0.8, 2.2), Effects.ship_sound(max_hull + max_shields))\n \tdied.emit(self)\n \tqueue_free()\n ",
+      "added": 12,
+      "removed": 1,
+      "title": "Death",
+      "note": "Death",
+      "bubbles": [
+       {
+        "at": "await mon.death_throes()",
+        "text": "A creature's death plays out before `died` is emitted."
+       }
+      ]
+     }
+    ],
+    "added": 29,
+    "removed": 3
+   },
+   {
+    "path": "scripts/sim/enemy_types.gd",
+    "kind": "modified",
+    "explanation": "Three creature types: Skylla, Cerberus, the Minotaur.",
+    "hunks": [
+     {
+      "diff": "@@ -46,6 +46,30 @@ ## sizes them). They attack in bullet-hell patterns of energ\n \t\t\"bullet_speed\": 520.0, \"shots\": 3, \"aggro\": 950.0, \"distance\": 520.0,\n \t\t\"color\": Color(0.45, 1.0, 0.45),\n \t},\n+\t# The monster signal's creature (SeaWitch): a sea witch rising from eight tentacles.\n+\t\"skylla\": {\n+\t\t\"name\": \"Skylla\", \"unique\": true, \"monster\": true, \"look\": \"sea_witch\", \"art\": \"traced_bastion\",\n+\t\t\"desc\": \"A sea witch of the deep void: a woman crowned in gold, rising from eight great tentacles. She sweeps them at whatever comes close and spits clouds of ink that drag your ship to a crawl.\",\n+\t\t\"length\": 380.0, \"hull\": 2800.0, \"shields\": 800.0, \"speed\": 140.0, \"fire_interval\": 1.3, \"damage\": 14.0,\n+\t\t\"bullet_speed\": 520.0, \"shots\": 3, \"aggro\": 950.0, \"distance\": 560.0,\n+\t\t\"color\": Color(1.0, 0.4, 0.75), \"shield_regen\": 40.0, \"shield_delay\": 3.0,\n+\t},\n+\t# A monster-signal creature (CerberusBeast): the three-headed hound.\n+\t\"cerberus\": {\n+\t\t\"name\": \"Cerberus\", \"unique\": true, \"monster\": true, \"look\": \"cerberus\", \"art\": \"traced_bastion\",\n+\t\t\"desc\": \"The three-headed hound of the underworld, armoured in gold and the sign of the temple. Every head breathes fire.\",\n+\t\t\"length\": 400.0, \"hull\": 1150.0, \"shields\": 0.0, \"speed\": 150.0, \"fire_interval\": 1.3, \"damage\": 14.0,\n+\t\t\"bullet_speed\": 520.0, \"shots\": 3, \"aggro\": 950.0, \"distance\": 560.0,\n+\t\t\"color\": Color(1.0, 0.5, 0.15),\n+\t},\n+\t# The main quest's last boss (MinotaurBoss): the true Asterion, guardian of the Labyrinth.\n+\t\"minotaur\": {\n+\t\t\"name\": \"The Minotaur\", \"unique\": true, \"monster\": true, \"look\": \"minotaur\", \"art\": \"traced_bulwark\",\n+\t\t\"desc\": \"The true Asterion: the bull-headed guardian of the Labyrinth, crowned in bronze, awake after three thousand years. He charges, sears with a beam from his crest and drains your shields with a golden pulse.\",\n+\t\t\"length\": 420.0, \"hull\": 5000.0, \"shields\": 1500.0, \"speed\": 120.0, \"fire_interval\": 1.3, \"damage\": 16.0,\n+\t\t\"bullet_speed\": 520.0, \"shots\": 3, \"aggro\": 1100.0, \"distance\": 600.0,\n+\t\t\"color\": Color(1.0, 0.32, 0.15), \"shield_regen\": 60.0, \"shield_delay\": 3.0,\n+\t},\n }\n \n static var _all := {}",
+      "added": 24,
+      "removed": 0,
+      "title": "Creatures",
+      "note": "Hull, shields and looks of the three."
+     }
+    ],
+    "added": 24,
+    "removed": 0
+   },
+   {
+    "path": "scripts/ui/hud.gd",
+    "kind": "modified",
+    "explanation": "The boss bar moved under the system's name.",
+    "hunks": [
+     {
+      "diff": "@@ -134,14 +134,14 @@ func bind_quest\n \tmission_tracker.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART\n \tcolumn.add_child(mission_tracker)\n \n-\t# Boss health bar takes the (now free) top-centre spot.\n+\t# Boss health bar: top centre, under the system name.\n \t_boss_bar = BossBar.new()\n \t_boss_bar.anchor_left = 0.5\n \t_boss_bar.anchor_right = 0.5\n \t_boss_bar.offset_left = -300\n \t_boss_bar.offset_right = 300\n-\t_boss_bar.offset_top = 16\n-\t_boss_bar.offset_bottom = 54\n+\t_boss_bar.offset_top = 52   # (below the system's name)\n+\t_boss_bar.offset_bottom = 90\n \tadd_child(_boss_bar)\n \n \tvar update := func():",
+      "added": 3,
+      "removed": 3,
+      "title": "Boss bar",
+      "note": "offset 52..90 (overlapped the system name)."
+     }
+    ],
+    "added": 3,
+    "removed": 3
+   },
+   {
+    "path": "scripts/ui/minimap.gd",
+    "kind": "modified",
+    "explanation": "Out-of-range signals aren't on the radar.",
+    "hunks": [
+     {
+      "diff": "@@ -158,6 +158,8 @@ func _draw_signals\n \tfor b in get_tree().get_nodes_in_group(\"signal_beacons\"):\n \t\tif not b.active():\n \t\t\tcontinue\n+\t\tif not ShipScanner.signal_visible(get_tree(), b.global_position, ship.global_position):\n+\t\t\tcontinue   # (out of range: not on the radar either)\n \t\tvar col: Color = b.color()\n \t\tvar rel: Vector2 = (b.global_position - ship.global_position) / world_radius * r\n \t\tif rel.length() < r - 8.0:",
+      "added": 2,
+      "removed": 0,
+      "title": "Range",
+      "note": "ShipScanner.signal_visible."
+     }
+    ],
+    "added": 2,
+    "removed": 0
+   },
+   {
+    "path": "scripts/minotaur_boss.gd",
+    "kind": "new",
+    "explanation": "New: the Minotaur's rig and his attack rotation.",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,337 @@ \n+class_name MinotaurBoss\n+extends SpaceMonster\n+## The Minotaur - the true Asterion, the Labyrinth's ancient guardian and the\n+## main quest's last boss (QuestData: the stage after \"Enter the heart of the\n+## Labyrinth\"). The reference art itself (external/images/minotaur/), cut into\n+## parts by tools/minotaur_parts.py - his body (with the gold ring and its\n+## starfield behind his head), both arms and the kicking leg, each running on\n+## under the body at its joint - and assembled here as a rig that moves:\n+##   - his red cape ripples (shaders/minotaur_cape.gdshader, with a cape mask);\n+##   - his arms swing at the shoulders, claws raking; the leg kicks;\n+##   - he breathes and sways; his eyes and the gem on his crest glow;\n+##   - he stays upright on screen as in the art.\n+## His orbs and beams come from his eyes (eye()). Attacks, in turn (SEQUENCE;\n+## phase 2, below half hull: the orbs 35 % faster and more rushes). The beam\n+## and the rush aim at you while he winds up, then fire at where you were:\n+##   orbs   SpaceMonster's bullet-hell patterns, red and gold;\n+##   rush   he lowers his horns (0.9 s) - a red arrow follows your ship - then\n+##          charges at the spot you were in when it started, goring whatever\n+##          he hits: be moving off that line when he goes;\n+##   beam   a thin red line from each eye follows you (0.8 s), then twin\n+##          searing beams fire along it for 1.8 s and hold there - they don't\n+##          follow you: get off the line;\n+##   pulse  his ring flares (0.8 s), then a golden shockwave rolls out; caught in\n+##          it your shields go dead for DRAIN_TIME s (Ship.drain_shields), then\n+##          come back as they were - outrun it, or keep your hull away from him.\n+## His shields recover after a pause: keep up the pressure.\n+\n+const ART := \"res://data/sprites/monster_minotaur\"\n+const CAPE_SHADER := preload(\"res://shaders/minotaur_cape.gdshader\")\n+const RED := Color(1.0, 0.32, 0.15)\n+const GOLD := Color(1.0, 0.8, 0.3)\n+const RUSH_WINDUP := 0.9            # s lowering his horns (the warning)\n+const RUSH_TIME := 1.1              # s charging\n+const RUSH_SPEED := 980.0           # px/s (your ship: 420 - sidestep, don't outrun)\n+const RUSH_DAMAGE := 28.0\n+const SEQUENCE := [\"orbs\", \"beam\", \"rush\", \"orbs\", \"pulse\", \"rush\"]\n+const SEQUENCE_2 := [\"orbs\", \"rush\", \"beam\", \"rush\", \"pulse\", \"orbs\", \"rush\"]\n+const BEAM_WINDUP := 0.8\n+const BEAM_TIME := 1.8\n+const BEAM_DPS := 45.0\n+const BEAM_LENGTH := 1500.0\n+const BEAM_WIDTH := 26.0\n+const PULSE_WINDUP := 0.8\n+const PULSE_SPEED := 650.0          # the shockwave's px/s (your ship does 420: fly out early)\n+const PULSE_REACH := 1500.0\n+const DRAIN_TIME := 4.0             # s your shields stay dead\n+\n+var meta := {}\n+var art_scale := 0.5\n+var demo := false                   # the Library: no target, he winds up now and then\n+var rushes := 0\n+var _rig: Node2D\n+var _body: Node2D\n+var _limbs := {}                    # name -> pivot node\n+var _fx: Node2D\n+var _over: Node2D                   # drawn above his art (beams, pulse, rush path)\n+var _rush := -1.0                   # time into a rush (-1: none; < RUSH_WINDUP: winding up)\n+var _rush_dir := Vector2.ZERO\n+var _rush_hit := false\n+var _attacks := 0\n+var phase := 1                      # 2 below half hull\n+var special := \"\"                   # the beam or the pulse under way (\"\" none)\n+var specials_done := {}             # kind -> count (tests, playtests)\n+var _sp := 0.0                      # time into the special\n+var _beam_ang := 0.0                # world angle of the beam\n+var _pulse_r := -1.0                # the shockwave's radius (-1: none)\n+var _pulse_hit := false\n+\n+\n+func _ready() -> void:\n+\tsuper()\n+\tglow = RED\n+\tmeta = JSON.parse_string(FileAccess.get_file_as_string(ART + \".json\"))\n+\tart_scale = length * 1.4 / 1254.0\n+\t_rig = Node2D.new()\n+\t_rig.scale = Vector2.ONE * art_scale\n+\tadd_child(_rig)\n+\tvar hub := _v(meta[\"hub\"])\n+\t_body = Node2D.new()\n+\t_rig.add_child(_body)\n+\t# The limbs behind? No - in front: they run on under the body at the joint,\n+\t# so they go on top and the body fills in behind when they swing.\n+\tvar body := _part(\"body\", hub)\n+\tvar cm := ShaderMaterial.new()\n+\tcm.shader = CAPE_SHADER\n+\tcm.set_shader_parameter(\"cape_mask\", load(\"res://data/masks/monster_minotaur_cape.png\"))\n+\tcm.set_shader_parameter(\"tex_size\", body.texture.get_size())\n+\tcm.set_shader_parameter(\"time_offset\", randf() * 100.0)\n+\tbody.material = cm\n+\t_body.add_child(body)\n+\tfor limb in [\"left_leg\", \"left_arm\", \"right_arm\"]:\n+\t\tvar piv := _v(meta[limb + \"_pivot\"])\n+\t\tvar joint := Node2D.new()\n+\t\tjoint.position = piv - hub\n+\t\t_body.add_child(joint)\n+\t\tjoint.add_child(_part(limb, piv))\n+\t\t_limbs[limb] = joint\n+\t_fx = Node2D.new()\n+\t_fx.draw.connect(_draw_fx)\n+\t_body.add_child(_fx)\n+\t# On top of all of him: the beams, the shockwave and the rush's path.\n+\t_over = Node2D.new()\n+\t_over.draw.connect(_draw_over)\n+\tadd_child(_over)\n+\n+\n+func _v(a: Array) -> Vector2:\n+\treturn Vector2(float(a[0]), float(a[1]))\n+\n+\n+func _part(part: String, origin: Vector2) -> Sprite2D:\n+\tvar s := Sprite2D.new()\n+\ts.name = part\n+\ts.texture = load(ART + \"_\" + part + \".png\")\n+\ts.centered = false\n+\ts.position = _v(meta[\"parts\"][part]) - origin\n+\ts.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS\n+\treturn s\n+\n+\n+## The art (1254 px square round his chest), upright.\n+func visual_size() -> Vector2:\n+\treturn Vector2(length, length) * 1.43\n+\n+\n+## One of his eyes (0, 1) in world space: his orbs and beams come from them.\n+func eye(i: int) -> Vector2:\n+\tif meta.is_empty() or _body == null:\n+\t\treturn super.mouth()\n+\treturn _rig.to_global(_v(meta[\"eyes\"][i]) - _v(meta[\"hub\"]) + _body.position)\n+\n+\n+## Between his eyes: where the attacks aim from.\n+func mouth() -> Vector2:\n+\tif meta.is_empty() or _body == null:\n+\t\treturn super()\n+\treturn (eye(0) + eye(1)) * 0.5\n+\n+\n+## 0..1: winding up an attack (or a rush), for the look.\n+func _charge() -> float:\n+\tif demo:\n+\t\treturn smoothstep(0.55, 0.85, sin(_t * 0.7))\n+\tif _rush >= 0.0 or special != \"\":\n+\t\treturn 1.0\n+\tif pattern == \"\":\n+\t\treturn 0.0\n+\treturn clampf(1.0 + _pt / CHARGE, 0.0, 1.0) if _pt < 0.0 else 1.0\n+\n+\n+## Dying: stop whatever he was doing first.\n+func death_throes() -> void:\n+\t_rush = -1.0\n+\tspecial = \"\"\n+\tawait super()\n+\n+\n+func _process(delta: float) -> void:\n+\tif enemy and is_instance_valid(enemy) and phase == 1 and enemy.hull < enemy.max_hull * 0.5:\n+\t\tphase = 2\n+\t\tSfx.play_world(\"space/monster_roar\", global_position, 0.0, 0.05)\n+\t\tGameLog.post(\"The Minotaur roars - he's enraged!\", \"danger\")\n+\tif dying:\n+\t\t_t += delta\n+\telif _rush >= 0.0:\n+\t\t_t += delta\n+\t\t_run_rush(delta)\n+\telif special != \"\":\n+\t\t_t += delta\n+\t\t_run_special(delta)\n+\telse:\n+\t\tvar was := pattern\n+\t\tsuper(delta)\n+\t\tif was == \"\" and pattern != \"\":   # a new attack began: which one is up?\n+\t\t\tvar seq: Array = SEQUENCE if phase == 1 else SEQUENCE_2\n+\t\t\tvar kind: String = seq[_attacks % seq.size()]\n+\t\t\t_attacks += 1\n+\t\t\tif kind != \"orbs\" and _target() != null:\n+\t\t\t\tpattern = \"\"\n+\t\t\t\tif kind == \"rush\":\n+\t\t\t\t\t_rush = 0.0\n+\t\t\t\t\t_rush_hit = false\n+\t\t\t\t\tSfx.play_world(\"space/monster_roar\", global_position, -4.0, 0.1)\n+\t\t\t\telse:\n+\t\t\t\t\tspecial = kind\n+\t\t\t\t\t_sp = 0.0\n+\t\t\t\t\t_pulse_r = -1.0\n+\t\t\t\t\t_pulse_hit = false\n+\t\t\t\t\tvar tgt := _target()\n+\t\t\t\t\t_beam_ang = (tgt.global_position - mouth()).angle()\n+\t_update_pulse(delta)\n+\tif _rig == null:\n+\t\treturn\n+\t_rig.global_rotation = 0.0\n+\tvar charge := _charge()\n+\t_body.position = Vector2(sin(_t * 0.9) * 5.0, sin(_t * 1.4) * 5.0 + charge * 14.0) / art_scale\n+\t_body.scale = Vector2.ONE * (1.0 + 0.01 * sin(_t * 1.6))\n+\tvar swing := sin(_t * 1.25)\n+\t_limbs[\"left_arm\"].rotation = 0.09 * swing - 0.25 * charge\n+\t_limbs[\"right_arm\"].rotation = -0.08 * sin(_t * 1.25 + 1.6) + 0.18 * charge\n+\t_limbs[\"left_leg\"].rotation = 0.06 * sin(_t * 1.1 + 0.8) + 0.12 * charge\n+\t_fx.queue_redraw()\n+\t_over.queue_redraw()\n+\tqueue_redraw()\n+\n+\n+## The bull rush: wind up (facing you), then charge straight on.\n+func _run_rush(delta: float) -> void:\n+\tvar tgt := _target()\n+\t_rush += delta\n+\tif _rush < RUSH_WINDUP:\n+\t\tif tgt:   # following you; when he charges, it's at the spot you were in\n+\t\t\t_rush_dir = (tgt.global_position - enemy.global_position).normalized()\n+\t\treturn\n+\tif _rush < RUSH_WINDUP + RUSH_TIME and enemy and is_instance_valid(enemy):\n+\t\tenemy.global_position += _rush_dir * RUSH_SPEED * delta\n+\t\tif tgt and not _rush_hit and tgt.global_position.distance_to(enemy.global_position) < length * 0.3 + float(tgt.get(\"hit_radius\")):\n+\t\t\t_rush_hit = true\n+\t\t\ttgt.take_damage(RUSH_DAMAGE, enemy.global_position, enemy)\n+\t\treturn\n+\t_rush = -1.0\n+\trushes += 1\n+\t_cool = PAUSE * (0.7 if phase == 2 else 1.0)\n+\n+\n+## The beam and the pulse.\n+func _run_special(delta: float) -> void:\n+\tvar tgt := _target()\n+\t_sp += delta\n+\tmatch special:\n+\t\t\"beam\":\n+\t\t\tif _sp <= BEAM_WINDUP:   # aiming: following you\n+\t\t\t\tif tgt:\n+\t\t\t\t\t_beam_ang = (tgt.global_position - mouth()).angle()\n+\t\t\telif tgt:   # firing: fixed where you were - it doesn't follow\n+\t\t\t\tvar dir := Vector2.from_angle(_beam_ang)\n+\t\t\t\tfor i in 2:   # a beam from each eye\n+\t\t\t\t\tvar from := eye(i)\n+\t\t\t\t\tvar rel: Vector2 = tgt.global_position - from\n+\t\t\t\t\tvar along := rel.dot(dir)\n+\t\t\t\t\tif along > 0.0 and along < BEAM_LENGTH and absf(rel.cross(dir)) < BEAM_WIDTH + float(tgt.get(\"hit_radius\")) * 0.5:\n+\t\t\t\t\t\ttgt.take_damage(BEAM_DPS * 0.5 * delta, from + dir * along, enemy)\n+\t\t\tif _sp > BEAM_WINDUP + BEAM_TIME:\n+\t\t\t\t_end_special()\n+\t\t\"pulse\":\n+\t\t\tif _sp >= PULSE_WINDUP and _pulse_r < 0.0:\n+\t\t\t\t_pulse_r = 0.0\n+\t\t\t\tSfx.play_world(\"space/monster_roar\", global_position, -2.0, 0.2)\n+\t\t\tif _sp > PULSE_WINDUP + 0.2:\n+\t\t\t\t_end_special()\n+\n+\n+## The shockwave keeps rolling out after he's moved on to the next attack.\n+func _update_pulse(delta: float) -> void:\n+\tif _pulse_r < 0.0:\n+\t\treturn\n+\t_pulse_r += PULSE_SPEED * delta\n+\tvar tgt := _target()\n+\tif tgt and not _pulse_hit and enemy and is_instance_valid(enemy) and absf(tgt.global_position.distance_to(enemy.global_position) - _pulse_r) < 40.0:\n+\t\t_pulse_hit = true\n+\t\tif tgt.has_method(\"drain_shields\"):\n+\t\t\ttgt.drain_shields(DRAIN_TIME)\n+\tif _pulse_r > PULSE_REACH:\n+\t\t_pulse_r = -1.0\n+\n+\n+func _end_special() -> void:\n+\tspecials_done[special] = int(specials_done.get(special, 0)) + 1\n+\tspecial = \"\"\n+\t_cool = PAUSE * (0.7 if phase == 2 else 1.0)\n+\n+\n+## Above his art: the twin beams from his eyes, the pulse, the rush's path.\n+func _draw_over() -> void:\n+\t# The beam (world -> local), its warning line while he aims.\n+\tif special == \"beam\":\n+\t\tfor i in 2:   # twin beams, one from each eye\n+\t\t\tvar from := to_local(eye(i))\n+\t\t\tvar to := to_local(eye(i) + Vector2.from_angle(_beam_ang) * BEAM_LENGTH)\n+\t\t\tif _sp < BEAM_WINDUP:\n+\t\t\t\t_over.draw_line(from, to, Color(1.0, 0.2, 0.15, 0.25 + 0.4 * (_sp / BEAM_WINDUP)), 2.0, true)\n+\t\t\telse:\n+\t\t\t\tvar flick := 1.0 + 0.15 * sin(_t * 50.0 + i)\n+\t\t\t\t_over.draw_line(from, to, Color(1.0, 0.25, 0.1, 0.18), BEAM_WIDTH * 1.8 * flick, true)\n+\t\t\t\t_over.draw_line(from, to, Color(1.0, 0.45, 0.2, 0.55), BEAM_WIDTH * 0.8 * flick, true)\n+\t\t\t\t_over.draw_line(from, to, Color(1.0, 0.95, 0.8, 0.95), BEAM_WIDTH * 0.25, true)\n+\t\t\t\t_over.draw_circle(from, BEAM_WIDTH * 0.9, Color(1.0, 0.8, 0.5, 0.85))\n+\t# The pulse: his ring flaring, then the golden shockwave.\n+\tif special == \"pulse\" and _sp < PULSE_WINDUP:\n+\t\t_over.draw_arc(Vector2.ZERO, length * (0.5 + 0.2 * _sp / PULSE_WINDUP), 0, TAU, 64, Color(GOLD, 0.3 + 0.5 * _sp / PULSE_WINDUP), 8.0, true)\n+\tif _pulse_r >= 0.0:\n+\t\tvar fade := 1.0 - _pulse_r / PULSE_REACH\n+\t\t_over.draw_arc(Vector2.ZERO, _pulse_r, 0, TAU, 128, Color(GOLD, 0.15 * fade), 60.0, true)\n+\t\t_over.draw_arc(Vector2.ZERO, _pulse_r, 0, TAU, 128, Color(GOLD.lightened(0.3), 0.8 * fade), 6.0, true)\n+\t# The rush's path, following you while he winds up (brighter just before he goes).\n+\tif _rush >= 0.0 and _rush < RUSH_WINDUP:\n+\t\tvar dir := _rush_dir.rotated(-global_rotation)\n+\t\tvar locked := _rush >= RUSH_WINDUP * 0.75   # (brighter just before he goes)\n+\t\tvar reach := RUSH_SPEED * RUSH_TIME\n+\t\tvar col := Color(1.0, 0.25, 0.15, 0.55 if locked else 0.2 + 0.25 * _rush / RUSH_WINDUP)\n+\t\t_over.draw_line(dir * length * 0.4, dir * reach, Color(col, col.a * 0.35), 70.0, true)\n+\t\t_over.draw_line(dir * length * 0.4, dir * reach, col, 4.0, true)\n+\t\tvar tip := dir * reach\n+\t\t_over.draw_colored_polygon(PackedVector2Array([tip + dir * 40.0, tip + dir.orthogonal() * 30.0, tip - dir.orthogonal() * 30.0]), col)\n+\n+\n+## Orbs in his colours, red and gold.\n+func _orb(vel: Vector2, col: Color) -> Orb:\n+\tvar o := super(vel * (1.35 if phase == 2 else 1.0), col)\n+\to.color = RED if col == ORB_COLOR else GOLD\n+\to.global_position = eye(orbs_fired % 2)   # (each eye in turn)\n+\treturn o\n+\n+\n+## On the body, in art px: the eyes and the crest gem glowing (blazing as he\n+## winds up), and a trail of red light behind him while he rushes.\n+func _draw_fx() -> void:\n+\tvar charge := _charge()\n+\tvar pulse := 0.5 + 0.5 * sin(_t * 3.0)\n+\tvar hub := _v(meta[\"hub\"])\n+\tfor e in meta[\"eyes\"]:\n+\t\tvar p := _v(e) - hub\n+\t\t_fx.draw_circle(p, 18.0 + 14.0 * charge, Color(1.0, 0.1, 0.1, 0.12 + 0.08 * pulse + 0.3 * charge))\n+\t\t_fx.draw_circle(p, 6.0 + 4.0 * charge, Color(1.0, 0.55, 0.45, 0.25 + 0.5 * charge))\n+\tvar c := _v(meta[\"crest\"]) - hub\n+\t_fx.draw_circle(c, 20.0 + 16.0 * charge, Color(0.4, 0.5, 1.0, 0.1 + 0.08 * pulse + 0.25 * charge))\n+\n+\n+func _draw() -> void:\n+\tvar charge := _charge()\n+\tvar pulse := 0.5 + 0.5 * sin(_t * 2.0)\n+\tfor k in 5:\n+\t\tdraw_circle(Vector2.ZERO, length * (0.75 - k * 0.11), Color(RED, (0.01 + 0.006 * pulse + 0.02 * charge) * (k + 1) * 0.6))\n+\tif _rush >= RUSH_WINDUP:\n+\t\tvar back := -_rush_dir.rotated(-global_rotation)\n+\t\tfor k in 6:\n+\t\t\tdraw_circle(back * (60.0 + k * 55.0), length * (0.35 - k * 0.04), Color(RED, 0.12 - k * 0.015))",
+      "added": 337,
+      "removed": 0,
+      "title": "MinotaurBoss",
+      "note": "MinotaurBoss",
+      "bubbles": [
+       {
+        "at": "const SEQUENCE :=",
+        "text": "His rotation: orbs, beam, rush, pulse; SEQUENCE_2 in phase 2."
+       },
+       {
+        "at": "func _run_rush(delta: float) -> void:",
+        "text": "The arrow follows you while he winds up; then he charges along it - where you were."
+       },
+       {
+        "at": "func _run_special(delta: float) -> void:",
+        "text": "The beam aims while winding up, then fires fixed; the pulse rolls out from him."
+       },
+       {
+        "at": "func _update_pulse(delta: float) -> void:",
+        "text": "The shockwave drains your shields for DRAIN_TIME s when it passes you."
+       },
+       {
+        "at": "func eye(i: int) -> Vector2:",
+        "text": "His orbs and beams come from his eyes."
+       }
+      ]
+     }
+    ],
+    "added": 337,
+    "removed": 0
+   },
+   {
+    "path": "scripts/ui/pages/map_page.gd",
+    "kind": "modified",
+    "explanation": "Out-of-range signals aren't on the system map.",
+    "hunks": [
+     {
+      "diff": "@@ -203,7 +203,7 @@ class MapView extends Control:\n \t\tif star:\n \t\t\tcands.append({\"name\": star.star_name + \" (star)\", \"pos\": star.global_position, \"detail\": Galaxy.STARS[Galaxy.system(Galaxy.current_system)[\"star\"]][\"name\"]})\n \t\tfor b in get_tree().get_nodes_in_group(\"signal_beacons\"):\n-\t\t\tif b.active():\n+\t\t\tif b.active() and ShipScanner.signal_visible(get_tree(), b.global_position, ship.global_position):\n \t\t\t\tcands.append({\"name\": \"Objective\", \"pos\": b.global_position, \"detail\": \"Signal source: %s - fly there and ENTER\" % b.title()})\n \t\tvar ms := get_tree().get_first_node_in_group(\"missions\")\n \t\tif ms:",
+      "added": 1,
+      "removed": 1,
+      "title": "Hover",
+      "note": "Hover"
+     },
+     {
+      "diff": "@@ -323,8 +323,8 @@ class MapView extends Control:\n \t\t_draw_fog()\n \t\t# Located signal sources (on top of the fog).\n \t\tfor b in get_tree().get_nodes_in_group(\"signal_beacons\"):\n-\t\t\tif not b.active():\n-\t\t\t\tcontinue\n+\t\t\tif not b.active() or not ShipScanner.signal_visible(get_tree(), b.global_position, ship.global_position):\n+\t\t\t\tcontinue   # (out of range: not shown - see ShipScanner.signal_range)\n \t\t\tvar c := to_screen(b.global_position)\n \t\t\tvar col: Color = b.color()\n \t\t\tMapIcons.badge(self, c, 15.0, col, \"signal\", 0.5 + 0.5 * sin(Time.get_ticks_msec() / 250.0))",
+      "added": 2,
+      "removed": 2,
+      "title": "Drawing",
+      "note": "Drawing"
+     }
+    ],
+    "added": 3,
+    "removed": 3
+   },
+   {
+    "path": "scripts/core/proc_art.gd",
+    "kind": "modified",
+    "explanation": "Creature sprites labelled for the loading screen.",
+    "hunks": [
+     {
+      "diff": "@@ -42,6 +42,8 @@ static func _label\n \t\treturn \"Ships: \" + key.trim_prefix(\"ship_\").trim_prefix(\"traced_\").replace(\"_\", \" \").capitalize()\n \tif key.begins_with(\"station_\"):\n \t\treturn \"Stations: \" + key.trim_prefix(\"station_\").replace(\"_\", \" \").capitalize()\n+\tif key.begins_with(\"monster_\"):\n+\t\treturn \"Creatures: \" + key.trim_prefix(\"monster_\").replace(\"_\", \" \")\n \tif key.begins_with(\"npc_\"):\n \t\treturn \"Citizens: \" + key.trim_prefix(\"npc_minoan_\").replace(\"_\", \" \")\n \treturn \"Buildings: \" + key.trim_prefix(\"tile_\").replace(\"_\", \" \")",
+      "added": 2,
+      "removed": 0,
+      "title": "Labels",
+      "note": "Labels"
+     }
+    ],
+    "added": 2,
+    "removed": 0
+   },
+   {
+    "path": "scripts/quest.gd",
+    "kind": "modified",
+    "explanation": "Quest rewards can give items.",
+    "hunks": [
+     {
+      "diff": "@@ -85,6 +85,9 @@ func _grant\n \tif reward.has(\"data_core\"):\n \t\tdata.add_item(\"data_core\", reward[\"data_core\"])\n \t\tparts.append(\"+%d Data Core\" % reward[\"data_core\"])\n+\tfor id in reward.get(\"items\", {}):\n+\t\tdata.add_item(id, int(reward[\"items\"][id]))\n+\t\tparts.append(\"+%d %s\" % [int(reward[\"items\"][id]), Items.display_name(id)])\n \tif reward.has(\"equipment\") and not data.has_equipment(reward[\"equipment\"]):\n \t\tdata.add_equipment(reward[\"equipment\"])\n \t\tparts.append(Items.EQUIPMENT[reward[\"equipment\"]][\"name\"] + \" installed\")",
+      "added": 3,
+      "removed": 0,
+      "title": "Items",
+      "note": "\"items\": {id: count}."
+     }
+    ],
+    "added": 3,
+    "removed": 0
+   },
+   {
+    "path": "scripts/sim/quest_data.gd",
+    "kind": "modified",
+    "explanation": "The built-in copy of the quest gets the Minotaur stage too.",
+    "hunks": [
+     {
+      "diff": "@@ -5,6 +5,7 @@ ##   dock    - dock at `station`\n ##   dock    - dock at `station`\n ##   reach   - fly within `radius` of `pos` (a beacon is shown there if `beacon`)\n ##   kill    - destroy every ship in `spawn` (spawned around `pos` when the stage starts)\n+## `reward`: credits, data_core, equipment, items {id: count}.\n ##   pickup  - collect `item`, placed at `pos`\n ##   deliver - dock at `station` carrying `items` (handed over automatically)\n ##   end     - the story is over",
+      "added": 1,
+      "removed": 0,
+      "title": "Doc",
+      "note": "Doc"
+     },
+     {
+      "diff": "@@ -197,11 +198,21 @@ ## way; a line with your current objective follows) and `don\n \t\t\t[ARIADNE, \"Follow the path to the centre. Like Theseus - except this time, nobody needs to die in there.\"],\n \t\t]},\n \t# 15 -----------------------------------------------------------------------\n+\t{\"chapter\": 7, \"type\": \"kill\", \"pos\": LABYRINTH_POS,\n+\t\t\"spawn\": [[\"minotaur\", Vector2(0, -650)]],\n+\t\t\"objective\": \"Defeat the Minotaur, guardian of the Labyrinth\",\n+\t\t\"reward\": {\"credits\": 2500, \"data_core\": 3, \"items\": {\"alien_alloy\": 5}},\n+\t\t\"dialogue\": [\n+\t\t\t[NARRATOR, \"At the centre of the Labyrinth a ring of gold blazes to life. Inside it something vast uncurls - horned, crowned in bronze, eyes burning red.\"],\n+\t\t\t[ARIADNE, \"No... Asterion only borrowed the name. [b]That[/b] is the Minotaur - the true Asterion. Whatever they hid in here, he has guarded it for three thousand years.\"],\n+\t\t\t[ARIADNE, \"He won't let us pass. When he lowers his horns, he charges - get out of his way. Bring him down!\"],\n+\t\t]},\n+\t# 16 -----------------------------------------------------------------------\n \t{\"chapter\": 7, \"type\": \"end\",\n \t\t\"objective\": \"The thread is complete\",\n \t\t\"reward\": {\"credits\": 3000, \"data_core\": 3},\n \t\t\"dialogue\": [\n-\t\t\t[NARRATOR, \"At the centre of the Labyrinth is not a monster, but an archive. Thousands of clay discs turn slowly in the dark, each one stamped in spirals.\"],\n+\t\t\t[NARRATOR, \"The Minotaur falls, and the golden ring goes dark. Beyond it the centre of the Labyrinth holds no treasure, but an archive. Thousands of clay discs turn slowly in the dark, each one stamped in spirals.\"],\n \t\t\t[NARRATOR, \"The fragment in your hold slots into an empty place among them. And for the first time in more than three thousand years, the Linear A begins to speak.\"],\n \t\t\t[NARRATOR, \"[i]We are the Keftiu - the people of the island the Egyptians traded with. Our palaces had no walls; the sea was our wall.[/i]\"],\n \t\t\t[NARRATOR, \"[i]Then the mountain of Thera tore itself apart, and ash fell like black snow, and the sea rose against our harbours. Later, ships came from the mainland, and other kings sat in our palace and wrote in their own tongue.[/i]\"],",
+      "added": 11,
+      "removed": 1,
+      "title": "The Minotaur stage",
+      "note": "The Minotaur stage"
+     }
+    ],
+    "added": 12,
+    "removed": 1
+   },
+   {
+    "path": "scripts/sea_witch.gd",
+    "kind": "new",
+    "explanation": "New: Skylla's rig from her cut-out parts, her sweep and ink.",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,357 @@ \n+class_name SeaWitch\n+extends SpaceMonster\n+## Skylla, the sea witch of the monster signal: the reference art itself\n+## (external/images/skylla/), cut into parts by tools/skylla_parts.py - the\n+## tentacle cluster, the upper body, and each arm as an upper arm and a\n+## forearm with its clawed hand (data/sprites/monster_skylla_*.png, joints in\n+## monster_skylla.json) - so every line, shape and colour of the picture is\n+## kept, and assembled here as a rig that moves:\n+##   - the tentacles writhe (shaders/skylla_tentacles.gdshader): waves running\n+##     out along each, the tips swaying most, the roots holding;\n+##   - her hair drifts as if in water (shaders/skylla_hair.gdshader);\n+##   - the arms swing at the shoulders and elbows, reaching and clawing;\n+##     charging an attack she draws them back and up, her eyes blaze and\n+##     energy gathers at her open, snarling mouth - where the orbs come from;\n+##   - she breathes, and bobs gently above her tentacles.\n+## Attacks, in turn (SEQUENCE): SpaceMonster's orb patterns in pink and magenta,\n+## and two of her own - both aimed at you while she winds up, then fixed:\n+##   sweep  a red arc shows where her tentacles will strike (0.8 s), then they\n+##          lash across it (0.5 s): SWEEP_DAMAGE and thrown back - get out of\n+##          its reach (SWEEP_REACH) or out of its arc;\n+##   ink    she spits a blob of ink at where you were (0.6 s wind-up); it bursts\n+##          into a cloud that lingers INK_TIME s - inside, your ship crawls at\n+##          INK_SLOW of its speed (Ship.slow) and the whole window goes dark.\n+##          Fly round it.\n+## She stays upright on screen as in the art, whichever way she moves.\n+## Head toward -y (her forward). The attacks are SpaceMonster's.\n+\n+const ART := \"res://data/sprites/monster_skylla\"\n+const TENTACLE_SHADER := preload(\"res://shaders/skylla_tentacles.gdshader\")\n+const HAIR_SHADER := preload(\"res://shaders/skylla_hair.gdshader\")\n+## The art's pixel her rig is centred on (between the body and the tentacles).\n+const CENTRE := Vector2(800, 470)\n+\n+const PINK := Color(1.0, 0.45, 0.75)\n+const MAGENTA := Color(0.85, 0.3, 1.0)\n+const SEQUENCE := [\"orbs\", \"sweep\", \"orbs\", \"ink\", \"sweep\", \"orbs\", \"ink\"]\n+const SWEEP_WINDUP := 0.8\n+const SWEEP_TIME := 0.5\n+const SWEEP_ARC := 1.35             # rad either side of where she aims\n+const SWEEP_DAMAGE := 30.0\n+const INK_WINDUP := 0.6\n+const INK_SPEED := 750.0\n+const INK_RADIUS := 300.0\n+const INK_TIME := 6.0\n+const INK_SLOW := 0.4\n+\n+var meta := {}\n+var special := \"\"                   # \"sweep\" / \"ink\" under way\n+var specials_done := {}\n+var _sp := 0.0\n+var _aim := 0.0                     # world angle she aims the sweep / ink\n+var _ink_to := Vector2.ZERO         # where the ink blob is going (world)\n+var _sweep_hit := false\n+var _attacks := 0\n+var _inks: Array = []               # [{at: Vector2 (world), t: age, flying: bool, from: Vector2}]\n+var _over: Node2D\n+var _inked := 0.0                   # s left of \"you are in the ink\"\n+var _blind: Node2D                  # the window darkened while you are in it\n+var _blind_a := 0.0\n+var art_scale := 0.5                # world px per art px\n+var _rig: Node2D\n+var _torso: Node2D\n+var _tentacles: Sprite2D\n+var _arms := {}                     # side -> [shoulder pivot, elbow pivot]\n+var _fx: Node2D                     # the eyes' blaze and the gathering energy, on top\n+## Demo (the Library): no target, she charges now and then by herself, firing nothing.\n+var demo := false\n+\n+\n+func _ready() -> void:\n+\tsuper()\n+\tglow = Color(1.0, 0.4, 0.75)\n+\tmeta = JSON.parse_string(FileAccess.get_file_as_string(ART + \".json\"))\n+\tart_scale = length * 1.5 / 1100.0\n+\t_rig = Node2D.new()\n+\t_rig.scale = Vector2.ONE * art_scale\n+\tadd_child(_rig)\n+\t# The tentacles, under everything, placed and sized as in the undivided\n+\t# picture: their hub just below her chest (tentacle_at), 1.19x the size.\n+\t_tentacles = _part(\"tentacles\", CENTRE)\n+\tvar ts := float(meta[\"tentacle_scale\"])\n+\tvar hub_tex := _v(meta[\"hub\"]) - _v(meta[\"parts\"][\"tentacles\"])\n+\t_tentacles.scale = Vector2.ONE * ts\n+\t_tentacles.position = _v(meta[\"tentacle_at\"]) - CENTRE - hub_tex * ts\n+\tvar tm := ShaderMaterial.new()\n+\ttm.shader = TENTACLE_SHADER\n+\ttm.set_shader_parameter(\"tex_size\", _tentacles.texture.get_size())\n+\ttm.set_shader_parameter(\"hub\", hub_tex)\n+\ttm.set_shader_parameter(\"time_offset\", randf() * 100.0)\n+\t_tentacles.material = tm\n+\t_rig.add_child(_tentacles)\n+\t# The upper body (its hair drifting), then the arms on it.\n+\t_torso = Node2D.new()\n+\t_rig.add_child(_torso)\n+\tvar torso := _part(\"torso\", CENTRE)\n+\tvar hm := ShaderMaterial.new()\n+\thm.shader = HAIR_SHADER\n+\thm.set_shader_parameter(\"tex_size\", torso.texture.get_size())\n+\thm.set_shader_parameter(\"still_y\", 250.0 - float(meta[\"parts\"][\"torso\"][1]))\n+\thm.set_shader_parameter(\"top_y\", 40.0 - float(meta[\"parts\"][\"torso\"][1]))\n+\thm.set_shader_parameter(\"time_offset\", randf() * 100.0)\n+\ttorso.material = hm\n+\t_torso.add_child(torso)\n+\tfor side in [\"left\", \"right\"]:\n+\t\tvar sh := _v(meta[side + \"_shoulder\"])\n+\t\tvar el := _v(meta[side + \"_elbow\"])\n+\t\tvar shoulder := Node2D.new()\n+\t\tshoulder.position = sh - CENTRE\n+\t\t_torso.add_child(shoulder)\n+\t\t# The forearm under the upper arm: the pieces overlap past the elbow\n+\t\t# (tools/skylla_parts.py OVERLAP), so bending never shows a gap.\n+\t\tvar elbow := Node2D.new()\n+\t\telbow.position = el - sh\n+\t\tshoulder.add_child(elbow)\n+\t\telbow.add_child(_part(side + \"_fore\", el))\n+\t\tshoulder.add_child(_part(side + \"_upper\", sh))\n+\t\t_arms[side] = [shoulder, elbow]\n+\t_fx = Node2D.new()\n+\t_fx.draw.connect(_draw_fx)\n+\t_torso.add_child(_fx)\n+\t_over = Node2D.new()\n+\t_over.top_level = true   # (world coordinates: the ink clouds stay where they burst)\n+\t_over.z_index = 2\n+\t_over.draw.connect(_draw_over)\n+\tadd_child(_over)\n+\n+\n+func _v(a: Array) -> Vector2:\n+\treturn Vector2(float(a[0]), float(a[1]))\n+\n+\n+## A part's sprite, placed relative to `origin` (art px) and shifted by `shift`.\n+func _part(part: String, origin: Vector2, shift := Vector2.ZERO) -> Sprite2D:\n+\tvar s := Sprite2D.new()\n+\ts.name = part\n+\ts.texture = load(ART + \"_\" + part + \".png\")\n+\ts.centered = false\n+\ts.position = _v(meta[\"parts\"][part]) + shift - origin\n+\ts.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS\n+\treturn s\n+\n+\n+## Her rig's extent (tentacles 1434 x hair-to-tips ~920 art px round CENTRE).\n+func visual_size() -> Vector2:\n+\treturn Vector2(length * 1.96, length * 1.25)\n+\n+\n+## Her mouth: the orbs come from there.\n+func mouth() -> Vector2:\n+\tif meta.is_empty() or _torso == null:\n+\t\treturn super()\n+\treturn _rig.to_global((_v(meta[\"mouth\"]) - CENTRE) + _torso.position)\n+\n+\n+func _charge() -> float:\n+\tif demo:\n+\t\treturn smoothstep(0.55, 0.85, sin(_t * 0.7))   # (a charge every 9 s or so)\n+\tif special != \"\":\n+\t\treturn 1.0\n+\tif pattern == \"\":\n+\t\treturn 0.0\n+\treturn clampf(1.0 + _pt / CHARGE, 0.0, 1.0) if _pt < 0.0 else 1.0\n+\n+\n+func _process(delta: float) -> void:\n+\tif special != \"\" and not dying:\n+\t\t_t += delta\n+\t\t_run_special(delta)\n+\telse:\n+\t\tvar was := pattern\n+\t\tsuper(delta)\n+\t\tif was == \"\" and pattern != \"\" and not dying:   # a new attack: which one?\n+\t\t\tvar kind: String = SEQUENCE[_attacks % SEQUENCE.size()]\n+\t\t\t_attacks += 1\n+\t\t\tvar tgt := _target()\n+\t\t\tif kind != \"orbs\" and tgt != null:\n+\t\t\t\tpattern = \"\"\n+\t\t\t\tspecial = kind\n+\t\t\t\t_sp = 0.0\n+\t\t\t\t_sweep_hit = false\n+\t\t\t\t_aim = (tgt.global_position - _centre()).angle()\n+\t_update_inks(delta)\n+\tif _rig == null:\n+\t\treturn\n+\t# Her tentacles writhe harder while she lashes them.\n+\tvar tm := _tentacles.material as ShaderMaterial\n+\tif tm:\n+\t\ttm.set_shader_parameter(\"sway\", 26.0 * (2.4 if special == \"sweep\" else 1.0))\n+\tvar charge := _charge()\n+\t# Always upright on screen, as in the art (her ship-like heading doesn't turn her).\n+\t_rig.global_rotation = 0.0\n+\t# Breathing, and a gentle bob above the tentacles (rising as she charges).\n+\t_torso.position = Vector2(sin(_t * 0.8) * 4.0, sin(_t * 1.3) * 6.0 - charge * 12.0) / art_scale\n+\t_torso.scale = Vector2.ONE * (1.0 + 0.012 * sin(_t * 1.8))\n+\t# The arms: reaching and clawing; drawn back and up as she charges.\n+\tfor side in _arms:\n+\t\tvar s := -1.0 if side == \"left\" else 1.0\n+\t\tvar reach := sin(_t * 1.2 + (0.0 if side == \"left\" else 1.9))\n+\t\tvar claw := sin(_t * 2.3 + (0.6 if side == \"left\" else 2.4))\n+\t\t_arms[side][0].rotation = s * (0.1 * reach - 0.35 * charge)\n+\t\t_arms[side][1].rotation = s * (0.14 * claw - 0.3 * charge)\n+\t_fx.queue_redraw()\n+\t_over.global_position = Vector2.ZERO\n+\t_over.queue_redraw()\n+\n+\n+func _centre() -> Vector2:\n+\treturn enemy.global_position if enemy and is_instance_valid(enemy) else global_position\n+\n+\n+func _run_special(delta: float) -> void:\n+\tvar tgt := _target()\n+\t_sp += delta\n+\tmatch special:\n+\t\t\"sweep\":\n+\t\t\tif _sp < SWEEP_WINDUP:\n+\t\t\t\tif tgt:   # following you while she winds up\n+\t\t\t\t\t_aim = (tgt.global_position - _centre()).angle()\n+\t\t\telif tgt and not _sweep_hit:\n+\t\t\t\tvar u := clampf((_sp - SWEEP_WINDUP) / SWEEP_TIME, 0.0, 1.0)\n+\t\t\t\tvar rel: Vector2 = tgt.global_position - _centre()\n+\t\t\t\tvar off := wrapf(rel.angle() - _aim, -PI, PI)\n+\t\t\t\tvar swept := -SWEEP_ARC + 2.0 * SWEEP_ARC * u\n+\t\t\t\tif rel.length() < sweep_reach() + float(tgt.get(\"hit_radius\")) and off > -SWEEP_ARC and off < swept:\n+\t\t\t\t\t_sweep_hit = true\n+\t\t\t\t\ttgt.take_damage(SWEEP_DAMAGE, tgt.global_position, enemy)\n+\t\t\t\t\tif tgt.get(\"velocity\") != null:\n+\t\t\t\t\t\ttgt.velocity += rel.normalized() * 700.0\n+\t\t\tif _sp > SWEEP_WINDUP + SWEEP_TIME:\n+\t\t\t\t_end_special()\n+\t\t\"ink\":\n+\t\t\tif _sp < INK_WINDUP:\n+\t\t\t\tif tgt:\n+\t\t\t\t\t_ink_to = tgt.global_position\n+\t\t\telse:\n+\t\t\t\t_inks.append({\"at\": mouth(), \"from\": mouth(), \"to\": _ink_to, \"t\": 0.0, \"flying\": true})\n+\t\t\t\tSfx.play_world(\"space/monster_roar\", global_position, -8.0, 0.3)\n+\t\t\t\t_end_special()\n+\n+\n+func sweep_reach() -> float:\n+\treturn length * 1.25\n+\n+\n+func _end_special() -> void:\n+\tspecials_done[special] = int(specials_done.get(special, 0)) + 1\n+\tspecial = \"\"\n+\t_cool = PAUSE\n+\n+\n+## The ink: blobs flying to where you were, then clouds that slow you.\n+func _update_inks(delta: float) -> void:\n+\tvar tgt := get_tree().get_first_node_in_group(\"player\") as Node2D\n+\tfor ink in _inks:\n+\t\tif ink[\"flying\"]:\n+\t\t\tvar to: Vector2 = ink[\"to\"]\n+\t\t\tvar at: Vector2 = ink[\"at\"]\n+\t\t\tif at.distance_to(to) <= INK_SPEED * delta:\n+\t\t\t\tink[\"at\"] = to\n+\t\t\t\tink[\"flying\"] = false\n+\t\t\t\tink[\"t\"] = 0.0\n+\t\t\telse:\n+\t\t\t\tink[\"at\"] = at + (to - at).normalized() * INK_SPEED * delta\n+\t\telse:\n+\t\t\tink[\"t\"] += delta\n+\t\t\tif tgt and tgt.has_method(\"slow\") and tgt.global_position.distance_to(ink[\"at\"]) < INK_RADIUS:\n+\t\t\t\ttgt.slow(0.25, INK_SLOW)\n+\t\t\t\t_inked = 0.25\n+\t# In the ink, the whole window goes dark (fading in and out).\n+\t_inked -= delta\n+\tif _blind == null and is_inside_tree():\n+\t\t_blind = Node2D.new()\n+\t\t_blind.top_level = true\n+\t\t_blind.z_index = 100   # (over the whole world; the HUD stays on top)\n+\t\t_blind.draw.connect(func():\n+\t\t\tvar view := _blind.get_viewport_rect()\n+\t\t\tvar inv := _blind.get_canvas_transform().affine_inverse()\n+\t\t\t_blind.draw_rect(Rect2(inv * view.position, inv.basis_xform(view.size)), Color(0.03, 0.0, 0.06, _blind_a)))\n+\t\tadd_child(_blind)\n+\tif _blind:\n+\t\t_blind_a = move_toward(_blind_a, 0.93 if _inked > 0.0 else 0.0, delta * (2.5 if _inked > 0.0 else 1.5))\n+\t\t_blind.global_position = Vector2.ZERO\n+\t\t_blind.visible = _blind_a > 0.01\n+\t\t_blind.queue_redraw()\n+\t_inks = _inks.filter(func(i): return i[\"flying\"] or i[\"t\"] < INK_TIME)\n+\n+\n+## On top of everything, in world space: the sweep's warning arc and the\n+## lash, the ink blobs and clouds.\n+func _draw_over() -> void:\n+\tvar c := _centre()\n+\tif special == \"sweep\":\n+\t\tvar r := sweep_reach()\n+\t\tif _sp < SWEEP_WINDUP:\n+\t\t\tvar k := _sp / SWEEP_WINDUP\n+\t\t\t_over.draw_arc(c, r, _aim - SWEEP_ARC, _aim + SWEEP_ARC, 48, Color(1.0, 0.25, 0.35, 0.25 + 0.45 * k), 4.0, true)\n+\t\t\tfor i in 9:\n+\t\t\t\tvar a := _aim - SWEEP_ARC + 2.0 * SWEEP_ARC * i / 8.0\n+\t\t\t\t_over.draw_line(c + Vector2.from_angle(a) * r * 0.45, c + Vector2.from_angle(a) * r, Color(1.0, 0.25, 0.35, 0.1 + 0.2 * k), 2.0, true)\n+\t\telse:\n+\t\t\tvar u := clampf((_sp - SWEEP_WINDUP) / SWEEP_TIME, 0.0, 1.0)\n+\t\t\tvar a1 := _aim - SWEEP_ARC + 2.0 * SWEEP_ARC * u\n+\t\t\tvar a0 := maxf(_aim - SWEEP_ARC, a1 - 0.9)\n+\t\t\tfor w in [[70.0, 0.12], [34.0, 0.3], [10.0, 0.85]]:\n+\t\t\t\t_over.draw_arc(c, r * 0.8, a0, a1, 32, Color(PINK, w[1]), w[0], true)\n+\tfor ink in _inks:\n+\t\tvar at: Vector2 = ink[\"at\"]\n+\t\tif ink[\"flying\"]:\n+\t\t\t_over.draw_circle(at, 22.0, Color(0.12, 0.02, 0.18, 0.95))\n+\t\t\t_over.draw_circle(at, 12.0, Color(MAGENTA, 0.8))\n+\t\telse:\n+\t\t\tvar t: float = ink[\"t\"]\n+\t\t\tvar grow := minf(1.0, t / 0.35)\n+\t\t\tvar fade := 1.0 - smoothstep(INK_TIME - 1.0, INK_TIME, t)\n+\t\t\tfor k in 7:\n+\t\t\t\tvar a := k * TAU / 7.0 + t * 0.4\n+\t\t\t\tvar p := at + Vector2.from_angle(a) * INK_RADIUS * 0.42 * grow\n+\t\t\t\t_over.draw_circle(p, INK_RADIUS * 0.5 * grow, Color(0.07, 0.01, 0.12, 0.32 * fade))\n+\t\t\t_over.draw_circle(at, INK_RADIUS * 0.7 * grow, Color(0.05, 0.0, 0.09, 0.45 * fade))\n+\t\t\t_over.draw_arc(at, INK_RADIUS * grow, 0, TAU, 48, Color(MAGENTA, 0.35 * fade), 3.0, true)\n+\n+\n+## Orbs in her colours, pink and magenta.\n+func _orb(vel: Vector2, col: Color) -> Orb:\n+\tvar o := super(vel, col)\n+\to.color = PINK if col == ORB_COLOR else MAGENTA\n+\treturn o\n+\n+\n+## Dying: stop whatever she was doing.\n+func death_throes() -> void:\n+\tspecial = \"\"\n+\tawait super()\n+\n+\n+## On the torso, in art px: her eyes blazing and the energy at her mouth.\n+func _draw_fx() -> void:\n+\tvar charge := _charge()\n+\tvar pulse := 0.5 + 0.5 * sin(_t * 3.0)\n+\tfor e in meta[\"eyes\"]:\n+\t\tvar p := _v(e) - CENTRE\n+\t\t_fx.draw_circle(p, 14.0 + 10.0 * charge, Color(1.0, 0.15, 0.3, 0.1 + 0.06 * pulse + 0.3 * charge))\n+\t\t_fx.draw_circle(p, 5.0 + 3.0 * charge, Color(1.0, 0.5, 0.6, 0.2 + 0.5 * charge))\n+\tif charge > 0.0:\n+\t\tvar m := _v(meta[\"mouth\"]) - CENTRE\n+\t\tvar r := (4.0 + 12.0 * charge) * (1.0 + 0.15 * sin(_t * 30.0))\n+\t\tfor k in 4:\n+\t\t\t_fx.draw_circle(m, r * (2.6 - k * 0.45), Color(glow, 0.08 + 0.06 * k))\n+\t\t_fx.draw_circle(m, r, Color(1.0, 0.9, 1.0, 0.9))\n+\n+\n+func _draw() -> void:\n+\t# A soft magenta halo behind her, brighter as she charges.\n+\tvar charge := _charge()\n+\tvar pulse := 0.5 + 0.5 * sin(_t * 2.0)\n+\tfor k in 5:\n+\t\tdraw_circle(Vector2(0, length * 0.1), length * (0.7 - k * 0.1), Color(glow, (0.01 + 0.006 * pulse + 0.02 * charge) * (k + 1) * 0.6))",
+      "added": 357,
+      "removed": 0,
+      "title": "SeaWitch",
+      "note": "SeaWitch",
+      "bubbles": [
+       {
+        "at": "func _run_special(delta: float) -> void:",
+        "text": "The sweep's arc follows you while she winds up, then the lash; the ink is spat at where you were."
+       },
+       {
+        "at": "func _update_inks(delta: float) -> void:",
+        "text": "Ink clouds slow your ship; while you're in one the whole view goes dark."
+       },
+       {
+        "at": "func visual_size() -> Vector2:",
+        "text": "Her size as drawn, for her shield and hit radius."
+       }
+      ]
+     }
+    ],
+    "added": 357,
+    "removed": 0
+   },
+   {
+    "path": "scripts/ship.gd",
+    "kind": "modified",
+    "explanation": "Ship effects: slowed (ink) and shields drained (pulse).",
+    "hunks": [
+     {
+      "diff": "@@ -389,6 +389,9 @@ func _process\n \n \tvar boosting := boost_time > 0.0\n \tvar speed_cap := max_speed * (boost_multiplier if boosting else 1.0)\n+\tif _slow_t > 0.0:   # (Skylla's ink: slowed while in it)\n+\t\t_slow_t -= delta\n+\t\tspeed_cap *= _slow_k\n \tvar accel := acceleration * (1.6 if boosting else 1.0)\n \tvar desired_velocity := Vector2.ZERO\n ",
+      "added": 3,
+      "removed": 0,
+      "title": "Slow",
+      "note": "Speed cap times the slow factor."
+     },
+     {
+      "diff": "@@ -461,7 +464,50 @@ func _mining_sound\n \t\t_mining = null\n \n \n+## Slowed to `factor` of top speed for `seconds` (Skylla's ink cloud keeps\n+## renewing it while you're inside).\n+var _slow_t := 0.0\n+var _slow_k := 1.0\n+\n+func slow(seconds: float, factor: float) -> void:\n+\tif invulnerable:\n+\t\treturn\n+\t_slow_t = maxf(_slow_t, seconds)\n+\t_slow_k = factor\n+\n+\n+func slowed() -> bool:\n+\treturn _slow_t > 0.0\n+\n+\n+## The Minotaur's pulse: shields dead for `seconds`, then back as they were.\n+var _drain := 0.0\n+var _drain_saved := 0.0\n+\n+func drain_shields(seconds: float) -> void:\n+\tif not _alive or invulnerable:\n+\t\treturn\n+\tif _drain <= 0.0:\n+\t\t_drain_saved = shields\n+\t_drain = seconds\n+\tshields = 0.0\n+\tmessage.emit(\"Shields drained!\")\n+\t_emit_health()\n+\n+\n+func shields_drained() -> bool:\n+\treturn _drain > 0.0\n+\n+\n func _update_defense(delta: float) -> void:\n+\tif _drain > 0.0:\n+\t\t_drain -= delta\n+\t\tshields = 0.0\n+\t\tif _drain <= 0.0:\n+\t\t\tshields = minf(max_shields, _drain_saved)\n+\t\t\tmessage.emit(\"Shields restored\")\n+\t\t\t_emit_health()\n+\t\treturn\n \t_since_hit += delta\n \tif _since_hit > shield_regen_delay and shields < max_shields:\n \t\tshields = minf(max_shields, shields + shield_regen * delta)",
+      "added": 43,
+      "removed": 0,
+      "title": "Drain and slow",
+      "note": "Drain and slow",
+      "bubbles": [
+       {
+        "at": "func drain_shields(seconds: float) -> void:",
+        "text": "Shields dead for a while, then back as they were."
+       }
+      ]
+     }
+    ],
+    "added": 46,
+    "removed": 0
+   },
+   {
+    "path": "scripts/sim/ship_scanner.gd",
+    "kind": "modified",
+    "explanation": "Signal paths fade from the signal; the visibility range.",
+    "hunks": [
+     {
+      "diff": "@@ -21,6 +21,7 @@ ## Drawn in the world, above the ships \n const ARROW_TIME := 10.0\n const CYAN := Color(0.3, 0.9, 1.0)       # (the GUIs cyan)\n const ORANGE := Color(1.0, 0.55, 0.15)\n+const PATH_REACH := 1.0                # signal paths are gone at this share of signal_range()\n \n var ship: Node2D\n var minimap: Control",
+      "added": 1,
+      "removed": 0,
+      "title": "Constant",
+      "note": "Constant"
+     },
+     {
+      "diff": "@@ -189,6 +190,7 @@ func _draw_paths\n \tvar from := ship.global_position\n \tvar now := Time.get_ticks_msec() / 1000.0\n \tvar px := 1.0 / maxf(get_canvas_transform().get_scale().x, 0.01)   # (sizes in screen px at any zoom)\n+\tvar reach := signal_range(get_tree()) * PATH_REACH\n \tfor i in paths.size():\n \t\tvar to: Vector2 = paths[i][\"to\"]\n \t\tvar d := from.distance_to(to)",
+      "added": 1,
+      "removed": 0,
+      "title": "Range",
+      "note": "Range"
+     },
+     {
+      "diff": "@@ -196,42 +198,88 @@ func _draw_paths\n \t\t\tcontinue\n \t\tvar c: Color = paths[i][\"color\"]\n \t\t# A glowing route like the reference console's: a gentle curve (each path\n-\t\t# bowed its own way), a wide soft glow, a bright core, light nodes along\n-\t\t# it, pulses of light running out to the signal and a glowing ring there.\n+\t\t# bowed its own way), a soft glow falling off in many fine layers, a\n+\t\t# bright core, light nodes along it, slow pulses gliding out to the\n+\t\t# signal and glowing rings there. It is brightest at the signal and fades\n+\t\t# toward the ship, gone PATH_REACH x signal_range() from the signal (a third\n+\t\t# of the system across) - from farther away the end near you is clear.\n \t\tvar dir := (to - from) / d\n \t\tvar start := from + dir * 70.0 * px\n \t\tvar mid := (start + to) * 0.5 + dir.orthogonal() * d * 0.1 * (1.0 if i % 2 == 0 else -1.0)\n+\t\tvar curve := func(u: float) -> Vector2: return start.lerp(mid, u).lerp(mid.lerp(to, u), u)\n+\t\t# Bright at the signal, fading toward the ship: gone `reach` away from the signal.\n+\t\tvar fade_at := func(p: Vector2) -> float: return 1.0 - smoothstep(reach * 0.3, reach, to.distance_to(p))\n \t\tvar pts := PackedVector2Array()\n-\t\tvar n := clampi(int(d / 40.0), 12, 90)\n+\t\tvar fades := PackedFloat32Array()\n+\t\tvar n := clampi(int(d / 30.0), 16, 160)\n \t\tfor k in n + 1:\n-\t\t\tvar u := float(k) / n\n-\t\t\tpts.append(start.lerp(mid, u).lerp(mid.lerp(to, u), u))\n-\t\tvar cols_glow := PackedColorArray()\n-\t\tvar cols_core := PackedColorArray()\n+\t\t\tvar p: Vector2 = curve.call(float(k) / n)\n+\t\t\tvar f: float = fade_at.call(p) * clampf(float(k) / 5.0, 0.0, 1.0)   # (eases in from the ship)\n+\t\t\tif f <= 0.0:\n+\t\t\t\tcontinue   # (too far from the signal: this part of the path isn't drawn)\n+\t\t\tpts.append(p)\n+\t\t\tfades.append(f)\n+\t\tif pts.size() < 2:\n+\t\t\tcontinue\n+\t\t# The glow: many fine layers, widest and faintest first - a smooth falloff.\n+\t\tfor layer in [[46.0, 0.035], [36.0, 0.045], [27.0, 0.06], [19.0, 0.08], [12.0, 0.11], [7.0, 0.16]]:\n+\t\t\tvar cols := PackedColorArray()\n+\t\t\tfor k in pts.size():\n+\t\t\t\tcols.append(Color(c, layer[1] * a * fades[k]))\n+\t\t\tdraw_polyline_colors(pts, cols, layer[0] * px, true)\n+\t\tvar core := PackedColorArray()\n+\t\tvar hot := PackedColorArray()\n \t\tfor k in pts.size():\n-\t\t\tvar fade := clampf(float(k) / 4.0, 0.0, 1.0)   # (eases in from the ship)\n-\t\t\tcols_glow.append(Color(c, 0.12 * a * fade))\n-\t\t\tcols_core.append(Color(c.lightened(0.45), 0.95 * a * fade))\n-\t\tdraw_polyline_colors(pts, cols_glow, 34.0 * px, true)\n-\t\tcols_glow = PackedColorArray(Array(cols_glow).map(func(x): return Color(x, x.a * 2.0)))\n-\t\tdraw_polyline_colors(pts, cols_glow, 14.0 * px, true)\n-\t\tdraw_polyline_colors(pts, cols_core, 3.5 * px, true)\n+\t\t\tcore.append(Color(c.lightened(0.45), 0.9 * a * fades[k]))\n+\t\t\thot.append(Color(1, 1, 1, 0.55 * a * fades[k]))\n+\t\tdraw_polyline_colors(pts, core, 3.0 * px, true)\n+\t\tdraw_polyline_colors(pts, hot, 1.2 * px, true)\n \t\t# Nodes along the route.\n-\t\tvar every := maxi(3, int(n / 5.0))\n-\t\tfor k in range(every, n - 1, every):\n-\t\t\tdraw_circle(pts[k], 9.0 * px, Color(c, 0.22 * a))\n-\t\t\tdraw_circle(pts[k], 4.5 * px, Color(c.lightened(0.6), 0.95 * a))\n-\t\t# Pulses of light running out along it.\n+\t\tvar every := maxi(4, int(n / 5.0))\n+\t\tfor k in range(every, pts.size() - 1, every):\n+\t\t\tdraw_circle(pts[k], 9.0 * px, Color(c, 0.2 * a * fades[k]))\n+\t\t\tdraw_circle(pts[k], 4.5 * px, Color(c.lightened(0.6), 0.95 * a * fades[k]))\n+\t\t# Pulses gliding slowly out along it, each with a short soft tail.\n \t\tfor q in 3:\n-\t\t\tvar u := fposmod(now * 0.45 + q / 3.0 + i * 0.17, 1.0)\n-\t\t\tvar p := pts[int(u * n)]\n-\t\t\tdraw_circle(p, 16.0 * px, Color(c, 0.18 * a))\n-\t\t\tdraw_circle(p, 6.0 * px, Color(1, 1, 1, 0.9 * a))\n+\t\t\tvar u := fposmod(now * 0.12 + q / 3.0 + i * 0.17, 1.0)\n+\t\t\tfor tail in 6:\n+\t\t\t\tvar ut := u - tail * 0.006\n+\t\t\t\tif ut < 0.0:\n+\t\t\t\t\tbreak\n+\t\t\t\tvar p: Vector2 = curve.call(ut)\n+\t\t\t\tvar f: float = fade_at.call(p) * smoothstep(0.0, 0.05, ut) * (1.0 - tail / 6.0)\n+\t\t\t\tif f <= 0.0:\n+\t\t\t\t\tcontinue\n+\t\t\t\tdraw_circle(p, (15.0 - tail * 1.5) * px, Color(c, 0.12 * a * f))\n+\t\t\t\tif tail == 0:\n+\t\t\t\t\tdraw_circle(p, 5.5 * px, Color(1, 1, 1, 0.9 * a * f))\n \t\t# The destination: glowing rings.\n-\t\tvar pulse := 0.5 + 0.5 * sin(now * 4.0 + i)\n+\t\tvar pulse := 0.5 + 0.5 * sin(now * 2.0 + i)\n \t\tdraw_circle(to, (30.0 + 6.0 * pulse) * px, Color(c, 0.1 * a))\n \t\tdraw_arc(to, (22.0 + 4.0 * pulse) * px, 0, TAU, 40, Color(c.lightened(0.3), 0.9 * a), 3.0 * px, true)\n \t\tdraw_arc(to, (34.0 + 8.0 * pulse) * px, 0, TAU, 48, Color(c, 0.35 * a), 2.0 * px, true)\n+\n+\n+## How far signal paths reach, and how close you must be to see a signal on\n+## the radar and the system map: a third of the\n+## current system across - twice the farthest gate, station or planet from the\n+## star, divided by three. Worked out once per system.\n+static var _range_sys := \"\"\n+static var _range := 0.0\n+\n+static func signal_range(tree: SceneTree) -> float:\n+\tvar sys: String = Galaxy.current_system\n+\tif sys != _range_sys or _range <= 0.0:\n+\t\tvar far := 0.0\n+\t\tfor g in [\"gates\", \"stations\", \"planet_bodies\"]:\n+\t\t\tfor n in tree.get_nodes_in_group(g):\n+\t\t\t\tif n.global_position.distance_to(SignalSite.ORIGIN) > SignalSite.BOUNDS * 2.0:\n+\t\t\t\t\tfar = maxf(far, n.global_position.length())\n+\t\tif far <= 0.0:\n+\t\t\treturn 20000.0   # (the system isn't built yet: don't remember this)\n+\t\t_range_sys = sys\n+\t\t_range = far * 2.0 / 3.0\n+\treturn _range\n \n \n ## The system scan, in the console's glowing style: rings pulsing out from",
+      "added": 70,
+      "removed": 24,
+      "title": "The paths",
+      "note": "The paths",
+      "bubbles": [
+       {
+        "at": "var fade_at := func",
+        "text": "Brightness by distance from the signal: gone at the range."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -270,3 +318,8 @@ func _draw_waves\n \t\tdraw_line(_wave_from, tip, Color(CYAN.lightened(0.5), sa), 2.5 * px, true)\n \t\tdraw_circle(_wave_from, 10.0 * px, Color(ORANGE, 0.3 * sa))\n \t\tdraw_circle(_wave_from, 4.0 * px, Color(ORANGE.lightened(0.4), sa))\n+\n+\n+## A located signal you're close enough to see (radar, system map).\n+static func signal_visible(tree: SceneTree, at: Vector2, from: Vector2) -> bool:\n+\treturn from.distance_to(at) <= signal_range(tree)",
+      "added": 5,
+      "removed": 0,
+      "title": "signal_visible",
+      "note": "Within signal_range: seen on the radar and maps."
+     }
+    ],
+    "added": 77,
+    "removed": 24
+   },
+   {
+    "path": "scripts/signal_site.gd",
+    "kind": "modified",
+    "explanation": "The monster signal: Skylla or Cerberus, by the signal; loot after the death.",
+    "hunks": [
+     {
+      "diff": "@@ -16,7 +16,8 @@ ##                them while it lives for its reward\n ##                them while it lives for its reward\n ##   wreck        a wrecked hull, 10-14 pieces of loot drifting round it (kept,\n ##                not expiring); scavengers may turn up\n-##   monster      a Void Leviathan: kill it for alien alloy, data cores, credits\n+##   monster      a creature - Skylla, the sea witch (SeaWitch), or Cerberus (CerberusBeast),\n+##                by the signal: kill it for alien alloy, data cores, credits\n ##   anomaly      a swirling anomaly with four nodes round it: right-click each\n ##                (close up) to scan it - research data for all four; its core\n ##                burns",
+      "added": 2,
+      "removed": 1,
+      "title": "Doc",
+      "note": "Doc"
+     },
+     {
+      "diff": "@@ -178,11 +179,21 @@ func _build_wreck\n \t_say(\"A wrecked ship, its cargo drifting round it. Collect the salvage (%d pieces).\" % _loot.size())\n \n \n+## The creatures of the monster signals: [type, name, the warning, her / his / its].\n+const CREATURES := [\n+\t[\"skylla\", \"Skylla\", \"Something vast stirs here: Skylla, the sea witch of the deep void. Kill her - her flesh is laced with alien alloy.\", \"her\"],\n+\t[\"cerberus\", \"Cerberus\", \"Three heads lift as one and howl: Cerberus, the hound at the gates of the dead. Kill it - its hide is laced with alien alloy.\", \"its\"],\n+]\n+var _creature: Array = CREATURES[0]\n+var _monster_at := ORIGIN\n+\n+\n func _build_monster() -> void:\n-\t_monster = _spawn(ORIGIN + Vector2(0, -1300), \"void_leviathan\", \"pirates\")\n+\t_creature = CREATURES[absi(hash(str(sig.get(\"id\", \"\")))) % CREATURES.size()]   # (the same signal: the same creature)\n+\t_monster = _spawn(ORIGIN + Vector2(0, -1300), _creature[0], \"pirates\")\n \t_monster.aggro_range = 950.0\n \tSfx.play(\"space/monster_roar\")\n-\t_say(\"Something enormous is here: a Void Leviathan. Kill it - its hide is laced with alien alloy.\")\n+\t_say(_creature[2])\n \n \n func _build_anomaly() -> void:",
+      "added": 12,
+      "removed": 2,
+      "title": "Creatures",
+      "note": "Creatures",
+      "bubbles": [
+       {
+        "at": "const CREATURES := [",
+        "text": "The creatures a monster signal can hold, picked by the signal's id."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -349,14 +360,16 @@ func _run_monster\n func _run_monster() -> void:\n \tif done:\n \t\treturn\n-\tif not is_instance_valid(_monster) or not _monster.is_alive():\n-\t\tvar at: Vector2 = _monster.global_position if is_instance_valid(_monster) else ORIGIN\n-\t\t_drop(at, \"alien_alloy\", _rng.randi_range(3, 5))\n-\t\t_drop(at + Vector2(40, 0), \"data_core\", _rng.randi_range(1, 2))\n-\t\t_drop(at + Vector2(-40, 20), \"credits\", _rng.randi_range(500, 900))\n-\t\tcomplete(\"The Void Leviathan is dead. Its body is breaking up - collect what it leaves.\")\n-\telse:\n-\t\t_say(\"The Void Leviathan: %d %% left.\" % int(_monster.hull / _monster.max_hull * 100.0))\n+\tif is_instance_valid(_monster):\n+\t\t_monster_at = _monster.global_position\n+\t\tif _monster.is_alive():\n+\t\t\t_say(\"%s: %d %% left.\" % [_creature[1], int(_monster.hull / _monster.max_hull * 100.0)])\n+\t\treturn   # (alive, or dying: the loot comes after the explosion)\n+\tvar at := _monster_at\n+\t_drop(at, \"alien_alloy\", _rng.randi_range(3, 5))\n+\t_drop(at + Vector2(40, 0), \"data_core\", _rng.randi_range(1, 2))\n+\t_drop(at + Vector2(-40, 20), \"credits\", _rng.randi_range(500, 900))\n+\tcomplete(\"%s is dead. The body is breaking up - collect what %s leaves.\" % [_creature[1], \"she\" if _creature[3] == \"her\" else \"it\"])\n \n \n func _run_anomaly(ship: Node2D, delta: float) -> void:",
+      "added": 10,
+      "removed": 8,
+      "title": "Loot",
+      "note": "Dropped where it died, after the explosion."
+     }
+    ],
+    "added": 24,
+    "removed": 11
+   },
+   {
+    "path": "scripts/space_monster.gd",
+    "kind": "modified",
+    "explanation": "The shared death sequence and visual size.",
+    "hunks": [
+     {
+      "diff": "@@ -71,6 +71,8 @@ # --- Attacks ----------------------------------------------\n # --- Attacks -------------------------------------------------------------------------------\n \n func _attack(delta: float, tgt: Node2D) -> void:\n+\tif dying:\n+\t\treturn\n \tif pattern == \"\":\n \t\t_cool -= delta\n \t\tif _cool <= 0.0 and tgt != null:",
+      "added": 2,
+      "removed": 0,
+      "title": "Dying",
+      "note": "Attacks stop."
+     },
+     {
+      "diff": "@@ -119,6 +121,76 @@ func _attack\n \t\tpattern = \"\"\n \t\t_cool = PAUSE\n \t\t_spin += 1.1\n+\n+\n+## Dying (Enemy._die): THROES s of shaking - harder and harder, flickering\n+## red-hot, explosions bursting across its body - then a very large explosion\n+## (and a few more round it); then it's gone. Only the creature shakes; the\n+## camera glides over to centre on it meanwhile, and back to your ship after.\n+const THROES := 2.4\n+var dying := false\n+\n+func death_throes() -> void:\n+\tdying = true\n+\tpattern = \"\"\n+\tvar size := visual_size()\n+\tvar home := position\n+\tvar t := 0.0\n+\tvar next_burst := 0.0\n+\tSfx.play_world(\"space/monster_roar\", global_position, 2.0, 0.05)\n+\t# The camera leaves your ship and glides over to watch it die.\n+\tvar cam := get_viewport().get_camera_2d()\n+\tvar cam_home := Vector2.ZERO\n+\tvar centre := (enemy.global_position if enemy and is_instance_valid(enemy) else global_position)\n+\tif cam and cam.global_position.distance_to(centre) > 2500.0:\n+\t\tcam = null   # (dying far away: leave the view alone)\n+\tif cam:\n+\t\tcam_home = cam.position\n+\t\tvar g := cam.global_position\n+\t\tcam.top_level = true\n+\t\tcam.global_position = g\n+\t\tcam.create_tween().tween_property(cam, \"global_position\", centre, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)\n+\twhile t < THROES:\n+\t\tawait get_tree().process_frame\n+\t\tif not is_inside_tree():\n+\t\t\treturn\n+\t\tvar dt := get_process_delta_time()\n+\t\tt += dt\n+\t\tvar k := t / THROES\n+\t\tposition = home + Vector2(randf_range(-1, 1), randf_range(-1, 1)) * (4.0 + 26.0 * k) / maxf(global_scale.x, 0.01)\n+\t\tvar flick := 0.5 + 0.5 * sin(t * (18.0 + 30.0 * k))\n+\t\tmodulate = Color(1.0 + 0.8 * k * flick, 1.0 - 0.3 * k * flick, 1.0 - 0.45 * k * flick)\n+\t\tnext_burst -= dt\n+\t\tif next_burst <= 0.0:\n+\t\t\tnext_burst = lerpf(0.28, 0.07, k)\n+\t\t\tvar at := global_position + Vector2(randf_range(-0.4, 0.4) * size.x, randf_range(-0.4, 0.4) * size.y)\n+\t\t\tEffects.explosion(at, randf_range(0.5, 0.9) + k, \"space/boom_small\" if randf() < 0.7 else \"space/boom_big\")\n+\t# The big one.\n+\tvar at := global_position\n+\tEffects.explosion(at, 6.5, \"space/ship_boom_large\")\n+\tvisible = false\n+\tfor i in 4:\n+\t\tawait get_tree().create_timer(0.1 + 0.09 * i).timeout\n+\t\tEffects.explosion(at + Vector2.from_angle(randf() * TAU) * size.length() * randf_range(0.15, 0.35), randf_range(2.4, 3.4), \"space/boom_big\")\n+\tawait get_tree().create_timer(0.9).timeout\n+\t# And back to your ship.\n+\tif cam and is_instance_valid(cam):\n+\t\tvar parent := cam.get_parent() as Node2D\n+\t\tif parent:\n+\t\t\tvar tw := cam.create_tween()\n+\t\t\ttw.tween_method(func(u: float):\n+\t\t\t\tif is_instance_valid(cam) and is_instance_valid(parent):\n+\t\t\t\t\tcam.global_position = centre.lerp(parent.to_global(cam_home), u), 0.0, 1.0, 0.7).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)\n+\t\t\tawait tw.finished\n+\t\tif is_instance_valid(cam):\n+\t\t\tcam.top_level = false\n+\t\t\tcam.position = cam_home\n+\n+\n+## How big it looks (world px, upright): its shield and hit radius are sized\n+## from this (Enemy), not from the hidden sizing ship.\n+func visual_size() -> Vector2:\n+\treturn Vector2(length, length) * 0.9\n \n \n func mouth() -> Vector2:",
+      "added": 70,
+      "removed": 0,
+      "title": "death_throes",
+      "note": "death_throes",
+      "bubbles": [
+       {
+        "at": "func death_throes() -> void:",
+        "text": "Shaking harder, red-hot, bursts; the big explosion; the camera glides to it and back."
+       }
+      ]
+     }
+    ],
+    "added": 72,
+    "removed": 0
+   },
+   {
+    "path": "scripts/zoo.gd",
+    "kind": "modified",
+    "explanation": "The Library's MONSTERS room.",
+    "hunks": [
+     {
+      "diff": "@@ -12,10 +12,11 @@ ##   BUILDINGS   the Minoan tile styles \n ##   BUILDINGS   the Minoan tile styles (walls, floors, roofs, columns, decor)\n ##               and the scenery\n ##   EFFECTS     the laser arrows on a firing range, every effect sprite\n+##   MONSTERS    the creatures of the signal sites, alive and animated\n ## Drag (any mouse button) or WASD / arrows to look around, the mouse wheel to\n ## zoom, Home to reset the view; Esc or \"Back to Talos\" to leave.\n \n-const ROOMS := [\"CHARACTERS\", \"SHIPS\", \"STATIONS\", \"PLANETS\", \"ASTEROIDS\", \"SUNS\", \"NEBULAE\", \"BUILDINGS\", \"EFFECTS\", \"GUI\"]\n+const ROOMS := [\"CHARACTERS\", \"SHIPS\", \"STATIONS\", \"PLANETS\", \"ASTEROIDS\", \"SUNS\", \"NEBULAE\", \"BUILDINGS\", \"EFFECTS\", \"GUI\", \"MONSTERS\"]\n const EDITOR_SCENE := \"res://scenes/editor/editor.tscn\"\n const ACCENT := Color(0.4, 0.95, 0.75)\n const PROPS := preload(\"res://scripts/surface_props.gd\")",
+      "added": 2,
+      "removed": 1,
+      "title": "Doc",
+      "note": "Doc"
+     },
+     {
+      "diff": "@@ -26,7 +27,8 @@ ## Per room: [camera start, zoom].\n ## Per room: [camera start, zoom].\n const VIEW := {\"CHARACTERS\": [Vector2(-150, -1000), 0.6], \"SHIPS\": [Vector2(1050, 560), 0.5],\n \t\"STATIONS\": [Vector2(1400, 520), 0.42], \"PLANETS\": [Vector2(1500, 450), 0.45], \"ASTEROIDS\": [Vector2(1300, 380), 0.5], \"SUNS\": [Vector2(1650, 0), 0.32], \"NEBULAE\": [Vector2(2400, 700), 0.25],\n-\t\"BUILDINGS\": [Vector2(-850, -1000), 0.5], \"EFFECTS\": [Vector2(560, 150), 0.65], \"GUI\": [Vector2(380, 300), 1.0]}\n+\t\"BUILDINGS\": [Vector2(-850, -1000), 0.5], \"EFFECTS\": [Vector2(560, 150), 0.65], \"GUI\": [Vector2(380, 300), 1.0],\n+\t\"MONSTERS\": [Vector2(1600, 0), 0.32]}\n \n ## The room the Library opens in.\n static var start_room := 0",
+      "added": 2,
+      "removed": 1,
+      "title": "View",
+      "note": "View"
+     },
+     {
+      "diff": "@@ -211,11 +213,12 @@ func _build_ui\n \t\t[\"nebulae\", \"The four backdrop templates (supernova remnant, planetary nebula, emission nebula, spiral galaxy)\\nand every system's nebulae, each one generated from them and different from all the others.\"],\n \t\t[\"buildings\", \"The Minoan building styles: every wall (both ways), floor, roof, column, roof piece and decor; the scenery.\"],\n \t\t[\"effects\", \"The laser arrows on a firing range (each with its impact burst) and every effect sprite, glowing.\"],\n-\t\t[\"gui\", \"The interface itself: every kind of widget on a sample board. Its look (colours, panels,\\ncorners, borders, glow) is edited in the property panel - live, on every window.\"]]\n+\t\t[\"gui\", \"The interface itself: every kind of widget on a sample board. Its look (colours, panels,\\ncorners, borders, glow) is edited in the property panel - live, on every window.\"],\n+\t\t[\"enemy\", \"The creatures, alive: Skylla, the sea witch of the signal sites, the Minotaur - the main quest's\\nlast boss - (both traced from their reference art) and the Void Leviathan.\"]]\n \tfor i in _bar.get_child_count():\n \t\tvar tb: Button = _bar.get_child(i)\n-\t\ttb.add_theme_font_size_override(\"font_size\", 11)   # (ten rooms: fit them all)\n-\t\tEditorIcons.dress_tab(tb, info[i][0], EditorIcons.tip(ROOMS[i].capitalize(), str((i + 1) % 10), info[i][1]))\n+\t\ttb.add_theme_font_size_override(\"font_size\", 11)   # (eleven rooms: fit them all)\n+\t\tEditorIcons.dress_tab(tb, info[i][0], EditorIcons.tip(ROOMS[i].capitalize(), str((i + 1) % 10) if i < 10 else \"\", info[i][1]))\n \t_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL\n \trow.add_child(_bar)\n \tvar rv := EditorIcons.dress(UI.button(\"\", _reset_view, 16), \"reload\", EditorIcons.tip(\"Reset view\", \"Home\", \"Moves the camera back to the room's starting position and zoom.\\nLook around with a drag, WASD or the arrows; zoom with the wheel or + / -.\"))",
+      "added": 4,
+      "removed": 3,
+      "title": "Tab",
+      "note": "Tab"
+     },
+     {
+      "diff": "@@ -267,6 +270,7 @@ func show_room\n \t\t\"BUILDINGS\": _room_buildings()\n \t\t\"EFFECTS\": _room_effects()\n \t\t\"GUI\": _room_gui()\n+\t\t\"MONSTERS\": _room_monsters()\n \t_register_characters()\n \t_reset_view()\n ",
+      "added": 1,
+      "removed": 0,
+      "title": "Dispatch",
+      "note": "Dispatch"
+     },
+     {
+      "diff": "@@ -1380,6 +1384,39 @@ func _room_buildings\n \t\ti += 1\n \n \n+## The creatures, alive: Skylla (SeaWitch) and the Minotaur (MinotaurBoss), in\n+## demo mode - winding up now and then without a target - and the Void Leviathan.\n+func _room_monsters() -> void:\n+\t_space_backdrop()\n+\t_heading(\"MONSTERS  \u00b7  the creatures of the signal sites and the main quest, alive\", Vector2(1600, -620))\n+\tvar witch := SeaWitch.new()\n+\twitch.length = float(EnemyTypes.MONSTERS[\"skylla\"][\"length\"])\n+\twitch.demo = true\n+\twitch.position = Vector2(0, 0)\n+\tworld.add_child(witch)\n+\t_plate(\"SKYLLA  \u00b7  the sea witch\\ntraced from the reference art: tentacles writhe, hair drifts,\\narms reach and claw; charging, her eyes blaze and energy gathers at her mouth\",\n+\t\tVector2(0, 360), 17, Color.WHITE, 640.0)\n+\tvar lev := SpaceMonster.new()\n+\tlev.length = float(EnemyTypes.MONSTERS[\"void_leviathan\"][\"length\"])\n+\tlev.position = Vector2(1000, 0)\n+\tworld.add_child(lev)\n+\t_plate(\"VOID LEVIATHAN\\nthe first creature (old saves)\", Vector2(1000, 360), 17, Color.WHITE, 480.0)\n+\tvar cer := CerberusBeast.new()\n+\tcer.length = float(EnemyTypes.MONSTERS[\"cerberus\"][\"length\"])\n+\tcer.demo = true\n+\tcer.position = Vector2(3200, 0)\n+\tworld.add_child(cer)\n+\t_plate(\"CERBERUS  \u00b7  monster signals\\nthe three-headed hound, traced from the reference art: heads snap,\\nlegs paw, tail lashes; winding up, his jaws glow - fire from all three\",\n+\t\tVector2(3200, 420), 17, Color.WHITE, 700.0)\n+\tvar mino := MinotaurBoss.new()\n+\tmino.length = float(EnemyTypes.MONSTERS[\"minotaur\"][\"length\"])\n+\tmino.demo = true\n+\tmino.position = Vector2(2000, 0)\n+\tworld.add_child(mino)\n+\t_plate(\"THE MINOTAUR  \u00b7  main-quest boss\\nthe true Asterion, guardian of the Labyrinth: traced from the reference art;\\nhis cape ripples, arms rake, leg kicks; winding up, eyes and crest blaze - and he charges\",\n+\t\tVector2(2000, 420), 17, Color.WHITE, 700.0)\n+\n+\n func _room_effects() -> void:\n \t_space_backdrop()\n \t_heading(\"EFFECTS  \u00b7  the archer's laser arrows on a firing range, and every effect sprite\", Vector2(600, -520))",
+      "added": 33,
+      "removed": 0,
+      "title": "The room",
+      "note": "The room",
+      "bubbles": [
+       {
+        "at": "func _room_monsters() -> void:",
+        "text": "Every creature alive, in demo mode (winding up now and then)."
+       }
+      ]
+     }
+    ],
+    "added": 42,
+    "removed": 5
+   },
+   {
+    "path": "shaders/minotaur_cape.gdshader",
+    "kind": "new",
+    "explanation": "New: his cape ripples where the mask is set.",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,28 @@ \n+shader_type canvas_item;\n+// The Minotaur's body (MinotaurBoss), the traced art, his red cape rippling:\n+// where the cape mask is set, each pixel is taken from a little way along a\n+// wave travelling out through the cloth; the rest of him holds still.\n+\n+uniform sampler2D cape_mask;      // the cape, softened (same size as the texture)\n+uniform vec2 tex_size;\n+uniform float sway = 16.0;        // px at full mask\n+uniform float time_offset = 0.0;\n+\n+varying vec4 tint;\n+\n+void vertex() {\n+\ttint = COLOR;\n+}\n+\n+void fragment() {\n+\tvec2 p = UV * tex_size;\n+\tfloat t = TIME + time_offset;\n+\tfloat m = texture(cape_mask, UV).r;\n+\tvec2 off = vec2(sin(t * 2.1 + p.y * 0.022 + p.x * 0.006) + 0.4 * sin(t * 3.3 + p.x * 0.03),\n+\t\tcos(t * 1.7 + p.x * 0.018) * 0.8) * sway * m;\n+\tvec2 uv = (p - off) / tex_size;\n+\tCOLOR = texture(TEXTURE, uv) * tint;\n+\tif (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) {\n+\t\tCOLOR.a = 0.0;\n+\t}\n+}",
+      "added": 28,
+      "removed": 0,
+      "title": "Shader",
+      "note": "Shader"
+     }
+    ],
+    "added": 28,
+    "removed": 0
+   },
+   {
+    "path": "shaders/skylla_hair.gdshader",
+    "kind": "new",
+    "explanation": "New: her hair drifts above the crown.",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,29 @@ \n+shader_type canvas_item;\n+// Skylla's upper body (SeaWitch): the traced art, her hair drifting as if in\n+// water - nothing moves below `still_y` (the crown, the face, the body), and\n+// the curls sway more the higher they are, in slow overlapping waves.\n+\n+uniform vec2 tex_size;\n+uniform float still_y = 250.0;    // texture px: no sway from here down\n+uniform float top_y = 40.0;       // texture px: full sway from here up\n+uniform float sway = 9.0;         // px at the top\n+uniform float time_offset = 0.0;\n+\n+varying vec4 tint;   // (the vertex colour: modulate, hit flashes)\n+\n+void vertex() {\n+\ttint = COLOR;\n+}\n+\n+void fragment() {\n+\tvec2 p = UV * tex_size;\n+\tfloat t = TIME + time_offset;\n+\tfloat k = smoothstep(still_y, top_y, p.y);\n+\tvec2 off = vec2(sin(t * 1.1 + p.y * 0.021 + p.x * 0.008) + 0.5 * sin(t * 1.7 + p.x * 0.019),\n+\t\t0.5 * sin(t * 0.9 + p.x * 0.015)) * sway * k;\n+\tvec2 uv = (p - off) / tex_size;\n+\tCOLOR = texture(TEXTURE, uv) * tint;\n+\tif (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) {\n+\t\tCOLOR.a = 0.0;\n+\t}\n+}",
+      "added": 29,
+      "removed": 0,
+      "title": "Shader",
+      "note": "Shader"
+     }
+    ],
+    "added": 29,
+    "removed": 0
+   },
+   {
+    "path": "shaders/skylla_tentacles.gdshader",
+    "kind": "new",
+    "explanation": "New: the tentacles writhe, tips most.",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,37 @@ \n+shader_type canvas_item;\n+// Skylla's tentacles (SeaWitch), the traced art itself made to writhe: each\n+// pixel is taken from a little way along the tentacle it belongs to - more the\n+// farther it is from the hub, so the roots hold and the tips sway most - with\n+// a wave travelling out along every tentacle and a slow coil, each tentacle\n+// (by its angle round the hub) out of step with the next.\n+\n+uniform vec2 tex_size;            // the texture's size in px\n+uniform vec2 hub;                 // the tentacles' hub, in texture px\n+uniform float sway = 26.0;        // px of sideways sway at the tips\n+uniform float reach = 520.0;      // px from the hub to the tips\n+uniform float speed = 1.0;\n+uniform float time_offset = 0.0;\n+\n+varying vec4 tint;   // (the vertex colour: modulate, hit flashes)\n+\n+void vertex() {\n+\ttint = COLOR;\n+}\n+\n+void fragment() {\n+\tvec2 p = UV * tex_size - hub;\n+\tfloat r = length(p);\n+\tfloat ang = atan(p.y, p.x);\n+\tfloat t = TIME * speed + time_offset;\n+\tfloat k = smoothstep(50.0, reach, r);               // 0 at the roots, 1 at the tips\n+\tvec2 radial = p / max(r, 1.0);\n+\tvec2 tang = vec2(-radial.y, radial.x);\n+\tfloat wave = sin(t * 1.5 - r * 0.016 + ang * 3.0) + 0.45 * sin(t * 0.9 - r * 0.009 + ang * 5.0);\n+\tfloat coil = sin(t * 0.7 + ang * 2.0);\n+\tvec2 off = tang * sway * k * k * wave + radial * sway * 0.35 * k * coil;\n+\tvec2 uv = (p - off + hub) / tex_size;\n+\tCOLOR = texture(TEXTURE, uv) * tint;\n+\tif (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) {\n+\t\tCOLOR.a = 0.0;\n+\t}\n+}",
+      "added": 37,
+      "removed": 0,
+      "title": "Shader",
+      "note": "Shader"
+     }
+    ],
+    "added": 37,
+    "removed": 0
+   },
+   {
+    "path": "tests/test_play.gd",
+    "kind": "modified",
+    "explanation": "The Minotaur stage test.",
+    "hunks": [
+     {
+      "diff": "@@ -692,3 +692,30 @@ func test_attract_mode\n \t\ta.append(c._label.modulate.a)\n \tcheck(a.max() - a.min() > 0.5, \"the banner blinks\")\n \tAttractMode.active = false\n+\n+\n+## The main quest's last boss: the Minotaur at the heart of the Labyrinth,\n+## drawn from his art (MinotaurBoss), rewarding credits, data cores and alloy.\n+func test_minotaur_boss() -> void:\n+\tvar found := -1\n+\tfor i in QuestData.STAGES.size():\n+\t\tif QuestData.STAGES[i].get(\"type\", \"\") == \"kill\" and QuestData.STAGES[i][\"spawn\"][0][0] == \"minotaur\":\n+\t\t\tfound = i\n+\tcheck(found >= 0, \"a main-quest stage fights the Minotaur\")\n+\tif found < 0:\n+\t\treturn\n+\tvar st: Dictionary = QuestData.STAGES[found]\n+\tcheck(QuestData.STAGES[found - 1].get(\"unseal\", false), \"after entering the heart of the Labyrinth\")\n+\tcheck(QuestData.STAGES[found + 1][\"type\"] == \"end\", \"before the end\")\n+\tcheck(st[\"reward\"][\"credits\"] > 0 and st[\"reward\"][\"items\"].has(\"alien_alloy\"), \"a reward: credits and items\")\n+\tvar main: Node = await _enter(Galaxy.HOME)\n+\tvar m: Node2D = main.spawn_ship(main.ship.global_position + Vector2(0, -900), \"minotaur\")\n+\tfor i in 5:\n+\t\tawait tree.process_frame\n+\tcheck(m.body.has_node(\"Monster\") and m.body.get_node(\"Monster\") is MinotaurBoss, \"drawn as the Minotaur\")\n+\tcheck(m.display_name == \"The Minotaur\" and m.boss and m.hull >= 1500.0, \"a unique boss\")\n+\tvar mon: MinotaurBoss = m.body.get_node(\"Monster\")\n+\tcheck(mon._limbs.size() == 3, \"arms and leg rigged\")\n+\tvar d0: float = main.ship.global_position.distance_to(m.global_position)\n+\tm.queue_free()\n+\tcheck(d0 > 0.0, \"spawned\")",
+      "added": 27,
+      "removed": 0,
+      "title": "test_minotaur_boss",
+      "note": "test_minotaur_boss"
+     }
+    ],
+    "added": 27,
+    "removed": 0
+   },
+   {
+    "path": "tests/test_signals.gd",
+    "kind": "modified",
+    "explanation": "Creatures in the monster signal; the range.",
+    "hunks": [
+     {
+      "diff": "@@ -165,8 +165,10 @@ func test_wreck_and_monster\n \tawait tree.process_frame\n \tsite = await _enter_kind(main, \"monster\")\n \tvar m: Node2D = site._monster\n-\tcheck(m != null and m.body.has_node(\"Monster\"), \"the Void Leviathan, drawn as a creature\")\n-\tcheck(m.display_name == \"Void Leviathan\" and m.hull >= 900.0, \"a big one\")\n+\tvar look: Node = m.body.get_node_or_null(\"Monster\") if m else null\n+\tcheck((look is SeaWitch and m.display_name == \"Skylla\") or (look is CerberusBeast and m.display_name == \"Cerberus\"),\n+\t\t\"a creature from its art: %s\" % (m.display_name if m else \"none\"))\n+\tcheck(m.hull >= 900.0, \"a big one\")\n \t# Its attacks: patterns of slow energy orbs, telegraphed, dodgeable.\n \tvar mon: SpaceMonster = m.body.get_node(\"Monster\")\n \tmain.ship.global_position = m.global_position + Vector2(0, 600)",
+      "added": 4,
+      "removed": 2,
+      "title": "Either creature",
+      "note": "Either creature"
+     },
+     {
+      "diff": "@@ -195,9 +197,12 @@ func test_wreck_and_monster\n \tawait tree.process_frame\n \tcheck(main.ship.shields < sh, \"an orb that touches you hurts\")\n \tm.take_damage(99999.0, m.global_position, main.ship)\n-\tfor i in 4:\n+\tawait tree.process_frame\n+\tcheck(not site.done, \"dying: it shakes and bursts first (SpaceMonster.death_throes)\")\n+\tvar t0 := Time.get_ticks_msec()\n+\twhile not site.done and Time.get_ticks_msec() - t0 < 6000:\n \t\tawait tree.process_frame\n-\tcheck(site.done, \"killed: done\")\n+\tcheck(site.done, \"killed: done, after the big explosion\")\n \tvar drops := tree.get_nodes_in_group(\"pickups\").filter(func(p): return p.global_position.distance_to(SignalSite.ORIGIN) < 3000.0)\n \tcheck(drops.any(func(p): return p.item_id == \"alien_alloy\") and drops.any(func(p): return p.item_id == \"data_core\"), \"it drops alien alloy and data cores\")\n ",
+      "added": 5,
+      "removed": 2,
+      "title": "The death waits",
+      "note": "The death waits"
+     },
+     {
+      "diff": "@@ -301,3 +306,43 @@ func test_deathtrap\n \tawait tree.process_frame\n \tawait tree.process_frame\n \tcheck(main.site == null and not sg[\"done\"], \"out of its sides: left, not done\")\n+\n+\n+## Signals are seen (radar, system map) and their paths reach only within\n+## ShipScanner.signal_range() - a third of the system across.\n+func test_signal_range() -> void:\n+\tvar main: Node = await _game()\n+\tvar reach: float = ShipScanner.signal_range(tree)\n+\tvar far := 0.0\n+\tfor g in [\"gates\", \"stations\", \"planet_bodies\"]:\n+\t\tfor n in tree.get_nodes_in_group(g):\n+\t\t\tif n.global_position.distance_to(SignalSite.ORIGIN) > SignalSite.BOUNDS * 2.0:\n+\t\t\t\tfar = maxf(far, n.global_position.length())\n+\tcheck(absf(reach - far * 2.0 / 3.0) < 1.0, \"a third of the system across (%.0f)\" % reach)\n+\tcheck_eq(ShipScanner.PATH_REACH, 1.0, \"the paths reach as far\")\n+\tvar me: Vector2 = main.ship.global_position\n+\tcheck(ShipScanner.signal_visible(tree, me + Vector2(reach * 0.9, 0), me), \"inside the range: seen\")\n+\tcheck(not ShipScanner.signal_visible(tree, me + Vector2(reach * 1.1, 0), me), \"beyond it: not on the radar or the map\")\n+\n+\n+## Both creatures of the monster signals: picked by the signal, each rigged from its art.\n+func test_signal_creatures() -> void:\n+\tvar main: Node = await _game()\n+\tvar kinds := {}\n+\tfor c in SignalSite.CREATURES:\n+\t\tkinds[c[0]] = true\n+\t\tvar e: Node2D = main.spawn_ship(main.ship.global_position + Vector2(0, -900), c[0])\n+\t\tfor i in 3:\n+\t\t\tawait tree.process_frame\n+\t\tvar look: Node = e.body.get_node_or_null(\"Monster\")\n+\t\tcheck(look != null and e.display_name == c[1], \"%s spawns as a creature\" % c[1])\n+\t\tif look is CerberusBeast:\n+\t\t\tcheck(look._joints.size() == 7, \"Cerberus: tail, two heads, four legs rigged\")\n+\t\t\tvar jaws := [look.jaw(0), look.jaw(1), look.jaw(2)]\n+\t\t\tcheck(jaws[0].x < jaws[1].x and jaws[1].x < jaws[2].x, \"three jaws, left to right\")\n+\t\t\tlook._orb(Vector2(100, 0), SpaceMonster.ORB_COLOR)\n+\t\t\tlook._orb(Vector2(100, 0), SpaceMonster.ORB_COLOR)\n+\t\t\tvar orbs := tree.get_nodes_in_group(\"monster_orbs\")\n+\t\t\tcheck(orbs.size() >= 2 and orbs[-1].global_position.distance_to(orbs[-2].global_position) > 50.0, \"fire from different jaws\")\n+\t\te.queue_free()\n+\tcheck(kinds.has(\"skylla\") and kinds.has(\"cerberus\"), \"Skylla and Cerberus\")",
+      "added": 40,
+      "removed": 0,
+      "title": "New tests",
+      "note": "New tests"
+     }
+    ],
+    "added": 49,
+    "removed": 4
+   },
+   {
+    "path": "tools/cerberus_parts.py",
+    "kind": "new",
+    "explanation": "New: cuts Cerberus out of his art into parts.",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,114 @@ \n+#!/usr/bin/env python3\n+\"\"\"Cerberus (CerberusBeast), a creature of the monster signals, cut out of the\n+reference art (external/images/cerberus/cerberus.png) into animatable parts -\n+the picture itself, every line, shape and colour kept.\n+\n+Steps: rembg's anime segmentation (isnet-anime) removes the background; the\n+golden background haze it kept inside the arc of the tail is removed (pixels\n+close to a smooth model of the background, there only); the tail, the two side\n+heads and the four legs are cut along polygons traced on the art, the body\n+running OVERLAP px under each joint so swinging them never opens a gap.\n+\n+  data/sprites/monster_cerberus_{body,tail,left_head,right_head,\n+      left_leg,right_leg,front_left_leg,front_right_leg}.png\n+  data/sprites/monster_cerberus.json   crop origins, pivots, eyes, mouths\n+\n+Needs the art venv (rembg, opencv, scipy):\n+  ~/.local/share/space-atrapos-art/venv/bin/python tools/cerberus_parts.py\n+\"\"\"\n+import json\n+import os\n+\n+import cv2\n+import numpy as np\n+from PIL import Image\n+\n+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))\n+ART = os.path.join(ROOT, \"external\", \"images\", \"cerberus\", \"cerberus.png\")\n+OUT = os.path.join(ROOT, \"data\", \"sprites\")\n+PAD = 48\n+OVERLAP = 30\n+\n+# Parts traced on the art (1536 x 1024): region polygon and the joint it swings at.\n+PARTS = {\n+    \"tail\": {\"region\": [(480, 150), (520, 60), (600, 40), (700, 15), (800, 5), (900, 25), (985, 75), (1015, 150), (1012, 235),\n+                        (965, 235), (935, 150), (880, 92), (800, 62), (700, 72), (620, 102), (560, 132)], \"pivot\": (985, 225)},\n+    \"left_head\": {\"region\": [(305, 560), (300, 480), (330, 415), (380, 355), (470, 325), (545, 330), (580, 400), (565, 520),\n+                             (505, 600), (440, 655), (365, 655)], \"pivot\": (555, 470)},\n+    \"right_head\": {\"region\": [(1231, 560), (1236, 480), (1206, 415), (1156, 355), (1066, 325), (991, 330), (956, 400), (971, 520),\n+                              (1031, 600), (1096, 655), (1171, 655)], \"pivot\": (981, 470)},\n+    \"left_leg\": {\"region\": [(0, 450), (120, 415), (240, 430), (300, 520), (300, 660), (240, 830), (0, 830)], \"pivot\": (250, 470)},\n+    \"right_leg\": {\"region\": [(1536, 450), (1416, 415), (1296, 430), (1236, 520), (1236, 660), (1296, 830), (1536, 830)], \"pivot\": (1286, 470)},\n+    \"front_left_leg\": {\"region\": [(185, 1024), (485, 1024), (475, 830), (465, 700), (405, 655), (360, 700), (300, 800), (185, 900)],\n+                       \"pivot\": (430, 700)},\n+    \"front_right_leg\": {\"region\": [(1351, 1024), (1051, 1024), (1061, 830), (1071, 700), (1131, 655), (1176, 700), (1236, 800), (1351, 900)],\n+                        \"pivot\": (1106, 700)},\n+}\n+EYES = [(425, 470), (737, 535), (828, 535), (1110, 470)]\n+MOUTHS = {\"left_head\": (400, 575), \"body\": (790, 660), \"right_head\": (1170, 575)}   # the three jaws: his fire comes from them\n+HUB = (768, 560)\n+\n+\n+def cutout() -> np.ndarray:\n+    from rembg import new_session, remove\n+    orig = np.array(Image.open(ART).convert(\"RGB\"))\n+    cut = np.array(remove(Image.fromarray(orig), session=new_session(\"isnet-anime\")))\n+    solid = (cut[..., 3] > 0).astype(np.uint8)\n+    # The haze inside the tail's arc: close to the background (inpainted from\n+    # round it, blurred) and smooth - unlike the inked art.\n+    bgm = cv2.GaussianBlur(cv2.inpaint(orig, cv2.dilate(solid, np.ones((15, 15), np.uint8)), 25, cv2.INPAINT_TELEA), (0, 0), 20)\n+    diff = np.abs(orig.astype(int) - bgm.astype(int)).max(axis=2)\n+    g = cv2.cvtColor(orig, cv2.COLOR_RGB2GRAY).astype(np.float32)\n+    mu = cv2.blur(g, (9, 9))\n+    sd = np.sqrt(np.maximum(cv2.blur(g * g, (9, 9)) - mu * mu, 0))\n+    reg = np.zeros(solid.shape, np.uint8)\n+    cv2.fillPoly(reg, [np.array([(470, 150), (540, 120), (620, 95), (700, 70), (800, 55), (880, 85), (935, 140), (975, 215),\n+                                 (950, 240), (880, 200), (800, 170), (700, 165), (600, 185), (540, 215), (470, 220)], np.int32)], 1)\n+    haze = (reg > 0) & (diff < 60) & (sd < 12)\n+    haze = cv2.morphologyEx(haze.astype(np.uint8), cv2.MORPH_OPEN, np.ones((5, 5), np.uint8)).astype(bool)\n+    cut[haze, 3] = 0\n+    return cut\n+\n+\n+def poly_mask(shape, pts) -> np.ndarray:\n+    m = np.zeros(shape[:2], np.uint8)\n+    cv2.fillPoly(m, [np.array(pts, np.int32)], 1)\n+    return m.astype(bool)\n+\n+\n+def save(rgba, mask, name, meta) -> None:\n+    ys, xs = np.nonzero(mask & (rgba[..., 3] > 0))\n+    x0, y0, x1, y1 = xs.min() - PAD, ys.min() - PAD, xs.max() + PAD + 1, ys.max() + PAD + 1\n+    part = np.zeros((y1 - y0, x1 - x0, 4), np.uint8)\n+    sx0, sy0 = max(x0, 0), max(y0, 0)\n+    sx1, sy1 = min(x1, rgba.shape[1]), min(y1, rgba.shape[0])\n+    src = rgba[sy0:sy1, sx0:sx1].copy()\n+    src[~mask[sy0:sy1, sx0:sx1]] = 0\n+    part[sy0 - y0:sy1 - y0, sx0 - x0:sx1 - x0] = src\n+    Image.fromarray(part, \"RGBA\").save(os.path.join(OUT, \"monster_cerberus_%s.png\" % name))\n+    meta[\"parts\"][name] = [int(x0), int(y0)]\n+    print(name, part.shape[1], \"x\", part.shape[0])\n+\n+\n+def main() -> None:\n+    rgba = cutout()\n+    solid = rgba[..., 3] > 0\n+    meta = {\"parts\": {}, \"eyes\": EYES, \"mouths\": MOUTHS, \"hub\": HUB, \"size\": [rgba.shape[1], rgba.shape[0]]}\n+    body = solid.copy()\n+    regions = {}\n+    for name, part in PARTS.items():\n+        regions[name] = poly_mask(rgba.shape, part[\"region\"]) & solid\n+        body &= ~regions[name]\n+    near_body = cv2.distanceTransform((~body).astype(np.uint8), cv2.DIST_L2, 5) <= OVERLAP\n+    for name, region in regions.items():\n+        save(rgba, region, name, meta)\n+        meta[name + \"_pivot\"] = list(PARTS[name][\"pivot\"])\n+        if name != \"tail\":                     # (the tail goes behind the body: no fill needed)\n+            body |= region & near_body\n+    save(rgba, body, \"body\", meta)\n+    with open(os.path.join(OUT, \"monster_cerberus.json\"), \"w\") as f:\n+        json.dump(meta, f, indent=1)\n+\n+\n+if __name__ == \"__main__\":\n+    main()",
+      "added": 114,
+      "removed": 0,
+      "title": "Tool",
+      "note": "Tool"
+     }
+    ],
+    "added": 114,
+    "removed": 0
+   },
+   {
+    "path": "tools/minotaur_parts.py",
+    "kind": "new",
+    "explanation": "New: cuts the Minotaur out of his art into parts.",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,128 @@ \n+#!/usr/bin/env python3\n+\"\"\"The Minotaur (MinotaurBoss), the main quest's guardian of the Labyrinth, cut\n+out of the reference art (external/images/minotaur/minotaur.png) into\n+animatable parts - the picture itself, every line, shape and colour kept.\n+\n+Steps: rembg's anime segmentation (isnet-anime) removes the black background;\n+enclosed areas it dropped (the starfield inside the gold ring, the gems) are\n+put back unless they're the pure-black background; each arm and the kicking\n+leg are cut from the body along polygons traced on the art - the red cape\n+behind them stays with the body - each running OVERLAP px under the body at its\n+joint, so swinging them never opens a gap. Also written: a cape mask (where the\n+red cape is, softened) that shaders/minotaur_cape.gdshader ripples.\n+\n+  data/sprites/monster_minotaur_{body,left_arm,right_arm,left_leg}.png\n+  data/masks/monster_minotaur_cape.png  the cape mask\n+  data/sprites/monster_minotaur.json   crop origins, pivots, eyes, crest gem\n+\n+Needs the art venv (rembg, opencv, scipy):\n+  ~/.local/share/space-atrapos-art/venv/bin/python tools/minotaur_parts.py\n+\"\"\"\n+import json\n+import os\n+\n+import cv2\n+import numpy as np\n+from PIL import Image\n+\n+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))\n+ART = os.path.join(ROOT, \"external\", \"images\", \"minotaur\", \"minotaur.png\")\n+OUT = os.path.join(ROOT, \"data\", \"sprites\")\n+MASKS = os.path.join(ROOT, \"data\", \"masks\")   # (not sprites: masks for the shaders)\n+PAD = 48\n+OVERLAP = 30\n+\n+# Limbs, traced on the art (1254 x 1254): the region, the joint it swings at,\n+# and where red cape pixels inside the region stay with the body (x/y limits).\n+LIMBS = {\n+    \"left_arm\": {\"region\": [(392, 236), (425, 330), (385, 505), (305, 565), (318, 745), (0, 745), (0, 410), (55, 300), (250, 226)],\n+                 \"pivot\": (400, 330), \"cape\": lambda x, y: (x < 255) & (y < 425)},\n+    \"right_arm\": {\"region\": [(775, 700), (880, 688), (1082, 700), (1095, 1060), (1065, 1254), (655, 1254), (676, 958), (788, 878), (758, 760)],\n+                  \"pivot\": (885, 720), \"cape\": lambda x, y: x > 1048},\n+    \"left_leg\": {\"region\": [(468, 742), (522, 800), (502, 980), (382, 1100), (282, 1215), (128, 1215), (138, 1078), (228, 878), (296, 768)],\n+                 \"pivot\": (470, 790), \"cape\": lambda x, y: (y < 885) & (x < 452)},\n+}\n+EYES = [(583, 500), (690, 512)]\n+CREST = (660, 447)                 # the blue gem on his helmet: his attacks come from it\n+HUB = (620, 640)                   # his centre (chest)\n+\n+\n+def cutout() -> np.ndarray:\n+    from rembg import new_session, remove\n+    orig = np.array(Image.open(ART).convert(\"RGB\"))\n+    cut = np.array(remove(Image.fromarray(orig), session=new_session(\"isnet-anime\")))\n+    a = cut[..., 3]\n+    solid = (a > 40).astype(np.uint8)\n+    _, lab = cv2.connectedComponents(1 - solid)\n+    border = np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))\n+    bg = np.isin(lab, border) & (solid == 0)\n+    holes = ~bg & (solid == 0) & (orig.max(axis=2) >= 14)\n+    out = cut.copy()\n+    out[..., :3] = orig\n+    out[..., 3] = np.where(holes | (~bg & (a > 40)), 255, a)\n+    return out\n+\n+\n+def red_mask(rgba: np.ndarray) -> np.ndarray:\n+    hsv = cv2.cvtColor(np.ascontiguousarray(rgba[..., :3]), cv2.COLOR_RGB2HSV)\n+    h, s, v = hsv[..., 0], hsv[..., 1], hsv[..., 2]\n+    return ((h < 8) | (h > 170)) & (s > 110) & (v > 60)\n+\n+\n+def poly_mask(shape, pts) -> np.ndarray:\n+    m = np.zeros(shape[:2], np.uint8)\n+    cv2.fillPoly(m, [np.array(pts, np.int32)], 1)\n+    return m.astype(bool)\n+\n+\n+def save(rgba, mask, name, meta) -> None:\n+    ys, xs = np.nonzero(mask & (rgba[..., 3] > 0))\n+    x0, y0, x1, y1 = xs.min() - PAD, ys.min() - PAD, xs.max() + PAD + 1, ys.max() + PAD + 1\n+    part = np.zeros((y1 - y0, x1 - x0, 4), np.uint8)\n+    sx0, sy0 = max(x0, 0), max(y0, 0)\n+    sx1, sy1 = min(x1, rgba.shape[1]), min(y1, rgba.shape[0])\n+    src = rgba[sy0:sy1, sx0:sx1].copy()\n+    src[~mask[sy0:sy1, sx0:sx1]] = 0\n+    part[sy0 - y0:sy1 - y0, sx0 - x0:sx1 - x0] = src\n+    Image.fromarray(part, \"RGBA\").save(os.path.join(OUT, \"monster_minotaur_%s.png\" % name))\n+    meta[\"parts\"][name] = [int(x0), int(y0)]\n+    print(name, part.shape[1], \"x\", part.shape[0])\n+\n+\n+def main() -> None:\n+    rgba = cutout()\n+    h, w = rgba.shape[:2]\n+    yy, xx = np.mgrid[0:h, 0:w]\n+    solid = rgba[..., 3] > 0\n+    red = red_mask(rgba)\n+    meta = {\"parts\": {}, \"eyes\": EYES, \"crest\": CREST, \"hub\": HUB, \"size\": [w, h]}\n+    body = solid.copy()\n+    limbs = {}\n+    for name, limb in LIMBS.items():\n+        region = poly_mask(rgba.shape, limb[\"region\"]) & solid & ~(red & limb[\"cape\"](xx, yy))\n+        limbs[name] = region\n+        body &= ~region\n+    near_body = cv2.distanceTransform((~body).astype(np.uint8), cv2.DIST_L2, 5) <= OVERLAP\n+    for name, region in limbs.items():\n+        save(rgba, region, name, meta)\n+        meta[name + \"_pivot\"] = list(LIMBS[name][\"pivot\"])\n+        body |= region & near_body                 # (the body runs on under each limb)\n+    save(rgba, body, \"body\", meta)\n+    # The cape mask, same crop as the body: the red cape outside the kilt,\n+    # softened so the ripple fades in from where it hangs.\n+    cape = red & body & ((xx < 330) | (xx > 980) | ((yy > 640) & (xx < 460)))\n+    soft = cv2.GaussianBlur(cv2.dilate(cape.astype(np.uint8) * 255, np.ones((9, 9), np.uint8)), (0, 0), 6)\n+    x0, y0 = meta[\"parts\"][\"body\"]\n+    bw, bh = Image.open(os.path.join(OUT, \"monster_minotaur_body.png\")).size\n+    m = np.zeros((bh, bw), np.uint8)\n+    sx0, sy0 = max(x0, 0), max(y0, 0)\n+    sx1, sy1 = min(x0 + bw, w), min(y0 + bh, h)\n+    m[sy0 - y0:sy1 - y0, sx0 - x0:sx1 - x0] = soft[sy0:sy1, sx0:sx1]\n+    os.makedirs(MASKS, exist_ok=True)\n+    Image.fromarray(m, \"L\").save(os.path.join(MASKS, \"monster_minotaur_cape.png\"))\n+    with open(os.path.join(OUT, \"monster_minotaur.json\"), \"w\") as f:\n+        json.dump(meta, f, indent=1)\n+\n+\n+if __name__ == \"__main__\":\n+    main()",
+      "added": 128,
+      "removed": 0,
+      "title": "Tool",
+      "note": "Tool"
+     }
+    ],
+    "added": 128,
+    "removed": 0
+   },
+   {
+    "path": "tools/skylla_parts.py",
+    "kind": "new",
+    "explanation": "New: cuts Skylla out of her art into parts.",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,130 @@ \n+#!/usr/bin/env python3\n+\"\"\"Skylla, the sea witch (SeaWitch), cut out of the reference art into\n+animatable parts - the picture itself, every line, shape and colour kept.\n+\n+  external/images/skylla/skylla_parts.png      the art: the upper body above,\n+                                               the tentacles below, apart\n+  external/images/skylla/skylla_assembled.png  how they go together (layout)\n+\n+Steps: the background is removed with rembg's anime segmentation model\n+(isnet-anime); the two separate shapes are the upper body and the tentacle\n+cluster; each arm is cut from the body along polygons at the shoulder, and\n+again at the elbow (upper arm, forearm with the clawed hand). Written to\n+data/sprites/monster_skylla_<part>.png with data/sprites/monster_skylla.json:\n+for each part its crop's top-left in the art's pixels, plus the pivots\n+(shoulders, elbows), the tentacles' hub, the eyes, the mouth, and where the\n+tentacles go under her and how big (measured on the assembled picture).\n+\n+Needs the art venv (rembg, opencv, scipy):\n+  ~/.local/share/space-atrapos-art/venv/bin/python tools/skylla_parts.py\n+\"\"\"\n+import json\n+import os\n+\n+import cv2\n+import numpy as np\n+from PIL import Image\n+\n+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))\n+ART = os.path.join(ROOT, \"external\", \"images\", \"skylla\", \"skylla_parts.png\")\n+OUT = os.path.join(ROOT, \"data\", \"sprites\")\n+PAD = 48                       # transparent margin round each part (room for the shaders' sway)\n+OVERLAP = 30                   # px each piece runs on past its joint cut (no gaps when bending)\n+\n+# Joints in the art's pixels (1536 x 1024), traced from it.\n+LEFT = {   # her right arm, on the left of the picture\n+    \"region\": [(250, 380), (480, 330), (560, 300), (612, 292), (668, 378), (610, 650), (240, 650)],\n+    \"shoulder\": (636, 330), \"elbow\": (548, 372), \"cut\": [(500, 300), (595, 445)],\n+}\n+RIGHT = {\n+    \"region\": [(1290, 380), (1100, 340), (1000, 300), (950, 292), (900, 380), (960, 650), (1300, 650)],\n+    \"shoulder\": (936, 335), \"elbow\": (1040, 392), \"cut\": [(1085, 320), (990, 465)],\n+}\n+EYES = [(775, 340), (829, 345)]\n+MOUTH = (800, 386)\n+TENTACLE_HUB = (790, 690)\n+# Where the tentacles go under her - measured on skylla_assembled.png: there\n+# the hub is 210 px below the crown's gem and the tentacles span 1480 px, the\n+# body (earring to earring) 1.13x the size it is here; so in this art's pixels\n+# the hub sits 186 px below the gem (800, 322) and the tentacles are 1.19x.\n+TENTACLE_AT = (804, 370)   # (then lowered onto them: her chest sits over the hub)\n+TENTACLE_SCALE = 1.19\n+\n+\n+def cutout() -> np.ndarray:\n+    from rembg import new_session, remove\n+    im = Image.open(ART).convert(\"RGB\")\n+    rgba = np.array(remove(im, session=new_session(\"isnet-anime\")))\n+    return rgba\n+\n+\n+def poly_mask(shape, pts) -> np.ndarray:\n+    m = np.zeros(shape[:2], np.uint8)\n+    cv2.fillPoly(m, [np.array(pts, np.int32)], 1)\n+    return m.astype(bool)\n+\n+\n+def side_of(shape, a, b, p) -> np.ndarray:\n+    \"\"\"Pixels on the same side of the line a-b as point p.\"\"\"\n+    h, w = shape[:2]\n+    yy, xx = np.mgrid[0:h, 0:w]\n+    cross = (b[0] - a[0]) * (yy - a[1]) - (b[1] - a[1]) * (xx - a[0])\n+    ref = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])\n+    return (cross > 0) == (ref > 0)\n+\n+\n+def save(rgba, mask, name, meta) -> None:\n+    ys, xs = np.nonzero(mask & (rgba[..., 3] > 0))\n+    x0, y0, x1, y1 = xs.min() - PAD, ys.min() - PAD, xs.max() + PAD + 1, ys.max() + PAD + 1\n+    part = np.zeros((y1 - y0, x1 - x0, 4), np.uint8)\n+    sx0, sy0 = max(x0, 0), max(y0, 0)\n+    sx1, sy1 = min(x1, rgba.shape[1]), min(y1, rgba.shape[0])\n+    src = rgba[sy0:sy1, sx0:sx1].copy()\n+    src[~mask[sy0:sy1, sx0:sx1]] = 0\n+    part[sy0 - y0:sy1 - y0, sx0 - x0:sx1 - x0] = src\n+    Image.fromarray(part, \"RGBA\").save(os.path.join(OUT, \"monster_skylla_%s.png\" % name))\n+    meta[\"parts\"][name] = [int(x0), int(y0)]\n+    print(name, part.shape[1], \"x\", part.shape[0])\n+\n+\n+def main() -> None:\n+    rgba = cutout()\n+    solid = (rgba[..., 3] > 128).astype(np.uint8)\n+    n, lab, st, _ = cv2.connectedComponentsWithStats(solid)\n+    big = sorted(range(1, n), key=lambda i: -st[i, 4])[:2]\n+    upper, lower = sorted(big, key=lambda i: st[i, 1])     # by top edge\n+    # Each part: its component, grown a little so the soft edge comes along.\n+    grow = lambda m: cv2.dilate(m.astype(np.uint8), np.ones((7, 7), np.uint8)).astype(bool)\n+    body = grow(lab == upper)\n+    tent = grow(lab == lower) & ~body\n+    meta = {\"parts\": {}, \"eyes\": EYES, \"mouth\": MOUTH, \"hub\": TENTACLE_HUB, \"tentacle_at\": TENTACLE_AT, \"tentacle_scale\": TENTACLE_SCALE,\n+            \"size\": [rgba.shape[1], rgba.shape[0]]}\n+    save(rgba, tent, \"tentacles\", meta)\n+    # The joints overlap so bending them never opens a gap: each piece goes on\n+    # OVERLAP px past its cut (the forearm under the upper arm, the torso under\n+    # the arms), and the bend uncovers more of the same arm, not empty space.\n+    torso = body.copy()\n+    arms = poly_mask(rgba.shape, LEFT[\"region\"]) | poly_mask(rgba.shape, RIGHT[\"region\"])\n+    torso &= ~arms\n+    near_torso = cv2.distanceTransform((~torso).astype(np.uint8), cv2.DIST_L2, 5) <= OVERLAP\n+    for side, arm in ((\"left\", LEFT), (\"right\", RIGHT)):\n+        region = poly_mask(rgba.shape, arm[\"region\"]) & body\n+        upper_side = side_of(rgba.shape, arm[\"cut\"][0], arm[\"cut\"][1], arm[\"shoulder\"])\n+        upper_arm = region & upper_side\n+        fore = region & ~upper_side\n+        near_upper = cv2.distanceTransform((~upper_arm).astype(np.uint8), cv2.DIST_L2, 5) <= OVERLAP\n+        near_fore = cv2.distanceTransform((~fore).astype(np.uint8), cv2.DIST_L2, 5) <= OVERLAP\n+        # (each gets the strip of the other within OVERLAP px of the cut)\n+        save(rgba, upper_arm | (fore & near_upper), side + \"_upper\", meta)\n+        save(rgba, fore | (upper_arm & near_fore), side + \"_fore\", meta)\n+        torso_ext = region & near_torso\n+        torso |= torso_ext\n+        meta[side + \"_shoulder\"] = list(arm[\"shoulder\"])\n+        meta[side + \"_elbow\"] = list(arm[\"elbow\"])\n+    save(rgba, torso & body, \"torso\", meta)\n+    with open(os.path.join(OUT, \"monster_skylla.json\"), \"w\") as f:\n+        json.dump(meta, f, indent=1)\n+\n+\n+if __name__ == \"__main__\":\n+    main()",
+      "added": 130,
+      "removed": 0,
+      "title": "Tool",
+      "note": "Tool"
+     }
+    ],
+    "added": 130,
+    "removed": 0
+   },
+   {
+    "path": "voices/lines/16e5c211d0897695.ogg",
+    "kind": "new",
+    "explanation": "A recorded line (the Minotaur stage).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "voices/lines/38802f343357b60d.ogg",
+    "kind": "new",
+    "explanation": "A recorded line (the Minotaur stage).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "voices/lines/3ad86c8cff2829dc.ogg",
+    "kind": "deleted",
+    "explanation": "A recorded line (the Minotaur stage).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "voices/lines/46f9225d179ea30d.ogg",
+    "kind": "new",
+    "explanation": "A recorded line (the Minotaur stage).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "voices/lines/8a3c26cfa3b8e410.ogg",
+    "kind": "new",
+    "explanation": "A recorded line (the Minotaur stage).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "voices/lines/b43befc6ab9db880.ogg",
+    "kind": "new",
+    "explanation": "A recorded line (the Minotaur stage).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   }
+  ]
+ }
+}

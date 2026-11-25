@@ -1,0 +1,52 @@
+=== SPARTAN HEGEMONY: SPACE STATIONS PROMPT TEMPLATE ==============================
+
+DONE (2026-11-11): the sheet is external/images/spartan_spacestations_1.png. Before it,
+Foundry) went to the Independents, and Spartan stations fly placeholders
+(station_sparta_ph_halo / _gateway: recoloured crimson) until this sheet exists. This makes their own 12, in the style of
+their ships (spartan_ships_1.png) and the layout of the station sheets
+(ionian_spacestations_1.png) - tools/extract_sprites.py cuts it by grid.
+
+----------------------------------------------------------------------------------
+HOW TO USE
+----------------------------------------------------------------------------------
+ 1. Attach spartan_ships_1.png (the look) AND ionian_spacestations_1.png (the
+    layout, scale and camera) and send PROMPT A.
+ 2. Check it against the CHECKLIST; regenerate until it passes.
+ 3. Save it as external/images/spartan_spacestations_1.png and ask Claude to cut
+    it in: the cells map, row by row, to the keys in brackets below
+    (station_sparta_<key>), listed in tools/extract_sprites.py as SPARTA_STATIONS.
+
+----------------------------------------------------------------------------------
+PROMPT A
+----------------------------------------------------------------------------------
+Make a sprite sheet of 12 space stations in exactly the same style, scale, camera and layout as the attached station sheet: 1536 x 1024 pixels, pure black background, a 4 x 3 grid, each station centred in its cell with clear black space all round it (no part touching another cell), seen straight from above (top-down, roughly round or symmetric silhouettes that read well while slowly spinning), no text or labels. Give them the look of the attached Spartan ships:
+
+The Spartan Hegemony: a militarised star state where every citizen serves - fortress stations, few words, many guns. Heavy armour plating of deep crimson red and bone-cream panels over dark gunmetal grey, bronze and gold trim, hazard-stripe edges; emblems of the gold lambda (the Greek letter, an upside-down V) and the crested Corinthian helmet inside laurel wreaths, meander (Greek key) bands. Gun turrets and point-defence batteries everywhere, missile racks, armoured docking bays. Orange-amber engine and window glow. Angular, heavy, brutal shapes - octagonal plates, chevrons, wedges - never the Athenians' temples and owls, never the Minoans' curves and spirals.
+
+Row 1:
+1. A lambda fortress: a great gold lambda emblem on an octagonal armoured hub, three turreted arms.
+2. A helmet citadel: a hub shaped like a crested Corinthian helmet, crest of gun turrets.
+3. A hoplon: a giant round bronze shield with a lambda, its rim lined with gun batteries.
+4. A phalanx ring: a ring of overlapping round shields with spear-like cannons pointing out.
+
+Row 2:
+5. A citadel: a square-walled fortress with four corner towers and a central keep.
+6. An arsenal: a hub with racks of missiles and ammunition bays on four heavy arms.
+7. The agoge: a training ring of barracks and drill decks round a parade ground.
+8. Thermopylae: a gate fortress - two massive armoured walls closing a narrow docking pass.
+
+Row 3:
+9. A dory station: a cross of four long spear-shaped spars with bronze spear tips.
+10. Barracks: an octagonal block of hangars and crew quarters with hazard-striped landing pads.
+11. A war forge: a shipyard with a half-built warship hull held in heavy cradles.
+12. A watchtower: a tall sensor-mast hub with radar dishes and long-range guns on outriggers.
+
+----------------------------------------------------------------------------------
+CHECKLIST
+----------------------------------------------------------------------------------
+[ ] 1536 x 1024, black background, 4 columns x 3 rows, nothing crossing a cell
+[ ] top-down, symmetric enough to spin
+[ ] the Spartan ships' palette and signs (crimson, bone, gunmetal, bronze; lambda,
+    Corinthian helmet, laurels, meander; turrets everywhere)
+[ ] no text, numbers or watermarks
+[ ] all 12 clearly different

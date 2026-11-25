@@ -1,0 +1,1665 @@
+{
+ "kind": "version",
+ "id": "0.31",
+ "title": "Empires at war",
+ "date": "2026-11-11",
+ "summary": "Version 0.31 turns the sector into a living galaxy of empires that trade, compete and go to war. Patch 0010 grew it to 58 systems and six empires with the Cycladic Isles, gave every empire its own stations and ships beside the neutral Independents, and replaced pledges with a reputation you earn. It added a commodities market and trade routes on the maps, war fleets that besiege stations until they burn or fall, gear with damage types, and landable planets and moons everywhere. It also redesigned the interface in amber, made every control rebindable with gamepad support, and turned the Library into an asset browser, all at 240 FPS or more. Patch 0011 gave wars teeth - combined invasions, distress calls and war missions - and added wrecks to salvage, fuel, the rings' local spaces, equipment screens by area, five new arms, save slots and autosaves, and a Talos reorganised around one rail that switches tools in a millisecond. Patch 0012 gave every empire its own story, look and people, made Kilon Alios the narrator of New Hellas with every line voiced, and added a loading screen and screens that fit at any text size. Then wounds, repairs and industry (patch 0013). Patch 0014 made everything stream: the game in a browser and on phones, no loading screens, procedural placeholders, chunked planets, streamed systems with surfaces built ahead, a memory pool with its console, and a liquid health gauge. Patch 0015 brought navigation reports to sell across the galaxy, placeholders on planets, a fuel ring on the gauge, one tabbed console and probes moved as a group. Then patch 0016 turned the game 3D: planets of real ground to land on and walk, stations docked by hand, towns, caves and dungeons, photoreal characters. Then mining, digging and the Minoan look (patch 0017). Then living stations and the law (patch 0018). Then a sandbox galaxy (patch 0019). Then build your own (patch 0020). Then the web build starts (patch 0021). Then loading in the browser (patch 0022).",
+ "patches": [
+  "0010",
+  "0011",
+  "0012",
+  "0013",
+  "0014",
+  "0015",
+  "0016",
+  "0017",
+  "0018",
+  "0019",
+  "0020",
+  "0021",
+  "0022"
+ ],
+ "steps": [
+  {
+   "patch": "0010",
+   "title": "Patch 0010 - Empires, trade and war",
+   "text": "58 systems and six empires (the Cycladic Isles new), each with its own stations and ships, and the Independents between them. Reputation instead of pledges. A commodities market and trade routes. War fleets, sieges, burning and destroyed stations. Gear with damage types, landable planets and moons, the amber Helm interface, rebindable keys and a gamepad, and the Library as an asset browser.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      200,
+      30,
+      600,
+      70
+     ],
+     "label": "PATCH 0010\nEmpires, trade and war",
+     "size": 18,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      140,
+      290,
+      120
+     ],
+     "label": "GALAXY\n58 systems \u00b7 6 empires\nplanets and moons",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      355,
+      140,
+      290,
+      120
+     ],
+     "label": "EMPIRES\nown stations and ships\nIndependents \u00b7 reputation",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      140,
+      290,
+      120
+     ],
+     "label": "WAR\nfleets of 3-12\nsieges \u00b7 burning stations",
+     "size": 16,
+     "stroke": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      290,
+      290,
+      120
+     ],
+     "label": "TRADE\ncommodities market\nroutes on the maps",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      355,
+      290,
+      290,
+      120
+     ],
+     "label": "GEAR\nqualities E-A\ndamage types",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      290,
+      290,
+      120
+     ],
+     "label": "HELM\namber interface\nkeys \u00b7 gamepad",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "badge",
+     "at": [
+      260,
+      470
+     ],
+     "text": "asset browser",
+     "color": "purple",
+     "size": 15
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      470
+     ],
+     "text": "240+ FPS",
+     "color": "green",
+     "size": 15
+    },
+    {
+     "t": "badge",
+     "at": [
+      740,
+      470
+     ],
+     "text": "205 tests",
+     "color": "cyan",
+     "size": 15
+    }
+   ]
+  },
+  {
+   "patch": "0011",
+   "title": "Patch 0011 - Salvage, new arms and a new Talos",
+   "text": "Wars that call for help: invasions combine fleets, besieged stations call allies, four war missions. Wrecks to salvage, fuel and the Star Energizer, the rings' local spaces, equipment screens by area, five new arms, save slots and autosaves, pages that never scroll - and Talos reorganised around one rail, every tool kept alive.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      250,
+      30,
+      500,
+      70
+     ],
+     "label": "PATCH 0011\nSalvage, new arms and a new Talos",
+     "size": 17,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      140,
+      300,
+      120
+     ],
+     "label": "WAR\ninvasions gather fleets\ndistress calls \u00b7 4 missions",
+     "size": 15,
+     "stroke": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      140,
+      300,
+      120
+     ],
+     "label": "SALVAGE \u00b7 FUEL\nwrecks \u00b7 Salvage Rig\ntanks \u00b7 Star Energizer",
+     "size": 15,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      140,
+      300,
+      120
+     ],
+     "label": "RINGS\nlocal space \u00b7 ice\nminers \u00b7 pirates",
+     "size": 15,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      290,
+      300,
+      120
+     ],
+     "label": "ARMS\nElectro \u00b7 Bouncer \u00b7 Beam\nCloak \u00b7 Projection Array",
+     "size": 15,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      290,
+      300,
+      120
+     ],
+     "label": "SAVES\n6 slots \u00b7 on planets\nquick \u00b7 auto",
+     "size": 15,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      290,
+      300,
+      120
+     ],
+     "label": "TALOS\none rail \u00b7 tools kept\nVersions on top",
+     "size": 15,
+     "stroke": "gold"
+    },
+    {
+     "t": "badge",
+     "at": [
+      220,
+      470
+     ],
+     "text": "equipment by area",
+     "color": "cyan",
+     "size": 15
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      470
+     ],
+     "text": "no page scrolls",
+     "color": "green",
+     "size": 15
+    },
+    {
+     "t": "badge",
+     "at": [
+      780,
+      470
+     ],
+     "text": "91 scenarios \u2265 240 FPS",
+     "color": "gold",
+     "size": 15
+    }
+   ]
+  },
+  {
+   "patch": "0012",
+   "title": "Patch 0012 - The empires' stories",
+   "text": "Each empire gained its own main quest, told in the old poets' manner, with its own procedurally drawn buildings, furniture and dinosaur citizens. Kilon Alios became the narrator on every world, with 303 voiced lines. Quests keep their ships waiting in other systems, saves load behind a loading screen, and every page fits at 150% text.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      250,
+      30,
+      500,
+      70
+     ],
+     "label": "PATCH 0012\nThe empires' stories",
+     "size": 18,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      140,
+      175,
+      110
+     ],
+     "label": "ATHENS\nits quest,\nbuildings, people",
+     "size": 16,
+     "stroke": "blue"
+    },
+    {
+     "t": "box",
+     "rect": [
+      222,
+      140,
+      175,
+      110
+     ],
+     "label": "SPARTA\nits quest,\nbuildings, people",
+     "size": 16,
+     "stroke": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      414,
+      140,
+      175,
+      110
+     ],
+     "label": "MYCENAE\nits quest,\nbuildings, people",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      606,
+      140,
+      175,
+      110
+     ],
+     "label": "IONIA\nits quest,\nbuildings, people",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      798,
+      140,
+      175,
+      110
+     ],
+     "label": "CYCLADES\nits quest,\nbuildings, people",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      300,
+      450,
+      110
+     ],
+     "label": "KILON ALIOS\nnarrator on every world\n303 voiced lines",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      520,
+      300,
+      450,
+      110
+     ],
+     "label": "QUESTS THAT WAIT\nships and items kept\nin other systems",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "badge",
+     "at": [
+      190,
+      480
+     ],
+     "text": "loading screen",
+     "color": "cyan",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      480
+     ],
+     "text": "fits at 150% text",
+     "color": "green",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      810,
+      480
+     ],
+     "text": "Esc closes windows",
+     "color": "purple",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "patch": "0013",
+   "title": "Patch 0013 - Wounds, repairs and industry",
+   "text": "Damage got a body: damaged parts become afflictions you can see, the screen fails near death, and every shot can miss. Repairs are hands-on - a Repair Bay of rendered machinery and surgery through the automaton's anatomy - or bought from a station after an itemised evaluation, along with upgrades to 48 stats. A probe scanner finds what hides in a system, mining became a cutting game of veins and heat feeding an on-board refinery and fabricator, ships carry up to 24 sized weapons, and the game runs at 600 frames a second.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "WOUNDS, REPAIRS AND INDUSTRY",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      90
+     ],
+     "label": "DAMAGE\nparts, afflictions,\nfailing screen",
+     "size": 16,
+     "stroke": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      90
+     ],
+     "label": "REPAIR\nby hand, surgery,\nstation service",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      90
+     ],
+     "label": "UPGRADES\n48 stats,\n5 levels",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      240,
+      300,
+      90
+     ],
+     "label": "ACCURACY\nevery shot\ncan miss",
+     "size": 16,
+     "stroke": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      240,
+      300,
+      90
+     ],
+     "label": "PROBES\nfind anomalies,\nships, bodies",
+     "size": 16,
+     "stroke": "blue"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      240,
+      300,
+      90
+     ],
+     "label": "INDUSTRY\nmine, refine,\nfabricate",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "badge",
+     "at": [
+      170,
+      410
+     ],
+     "text": "24 hardpoints, 6 sizes",
+     "color": "gold",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      410
+     ],
+     "text": "140 market goods",
+     "color": "green",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      830,
+      410
+     ],
+     "text": "600 FPS",
+     "color": "gold",
+     "size": 16
+    },
+    {
+     "t": "text",
+     "at": [
+      500,
+      510
+     ],
+     "text": "347 files changed, 619 code hunks reviewed",
+     "size": 16,
+     "color": "dim",
+     "align": "center"
+    }
+   ]
+  },
+  {
+   "patch": "0014",
+   "title": "Patch 0014 - Everything streams",
+   "text": "The game plays in a browser and on phones as well as on Linux and Windows, with no loading screens: every sprite shows first as a procedural placeholder, planets are made chunk by chunk, a solar system streams in nearest first and every planet's surface is built ahead. One memory pool keeps what you use, a loading console maps it, and a liquid gauge of your ship's outline inside a shield ring shows hull and shields - the automaton has a shield too.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "EVERYTHING STREAMS",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      100
+     ],
+     "label": "web, Linux,\nWindows,\ntouch",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      100
+     ],
+     "label": "no loading\nscreens",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      100
+     ],
+     "label": "placeholders\nfirst",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      240,
+      300,
+      100
+     ],
+     "label": "planets chunk\nby chunk",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      240,
+      300,
+      100
+     ],
+     "label": "systems stream\nin, surfaces\nbuilt ahead",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      240,
+      300,
+      100
+     ],
+     "label": "memory pool\nand console",
+     "size": 16,
+     "stroke": "blue"
+    },
+    {
+     "t": "circle",
+     "at": [
+      380,
+      450
+     ],
+     "r": 40,
+     "fill": "blue",
+     "stroke": "cyan"
+    },
+    {
+     "t": "circle",
+     "at": [
+      380,
+      450
+     ],
+     "r": 22,
+     "fill": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      460,
+      410,
+      510,
+      80
+     ],
+     "label": "the health gauge and\nthe automaton's shield",
+     "size": 16,
+     "stroke": "red"
+    }
+   ]
+  },
+  {
+   "patch": "0015",
+   "title": "Patch 0015 - Navigation reports",
+   "text": "Scanning a nav beacon gives you a navigation report of the system - its stations, gates, planets and moons, the ships about - which stations in other systems buy, paying more the further away. Planets show at once with placeholders for their pictures. The gauge gained a fuel ring and lost its panel, the log and the loading console became one tabbed console, probes move as a group, and shields and hull burn fuel to recharge.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "NAVIGATION REPORTS",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      100
+     ],
+     "label": "scan the\nbeacon:\na report",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      332,
+      150.0
+     ],
+     "to": [
+      348,
+      150.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      100
+     ],
+     "label": "sell it in\nother systems",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      652,
+      150.0
+     ],
+     "to": [
+      668,
+      150.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      100
+     ],
+     "label": "the further,\nthe more",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      250,
+      300,
+      100
+     ],
+     "label": "planets show\nat once",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      250,
+      300,
+      100
+     ],
+     "label": "fuel ring,\none console",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      250,
+      300,
+      100
+     ],
+     "label": "probes as\na group",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      450
+     ],
+     "text": "shields and hull burn fuel",
+     "color": "red",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "patch": "0016",
+   "title": "Patch 0016 - The game turns 3D",
+   "text": "The game turned 3D-only: star systems flown from behind your ship, planets of real procedural ground you land on and walk, big stations with pads docked by hand, Minoan towns you walk into with their people, the 2D game's animals, raiders and space monsters, caves and dungeons with skeleton warriors and demons - every character a photoreal model from one Blender kit.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "THE GAME TURNS 3D",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      110
+     ],
+     "label": "fly a system\nfrom behind\nyour ship",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      332,
+      155.0
+     ],
+     "to": [
+      348,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      110
+     ],
+     "label": "land and walk:\nreal ground,\ntowns, life",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      652,
+      155.0
+     ],
+     "to": [
+      668,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      110
+     ],
+     "label": "stations, pads,\ndocking\nby hand",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      290,
+      450,
+      90
+     ],
+     "label": "caves and dungeons:\nskeletons, demons, a chest",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      520,
+      290,
+      450,
+      90
+     ],
+     "label": "photoreal characters\nfrom one Blender kit",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "badge",
+     "at": [
+      260,
+      460
+     ],
+     "text": "2D game kept as reference",
+     "color": "cyan",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      740,
+      460
+     ],
+     "text": "600 FPS bar",
+     "color": "gold",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "patch": "0017",
+   "title": "Patch 0017 - Mining, digging and the Minoan look",
+   "text": "Patch 0017 gave the 3D game its first trades and a new look for the Minoans: a mining beam that scans asteroids, cuts their veins in a heat band and carves the rock; deposits cut into your pack on foot; a terrain digger carving the ground into voxels; a landing display for station pads with R / F thrusters and a throttle stop at zero; a live window of your target; your ship rebuilt as a walkable Minoan hauler, the Minoans' ships and stations in the same worn cream and red; a loading door that swings into the ramp and pad shafts closed by sliding shutters.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "MINING, DIGGING, THE MINOAN LOOK",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      95,
+      300,
+      105
+     ],
+     "label": "mining beam:\nscan, veins, heat",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      95,
+      300,
+      105
+     ],
+     "label": "deposits on foot,\nthe mineral itself",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      95,
+      300,
+      105
+     ],
+     "label": "the terrain digger:\nvoxel ground",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      230,
+      300,
+      105
+     ],
+     "label": "the landing display,\nR / F, a zero stop",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      230,
+      300,
+      105
+     ],
+     "label": "the target's window:\nlive, with its stats",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      230,
+      300,
+      105
+     ],
+     "label": "faster pulse bolts\n(x3)",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      365,
+      300,
+      105
+     ],
+     "label": "your ship: a Minoan\nhauler, walkable",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      365,
+      300,
+      105
+     ],
+     "label": "Minoan ships and\nstations, worn look",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      365,
+      300,
+      105
+     ],
+     "label": "doors: the ramp,\nthe pads' shutters",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      515
+     ],
+     "text": "142 hunks in 67 files",
+     "color": "cyan",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "patch": "0018",
+   "title": "Living stations and the law",
+   "text": "Docking takes you down the pad's lift into a port under the platform - a hall, a concourse and rooms with windows to space, the empire's own people working, sitting, carrying, ready to talk and give you work; each terminal its own service. Stations are armed and keep the law, enemy fleets besiege them, and they call you to their defence. Every empire has its own people, ships, stations and towns; the jet pack reaches space.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "PATCH 0018",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      110
+     ],
+     "label": "down the lift\ninto the port",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      332,
+      155.0
+     ],
+     "to": [
+      348,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      110
+     ],
+     "label": "bar, lounge,\noffices, services",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      652,
+      155.0
+     ],
+     "to": [
+      668,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      110
+     ],
+     "label": "people: talk,\nwork, sit",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      290,
+      300,
+      110
+     ],
+     "label": "fines, WANTED,\nstation guns",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      290,
+      300,
+      110
+     ],
+     "label": "sieges and\nhails for help",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      290,
+      300,
+      110
+     ],
+     "label": "each empire\nits own look",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "badge",
+     "at": [
+      260,
+      470
+     ],
+     "text": "no cut when docking",
+     "color": "green",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      740,
+      470
+     ],
+     "text": "insides follow outsides",
+     "color": "cyan",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "patch": "0019",
+   "title": "Patch 0019 - A sandbox galaxy",
+   "text": "Patch 0019 turns the game into a sandbox. A new game starts you on foot on Amnissos, by a city's landing field, with no ship and no story to follow: the cities' ore buyers, couriers and local pilots are how you make your first drachmas and get about, a scanner finds ore and places, and an interactive tutorial - a small panel, never in the way, kept in your saves - pays you step by step toward your first ship and then teaches you to fly, dock and fight.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      200,
+      40,
+      600,
+      80
+     ],
+     "label": "PATCH 0019\nA sandbox galaxy",
+     "size": 18,
+     "stroke": "gold"
+    },
+    {
+     "t": "badge",
+     "at": [
+      210,
+      200
+     ],
+     "text": "A sandbox: start on foot",
+     "color": "cyan",
+     "size": 15,
+     "delay": 0.3
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      200
+     ],
+     "text": "Making a living",
+     "color": "green",
+     "size": 15,
+     "delay": 0.44999999999999996
+    },
+    {
+     "t": "badge",
+     "at": [
+      790,
+      200
+     ],
+     "text": "Hired rides",
+     "color": "purple",
+     "size": 15,
+     "delay": 0.6
+    },
+    {
+     "t": "badge",
+     "at": [
+      210,
+      290
+     ],
+     "text": "The scanner",
+     "color": "gold",
+     "size": 15,
+     "delay": 0.75
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      290
+     ],
+     "text": "The interactive tutorial",
+     "color": "red",
+     "size": 15,
+     "delay": 0.8999999999999999
+    },
+    {
+     "t": "badge",
+     "at": [
+      790,
+      290
+     ],
+     "text": "Your first ship",
+     "color": "blue",
+     "size": 15,
+     "delay": 1.05
+    },
+    {
+     "t": "text",
+     "at": [
+      500,
+      400
+     ],
+     "text": "... and 10 more steps",
+     "size": 15,
+     "color": "dim",
+     "align": "center"
+    }
+   ]
+  },
+  {
+   "patch": "0020",
+   "title": "Patch 0020 - Build your own",
+   "text": "You build now: a builder and 43 snapping pieces in four tiers and six empire styles, held up by what's under them, worn down by fire - and the towns are built from the same kit. The game gets its own typeface and a new flight HUD, a free mouse and HUD buttons, veins seen as holograms as you dig, maps that open on you, swimming and diving, mended rides, and the automaton you shaped yourself.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "PATCH 0020 - BUILD YOUR OWN",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      110
+     ],
+     "label": "43 pieces,\n4 tiers, 6 styles",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      332,
+      155.0
+     ],
+     "to": [
+      348,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      110
+     ],
+     "label": "held up or\nthey fall",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      652,
+      155.0
+     ],
+     "to": [
+      668,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      110
+     ],
+     "label": "drag runs, modes,\nfree building",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      290,
+      300,
+      110
+     ],
+     "label": "towns from\nthe kit",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      290,
+      300,
+      110
+     ],
+     "label": "Atrapos Sans,\na new flight HUD",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      290,
+      300,
+      110
+     ],
+     "label": "veins as holograms,\nswimming, maps",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "badge",
+     "at": [
+      260,
+      470
+     ],
+     "text": "builder on 5",
+     "color": "green",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      740,
+      470
+     ],
+     "text": "200 files",
+     "color": "gold",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "patch": "0021",
+   "title": "Patch 0021 - The web build starts",
+   "text": "The browser version mended: a title that answers at once, a loading screen with its bar while the world builds, terrain that no longer runs the web renderer out of its instance slots, and blue skies again.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "PATCH 0021 - THE WEB BUILD STARTS",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      110
+     ],
+     "label": "title: 60 FPS\nat once",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      332,
+      155.0
+     ],
+     "to": [
+      348,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      110
+     ],
+     "label": "shaders compile\nunder the loading",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      652,
+      155.0
+     ],
+     "to": [
+      668,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      110
+     ],
+     "label": "a loading screen\nin the browser",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      290,
+      300,
+      110
+     ],
+     "label": "terrain: no instance\nslots on the web",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      290,
+      300,
+      110
+     ],
+     "label": "depth read in\nOpenGL's range",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      290,
+      300,
+      110
+     ],
+     "label": "a blue sky\nagain",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "badge",
+     "at": [
+      260,
+      470
+     ],
+     "text": "0 errors",
+     "color": "green",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      740,
+      470
+     ],
+     "text": "web",
+     "color": "gold",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "patch": "0022",
+   "title": "Patch 0022 - Loading in the browser",
+   "text": "The browser build loads reliably: eight worker threads instead of four, and a loading screen that waits for the world.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "PATCH 0022 - LOADING IN THE BROWSER",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      100,
+      300,
+      110
+     ],
+     "label": "4 worker threads:\nheld by long jobs",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      332,
+      155.0
+     ],
+     "to": [
+      348,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      100,
+      300,
+      110
+     ],
+     "label": "terrain queued\nup to 140 s",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      652,
+      155.0
+     ],
+     "to": [
+      668,
+      155.0
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      100,
+      300,
+      110
+     ],
+     "label": "8 threads now",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      290,
+      300,
+      110
+     ],
+     "label": "13-23 s to\nthe game",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      290,
+      300,
+      110
+     ],
+     "label": "loading screen\nwaits",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      290,
+      300,
+      110
+     ],
+     "label": "up to 4 min",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "badge",
+     "at": [
+      260,
+      470
+     ],
+     "text": "8 threads",
+     "color": "green",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      740,
+      470
+     ],
+     "text": "web",
+     "color": "gold",
+     "size": 16
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,66 @@
+Create a single game sprite sheet image for an isometric 2D game: the WILDLIFE of a VOLCANIC
+PLANET (Venus-like: basalt, ash, sulphur and rivers of magma). Twelve creatures - BIG,
+AGGRESSIVE and VERY ALIEN: nothing like Earth animals - asymmetric bodies, too many limbs or
+none, armour of cooled basalt plates, molten magma glowing through cracks in their hides,
+obsidian spines and blades, sulphur-yellow gas sacs, heat shimmer vents, clusters of glowing
+eyes, jaws that open in four directions, tendrils of living lava. Predators built to burn and
+crush. Style: 1980s anime creature design (think 80s anime films and OVA monsters) -
+cel-painted, clean bold dark outlines, flat colour areas with 2-3 tone cel shading, crisp
+highlights, saturated palette (basalt black-purple, rust red, ash grey, sulphur yellow, and
+magma glowing deep red to orange to yellow-white), dramatic and menacing.
+
+LAYOUT REFERENCE: attach ice_creatures.png (or forest_creatures.png) and copy its layout
+exactly - the same canvas, grid, poses and facing; only the creatures change.
+
+=== CANVAS (exact) ===
+- Image size: exactly 1536 x 1024 pixels.
+- Background: one flat solid colour, pure magenta #FF00FF, everywhere that is not a creature.
+  No gradient, no texture, no vignette, no grid lines, no borders, no labels, no text.
+- Grid: 8 columns x 6 rows of invisible cells, each 192 x 170 pixels. Exactly ONE figure per
+  cell, centred in it, never crossing its cell; at least 6 px of magenta around each figure.
+  Only a small soft dark contact shadow under each figure (no glow halos onto the background).
+
+=== VIEW AND POSES ===
+- Isometric game view (camera about 30 degrees above), every creature FACING DOWN-LEFT
+  (toward the viewer's lower-left), the same scale for all twelve, feet on the bottom third
+  of the cell.
+- Each row holds TWO creatures, each in 4 poses left to right:
+  stand (idle, menacing), move A, move B (two frames of its walk / crawl / flight cycle -
+  the legs or body clearly different between them), act (its attack: biting, spitting magma,
+  slashing, slamming, charging - the most aggressive moment).
+  Columns 0-3: the first creature's stand, move A, move B, act; columns 4-7: the second's.
+- They are BIG: the largest fill most of a cell (up to 170 px tall / 180 px long); even the
+  smallest are as big as a person (no tiny critters).
+
+=== THE CREATURES (row by row: first creature, second creature) ===
+Row 0: 1 MAGMA BEHEMOTH - a hulking six-legged brute with a back of basalt slabs, magma
+  pouring from the seams, a lower jaw that splits sideways (act: rears and slams, magma
+  spraying); 2 CINDER STALKER - a lean, long-limbed predator on four bladed legs, an eyeless
+  head ringed with glowing pits, a whip tail of embers (act: lunges with jaws wide open).
+Row 1: 3 OBSIDIAN MANTIS - a towering insectoid with glassy black scythe arms and a crest of
+  obsidian shards (act: double scythe strike); 4 SULPHUR BLOATER - a floating sac of yellow
+  gas held up by thin legs, a cluster of eyes underneath, a beak that vents gas (act: spits
+  a burst of burning yellow gas).
+Row 2: 5 LAVA SERPENT - a huge armoured worm rising out of the ground, its body segments
+  glowing between basalt rings, a four-way opening mouth (act: rears and spits a stream of
+  magma); 6 VENT CRAB - a tank-like crab with a smoking chimney growing from its shell and
+  oversized basalt claws (act: claw crush, the chimney erupting).
+Row 3: 7 PYROCLAST HOUND - a pack hunter with a skull like a cracked lava rock, burning mane,
+  six legs, too many teeth (act: leaping bite); 8 ASH WRAITH - a tall thin floating thing of
+  ash and smoke around a glowing molten core, long clawed arms trailing embers (act: lashes
+  out with both claws, the core flaring).
+Row 4: 9 BASALT GOLEM - a colossus of hexagonal basalt columns walking on four column legs,
+  magma eyes in its chest (act: swings a column arm down); 10 EMBER SWARM QUEEN - a winged
+  alien with membranous wings of glowing veins and a stinger tail, hovering (act: dives,
+  stinger first, sparks streaming).
+Row 5: 11 CRATER MAW - a creature that is mostly mouth: a ring of obsidian teeth on a squat
+  armoured body with short legs, a magma tongue (act: mouth gaping, tongue lashing out);
+  12 FUMAROLE TITAN - a giant hunched beast with vents along its spine pouring smoke, heavy
+  forearms and a horned head plate (act: roars, vents erupting, forearms raised).
+
+=== RULES ===
+- The same creature looks exactly the same in its 4 poses (colours, markings, proportions).
+- Every creature reads clearly as dangerous and alien at small size: bold silhouettes.
+- Do not use magenta (#FF00FF) or near-magenta / pink colours anywhere in the artwork
+  (smoke and gas are grey, black or sulphur yellow, never pink).
+- No people, no text, no labels, no watermark anywhere on the image.

@@ -1,0 +1,2532 @@
+{
+ "id": "0001",
+ "title": "Streamed planets: 880 x 880 tiles",
+ "date": "2026-11-06",
+ "summary": "Planet surfaces are now 880 x 880 tiles - ten times wider and a hundred times bigger than before - with Minoan villages scattered across them. To make that possible the surface is no longer built all at once: a worker thread generates the whole planet (terrain, village plans with levelled plots, causeways, the ground and map pictures) while you land, and the world is then made around you as you move - scenery in 16 x 16-tile chunks grown on worker threads and freed behind you (it grows back the same), buildings and citizens as you come near, and a path-finding grid that follows you and is rebuilt in parallel. Landing takes about 4 s without a single stalled frame, walking stays smooth, the minimap shows the land around you, and the planet map lets you set out for anywhere on the planet.",
+ "steps": [
+  {
+   "title": "From 88 x 88 to 880 x 880 tiles",
+   "text": "Planet surfaces were 88 tiles a side and built whole while you landed. Now they are 880 a side - 100 times the area, several minutes to cross on foot - so nothing can be built whole any more: the planet is generated in the background and made around you, piece by piece.",
+   "diagram": [
+    {
+     "t": "iso",
+     "at": [
+      150,
+      300
+     ],
+     "w": 130,
+     "n": 4,
+     "fill": "land",
+     "stroke": "cyan"
+    },
+    {
+     "t": "text",
+     "at": [
+      150,
+      400
+     ],
+     "text": "Before: 88 x 88 tiles\nall built while landing",
+     "size": 16,
+     "align": "center",
+     "color": "dim"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      225,
+      300
+     ],
+     "to": [
+      345,
+      300
+     ],
+     "label": "x10 each side",
+     "color": "gold",
+     "width": 4
+    },
+    {
+     "t": "iso",
+     "at": [
+      650,
+      290
+     ],
+     "w": 540,
+     "n": 10,
+     "fill": "forest",
+     "stroke": "cyan",
+     "marks": [
+      [
+       0.5,
+       0.5,
+       "gold",
+       9,
+       "you land here"
+      ]
+     ]
+    },
+    {
+     "t": "text",
+     "at": [
+      650,
+      480
+     ],
+     "text": "Now: 880 x 880 tiles  (100x the area)",
+     "size": 20,
+     "align": "center"
+    },
+    {
+     "t": "badge",
+     "at": [
+      650,
+      40
+     ],
+     "text": "built piece by piece, around you",
+     "color": "cyan",
+     "pulse": true,
+     "delay": 1.3
+    }
+   ]
+  },
+  {
+   "title": "The whole planet is planned on a worker thread",
+   "text": "While the landing animation plays, a worker thread generates the planet: terrain heights for all 774,400 tiles, the villages' plans with their plots levelled, causeways to islands, and the ground and map pictures as raw bytes. The main thread only waits a frame at a time, so the game never stalls; it then turns the bytes into textures.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      30,
+      70,
+      940,
+      150
+     ],
+     "fill": "#0f1a2c",
+     "stroke": "cyan"
+    },
+    {
+     "t": "text",
+     "at": [
+      50,
+      100
+     ],
+     "text": "MAIN THREAD",
+     "size": 16,
+     "color": "cyan"
+    },
+    {
+     "t": "grid",
+     "rect": [
+      200,
+      120,
+      740,
+      40
+     ],
+     "cols": 24,
+     "rows": 1,
+     "fill": "dark",
+     "cells": [
+      [
+       0,
+       0,
+       "green"
+      ],
+      [
+       1,
+       0,
+       "green"
+      ],
+      [
+       2,
+       0,
+       "green"
+      ],
+      [
+       3,
+       0,
+       "green"
+      ],
+      [
+       4,
+       0,
+       "green"
+      ],
+      [
+       5,
+       0,
+       "green"
+      ],
+      [
+       6,
+       0,
+       "green"
+      ],
+      [
+       7,
+       0,
+       "green"
+      ],
+      [
+       8,
+       0,
+       "green"
+      ],
+      [
+       9,
+       0,
+       "green"
+      ],
+      [
+       10,
+       0,
+       "green"
+      ],
+      [
+       11,
+       0,
+       "green"
+      ],
+      [
+       12,
+       0,
+       "green"
+      ],
+      [
+       13,
+       0,
+       "green"
+      ],
+      [
+       14,
+       0,
+       "green"
+      ],
+      [
+       15,
+       0,
+       "green"
+      ],
+      [
+       16,
+       0,
+       "green"
+      ],
+      [
+       17,
+       0,
+       "green"
+      ],
+      [
+       18,
+       0,
+       "green"
+      ],
+      [
+       19,
+       0,
+       "green"
+      ],
+      [
+       20,
+       0,
+       "green"
+      ],
+      [
+       21,
+       0,
+       "green"
+      ],
+      [
+       22,
+       0,
+       "green"
+      ],
+      [
+       23,
+       0,
+       "green"
+      ]
+     ]
+    },
+    {
+     "t": "text",
+     "at": [
+      570,
+      190
+     ],
+     "text": "every frame keeps running (the landing animation)",
+     "size": 15,
+     "align": "center",
+     "color": "dim"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      270,
+      940,
+      190
+     ],
+     "fill": "#1d160c",
+     "stroke": "gold"
+    },
+    {
+     "t": "text",
+     "at": [
+      50,
+      300
+     ],
+     "text": "WORKER THREAD",
+     "size": 16,
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      60,
+      330,
+      170,
+      90
+     ],
+     "label": "Terrain\nheights",
+     "size": 17,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      260,
+      330,
+      190,
+      90
+     ],
+     "label": "Villages planned\nplots levelled",
+     "size": 17,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      480,
+      330,
+      170,
+      90
+     ],
+     "label": "Islands linked\n(causeways)",
+     "size": 17,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      680,
+      330,
+      190,
+      90
+     ],
+     "label": "Ground + map\npictures (bytes)",
+     "size": 17,
+     "stroke": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      230,
+      375
+     ],
+     "to": [
+      260,
+      375
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      450,
+      375
+     ],
+     "to": [
+      480,
+      375
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      650,
+      375
+     ],
+     "to": [
+      680,
+      375
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      780,
+      330
+     ],
+     "to": [
+      880,
+      170
+     ],
+     "color": "cyan",
+     "bend": -30,
+     "label": "textures"
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      515
+     ],
+     "text": "~2 s of work - no frame over ~40 ms",
+     "color": "green",
+     "pulse": true
+    }
+   ]
+  },
+  {
+   "title": "Villages all over the planet",
+   "text": "The planet is split into 110 x 110-tile regions; about every other one gets a village (sometimes with a palace). Next to the landing pad there is always a palace, a warehouse and a temple. Every building is at least 12 x 12 tiles, on a plot levelled for it: water, rock and crevasses under it and two tiles around are turned to dry ground, easing into the land beyond.",
+   "diagram": [
+    {
+     "t": "iso",
+     "at": [
+      360,
+      290
+     ],
+     "w": 620,
+     "n": 8,
+     "fill": "forest",
+     "stroke": "cyan",
+     "marks": [
+      [
+       0.5,
+       0.5,
+       "gold",
+       11,
+       "landing village"
+      ],
+      [
+       0.039,
+       0.056,
+       "red",
+       6
+      ],
+      [
+       0.036,
+       0.182,
+       "red",
+       6
+      ],
+      [
+       0.065,
+       0.674,
+       "red",
+       6
+      ],
+      [
+       0.039,
+       0.795,
+       "red",
+       6
+      ],
+      [
+       0.176,
+       0.445,
+       "red",
+       6
+      ],
+      [
+       0.194,
+       0.948,
+       "red",
+       6
+      ],
+      [
+       0.311,
+       0.163,
+       "red",
+       6
+      ],
+      [
+       0.337,
+       0.692,
+       "red",
+       6
+      ],
+      [
+       0.443,
+       0.183,
+       "red",
+       6
+      ],
+      [
+       0.426,
+       0.331,
+       "red",
+       6
+      ],
+      [
+       0.41,
+       0.695,
+       "red",
+       6
+      ],
+      [
+       0.44,
+       0.811,
+       "red",
+       6
+      ],
+      [
+       0.467,
+       0.919,
+       "red",
+       6
+      ],
+      [
+       0.545,
+       0.07,
+       "red",
+       6
+      ],
+      [
+       0.554,
+       0.202,
+       "red",
+       6
+      ],
+      [
+       0.566,
+       0.337,
+       "red",
+       6
+      ],
+      [
+       0.536,
+       0.671,
+       "red",
+       6
+      ],
+      [
+       0.677,
+       0.043,
+       "red",
+       6
+      ],
+      [
+       0.699,
+       0.336,
+       "red",
+       6
+      ],
+      [
+       0.675,
+       0.84,
+       "red",
+       6
+      ],
+      [
+       0.839,
+       0.07,
+       "red",
+       6
+      ],
+      [
+       0.794,
+       0.309,
+       "red",
+       6
+      ],
+      [
+       0.805,
+       0.465,
+       "red",
+       6
+      ],
+      [
+       0.783,
+       0.535,
+       "red",
+       6
+      ],
+      [
+       0.83,
+       0.679,
+       "red",
+       6
+      ],
+      [
+       0.788,
+       0.841,
+       "red",
+       6
+      ],
+      [
+       0.795,
+       0.911,
+       "red",
+       6
+      ],
+      [
+       0.918,
+       0.073,
+       "red",
+       6
+      ],
+      [
+       0.91,
+       0.187,
+       "red",
+       6
+      ],
+      [
+       0.967,
+       0.29,
+       "red",
+       6
+      ],
+      [
+       0.967,
+       0.686,
+       "red",
+       6
+      ],
+      [
+       0.932,
+       0.785,
+       "red",
+       6
+      ],
+      [
+       0.922,
+       0.961,
+       "red",
+       6
+      ]
+     ]
+    },
+    {
+     "t": "box",
+     "rect": [
+      700,
+      80,
+      280,
+      95
+     ],
+     "label": "Landing village\npalace 16x14 + warehouse\n+ temple, 9 citizens",
+     "size": 15,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      700,
+      200,
+      280,
+      95
+     ],
+     "label": "~20 villages\n1 in ~45% of the regions\n2-3 buildings, 4 citizens",
+     "size": 15,
+     "stroke": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      700,
+      320,
+      280,
+      130
+     ],
+     "label": "Every plot levelled\nwater, rock, crevasses\ncleared + 2-tile margin\n+ a gentle ramp",
+     "size": 15,
+     "stroke": "green",
+     "pulse": true
+    },
+    {
+     "t": "text",
+     "at": [
+      360,
+      520
+     ],
+     "text": "8 x 8 regions of 110 x 110 tiles",
+     "size": 15,
+     "align": "center",
+     "color": "dim"
+    }
+   ]
+  },
+  {
+   "title": "Scenery streams in 16 x 16-tile chunks",
+   "text": "Trees, rocks, grass and flowers are grown per chunk of 16 x 16 tiles on worker threads, nearest first, and placed a few milliseconds per frame. The 5 x 5 chunks around you are kept full; chunks more than 4 away are freed. Each chunk's scenery is seeded by its position, so a chunk you come back to grows back exactly the same.",
+   "diagram": [
+    {
+     "t": "grid",
+     "rect": [
+      90,
+      50,
+      460,
+      460
+     ],
+     "cols": 11,
+     "rows": 11,
+     "fill": "dark",
+     "cells": [
+      [
+       1,
+       1,
+       "#3a4258"
+      ],
+      [
+       1,
+       2,
+       "#3a4258"
+      ],
+      [
+       1,
+       3,
+       "#3a4258"
+      ],
+      [
+       1,
+       4,
+       "#3a4258"
+      ],
+      [
+       1,
+       5,
+       "#3a4258"
+      ],
+      [
+       1,
+       6,
+       "#3a4258"
+      ],
+      [
+       1,
+       7,
+       "#3a4258"
+      ],
+      [
+       1,
+       8,
+       "#3a4258"
+      ],
+      [
+       1,
+       9,
+       "#3a4258"
+      ],
+      [
+       2,
+       1,
+       "#3a4258"
+      ],
+      [
+       2,
+       2,
+       "#3a4258"
+      ],
+      [
+       2,
+       3,
+       "#3a4258"
+      ],
+      [
+       2,
+       4,
+       "#3a4258"
+      ],
+      [
+       2,
+       5,
+       "#3a4258"
+      ],
+      [
+       2,
+       6,
+       "#3a4258"
+      ],
+      [
+       2,
+       7,
+       "#3a4258"
+      ],
+      [
+       2,
+       8,
+       "#3a4258"
+      ],
+      [
+       2,
+       9,
+       "#3a4258"
+      ],
+      [
+       3,
+       1,
+       "#3a4258"
+      ],
+      [
+       3,
+       2,
+       "#3a4258"
+      ],
+      [
+       3,
+       3,
+       "green"
+      ],
+      [
+       3,
+       4,
+       "green"
+      ],
+      [
+       3,
+       5,
+       "green"
+      ],
+      [
+       3,
+       6,
+       "green"
+      ],
+      [
+       3,
+       7,
+       "green"
+      ],
+      [
+       3,
+       8,
+       "#3a4258"
+      ],
+      [
+       3,
+       9,
+       "#3a4258"
+      ],
+      [
+       4,
+       1,
+       "#3a4258"
+      ],
+      [
+       4,
+       2,
+       "#3a4258"
+      ],
+      [
+       4,
+       3,
+       "green"
+      ],
+      [
+       4,
+       4,
+       "green"
+      ],
+      [
+       4,
+       5,
+       "green"
+      ],
+      [
+       4,
+       6,
+       "green"
+      ],
+      [
+       4,
+       7,
+       "green"
+      ],
+      [
+       4,
+       8,
+       "#3a4258"
+      ],
+      [
+       4,
+       9,
+       "#3a4258"
+      ],
+      [
+       5,
+       1,
+       "#3a4258"
+      ],
+      [
+       5,
+       2,
+       "#3a4258"
+      ],
+      [
+       5,
+       3,
+       "green"
+      ],
+      [
+       5,
+       4,
+       "green"
+      ],
+      [
+       5,
+       5,
+       "green"
+      ],
+      [
+       5,
+       6,
+       "green"
+      ],
+      [
+       5,
+       7,
+       "green"
+      ],
+      [
+       5,
+       8,
+       "#3a4258"
+      ],
+      [
+       5,
+       9,
+       "#3a4258"
+      ],
+      [
+       6,
+       1,
+       "#3a4258"
+      ],
+      [
+       6,
+       2,
+       "#3a4258"
+      ],
+      [
+       6,
+       3,
+       "green"
+      ],
+      [
+       6,
+       4,
+       "green"
+      ],
+      [
+       6,
+       5,
+       "green"
+      ],
+      [
+       6,
+       6,
+       "green"
+      ],
+      [
+       6,
+       7,
+       "green"
+      ],
+      [
+       6,
+       8,
+       "#3a4258"
+      ],
+      [
+       6,
+       9,
+       "#3a4258"
+      ],
+      [
+       7,
+       1,
+       "#3a4258"
+      ],
+      [
+       7,
+       2,
+       "#3a4258"
+      ],
+      [
+       7,
+       3,
+       "green"
+      ],
+      [
+       7,
+       4,
+       "green"
+      ],
+      [
+       7,
+       5,
+       "green"
+      ],
+      [
+       7,
+       6,
+       "green"
+      ],
+      [
+       7,
+       7,
+       "green"
+      ],
+      [
+       7,
+       8,
+       "#3a4258"
+      ],
+      [
+       7,
+       9,
+       "#3a4258"
+      ],
+      [
+       8,
+       1,
+       "#3a4258"
+      ],
+      [
+       8,
+       2,
+       "#3a4258"
+      ],
+      [
+       8,
+       3,
+       "#3a4258"
+      ],
+      [
+       8,
+       4,
+       "#3a4258"
+      ],
+      [
+       8,
+       5,
+       "#3a4258"
+      ],
+      [
+       8,
+       6,
+       "#3a4258"
+      ],
+      [
+       8,
+       7,
+       "#3a4258"
+      ],
+      [
+       8,
+       8,
+       "#3a4258"
+      ],
+      [
+       8,
+       9,
+       "#3a4258"
+      ],
+      [
+       9,
+       1,
+       "#3a4258"
+      ],
+      [
+       9,
+       2,
+       "#3a4258"
+      ],
+      [
+       9,
+       3,
+       "#3a4258"
+      ],
+      [
+       9,
+       4,
+       "#3a4258"
+      ],
+      [
+       9,
+       5,
+       "#3a4258"
+      ],
+      [
+       9,
+       6,
+       "#3a4258"
+      ],
+      [
+       9,
+       7,
+       "#3a4258"
+      ],
+      [
+       9,
+       8,
+       "#3a4258"
+      ],
+      [
+       9,
+       9,
+       "#3a4258"
+      ]
+     ]
+    },
+    {
+     "t": "circle",
+     "at": [
+      320,
+      280
+     ],
+     "r": 14,
+     "fill": "gold",
+     "stroke": "white",
+     "pulse": true,
+     "label": "you"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      345,
+      280
+     ],
+     "to": [
+      480,
+      280
+     ],
+     "color": "gold",
+     "width": 4,
+     "label": "walking"
+    },
+    {
+     "t": "box",
+     "rect": [
+      600,
+      60,
+      370,
+      80
+     ],
+     "label": "Around you (5 x 5 chunks)\ngrown on worker threads, placed\n<= 3 ms of each frame",
+     "size": 15,
+     "fill": "#16331c",
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      600,
+      165,
+      370,
+      70
+     ],
+     "label": "Up to 4 chunks away: kept",
+     "size": 16,
+     "fill": "#252b3a",
+     "stroke": "dim"
+    },
+    {
+     "t": "box",
+     "rect": [
+      600,
+      260,
+      370,
+      70
+     ],
+     "label": "Further: freed (not in memory)",
+     "size": 16,
+     "fill": "dark",
+     "stroke": "dim"
+    },
+    {
+     "t": "box",
+     "rect": [
+      600,
+      360,
+      370,
+      110
+     ],
+     "label": "Come back: it grows back\nexactly the same\n(each chunk seeded by its position)",
+     "size": 15,
+     "stroke": "gold",
+     "pulse": true
+    }
+   ]
+  },
+  {
+   "title": "Small pieces each frame",
+   "text": "Nothing big happens in one frame. Scenery placement has a 3 ms budget per frame. Buildings and citizens appear when you come within 64 tiles, one building per frame. Each chunk's trees sit under one holder node, so freeing a chunk is a single removal from the y-sorted scene instead of a thousand.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      80,
+      60
+     ],
+     "text": "One frame (16.7 ms at 60 fps)",
+     "size": 16,
+     "color": "dim"
+    },
+    {
+     "t": "bar",
+     "rect": [
+      80,
+      75,
+      840,
+      36
+     ],
+     "value": 0.18,
+     "color": "cyan",
+     "label": "scenery: <= 3 ms"
+    },
+    {
+     "t": "bar",
+     "rect": [
+      80,
+      125,
+      840,
+      36
+     ],
+     "value": 1.0,
+     "color": "#5a3a1e",
+     "label": "a building coming into view (within 64 tiles): one per frame",
+     "delay": 0.5
+    },
+    {
+     "t": "box",
+     "rect": [
+      380,
+      210,
+      240,
+      60
+     ],
+     "label": "objects (y-sorted)",
+     "size": 17,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      90,
+      360,
+      200,
+      60
+     ],
+     "label": "chunk (27,30)",
+     "size": 15,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      310,
+      360,
+      200,
+      60
+     ],
+     "label": "chunk (28,30)",
+     "size": 15,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      530,
+      360,
+      200,
+      60
+     ],
+     "label": "chunk (29,30)",
+     "size": 15,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      750,
+      360,
+      180,
+      60
+     ],
+     "label": "citizens,\nbuildings...",
+     "size": 14,
+     "stroke": "dim"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      500,
+      270
+     ],
+     "to": [
+      190,
+      360
+     ],
+     "color": "green"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      500,
+      270
+     ],
+     "to": [
+      410,
+      360
+     ],
+     "color": "green"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      500,
+      270
+     ],
+     "to": [
+      630,
+      360
+     ],
+     "color": "green"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      500,
+      270
+     ],
+     "to": [
+      840,
+      360
+     ],
+     "color": "dim"
+    },
+    {
+     "t": "text",
+     "at": [
+      190,
+      445
+     ],
+     "text": "~1000 trees",
+     "size": 14,
+     "align": "center",
+     "color": "dim"
+    },
+    {
+     "t": "text",
+     "at": [
+      410,
+      445
+     ],
+     "text": "~1000 trees",
+     "size": 14,
+     "align": "center",
+     "color": "dim"
+    },
+    {
+     "t": "text",
+     "at": [
+      630,
+      445
+     ],
+     "text": "~1000 trees",
+     "size": 14,
+     "align": "center",
+     "color": "dim"
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      510
+     ],
+     "text": "free a chunk = 1 removal (was 1000+)",
+     "color": "green",
+     "pulse": true
+    }
+   ]
+  },
+  {
+   "title": "A path grid that follows you",
+   "text": "Path-finding used one grid over the whole map; at 880 x 880 that would be 12 million points. Now the grid covers a 96 x 96-tile window around you, and is built again around you when you're 24 tiles off its centre. It's built on worker threads in three stages - walkable rows in parallel, edge checks in parallel, then the grid with its doorways - in 0.65 s instead of 3.2 s.",
+   "diagram": [
+    {
+     "t": "grid",
+     "rect": [
+      60,
+      60,
+      420,
+      420
+     ],
+     "cols": 21,
+     "rows": 21,
+     "fill": "#10301a",
+     "stroke": "dim"
+    },
+    {
+     "t": "box",
+     "rect": [
+      160,
+      160,
+      220,
+      220
+     ],
+     "fill": "#00000000",
+     "stroke": "cyan",
+     "pulse": true
+    },
+    {
+     "t": "text",
+     "at": [
+      270,
+      150
+     ],
+     "text": "96 x 96-tile window",
+     "size": 15,
+     "align": "center",
+     "color": "cyan"
+    },
+    {
+     "t": "circle",
+     "at": [
+      270,
+      270
+     ],
+     "r": 11,
+     "fill": "gold",
+     "stroke": "white"
+    },
+    {
+     "t": "box",
+     "rect": [
+      240,
+      120,
+      220,
+      220
+     ],
+     "fill": "#00000000",
+     "stroke": "gold",
+     "border": 2,
+     "delay": 1.2
+    },
+    {
+     "t": "text",
+     "at": [
+      460,
+      375
+     ],
+     "text": "re-centred after 24 tiles",
+     "size": 14,
+     "align": "right",
+     "color": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      280,
+      268
+     ],
+     "to": [
+      345,
+      232
+     ],
+     "color": "gold",
+     "delay": 1.2
+    },
+    {
+     "t": "text",
+     "at": [
+      530,
+      80
+     ],
+     "text": "Building the grid",
+     "size": 17
+    },
+    {
+     "t": "bar",
+     "rect": [
+      530,
+      100,
+      430,
+      34
+     ],
+     "value": 1.0,
+     "color": "red",
+     "label": "before: one thread - 3.2 s"
+    },
+    {
+     "t": "bar",
+     "rect": [
+      530,
+      145,
+      430,
+      34
+     ],
+     "value": 0.2,
+     "color": "green",
+     "label": "now: 0.65 s",
+     "delay": 0.9
+    },
+    {
+     "t": "box",
+     "rect": [
+      530,
+      220,
+      200,
+      70
+     ],
+     "label": "1  walkable rows\n(in parallel)",
+     "size": 15,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      760,
+      220,
+      200,
+      70
+     ],
+     "label": "2  edge checks\n(in parallel)",
+     "size": 15,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      645,
+      320,
+      200,
+      70
+     ],
+     "label": "3  the grid +\ndoorways",
+     "size": 15,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      730,
+      255
+     ],
+     "to": [
+      760,
+      255
+     ]
+    },
+    {
+     "t": "arrow",
+     "from": [
+      860,
+      290
+     ],
+     "to": [
+      790,
+      320
+     ]
+    },
+    {
+     "t": "badge",
+     "at": [
+      745,
+      450
+     ],
+     "text": "swapped in when ready - no stall",
+     "color": "cyan"
+    }
+   ]
+  },
+  {
+   "title": "Walking somewhere far away",
+   "text": "On the planet map (M) you can click anywhere on the planet. If it's outside the path grid's window, you set out toward it: each leg goes to the edge of the window, the window moves with you, and the next leg starts, until you arrive.",
+   "diagram": [
+    {
+     "t": "iso",
+     "at": [
+      480,
+      300
+     ],
+     "w": 820,
+     "n": 0,
+     "fill": "forest",
+     "stroke": "cyan",
+     "areas": [
+      [
+       0.16,
+       0.4,
+       0.2,
+       0.2,
+       "cyan"
+      ],
+      [
+       0.36,
+       0.4,
+       0.2,
+       0.2,
+       "cyan",
+       true
+      ],
+      [
+       0.56,
+       0.4,
+       0.2,
+       0.2,
+       "cyan",
+       true
+      ]
+     ],
+     "marks": [
+      [
+       0.26,
+       0.5,
+       "gold",
+       10,
+       "you"
+      ],
+      [
+       0.8,
+       0.5,
+       "red",
+       10,
+       "destination"
+      ]
+     ]
+    },
+    {
+     "t": "arrow",
+     "from": [
+      389.8,
+      254.9
+     ],
+     "to": [
+      459.5,
+      289.8
+     ],
+     "color": "gold",
+     "width": 4,
+     "label": "leg 1",
+     "bend": -14
+    },
+    {
+     "t": "arrow",
+     "from": [
+      467.7,
+      293.9
+     ],
+     "to": [
+      541.5,
+      330.8
+     ],
+     "color": "gold",
+     "width": 4,
+     "label": "leg 2",
+     "delay": 1.4,
+     "bend": -14
+    },
+    {
+     "t": "arrow",
+     "from": [
+      549.7,
+      334.9
+     ],
+     "to": [
+      594.8,
+      357.4
+     ],
+     "color": "gold",
+     "width": 4,
+     "delay": 1.9,
+     "bend": -14
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      40,
+      330,
+      90
+     ],
+     "label": "Click anywhere on the planet\nmap (M): you set out toward it",
+     "size": 15,
+     "stroke": "gold"
+    }
+   ]
+  },
+  {
+   "title": "Maps and saved layouts",
+   "text": "The corner minimap now shows the land around you (about 140 tiles); the planet map shows the whole planet with every village's buildings and zooms much further in. Both use the map picture made on the worker thread. Saving a layout in the level editor keeps every building and citizen - built yet or not - and only the scenery you placed by hand; the rest grows back by itself.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      60,
+      60,
+      380,
+      280
+     ],
+     "fill": "#0f1a2c",
+     "stroke": "cyan"
+    },
+    {
+     "t": "grid",
+     "rect": [
+      80,
+      80,
+      340,
+      240
+     ],
+     "cols": 17,
+     "rows": 12,
+     "fill": "#1f4a2a",
+     "stroke": "dim",
+     "cells": [
+      [
+       5,
+       4,
+       "sea"
+      ],
+      [
+       6,
+       4,
+       "sea"
+      ],
+      [
+       6,
+       5,
+       "sea"
+      ],
+      [
+       11,
+       8,
+       "stone"
+      ],
+      [
+       12,
+       8,
+       "stone"
+      ]
+     ]
+    },
+    {
+     "t": "circle",
+     "at": [
+      250,
+      200
+     ],
+     "r": 7,
+     "fill": "white",
+     "pulse": true
+    },
+    {
+     "t": "text",
+     "at": [
+      250,
+      370
+     ],
+     "text": "Minimap: ~140 tiles around you",
+     "size": 16,
+     "align": "center"
+    },
+    {
+     "t": "iso",
+     "at": [
+      720,
+      200
+     ],
+     "w": 420,
+     "n": 8,
+     "fill": "forest",
+     "stroke": "cyan",
+     "marks": [
+      [
+       0.5,
+       0.5,
+       "gold",
+       7
+      ],
+      [
+       0.2,
+       0.3,
+       "red",
+       5
+      ],
+      [
+       0.7,
+       0.2,
+       "red",
+       5
+      ],
+      [
+       0.8,
+       0.75,
+       "red",
+       5
+      ],
+      [
+       0.3,
+       0.8,
+       "red",
+       5
+      ]
+     ]
+    },
+    {
+     "t": "text",
+     "at": [
+      720,
+      370
+     ],
+     "text": "Planet map (M): the whole planet, zoom x60",
+     "size": 16,
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      60,
+      420,
+      880,
+      100
+     ],
+     "label": "Level editor > Save: every building & citizen (built or not)\n+ the scenery you placed by hand - the rest grows back",
+     "size": 16,
+     "stroke": "gold"
+    }
+   ]
+  },
+  {
+   "title": "Results",
+   "text": "Landing on a planet ten times wider takes about 3.5-4 s, and the game stays smooth the whole time. Walking at four times normal speed across the planet, the worst frame was 46 ms (67 ms with rendering, when a village appears). All 58 automated tests pass, including a new test of the streamed planet.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      70
+     ],
+     "text": "880 x 880 tiles, built around you",
+     "size": 30,
+     "align": "center",
+     "color": "gold"
+    },
+    {
+     "t": "bar",
+     "rect": [
+      150,
+      130,
+      700,
+      40
+     ],
+     "value": 0.27,
+     "color": "cyan",
+     "label": "landing: ~3.5-4 s (worst frame ~40 ms)"
+    },
+    {
+     "t": "bar",
+     "rect": [
+      150,
+      190,
+      700,
+      40
+     ],
+     "value": 0.46,
+     "color": "green",
+     "label": "walking at 4x speed: worst frame 46 ms"
+    },
+    {
+     "t": "bar",
+     "rect": [
+      150,
+      250,
+      700,
+      40
+     ],
+     "value": 0.2,
+     "color": "green",
+     "label": "path grid: 0.65 s (was 3.2 s)"
+    },
+    {
+     "t": "badge",
+     "at": [
+      230,
+      350
+     ],
+     "text": "100x the area",
+     "color": "gold",
+     "size": 18
+    },
+    {
+     "t": "badge",
+     "at": [
+      480,
+      350
+     ],
+     "text": "~20 villages",
+     "color": "red",
+     "size": 18
+    },
+    {
+     "t": "badge",
+     "at": [
+      750,
+      350
+     ],
+     "text": "same scenery when you return",
+     "color": "green",
+     "size": 18
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      440
+     ],
+     "text": "58 tests pass  (new: streamed planet)",
+     "color": "cyan",
+     "size": 20,
+     "pulse": true
+    }
+   ]
+  }
+ ],
+ "review": {
+  "intro": "Every change to the code, file by file, as unified diffs against the code before this patch (- removed, + added), each hunk with what it does and why. Most of the work is in scripts/planet_surface.gd: the planet is now generated on a worker thread, and its contents (scenery chunks, buildings and citizens, the path-finding grid) are streamed around the player.",
+  "files": [
+   {
+    "path": "scripts/planet_surface.gd",
+    "explanation": "The planet surface. Generation moved to a worker thread; scenery, buildings, citizens and path-finding are now made around the player and freed behind, so an 880 x 880 map loads in seconds without stalling a frame.",
+    "hunks": [
+     {
+      "diff": "@@ -9,7 +9,18 @@ \n ## The space game is kept in SaveGame.space_state while you're down here;\n ## loot is written into it, and taking off restores it.\n \n-const N := 88                       # map is N x N tiles (4x the original 44 x 44)\n+const N := 880                      # map is N x N tiles (streamed: see \"Streaming\")\n+## Streaming: the planet is generated whole on a worker thread (heights,\n+## terrain, the villages' plans) but its contents are only made near you:\n+## scenery per CHUNK x CHUNK tiles within LOAD_R chunks (freed beyond\n+## UNLOAD_R), buildings and citizens within BUILD_R tiles, and the path-finding\n+## grid over a NAV_WIN-tile window that follows you (rebuilt on a worker thread).\n+const CHUNK := 16\n+const LOAD_R := 2\n+const UNLOAD_R := 4\n+const BUILD_R := 64\n+const NAV_WIN := 96\n+const NAV_SHIFT := 24\n const TILE := Vector2i(128, 64)\n const INTERACT_RANGE := 80.0\n const PROPS := preload(\"res://scripts/surface_props.gd\")",
+      "added": 12,
+      "removed": 1,
+      "title": "Map size and streaming constants",
+      "note": "N goes from 88 to 880 tiles. The new constants set the streaming: 16 x 16-tile scenery chunks, kept within 2 chunks and freed beyond 4, buildings within 64 tiles, and a 96-tile path grid that re-centres after 24 tiles.",
+      "bubbles": [
+       {
+        "at": "const N := 880",
+        "text": "880 x 880 tiles - ten times wider than before, a hundred times the area."
+       },
+       {
+        "at": "const CHUNK := 16",
+        "text": "Scenery comes in 16 x 16-tile chunks: grown within 2 chunks of you, freed beyond 4 (the gap stops flicker at a border)."
+       },
+       {
+        "at": "const BUILD_R := 64",
+        "text": "Buildings and citizens are made within 64 tiles of you."
+       },
+       {
+        "at": "const NAV_WIN := 96",
+        "text": "Path-finding covers only a 96-tile window around you; it re-centres once you're 24 tiles off its middle."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -29,14 +40,15 @@ \n var _terrain: PackedInt32Array      # terrain index per cell\n var _height: PackedFloat32Array     # raw height per cell (-1..1), for the ground shader\n var _world_to_grid: Transform2D\n+var _g2w: Transform2D               # grid -> world (thread-safe _cell_pos)\n var floor_layer: TileMapLayer       # building floors (procedural floor tiles)\n var _floor_sources := {}\n var _blocked_cells := {}            # building footprints (+1 margin): no scenery\n var _occluders: Array = []          # wall tiles and columns that fade in front of you\n-var _tall_props: Array = []         # trees, palms, crystals, boulders (also fade)\n+var _tall_props := {}               # trees, palms, crystals, boulders (also fade): prop -> true\n var _prop_buckets := {}             # tile cell / 4 -> tall props there (fast fade lookups)\n var _faded: Array = []              # tall props currently faded (or fading back)\n-var _props: Array = []              # all scenery (Prop nodes and flat PropData)\n+var _props := {}                    # all scenery (Prop nodes and flat PropData): prop -> true\n var _decor: Node2D                   # flat ground cover: one PropBatch per chunk\n var _decor_batches := {}\n var _height_img: Image",
+      "added": 3,
+      "removed": 2,
+      "title": "Thread-safe transforms; scenery lists as dictionaries",
+      "note": "_g2w (grid to world) lets worker threads convert tiles to positions without touching nodes. _props and _tall_props become dictionaries so a chunk's scenery can be removed in O(1) each, instead of filtering 27,000 entries.",
+      "bubbles": [
+       {
+        "at": "var _g2w: Transform2D",
+        "text": "Grid-to-world as plain maths: worker threads can't touch the TileMapLayer node, but they can use this."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -108,18 +120,28 @@ func _ready\n \t_slice_t = Time.get_ticks_usec()\n \tawait _step(0.05, \"terrain\")\n \t_build_background()\n-\t_generate_terrain()\n+\t_build_tilemap()\n \t_layout = DataFiles.read(_layout_path())\n-\t_apply_layout_heights()\n-\tawait _step(0.15, \"ground\")\n-\t_build_tilemap()\n+\t# The whole planet, on a worker thread: heights and terrain, the villages\n+\t# (plots levelled), links to islands, the pictures of the ground and map.\n+\t_gen_task = WorkerThreadPool.add_task(_generate_world, false, \"Planet surface\")\n+\twhile not WorkerThreadPool.is_task_completed(_gen_task):\n+\t\tbuild_progress = maxf(build_progress, lerpf(0.05, 0.5, _gen_progress))\n+\t\tawait get_tree().process_frame\n+\tWorkerThreadPool.wait_for_task_completion(_gen_task)\n+\t_gen_task = -1\n+\tawait _step(0.5, \"ground\")\n+\t_build_ground()\n+\t_build_map_texture()\n \tobjects = Node2D.new()\n \tobjects.y_sort_enabled = true\n \tadd_child(objects)\n-\tawait _step(0.25, \"buildings\")\n+\tawait _step(0.55, \"buildings\")\n \tawait _place_everything()\n \t_place_archer()\n \tawait _build_prop_atlas()\n+\t# What's around the landing pad: its scenery and the path-finding window.\n+\tawait _stream_initial()\n \t_theme_buildings()\n \tawait _step(0.95, \"hud\")\n \t_build_hud()",
+      "added": 15,
+      "removed": 5,
+      "title": "Loading: generate on a worker thread",
+      "note": "_ready no longer generates terrain on the main thread. It starts _generate_world as a WorkerThreadPool task and waits a frame at a time (the landing animation keeps playing), then builds the ground and map textures from the bytes the thread made, places what's around the pad, and streams the first chunks and the path grid (_stream_initial).",
+      "bubbles": [
+       {
+        "at": "_gen_task = WorkerThreadPool.add_task(_generate_world, false, \"Planet surface\")",
+        "text": "The whole planet is generated on a worker thread, so the loading screen keeps animating."
+       },
+       {
+        "at": "while not WorkerThreadPool.is_task_completed(_gen_task):",
+        "text": "Meanwhile the main thread keeps drawing frames and moving the progress bar."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -129,6 +151,22 @@ func _ready\n \tbuilt.emit()\n \tif not prebuilding:\n \t\tshow_world()\n+\n+\n+## Leaving (or freed mid-build): worker tasks read this surface - let them finish first.\n+func _exit_tree() -> void:\n+\tif _gen_task >= 0:\n+\t\tWorkerThreadPool.wait_for_task_completion(_gen_task)\n+\t\t_gen_task = -1\n+\tfor id in _chunk_tasks.values():\n+\t\tWorkerThreadPool.wait_for_task_completion(id)\n+\t_chunk_tasks.clear()\n+\tif _nav_task >= 0:\n+\t\tif _nav_stage == 3:\n+\t\t\tWorkerThreadPool.wait_for_task_completion(_nav_task)\n+\t\telse:\n+\t\t\tWorkerThreadPool.wait_for_group_task_completion(_nav_task)\n+\t\t_nav_task = -1\n \n \n ## Makes the built surface the live game: shows it, its layers and camera,",
+      "added": 16,
+      "removed": 0,
+      "title": "Waiting for worker tasks when freed",
+      "note": "Worker tasks read the surface's data. If the surface is freed while one runs (taking off, or quitting mid-build) the task would read a dead object ('Bad address index'), so _exit_tree waits for the generation, scenery and path-grid tasks first.",
+      "bubbles": [
+       {
+        "at": "func _exit_tree() -> void:",
+        "text": "Worker tasks read this surface's data: leaving before they finish would pull it from under them, so it waits."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -232,6 +270,201 @@ func _breathe\n const LAND_BIAS := 0.3\n \n \n+## The whole planet (worker thread; touches no nodes): terrain, the villages'\n+## plans with their plots levelled, causeways to islands, the height map and\n+## map pictures as bytes, and the scenery looks for the atlas.\n+var _gen_progress := 0.0\n+var _gen_task := -1\n+var _height_bytes := PackedByteArray()\n+var _map_bytes := PackedByteArray()\n+var _atlas_looks: Array = []\n+\n+## pdata's thresholds and walkable flags as packed arrays (hot paths, threads).\n+var _th := PackedFloat32Array()\n+var _walk_t := PackedByteArray()\n+\n+func _generate_world() -> void:\n+\t_th = PackedFloat32Array(pdata[\"thresholds\"])\n+\tfor t in pdata[\"terrain\"]:\n+\t\t_walk_t.append(1 if t[2] else 0)\n+\t_generate_terrain()\n+\t_gen_progress = 0.35\n+\t_apply_layout_heights()\n+\tif _layout.is_empty():\n+\t\t_plan_world()\n+\t_gen_progress = 0.6\n+\t_connect_islands()\n+\t_gen_progress = 0.85\n+\tvar th: Array = pdata[\"thresholds\"]\n+\t_height_bytes.resize(N * N)\n+\t_map_bytes.resize(N * N * 3)\n+\tvar cols: Array = pdata[\"terrain\"].map(func(t): return t[1])\n+\tfor i in N:\n+\t\tfor j in N:\n+\t\t\tvar k := i * N + j\n+\t\t\tvar h := _height[k]\n+\t\t\tvar t := 0\n+\t\t\twhile t < th.size() and h > th[t]:\n+\t\t\t\tt += 1\n+\t\t\t_terrain[k] = t\n+\t\t\t# (images are row-major: pixel (x = i, y = j))\n+\t\t\tvar px := j * N + i\n+\t\t\t_height_bytes[px] = clampi(roundi((h + 1.0) * 0.5 * 255.0), 0, 255)\n+\t\t\tvar c: Color = cols[t]\n+\t\t\t_map_bytes[px * 3] = c.r8\n+\t\t\t_map_bytes[px * 3 + 1] = c.g8\n+\t\t\t_map_bytes[px * 3 + 2] = c.b8\n+\t_atlas_looks = _sample_looks()\n+\t_gen_progress = 1.0\n+\n+\n+## The overview picture of the terrain (minimap and planet map).\n+var map_tex: ImageTexture\n+var _map_img: Image\n+\n+func _build_map_texture() -> void:\n+\t_map_img = Image.create_from_data(N, N, false, Image.FORMAT_RGB8, _map_bytes)\n+\tmap_tex = ImageTexture.create_from_image(_map_img)\n+\t_map_bytes = PackedByteArray()\n+\n+\n+# --- Scenery chunks ---------------------------------------------------------------------\n+\n+var _chunks := {}                   # chunk -> true: its scenery is (being) placed\n+var _chunk_nodes := {}              # chunk -> its scenery nodes\n+var _chunk_data := {}               # chunk -> its flat scenery (PropData)\n+var _chunk_holders := {}            # chunk -> the node holding its scenery nodes\n+var _chunk_tasks := {}              # chunk -> worker task growing its scenery\n+var _chunk_results := {}            # chunk -> grown scenery, waiting to be placed\n+var _chunk_lock := Mutex.new()\n+var _place_queue: Array = []        # [chunk, scenery, next index]\n+\n+func _chunk_of(cell: Vector2i) -> Vector2i:\n+\treturn Vector2i(floori(float(cell.x) / CHUNK), floori(float(cell.y) / CHUNK))\n+\n+\n+## Keeps the scenery around you: grows the chunks within LOAD_R on worker\n+## threads (nearest first), places what's grown within `budget_us` of this\n+## frame, and frees chunks beyond UNLOAD_R.\n+func _stream_chunks(budget_us: int) -> void:\n+\tvar pc := _chunk_of(_cell_at(pilot.position))\n+\tvar maxc := (N - 1) / CHUNK\n+\tvar want: Array = []\n+\tfor dx in range(-LOAD_R, LOAD_R + 1):\n+\t\tfor dy in range(-LOAD_R, LOAD_R + 1):\n+\t\t\tvar key := pc + Vector2i(dx, dy)\n+\t\t\tif key.x >= 0 and key.y >= 0 and key.x <= maxc and key.y <= maxc \\\n+\t\t\t\t\tand not _chunks.has(key) and not _chunk_tasks.has(key) and not _queued(key):\n+\t\t\t\twant.append(key)\n+\twant.sort_custom(func(a, b): return (a - pc).length_squared() < (b - pc).length_squared())\n+\tfor key in want:\n+\t\t_chunk_tasks[key] = WorkerThreadPool.add_task(func() -> void:\n+\t\t\tvar d := _chunk_flora(key)\n+\t\t\t_chunk_lock.lock()\n+\t\t\t_chunk_results[key] = d\n+\t\t\t_chunk_lock.unlock(), false, \"Surface scenery\")\n+\tfor key in _chunk_tasks.keys():\n+\t\tif WorkerThreadPool.is_task_completed(_chunk_tasks[key]):\n+\t\t\tWorkerThreadPool.wait_for_task_completion(_chunk_tasks[key])\n+\t\t\t_chunk_tasks.erase(key)\n+\t\t\t_chunk_lock.lock()\n+\t\t\t_place_queue.append([key, _chunk_results[key], 0])\n+\t\t\t_chunk_results.erase(key)\n+\t\t\t_chunk_lock.unlock()\n+\t_place_queue.sort_custom(func(a, b): return (a[0] - pc).length_squared() < (b[0] - pc).length_squared())\n+\tvar t0 := Time.get_ticks_usec()\n+\twhile not _place_queue.is_empty() and Time.get_ticks_usec() - t0 < budget_us:\n+\t\tvar q: Array = _place_queue[0]\n+\t\tvar key: Vector2i = q[0]\n+\t\tif _cheb(key, pc) > UNLOAD_R:\n+\t\t\t_place_queue.pop_front()\n+\t\t\tcontinue\n+\t\t_chunks[key] = true\n+\t\tvar data: Array = q[1]\n+\t\tvar end := mini(int(q[2]) + 48, data.size())\n+\t\tfor k in range(q[2], end):\n+\t\t\tvar d: Array = data[k]\n+\t\t\t_spawn_prop(d[0], d[1], d[2], d[3], d[4], true)\n+\t\tq[2] = end\n+\t\tif end >= data.size():\n+\t\t\t_place_queue.pop_front()\n+\t\t\tif _decor_batches.has(key):\n+\t\t\t\t_decor_batches[key].queue_redraw()\n+\tvar freed := 0\n+\tfor key in _chunks.keys():\n+\t\tif _cheb(key, pc) > UNLOAD_R and freed < 2:   # (a couple a frame)\n+\t\t\t_unload_chunk(key)\n+\t\t\tfreed += 1\n+\n+\n+func _queued(key: Vector2i) -> bool:\n+\tfor q in _place_queue:\n+\t\tif q[0] == key:\n+\t\t\treturn true\n+\treturn false\n+\n+\n+func _cheb(a: Vector2i, b: Vector2i) -> int:\n+\treturn maxi(absi(a.x - b.x), absi(a.y - b.y))\n+\n+\n+## Frees a chunk's scenery (it grows back the same when you return).\n+func _unload_chunk(key: Vector2i) -> void:\n+\t_chunks.erase(key)\n+\tvar batch: Node2D = _decor_batches.get(key)\n+\tif batch:\n+\t\tbatch.free()\n+\t\t_decor_batches.erase(key)\n+\tfor p in _chunk_nodes.get(key, []):\n+\t\t_props.erase(p)\n+\t\t_tall_props.erase(p)\n+\t_chunk_nodes.erase(key)\n+\tvar holder: Node2D = _chunk_holders.get(key)\n+\tif holder:\n+\t\tholder.free()\n+\t\t_chunk_holders.erase(key)\n+\tvar b0 := key * CHUNK / 4\n+\tfor bx in CHUNK / 4:\n+\t\tfor by in CHUNK / 4:\n+\t\t\t_prop_buckets.erase(b0 + Vector2i(bx, by))\n+\tfor d in _chunk_data.get(key, []):\n+\t\t_props.erase(d)\n+\t_chunk_data.erase(key)\n+\t_faded = _faded.filter(func(p): return is_instance_valid(p))\n+\n+\n+## While loading: the scenery around the pad, all placed, and the path grid.\n+func _stream_initial() -> void:\n+\tvar t0 := Time.get_ticks_msec()\n+\twhile Time.get_ticks_msec() - t0 < 20000:\n+\t\t_stream_chunks(6000)\n+\t\tif _chunk_tasks.is_empty() and _place_queue.is_empty():\n+\t\t\tbreak\n+\t\tawait _breathe(lerpf(0.6, 0.85, minf(1.0, _chunks.size() / 25.0)), \"Planting trees and scenery\")\n+\tawait _build_nav()\n+\n+\n+## Every scenery look the planet can grow (for the prop atlas): the flora of\n+## each walkable terrain kind, rolled many times.\n+func _sample_looks() -> Array:\n+\tvar rng := RandomNumberGenerator.new()\n+\trng.seed = int(pdata[\"seed\"]) * 7 + 1\n+\tvar leaf: Color = pdata[\"prop_color\"]\n+\tvar seen := {}\n+\tvar out := []\n+\tfor t in pdata[\"terrain\"]:\n+\t\tif not t[2]:\n+\t\t\tcontinue\n+\t\tfor k in 600:\n+\t\t\tfor spec in _flora_for(t[3], leaf, rng):\n+\t\t\t\tvar v := rng.randi()\n+\t\t\t\tvar key := PROPS.atlas_key(spec[0], spec[1], v)\n+\t\t\t\tif not seen.has(key):\n+\t\t\t\t\tseen[key] = true\n+\t\t\t\t\tout.append([spec[0], spec[1], v])\n+\treturn out\n+\n+\n func _generate_terrain() -> void:\n \tvar noise := FastNoiseLite.new()\n \tnoise.seed = pdata[\"seed\"]",
+      "added": 195,
+      "removed": 0,
+      "title": "The world generator and the scenery chunks",
+      "note": "New: _generate_world runs the whole planet on the worker: terrain, village planning (_plan_world), island causeways, and the height and map pictures as raw bytes (images can be made off the main thread, textures cannot). _sample_looks lists every scenery look for the prop atlas, since the props themselves no longer exist up front. Then the chunk streamer: _stream_chunks grows chunks within LOAD_R on worker tasks (nearest first), places at most a few milliseconds' worth per frame, and frees chunks beyond UNLOAD_R (two a frame); _unload_chunk frees a chunk's holder node and drops its entries from the scenery dictionaries.",
+      "bubbles": [
+       {
+        "at": "func _generate_world() -> void:",
+        "text": "Runs on the worker thread and touches no nodes - only arrays and bytes, which is what makes it thread-safe."
+       },
+       {
+        "at": "_height_bytes[px] = clampi(roundi((h + 1.0) * 0.5 * 255.0), 0, 255)",
+        "text": "The height map as raw bytes (one per tile); the main thread later turns it into a texture in one call."
+       },
+       {
+        "at": "func _stream_chunks(budget_us: int) -> void:",
+        "text": "Called every frame: start growing missing chunks, place grown ones within a time budget, free far ones."
+       },
+       {
+        "at": "want.sort_custom(func(a, b): return (a - pc).length_squared() < (b - pc).length_squared())",
+        "text": "Nearest chunks first, so what you can see fills in first."
+       },
+       {
+        "at": "var d := _chunk_flora(key)",
+        "text": "Each chunk's scenery is worked out on a worker thread..."
+       },
+       {
+        "at": "_chunk_lock.lock()",
+        "text": "...and handed back under a lock, since several threads write the results at once."
+       },
+       {
+        "at": "while not _place_queue.is_empty() and Time.get_ticks_usec() - t0 < budget_us:",
+        "text": "Placing nodes must happen on the main thread: only as many as fit in the frame's budget (3 ms in play), 48 at a time."
+       },
+       {
+        "at": "if _cheb(key, pc) > UNLOAD_R and freed < 2:   # (a couple a frame)",
+        "text": "Freeing is spread out too - at most two chunks a frame."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -275,10 +508,15 @@ func walkable_cell\n ## Walkable where the ground *looks* walkable: uses the same smoothly\n ## interpolated height as the ground shader, so coastlines match exactly.\n func walkable_at(world: Vector2, wall_clear := 6.0) -> bool:\n+\treturn _walkable_in(world, wall_clear, buildings)\n+\n+\n+## walkable_at against the buildings in `bs` (worker threads pass a snapshot).\n+func _walkable_in(world: Vector2, wall_clear: float, bs: Array) -> bool:\n \tif not _ground_ok(world):\n \t\treturn false\n \t# Building walls block (doorways are gaps in them); so do columns.\n-\tfor b in buildings:\n+\tfor b in bs:\n \t\tif not b.bounds.has_point(world):\n \t\t\tcontinue\n \t\tfor seg in b.segments:",
+      "added": 6,
+      "removed": 1,
+      "title": "walkable_at against a snapshot of buildings",
+      "note": "walkable_at now delegates to _walkable_in(world, clear, buildings). Worker threads pass their own copy of the nearby buildings, because the main thread may add buildings to the live list while they run.",
+      "bubbles": [
+       {
+        "at": "func _walkable_in(world: Vector2, wall_clear: float, bs: Array) -> bool:",
+        "text": "Takes the building list as an argument: worker threads pass a snapshot, so the main thread can add buildings meanwhile."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -303,11 +541,10 @@ func _ground_ok\n \tif g.x < -0.5 or g.y < -0.5 or g.x > N - 0.5 or g.y > N - 0.5:\n \t\treturn false\n \tvar h := _height_interp(g)\n-\tvar thresholds: Array = pdata[\"thresholds\"]\n \tvar t := 0\n-\twhile t < thresholds.size() and h > thresholds[t]:\n+\twhile t < _th.size() and h > _th[t]:\n \t\tt += 1\n-\treturn pdata[\"terrain\"][t][2]\n+\treturn _walk_t[t] == 1\n \n \n ## Bilinear height between cell centres (matches the shader's linear filter).",
+      "added": 2,
+      "removed": 3,
+      "title": "Faster ground test",
+      "note": "_ground_ok runs millions of times (path grids, scenery). It used to fetch the thresholds and terrain arrays from the planet dictionary on every call; it now reads packed copies (_th, _walk_t) made once, which is faster and safe to share between threads.",
+      "bubbles": [
+       {
+        "at": "return _walk_t[t] == 1",
+        "text": "Packed arrays instead of dictionaries: this runs millions of times while the path grid is built."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -335,23 +572,23 @@ func _build_tilemap\n \ttilemap.tile_set = tileset\n \ttilemap.visible = false\n \tadd_child(tilemap)\n-\n-\t# Height map texture: one texel per cell, height mapped to 0..1.\n-\tvar img := Image.create_empty(N, N, false, Image.FORMAT_RGBA8)\n-\tfor i in N:\n-\t\tfor j in N:\n-\t\t\tvar v := (_height[i * N + j] + 1.0) * 0.5\n-\t\t\timg.set_pixel(i, j, Color(v, v, v))\n-\tvar height_tex := ImageTexture.create_from_image(img)\n-\t_height_img = img\n-\t_height_tex = height_tex\n-\n \tvar o := tilemap.map_to_local(Vector2i(0, 0))\n \tvar bx := tilemap.map_to_local(Vector2i(1, 0)) - o\n \tvar by := tilemap.map_to_local(Vector2i(0, 1)) - o\n-\tvar grid_to_world := Transform2D(bx, by, o)\n-\tvar inv := grid_to_world.affine_inverse()\n-\t_world_to_grid = inv\n+\t_g2w = Transform2D(bx, by, o)\n+\t_world_to_grid = _g2w.affine_inverse()\n+\n+\n+## The ground: one polygon over the whole map, painted by the ground shader\n+## from the height map (one texel per tile; built on the worker thread as\n+## bytes - see _generate_world). The GPU only shades what's on screen.\n+func _build_ground() -> void:\n+\t_height_img = Image.create_from_data(N, N, false, Image.FORMAT_L8, _height_bytes)\n+\t_height_tex = ImageTexture.create_from_image(_height_img)\n+\t_height_bytes = PackedByteArray()\n+\tvar height_tex := _height_tex\n+\tvar grid_to_world := _g2w\n+\tvar inv := _world_to_grid\n \n \tvar types: Array = pdata[\"terrain\"]\n \tvar colors := PackedColorArray()",
+      "added": 14,
+      "removed": 14,
+      "title": "Grid transforms split from the ground",
+      "note": "_build_tilemap only sets up the grid transforms now (needed before generation). The new _build_ground makes the height texture from the worker's bytes (one 8-bit texel per tile, 880 x 880) instead of 774,400 set_pixel calls on the main thread.",
+      "bubbles": [
+       {
+        "at": "func _build_ground() -> void:",
+        "text": "The whole ground is ONE polygon, coloured by a shader that reads the height map - instead of 774,400 tiles."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -403,7 +640,13 @@ func _build_background\n # --- Objects ---------------------------------------------------------------------\n \n func _cell_pos(cell: Vector2i) -> Vector2:\n-\treturn tilemap.map_to_local(cell)\n+\treturn _g2w * Vector2(cell)   # (= tilemap.map_to_local; plain maths, safe on worker threads)\n+\n+\n+## The tile under a world point (= tilemap.local_to_map, thread-safe).\n+func _cell_at(world: Vector2) -> Vector2i:\n+\tvar g := _world_to_grid * world\n+\treturn Vector2i(roundi(g.x), roundi(g.y))\n \n \n ## A random walkable cell at least `min_dist` cells from every cell in `avoid`.",
+      "added": 7,
+      "removed": 1,
+      "title": "_cell_pos without the TileMapLayer",
+      "note": "_cell_pos used tilemap.map_to_local, a node method that worker threads must not call. It is now the same isometric maths through _g2w; _cell_at is the inverse (world point to tile).",
+      "bubbles": [
+       {
+        "at": "func _cell_at(world: Vector2) -> Vector2i:",
+        "text": "World to tile, the inverse transform rounded - same as the TileMapLayer's, but callable from any thread."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -424,8 +667,6 @@ func _free_cell\n \n func _place_everything() -> void:\n \tvar center := Vector2i(N / 2, N / 2)\n-\tvar taken: Array = [center]\n-\n \tlander = PROPS.Lander.new()\n \tvar pl: Dictionary = state.get(\"player\", {})\n \tlander.ship_class = str(pl.get(\"ship_class\", \"player\"))",
+      "added": 0,
+      "removed": 2,
+      "title": "Leftover",
+      "note": "The old placement's 'taken' list is no longer needed."
+     },
+     {
+      "diff": "@@ -444,178 +685,244 @@ func _place_everything\n \n \tif not _layout.is_empty():\n \t\tawait _place_from_layout()\n-\t\tawait _breathe(0.34, \"Raising the Minoan buildings\")\n+\t\tawait _breathe(0.6, \"Raising the Minoan buildings\")\n \t\tif _layout_off > 0:\n-\t\t\t# The new land around a smaller saved layout gets its own scenery.\n-\t\t\t_veg_exclude = _layout_rect\n-\t\t\tawait _breathe(0.35, \"Planting trees and scenery\")\n-\t\t\tawait _place_vegetation([center], Vector2i(-100, -100))\n-\t\tawait _build_nav()\n-\t\tawait _ensure_reachable()\n+\t\t\t_veg_exclude = _layout_rect   # (the land around a smaller saved layout gets streamed scenery)\n \t\treturn\n+\t# The buildings and citizens around the landing pad (the rest appear as you go).\n+\tawait _stream_plans(true)\n \n-\t# --- Explorable buildings, assembled from procedural tiles ---------------\n-\t# Every building is at least MIN_BUILDING x MIN_BUILDING tiles, on ground\n-\t# levelled for it (water, crevasses and rock cleared; scenery is planted\n-\t# afterwards and keeps off building plots).\n-\t# Minoan palace: three rooms and a pillared hall with a mosaic floor.\n-\tvar pr := _find_clear_site(Vector2i(16, 14), center, 22)\n-\tif pr.size != Vector2i.ZERO:\n-\t\t_clear_site(pr)\n-\t\tvar x0 := pr.position.x\n-\t\tvar y0 := pr.position.y\n-\t\tvar x1 := pr.end.x - 1\n-\t\tvar y1 := pr.end.y - 1\n-\t\tvar palace := _build_building(pr, \"minoan\",\n-\t\t\t[[Vector2i(x0 + 3, y1), \"sw\"], [Vector2i(x1, y0 + 10), \"se\"], [Vector2i(x0 + 10, y0), \"ne\"]],\n-\t\t\t[[\"i\", x0 + 6, y0, y1, y0 + 6], [\"j\", y0 + 6, x0 + 6, x1, x0 + 10]],\n-\t\t\tRect2i(x0 + 1, y0 + 4, 4, 6))\n-\t\tpalace.title = \"Minoan palace\"\n-\t\tfor c in [Vector2i(1, 1), Vector2i(4, 1), Vector2i(1, 11), Vector2i(4, 11),\n-\t\t\t\tVector2i(8, 8), Vector2i(12, 8), Vector2i(8, 11), Vector2i(12, 11)]:\n-\t\t\t_add_column(palace, Vector2i(x0, y0) + c)\n-\t\tBuildingFloors.add(self, palace)\n \n-\t# Minoan village: a warehouse and a temple, with citizens living there.\n-\tvar village := _free_cell(taken, 8.0)\n-\tvar houses: Array = []\n+# --- Planning the planet (worker thread) ---------------------------------------------\n+\n+## Buildings planned across the planet (built when you come near):\n+## {spec, built: BuiltBuilding or null}. Citizens: {pos, variant, home, spawned}.\n+var _plans: Array = []\n+var _npc_plans: Array = []\n+var _plot_cells := {}               # planned plots (+3 tiles): no scenery\n+var _clear_spots: Array = []        # [cell, radius]: open ground kept free of scenery\n+var _site_h := 0.0\n+## Villages: one region in REGION x REGION tiles in about VILLAGE_CHANCE.\n+const REGION := 110\n+const VILLAGE_CHANCE := 0.45\n+\n+func _plan_world() -> void:\n+\tvar center := Vector2i(N / 2, N / 2)\n+\t_site_h = _site_height()\n+\t_clear_spots.append([center, 3.2])\n+\t# The landing village: the palace by the pad, a warehouse and a temple.\n+\tvar dir := Vector2.from_angle(_rng.randf() * TAU)\n+\t_plan_village(center, center + Vector2i(dir * 28.0), true, 0)\n+\t# Villages across the planet.\n+\tvar vid := 1\n+\tfor gx in N / REGION:\n+\t\tfor gy in N / REGION:\n+\t\t\tvar c := Vector2i(gx * REGION + REGION / 2, gy * REGION + REGION / 2)\n+\t\t\tc += Vector2i(_rng.randi_range(-25, 25), _rng.randi_range(-25, 25))\n+\t\t\tif Vector2(c).distance_to(Vector2(center)) < REGION * 0.8 or _rng.randf() > VILLAGE_CHANCE:\n+\t\t\t\tcontinue\n+\t\t\t_plan_village(c, c, _rng.randf() < 0.35, vid)\n+\t\t\tvid += 1\n+\n+\n+## A village: maybe a palace (near `palace_near`), a warehouse and a temple\n+## (near `near`), each on a levelled plot, and its citizens.\n+func _plan_village(palace_near: Vector2i, near: Vector2i, palace: bool, vid: int) -> void:\n+\tvar homes: Array = []\n+\tif palace:\n+\t\tvar pr := _find_clear_site(Vector2i(16, 14), palace_near, 22)\n+\t\tif pr.size != Vector2i.ZERO:\n+\t\t\t_clear_site(pr)\n+\t\t\tvar x0 := pr.position.x\n+\t\t\tvar y0 := pr.position.y\n+\t\t\tvar x1 := pr.end.x - 1\n+\t\t\tvar y1 := pr.end.y - 1\n+\t\t\tvar cols := []\n+\t\t\tfor c in [Vector2i(1, 1), Vector2i(4, 1), Vector2i(1, 11), Vector2i(4, 11),\n+\t\t\t\t\tVector2i(8, 8), Vector2i(12, 8), Vector2i(8, 11), Vector2i(12, 11)]:\n+\t\t\t\tcols.append([x0 + c.x, y0 + c.y])\n+\t\t\t_add_plan({\"rect\": [x0, y0, 16, 14], \"material\": \"minoan\", \"style\": \"palace\", \"title\": \"Minoan palace\",\n+\t\t\t\t\"doors\": [[x0 + 3, y1, \"sw\"], [x1, y0 + 10, \"se\"], [x0 + 10, y0, \"ne\"]],\n+\t\t\t\t\"inner\": [[\"i\", x0 + 6, y0, y1, y0 + 6], [\"j\", y0 + 6, x0 + 6, x1, x0 + 10]],\n+\t\t\t\t\"mosaic\": [x0 + 1, y0 + 4, 4, 6], \"columns\": cols})\n \tvar styles := [\"warehouse\", \"temple\"]\n \tfor hi in styles.size():\n \t\tvar size: Vector2i = [Vector2i(13, 12), Vector2i(12, 12)][hi]\n-\t\tvar hr := _find_clear_site(size, village, 20)\n-\t\tif hr.size == Vector2i.ZERO:\n-\t\t\thr = _find_clear_site(size, village, -1)\n+\t\tvar hr := _find_clear_site(size, near, 20)\n \t\tif hr.size == Vector2i.ZERO:\n \t\t\tcontinue\n \t\t_clear_site(hr)\n \t\tvar door := Vector2i(hr.position.x + size.x / 2, hr.end.y - 1)\n-\t\tvar inner := _divider(hr, [[door, \"sw\"]])\n-\t\tvar house := _build_building(hr, \"minoan\", [[door, \"sw\"]], inner, Rect2i(), {}, styles[hi])\n-\t\thouse.title = \"Minoan %s\" % styles[hi]\n-\t\tBuildingFloors.add(self, house)\n-\t\thouses.append(house)\n-\t_refresh_terrain()\n-\n-\t# Minoan citizens: two in each building, the rest around the village.\n-\tfor k in 9:\n-\t\tvar home: Vector2\n-\t\tvar pos: Vector2\n-\t\tvar hi := k / 2\n-\t\tif hi < houses.size():\n-\t\t\tvar hb: BuiltBuilding = houses[hi]\n-\t\t\thome = _cell_pos(Vector2i(hb.rect.position.x + hb.rect.size.x / 2, hb.rect.position.y + hb.rect.size.y / 2))\n-\t\t\tpos = home + Vector2(_rng.randf_range(-40, 40), _rng.randf_range(-20, 20))\n-\t\telse:\n-\t\t\thome = _cell_pos(village)\n-\t\t\tpos = home + Vector2(_rng.randf_range(-120, 120), _rng.randf_range(-60, 60))\n-\t\tif not walkable_at(pos):\n+\t\t_add_plan({\"rect\": [hr.position.x, hr.position.y, size.x, size.y], \"material\": \"minoan\", \"style\": styles[hi],\n+\t\t\t\"title\": \"Minoan %s\" % styles[hi], \"doors\": [[door.x, door.y, \"sw\"]],\n+\t\t\t\"inner\": _divider(hr, [[door, \"sw\"]]), \"mosaic\": [], \"columns\": []})\n+\t\thomes.append(hr.get_center())\n+\t_clear_spots.append([near, 4.0])\n+\t# Citizens: two living in each house, the rest about the village.\n+\tvar count := 9 if vid == 0 else 4\n+\tfor k in count:\n+\t\tvar home := _cell_pos(near)\n+\t\tvar spread := Vector2(120, 60)\n+\t\tif k / 2 < homes.size():\n+\t\t\thome = _cell_pos(homes[k / 2])\n+\t\t\tspread = Vector2(40, 20)\n+\t\tvar pos := home + Vector2(_rng.randf_range(-spread.x, spread.x), _rng.randf_range(-spread.y, spread.y))\n+\t\tif not _ground_ok(pos):\n \t\t\tpos = home\n-\t\t_spawn_npc(pos, k, home)\n-\n-\tawait _breathe(0.4, \"Planting trees and scenery\")\n-\tawait _place_vegetation(taken, village)\n-\tawait _build_nav()\n-\tawait _ensure_reachable()\n+\t\t_npc_plans.append({\"pos\": pos, \"variant\": k + vid * 9, \"home\": home, \"spawned\": false})\n \n \n-## Plants, rocks and crystals: every walkable cell rolls for scenery based\n-## on its terrain kind (forests are dense, beaches get palms, the moon gets\n-## boulders and pebbles, ice gets shards and crystals).\n+func _add_plan(spec: Dictionary) -> void:\n+\t_plans.append({\"spec\": spec, \"built\": null})\n+\tvar r := Rect2i(spec[\"rect\"][0], spec[\"rect\"][1], spec[\"rect\"][2], spec[\"rect\"][3])\n+\tvar g := r.grow(3)\n+\tfor i in range(g.position.x, g.end.x):\n+\t\tfor j in range(g.position.y, g.end.y):\n+\t\t\t_plot_cells[Vector2i(i, j)] = true\n+\n+\n+func _plan_rect(p: Dictionary) -> Rect2i:\n+\tvar r: Array = p[\"spec\"][\"rect\"]\n+\treturn Rect2i(r[0], r[1], r[2], r[3])\n+\n+\n+# --- Streaming (main thread) ----------------------------------------------------------\n+\n+## Builds the planned buildings and citizens near you (all within BUILD_R at\n+## once while loading; otherwise one building a frame).\n+func _stream_plans(all_now := false) -> void:\n+\tvar here := _cell_at(pilot.position)\n+\tfor p in _plans:\n+\t\tif p[\"built\"] != null:\n+\t\t\tcontinue\n+\t\tvar r := _plan_rect(p)\n+\t\tif Vector2(r.get_center()).distance_to(Vector2(here)) > BUILD_R:\n+\t\t\tcontinue\n+\t\tp[\"built\"] = _build_from_spec(p[\"spec\"])\n+\t\t_dress_building(p[\"built\"])\n+\t\tif _nav_window().intersects(r.grow(2)):\n+\t\t\t_nav_dirty = true\n+\t\tif all_now:\n+\t\t\tawait _breathe(0.6, \"Raising the Minoan buildings\")\n+\t\telse:\n+\t\t\tbreak\n+\tfor n in _npc_plans:\n+\t\tif not n[\"spawned\"] and _cell_at(n[\"pos\"]).distance_to(here) <= BUILD_R:\n+\t\t\tn[\"spawned\"] = true\n+\t\t\t_spawn_npc(n[\"pos\"], n[\"variant\"], n[\"home\"])\n+\n+\n+## Plants, rocks and crystals for one chunk (worker thread): every walkable\n+## cell rolls for scenery based on its terrain kind (forests are dense,\n+## beaches get palms, the moon gets boulders and pebbles, ice gets shards and\n+## crystals) - never on building plots or the open ground kept by the pad and\n+## villages. The same chunk always grows the same: [kind, colour, scale, variant, pos].\n var _veg_exclude := Rect2i()\n \n-func _place_vegetation(taken: Array, village: Vector2i) -> void:\n-\tvar center := Vector2i(N / 2, N / 2)\n-\tvar keep_clear: Array = taken.duplicate()\n+func _chunk_flora(key: Vector2i) -> Array:\n+\tvar rng := RandomNumberGenerator.new()\n+\trng.seed = hash([int(pdata[\"seed\"]), key.x, key.y])\n \tvar leaf: Color = pdata[\"prop_color\"]\n-\tfor i in N:\n-\t\tif _yield_due():\n-\t\t\tawait _breathe(lerpf(0.35, 0.45, float(i) / N), \"Planting trees and scenery\")\n-\t\tfor j in N:\n+\tvar area := Rect2i(key * CHUNK, Vector2i(CHUNK, CHUNK))\n+\tvar spots := _clear_spots.filter(func(sp): return area.grow(6).has_point(sp[0]))\n+\tvar out := []\n+\tfor i in range(area.position.x, mini(area.end.x, N)):\n+\t\tfor j in range(area.position.y, mini(area.end.y, N)):\n \t\t\tvar cell := Vector2i(i, j)\n \t\t\tvar t := terrain_at(cell)\n-\t\t\tif t < 0 or not pdata[\"terrain\"][t][2] or _blocked_cells.has(cell) or _veg_exclude.has_point(cell):\n+\t\t\tif t < 0 or not pdata[\"terrain\"][t][2] or _plot_cells.has(cell) or _blocked_cells.has(cell) or _veg_exclude.has_point(cell):\n \t\t\t\tcontinue\n-\t\t\t# Leave room around the pad and the village.\n-\t\t\tvar blocked := Vector2(cell).distance_to(Vector2(center)) < 3.2 \\\n-\t\t\t\t\tor Vector2(cell).distance_to(Vector2(village)) < 4.0\n-\t\t\tfor a in keep_clear:\n-\t\t\t\tif Vector2(cell).distance_to(Vector2(a)) < 2.2:\n-\t\t\t\t\tblocked = true\n-\t\t\tif blocked:\n+\t\t\tvar open := false\n+\t\t\tfor sp in spots:\n+\t\t\t\tif Vector2(cell).distance_to(Vector2(sp[0])) < sp[1]:\n+\t\t\t\t\topen = true\n+\t\t\tif open:\n \t\t\t\tcontinue\n-\t\t\tvar kind: String = pdata[\"terrain\"][t][3]\n-\t\t\tfor spec in _flora_for(kind, leaf):\n-\t\t\t\t_add_prop(cell, spec[0], spec[1], spec[2])\n+\t\t\tfor spec in _flora_for(pdata[\"terrain\"][t][3], leaf, rng):\n+\t\t\t\tvar variant := rng.randi()\n+\t\t\t\tvar pos := _cell_pos(cell) + Vector2(rng.randf_range(-48, 48), rng.randf_range(-24, 24))\n+\t\t\t\tif _ground_ok(pos):\n+\t\t\t\t\tout.append([spec[0], spec[1], spec[2], variant, pos])\n+\treturn out\n \n \n ## What grows on a cell: list of [kind, colour, scale].\n-func _flora_for(kind: String, leaf: Color) -> Array:\n+func _flora_for(kind: String, leaf: Color, rng: RandomNumberGenerator) -> Array:\n \tvar out := []\n-\tvar r := _rng.randf()\n+\tvar r := rng.randf()\n \tmatch kind:\n \t\t\"forest\":\n-\t\t\tfor k in _rng.randi_range(1, 2):   # open woodland: room to walk and see\n-\t\t\t\tout.append([\"tree\", leaf.lightened(_rng.randf_range(-0.15, 0.1)), _rng.randf_range(0.9, 1.5)])\n-\t\t\tif _rng.randf() < 0.4:\n-\t\t\t\tout.append([\"bush\", leaf.darkened(0.15), _rng.randf_range(0.8, 1.2)])\n-\t\t\tfor k in _rng.randi_range(1, 3):\n-\t\t\t\tout.append([\"tuft\", Color(0.3, 0.55, 0.25), _rng.randf_range(0.8, 1.2)])\n+\t\t\tfor k in rng.randi_range(1, 2):   # open woodland: room to walk and see\n+\t\t\t\tout.append([\"tree\", leaf.lightened(rng.randf_range(-0.15, 0.1)), rng.randf_range(0.9, 1.5)])\n+\t\t\tif rng.randf() < 0.4:\n+\t\t\t\tout.append([\"bush\", leaf.darkened(0.15), rng.randf_range(0.8, 1.2)])\n+\t\t\tfor k in rng.randi_range(1, 3):\n+\t\t\t\tout.append([\"tuft\", Color(0.3, 0.55, 0.25), rng.randf_range(0.8, 1.2)])\n \t\t\"grass\":\n \t\t\tif r < 0.2:\n-\t\t\t\tout.append([\"tree\", leaf.lightened(_rng.randf_range(-0.1, 0.15)), _rng.randf_range(0.8, 1.3)])\n+\t\t\t\tout.append([\"tree\", leaf.lightened(rng.randf_range(-0.1, 0.15)), rng.randf_range(0.8, 1.3)])\n \t\t\telif r < 0.35:\n-\t\t\t\tout.append([\"bush\", leaf, _rng.randf_range(0.7, 1.1)])\n-\t\t\tfor k in _rng.randi_range(1, 4):\n-\t\t\t\tout.append([\"tuft\", Color(0.38, 0.62, 0.28).lightened(_rng.randf_range(-0.1, 0.15)), _rng.randf_range(0.7, 1.2)])\n-\t\t\tif _rng.randf() < 0.35:\n+\t\t\t\tout.append([\"bush\", leaf, rng.randf_range(0.7, 1.1)])\n+\t\t\tfor k in rng.randi_range(1, 4):\n+\t\t\t\tout.append([\"tuft\", Color(0.38, 0.62, 0.28).lightened(rng.randf_range(-0.1, 0.15)), rng.randf_range(0.7, 1.2)])\n+\t\t\tif rng.randf() < 0.35:\n \t\t\t\tout.append([\"flowers\", [Color(1, 0.9, 0.4), Color(1, 0.55, 0.75), Color(0.85, 0.75, 1.0)].pick_random(), 1.0])\n \t\t\"sand\":\n \t\t\tif r < 0.1:\n-\t\t\t\tout.append([\"palm\", leaf, _rng.randf_range(0.9, 1.3)])\n+\t\t\t\tout.append([\"palm\", leaf, rng.randf_range(0.9, 1.3)])\n \t\t\telif r < 0.3:\n-\t\t\t\tout.append([\"tuft\", Color(0.65, 0.68, 0.4), _rng.randf_range(0.6, 0.9)])\n-\t\t\tif _rng.randf() < 0.2:\n+\t\t\t\tout.append([\"tuft\", Color(0.65, 0.68, 0.4), rng.randf_range(0.6, 0.9)])\n+\t\t\tif rng.randf() < 0.2:\n \t\t\t\tout.append([\"pebbles\", Color(0.75, 0.68, 0.55), 1.0])\n \t\t\"regolith\", \"crater\":\n \t\t\tif r < 0.12:\n-\t\t\t\tout.append([\"boulder\", Color(0.5, 0.5, 0.53).lightened(_rng.randf_range(-0.1, 0.15)), _rng.randf_range(0.8, 1.6)])\n+\t\t\t\tout.append([\"boulder\", Color(0.5, 0.5, 0.53).lightened(rng.randf_range(-0.1, 0.15)), rng.randf_range(0.8, 1.6)])\n \t\t\telif r < 0.25:\n-\t\t\t\tout.append([\"rock\", Color(0.48, 0.48, 0.5), _rng.randf_range(0.6, 1.1)])\n-\t\t\tif _rng.randf() < 0.45:\n+\t\t\t\tout.append([\"rock\", Color(0.48, 0.48, 0.5), rng.randf_range(0.6, 1.1)])\n+\t\t\tif rng.randf() < 0.45:\n \t\t\t\tout.append([\"pebbles\", Color(0.45, 0.45, 0.48), 1.0])\n \t\t\"ice\", \"snow\":\n \t\t\tif r < 0.12:\n-\t\t\t\tout.append([\"crystal\", leaf.lightened(_rng.randf_range(-0.1, 0.2)), _rng.randf_range(0.8, 1.5)])\n+\t\t\t\tout.append([\"crystal\", leaf.lightened(rng.randf_range(-0.1, 0.2)), rng.randf_range(0.8, 1.5)])\n \t\t\telif r < 0.28:\n-\t\t\t\tout.append([\"shard\", leaf.lightened(0.2), _rng.randf_range(0.7, 1.2)])\n-\t\t\tif _rng.randf() < 0.18:\n-\t\t\t\tout.append([\"boulder\", Color(0.86, 0.9, 0.96), _rng.randf_range(0.6, 1.0)])\n+\t\t\t\tout.append([\"shard\", leaf.lightened(0.2), rng.randf_range(0.7, 1.2)])\n+\t\t\tif rng.randf() < 0.18:\n+\t\t\t\tout.append([\"boulder\", Color(0.86, 0.9, 0.96), rng.randf_range(0.6, 1.0)])\n \treturn out\n \n \n-func _add_prop(cell: Vector2i, kind: String, color: Color, scale_: float) -> void:\n-\tvar variant := _rng.randi()\n-\tvar pos := _cell_pos(cell) + Vector2(_rng.randf_range(-48, 48), _rng.randf_range(-24, 24))\n-\t# No trees in the sea, in front of doors, or growing into walls.\n-\tif not walkable_at(pos) or _near_door(pos, 0.0) or not walkable_at(pos, 34.0 * scale_):\n-\t\treturn\n-\t_spawn_prop(kind, color, scale_, variant, pos)\n-\n-\n-func _spawn_prop(kind: String, color: Color, scale_: float, variant: int, pos: Vector2) -> Object:\n+## A piece of scenery. Streamed ones belong to their chunk (freed with it and\n+## grown again when you come back); others (placed in the level editor or\n+## from a layout) stay.\n+func _spawn_prop(kind: String, color: Color, scale_: float, variant: int, pos: Vector2, streamed := false) -> Object:\n+\tvar key := _chunk_of(_cell_at(pos))\n \tif kind in PROPS.FLAT:\n-\t\treturn _spawn_flat_prop(kind, color, scale_, variant, pos)\n+\t\treturn _spawn_flat_prop(kind, color, scale_, variant, pos, key if streamed else Vector2i(-1, -1))\n \tvar p := PROPS.Prop.new()\n+\tvar parent: Node2D = objects\n+\tif streamed:\n+\t\tp.set_meta(\"chunk\", key)\n+\t\tif not _chunk_nodes.has(key):\n+\t\t\t_chunk_nodes[key] = []\n+\t\t_chunk_nodes[key].append(p)\n+\t\t# Each chunk's scenery under its own y-sorted holder (sorted together\n+\t\t# with everything else): freeing a chunk is one removal from `objects`.\n+\t\tparent = _chunk_holders.get(key)\n+\t\tif parent == null:\n+\t\t\tparent = Node2D.new()\n+\t\t\tparent.y_sort_enabled = true\n+\t\t\tobjects.add_child(parent)\n+\t\t\t_chunk_holders[key] = parent\n \tp.material = PROPS.atlas_material()\n \tp.kind = kind\n \tp.color = color\n \tp.s = scale_\n \tp.variant = variant\n \tp.position = pos\n-\tobjects.add_child(p)\n-\t_props.append(p)\n+\tparent.add_child(p)\n+\t_props[p] = true\n \tif kind in [\"tree\", \"palm\", \"crystal\", \"boulder\"]:\n-\t\t_tall_props.append(p)\n+\t\t_tall_props[p] = true\n \t\tvar bk := tilemap.local_to_map(p.position) / 4\n \t\tif not _prop_buckets.has(bk):\n \t\t\t_prop_buckets[bk] = []",
+      "added": 184,
+      "removed": 118,
+      "title": "Placing things: plans instead of building everything",
+      "note": "_place_everything now only places the lander and pilot; the buildings and citizens near the pad come from the plans (_stream_plans(true)). New planning code (run on the worker): _plan_world splits the planet into 110 x 110 regions and gives about 45% of them a village, plus the landing village; _plan_village finds and levels plots and plans the citizens; _add_plan records the plot so no scenery grows on it. _stream_plans builds a planned building when you come within 64 tiles, one per frame, and marks the path grid dirty if it falls inside it. _chunk_flora replaces the old whole-map _place_vegetation: one chunk's scenery as plain data, seeded by the chunk's position so it grows back identically. _flora_for takes the random generator as a parameter so each thread uses its own.",
+      "bubbles": [
+       {
+        "at": "var _plans: Array = []",
+        "text": "Buildings exist first only as plans (a spec). The node is built when you come near; built stays null until then."
+       },
+       {
+        "at": "if Vector2(c).distance_to(Vector2(center)) < REGION * 0.8 or _rng.randf() > VILLAGE_CHANCE:",
+        "text": "The planet is split into 110-tile regions; each gets a village 45% of the time (none too close to the landing village)."
+       },
+       {
+        "at": "_plot_cells[Vector2i(i, j)] = true",
+        "text": "A plot and 3 tiles around it are marked, so the scenery grown later never lands on a building."
+       },
+       {
+        "at": "if Vector2(r.get_center()).distance_to(Vector2(here)) > BUILD_R:",
+        "text": "Only plans within 64 tiles of you are built."
+       },
+       {
+        "at": "break",
+        "text": "Outside loading: one building a frame, so walking into a village doesn't stall."
+       },
+       {
+        "at": "rng.seed = hash([int(pdata[\"seed\"]), key.x, key.y])",
+        "text": "Seeded by planet and chunk: the same chunk always grows the same trees, so freeing and regrowing it is invisible."
+       },
+       {
+        "at": "parent.y_sort_enabled = true",
+        "text": "Each chunk's nodes share one y-sorted holder: freeing a whole chunk is a single node removal."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -636,19 +943,26 @@ func _theme_buildings\n \t_building_skin = BuildingLook.skin(look)\n \tadd_child(_building_skin)\n \tfor b in buildings:\n-\t\tBuildingLook.dress(b.walls, _building_skin, \"walls\")\n-\t\tBuildingLook.dress([b.roof], _building_skin, \"roofs\")\n-\t\tBuildingLook.dress(b.columns + b.decor, _building_skin, \"decor\")\n-\t\tif b.upper and b.upper.node:\n-\t\t\tBuildingLook.dress([b.upper.node], _building_skin, \"walls\")\n+\t\t_dress_building(b)\n \tif floor_layer:\n \t\tBuildingLook.dress([floor_layer], _building_skin, \"floors\")\n+\n+\n+## A building in the planet's look preset (if there is one).\n+func _dress_building(b: BuiltBuilding) -> void:\n+\tif _building_skin == null:\n+\t\treturn\n+\tBuildingLook.dress(b.walls, _building_skin, \"walls\")\n+\tBuildingLook.dress([b.roof], _building_skin, \"roofs\")\n+\tBuildingLook.dress(b.columns + b.decor, _building_skin, \"decor\")\n+\tif b.upper and b.upper.node:\n+\t\tBuildingLook.dress([b.upper.node], _building_skin, \"walls\")\n \n \n ## Renders every prop look on this surface into one atlas (SurfaceProps), so\n ## each prop draws one textured rectangle and they all batch together.\n func _build_prop_atlas() -> void:\n-\tvar looks := []\n+\tvar looks := _atlas_looks.duplicate()\n \tfor p in _props:\n \t\tif is_instance_valid(p):\n \t\t\tlooks.append([p.kind, p.color, p.variant])",
+      "added": 13,
+      "removed": 6,
+      "title": "Themes for buildings built later",
+      "note": "Buildings now appear while you play, after the planet's look preset was applied, so dressing a building in the preset moved into _dress_building, called for every newly built one."
+     },
+     {
+      "diff": "@@ -663,19 +977,21 @@ func _build_prop_atlas\n ## Flat ground cover goes into the chunk's PropBatch (see SurfaceProps.FLAT).\n const DECOR_CHUNK := 1024.0\n \n-func _spawn_flat_prop(kind: String, color: Color, scale_: float, variant: int, pos: Vector2) -> Object:\n+func _spawn_flat_prop(kind: String, color: Color, scale_: float, variant: int, pos: Vector2, chunk := Vector2i(-1, -1)) -> Object:\n \tif _decor == null:\n \t\t_decor = Node2D.new()\n \t\t_decor.name = \"GroundDecor\"\n \t\t_decor.z_index = -10   # on the ground, under floors, walls and characters\n \t\tadd_child(_decor)\n \t\tmove_child(_decor, objects.get_index())\n-\tvar key := Vector2i((pos / DECOR_CHUNK).floor())\n+\t# Streamed: one batch per chunk; kept ones: one per DECOR_CHUNK px square.\n+\tvar streamed := chunk != Vector2i(-1, -1)\n+\tvar key: Variant = chunk if streamed else [Vector2i((pos / DECOR_CHUNK).floor())]\n \tvar batch: Node2D = _decor_batches.get(key)\n \tif batch == null:\n \t\tbatch = PROPS.PropBatch.new()\n \t\tbatch.material = PROPS.atlas_material()\n-\t\tbatch.position = Vector2(key) * DECOR_CHUNK\n+\t\tbatch.position = _cell_pos(chunk * CHUNK) if streamed else Vector2((key[0] as Vector2i)) * DECOR_CHUNK\n \t\t_decor.add_child(batch)\n \t\t_decor_batches[key] = batch\n \tvar d := PROPS.PropData.new()",
+      "added": 5,
+      "removed": 3,
+      "title": "Flat scenery batched per chunk",
+      "note": "Grass, flowers and pebbles are drawn in batches. Streamed ones now get one batch per chunk (freed with it); hand-placed ones keep the old fixed-size batches. The prop atlas is built from the sampled looks, not from existing props.",
+      "bubbles": [
+       {
+        "at": "var key: Variant = chunk if streamed else",
+        "text": "Flat scenery (grass, pebbles) is drawn in one batch node per chunk, not as a node each."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -685,9 +1001,14 @@ func _spawn_flat_prop\n \td.variant = variant\n \td.position = pos\n \td.batch = batch\n+\td.chunk = chunk\n \tbatch.items.append(d)\n \tbatch.queue_redraw()\n-\t_props.append(d)\n+\t_props[d] = true\n+\tif streamed:\n+\t\tif not _chunk_data.has(chunk):\n+\t\t\t_chunk_data[chunk] = []\n+\t\t_chunk_data[chunk].append(d)\n \treturn d\n \n ",
+      "added": 6,
+      "removed": 1,
+      "title": "Flat scenery remembers its chunk",
+      "note": "Each flat prop records its chunk, and each chunk lists its flat props, so unloading touches only that chunk's items."
+     },
+     {
+      "diff": "@@ -773,7 +1094,7 @@ func _find_clear_site\n \tvar center := Vector2i(N / 2, N / 2)\n \tvar best := Rect2i()\n \tvar best_cost := INF\n-\tfor attempt in 400:\n+\tfor attempt in 90:\n \t\tvar pos: Vector2i\n \t\tif radius < 0:\n \t\t\tpos = Vector2i(_rng.randi_range(6, N - 6 - size.x), _rng.randi_range(6, N - 6 - size.y))",
+      "added": 1,
+      "removed": 1,
+      "title": "Fewer site attempts",
+      "note": "With about 50 buildings to place on a much bigger map, each plot search samples 90 candidates instead of 400 (costs are sampled every other tile too), keeping generation around half a second."
+     },
+     {
+      "diff": "@@ -792,13 +1113,16 @@ func _find_clear_site\n \t\tfor other in buildings:\n \t\t\tif other.rect.grow(4).intersects(r):\n \t\t\t\tok = false\n+\t\tfor p in _plans:\n+\t\t\tif _plan_rect(p).grow(4).intersects(r):\n+\t\t\t\tok = false\n \t\tif not ok:\n \t\t\tcontinue\n \t\tvar cost := 0.0\n-\t\tfor i in range(g.position.x, g.end.x):\n-\t\t\tfor j in range(g.position.y, g.end.y):\n+\t\tfor i in range(g.position.x, g.end.x, 2):\n+\t\t\tfor j in range(g.position.y, g.end.y, 2):\n \t\t\t\tif not walkable_cell(Vector2i(i, j)):\n-\t\t\t\t\tcost += 1.0\n+\t\t\t\t\tcost += 4.0\n \t\tcost += Vector2(r.get_center()).distance_to(Vector2(near)) * 0.15\n \t\tif cost < best_cost:\n \t\t\tbest = r",
+      "added": 6,
+      "removed": 3,
+      "title": "Plots don't overlap other plans",
+      "note": "Sites are now checked against the planned buildings (most don't exist yet as nodes), not just the built ones."
+     },
+     {
+      "diff": "@@ -810,7 +1134,9 @@ func _find_clear_site\n ## site height (water, crevasses, rock and slopes gone), easing into the\n ## land around over two more tiles. Call _refresh_terrain() afterwards.\n func _clear_site(r: Rect2i) -> void:\n-\tvar h := _site_height()\n+\tif _site_h == 0.0:\n+\t\t_site_h = _site_height()\n+\tvar h := _site_h\n \tvar g := r.grow(4)\n \tfor i in range(maxi(g.position.x, 0), mini(g.end.x, N)):\n \t\tfor j in range(maxi(g.position.y, 0), mini(g.end.y, N)):",
+      "added": 3,
+      "removed": 1,
+      "title": "Site height computed once",
+      "note": "_site_height scans the whole terrain; with 774,400 tiles it is computed once and cached instead of for every plot.",
+      "bubbles": [
+       {
+        "at": "_site_h = _site_height()",
+        "text": "Computed once per planet instead of for every site tried."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -1283,7 +1609,26 @@ func _shift_spec\n \n func _place_from_layout() -> void:\n \tvar w := _layout_shift()\n-\tvar o := _layout_off\n+\tif _layout_off == 0:\n+\t\t# A full-size layout: its buildings and citizens stream in like a\n+\t\t# generated planet's (scenery grows around them; hand-placed props stay).\n+\t\tfor spec in _layout.get(\"buildings\", []):\n+\t\t\t_add_plan(spec)\n+\t\tfor a in _layout.get(\"npcs\", []):\n+\t\t\t_npc_plans.append({\"pos\": Vector2(a[0], a[1]), \"variant\": int(a[2]), \"home\": Vector2(a[0], a[1]), \"spawned\": false})\n+\t\tawait _stream_plans(true)\n+\telse:\n+\t\tawait _place_small_layout(w)\n+\tvar props: Array = _layout.get(\"props\", [])\n+\tfor k in props.size():\n+\t\tvar p: Array = props[k]\n+\t\tif (k & 63) == 0 and _yield_due():\n+\t\t\tawait _breathe(lerpf(0.29, 0.34, float(k) / props.size()), \"Planting trees and scenery\")\n+\t\t_spawn_prop(p[0], Color(p[4]), float(p[3]), int(p[5]), Vector2(p[1], p[2]) + w)\n+\n+\n+## An older, smaller layout in the middle of the planet: built at once.\n+func _place_small_layout(w: Vector2) -> void:\n \tfor spec in _layout.get(\"buildings\", []):\n \t\tif _yield_due():\n \t\t\tawait _breathe(0.28, \"Raising the Minoan buildings\")",
+      "added": 20,
+      "removed": 1,
+      "title": "Full-size layouts stream too",
+      "note": "A level-editor layout covering the whole planet now adds its buildings and citizens as plans that stream in, instead of building them all at once. Older, smaller layouts still build immediately (_place_small_layout).",
+      "bubbles": [
+       {
+        "at": "_add_plan(spec)",
+        "text": "A saved full-size layout streams just like a generated planet: its buildings become plans."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -1291,12 +1636,6 @@ func _place_small_layout\n \tawait _breathe(0.29, \"Gathering the citizens\")\n \tfor a in _layout.get(\"npcs\", _layout.get(\"aliens\", [])):   # (older layouts: \"aliens\")\n \t\t_spawn_npc(Vector2(a[0], a[1]) + w, int(a[2]), Vector2(a[0], a[1]) + w)\n-\tvar props: Array = _layout.get(\"props\", [])\n-\tfor k in props.size():\n-\t\tvar p: Array = props[k]\n-\t\tif (k & 63) == 0 and _yield_due():\n-\t\t\tawait _breathe(lerpf(0.29, 0.34, float(k) / props.size()), \"Planting trees and scenery\")\n-\t\t_spawn_prop(p[0], Color(p[4]), float(p[3]), int(p[5]), Vector2(p[1], p[2]) + w)\n \n \n ## A dividing wall for a one-room house (two rooms, a doorway in the middle",
+      "added": 0,
+      "removed": 6,
+      "title": "Moved",
+      "note": "These lines moved into _place_from_layout above."
+     },
+     {
+      "diff": "@@ -1366,18 +1705,29 @@ func get_layout\n \tvar h := []\n \tfor v in _height:\n \t\th.append(snappedf(v - LAND_BIAS, 0.001))   # (added back when loaded)\n+\t# Every building and citizen - built yet or still only planned out there.\n \tvar specs := []\n \tfor b in buildings:\n \t\tvar spec: Dictionary = b.spec.duplicate(true)\n \t\tspec[\"title\"] = b.title\n \t\tspecs.append(spec)\n+\tfor p in _plans:\n+\t\tif p[\"built\"] == null:\n+\t\t\tspecs.append(p[\"spec\"].duplicate(true))\n+\tvar people: Array = npcs.map(func(a): return [roundi(a.position.x), roundi(a.position.y), a.variant])\n+\tfor n in _npc_plans:\n+\t\tif not n[\"spawned\"]:\n+\t\t\tpeople.append([roundi(n[\"pos\"].x), roundi(n[\"pos\"].y), n[\"variant\"]])\n+\t# Only scenery placed by hand: the planet's own grows back by itself.\n+\tvar kept := _props.keys().filter(func(p): return is_instance_valid(p) \\\n+\t\tand (not p.has_meta(\"chunk\") if p is Node else p.chunk == Vector2i(-1, -1)))\n \treturn {\n-\t\t\"_help\": \"Planet surface layout made in the Level Editor (right-click > Level Editor). heights: %dx%d terrain heights; buildings: blueprints; npcs (Minoan citizens): [x, y, variant]; props: [kind, x, y, scale, colour, variant]. Delete this file (or use 'Revert to generated') to go back to the generated planet.\" % [N, N],\n+\t\t\"_help\": \"Planet surface layout made in the Level Editor (right-click > Level Editor). heights: %dx%d terrain heights; buildings: blueprints; npcs (Minoan citizens): [x, y, variant]; props: scenery placed by hand [kind, x, y, scale, colour, variant] (the rest grows by itself). Delete this file (or use 'Revert to generated') to go back to the generated planet.\" % [N, N],\n \t\t\"planet\": planet_id,\n \t\t\"heights\": h,\n \t\t\"buildings\": specs,\n-\t\t\"npcs\": npcs.map(func(a): return [roundi(a.position.x), roundi(a.position.y), a.variant]),\n-\t\t\"props\": _props.filter(func(p): return is_instance_valid(p)).map(func(p):\n+\t\t\"npcs\": people,\n+\t\t\"props\": kept.map(func(p):\n \t\t\treturn [p.kind, roundi(p.position.x), roundi(p.position.y), snappedf(p.s, 0.01), p.color.to_html(false), p.variant]),\n \t}\n ",
+      "added": 14,
+      "removed": 3,
+      "title": "Saving layouts",
+      "note": "Saving keeps every building and citizen, including the ones not built yet, and only scenery placed by hand: streamed scenery grows back by itself, and saving it would duplicate it on the next load.",
+      "bubbles": [
+       {
+        "at": "if p[\"built\"] == null:",
+        "text": "Saving includes buildings and citizens that haven't been built yet - not only what's near you."
+       },
+       {
+        "at": "and (not p.has_meta(\"chunk\") if p is Node else p.chunk == Vector2i(-1, -1)))",
+        "text": "Streamed scenery isn't saved (it regrows from the seed); only hand-placed props are."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -1425,7 +1775,7 @@ func editor_apply\n \t\t\t\tr.size = r.size.max(Vector2i(MIN_BUILDING, MIN_BUILDING))   # (at least 12 x 12)\n \t\t\t\tif r.position.x >= 2 and r.position.y >= 2 and r.end.x <= N - 2 and r.end.y <= N - 2:\n \t\t\t\t\t_clear_site(r)\n-\t\t\t\t\t_refresh_terrain()\n+\t\t\t\t\t_refresh_terrain(r.grow(4))\n \t\t\t\t\t_clear_props(r)\n \t\t\t\t\tvar door := Vector2i(r.position.x + r.size.x / 2, r.end.y - 1)\n \t\t\t\t\tvar st: String = [\"palace\", \"warehouse\", \"temple\"][opt]",
+      "added": 1,
+      "removed": 1,
+      "title": "Refresh only the changed area",
+      "note": "Drawing a building in the level editor refreshes the terrain picture around it, not the whole 880 x 880 map (which would take about a second)."
+     },
+     {
+      "diff": "@@ -1481,7 +1831,9 @@ func paint_terrain\n \t\t\t_terrain[q.x * N + q.y] = t\n \t\t\tvar v := (h + 1.0) * 0.5\n \t\t\t_height_img.set_pixel(q.x, q.y, Color(v, v, v))\n+\t\t\t_map_img.set_pixel(q.x, q.y, pdata[\"terrain\"][t][1])\n \t_height_tex.update(_height_img)\n+\tmap_tex.update(_map_img)\n \n \n func _after_terrain_edit() -> void:",
+      "added": 2,
+      "removed": 0,
+      "title": "Painting updates the map picture",
+      "note": "Painting terrain also updates the minimap / planet-map picture, which is now kept by the surface."
+     },
+     {
+      "diff": "@@ -1579,7 +1931,7 @@ func _remove_prop\n ## Clears the scenery off a plot (its tiles and one around).\n func _clear_props(r: Rect2i) -> void:\n \tvar g := r.grow(1)\n-\tfor p in _props.duplicate():\n+\tfor p in _props.keys():\n \t\tif is_instance_valid(p) and g.has_point(tilemap.local_to_map(p.position)):\n \t\t\t_remove_prop(p)\n ",
+      "added": 1,
+      "removed": 1,
+      "title": "Iterating the scenery dictionary",
+      "note": "_clear_props iterates the dictionary's keys (it removes entries while going)."
+     },
+     {
+      "diff": "@@ -1699,6 +2051,29 @@ func nearest_hostile\n \treturn best\n \n \n+## A walkable spot at or near `p` (spiral search, up to ~5 tiles).\n+func _nearest_walkable(p: Vector2) -> Vector2:\n+\tif walkable_at(p, 8.0):\n+\t\treturn p\n+\tfor r in range(1, 12):\n+\t\tfor k in 12:\n+\t\t\tvar q := p + Vector2.from_angle(k * TAU / 12.0) * r * 40.0\n+\t\t\tif walkable_at(q, 8.0):\n+\t\t\t\treturn q\n+\treturn p\n+\n+\n+## Every building's footprint, built or still only planned (maps).\n+func building_rects() -> Array:\n+\tvar out := []\n+\tfor b in buildings:\n+\t\tout.append(b.rect)\n+\tfor p in _plans:\n+\t\tif p[\"built\"] == null:\n+\t\t\tout.append(_plan_rect(p))\n+\treturn out\n+\n+\n func _thing_at(world: Vector2) -> Node2D:\n \tvar best: Node2D = null\n \tvar best_d := INF",
+      "added": 23,
+      "removed": 0,
+      "title": "Finding a walkable spot",
+      "note": "_nearest_walkable: a spiral search for walkable ground near a point, used to end each leg of a long walk somewhere you can stand.",
+      "bubbles": [
+       {
+        "at": "var q := p + Vector2.from_angle(k * TAU / 12.0) * r * 40.0",
+        "text": "A spiral: 12 points on rings 40 px apart, until one is walkable."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -1716,7 +2091,27 @@ func _thing_at\n \treturn best\n \n \n+## A destination beyond the path grid's window (the planet map): walked to\n+## leg by leg, each leg to the window's edge toward it.\n+var _far_goal := Vector2.INF\n+var _far_origin := Vector2i(-1, -1)\n+var _far_from := Vector2.ZERO\n+\n func _walk_to(world: Vector2) -> void:\n+\t_far_goal = Vector2.INF\n+\tif level == 0 and _astar != null and not in_nav(world, 3):\n+\t\t_far_goal = world\n+\t\t_far_origin = _nav_origin\n+\t\t_far_from = pilot.position\n+\t\t# The last point toward it still well inside the window.\n+\t\tvar a := pilot.position\n+\t\tvar leg := a\n+\t\tfor k in range(1, 65):\n+\t\t\tvar p := a.lerp(world, k / 64.0)\n+\t\t\tif not in_nav(p, 8):\n+\t\t\t\tbreak\n+\t\t\tleg = p\n+\t\tworld = _nearest_walkable(leg)\n \tpilot.path = _p_path(pilot.position, world)\n \tpilot.target = pilot.path[-1] if not pilot.path.is_empty() else pilot.position\n \tpilot.moving = not pilot.path.is_empty()",
+      "added": 20,
+      "removed": 0,
+      "title": "Walking to far destinations",
+      "note": "A destination beyond the path grid's window (clicked on the planet map) becomes _far_goal; _walk_to heads for the last point toward it that is still well inside the window. building_rects() gives the maps every footprint, built or planned.",
+      "bubbles": [
+       {
+        "at": "if level == 0 and _astar != null and not in_nav(world, 3):",
+        "text": "A goal outside the path window (picked on the planet map) is walked in legs."
+       },
+       {
+        "at": "if not in_nav(p, 8):",
+        "text": "Each leg ends at the last point on the straight line that is still well inside the window."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -1724,94 +2119,182 @@ func _walk_to\n \n # --- Navigation ----------------------------------------------------------------------\n \n-func _build_nav() -> void:\n-\tvar n := N * NAV_S\n-\t_astar = AStarGrid2D.new()\n-\t_astar.region = Rect2i(0, 0, n, n)\n-\t_astar.cell_size = Vector2.ONE\n-\t_astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES\n-\t_astar.default_compute_heuristic = AStarGrid2D.HEURISTIC_OCTILE\n-\t_astar.default_estimate_heuristic = AStarGrid2D.HEURISTIC_OCTILE\n-\t_astar.update()\n-\t# nav (a, b) -> grid ((a + 0.5) / S - 0.5, ...) -> world\n-\tvar g2w := _world_to_grid.affine_inverse()\n-\tvar k := 1.0 / NAV_S\n-\t_nav_from_grid = Transform2D(g2w.x * k, g2w.y * k, g2w * Vector2(0.5 * k - 0.5, 0.5 * k - 0.5))\n-\tif _loading:\n-\t\t# On worker threads (walkable_at only reads data), applied here in slices.\n-\t\tvar rows: Array = await _rows_threaded(n, func(a: int) -> PackedByteArray:\n-\t\t\tvar row := PackedByteArray()\n-\t\t\trow.resize(n)\n-\t\t\tfor b in n:\n-\t\t\t\tif not walkable_at(_nav_from_grid * Vector2(a, b), NAV_CLEAR):\n-\t\t\t\t\trow[b] = 1\n-\t\t\treturn row)\n-\t\tfor a in n:\n-\t\t\tif _yield_due():\n-\t\t\t\tawait _breathe()\n-\t\t\tvar row: PackedByteArray = rows[a]\n-\t\t\tfor b in n:\n-\t\t\t\tif row[b]:\n-\t\t\t\t\t_astar.set_point_solid(Vector2i(a, b), true)\n-\telse:\n-\t\tfor a in n:\n-\t\t\tfor b in n:\n-\t\t\t\tif not walkable_at(_nav_from_grid * Vector2(a, b), NAV_CLEAR):\n-\t\t\t\t\t_astar.set_point_solid(Vector2i(a, b), true)\n-\t# Water / crevasse slivers thinner than the grid spacing can lie between two\n-\t# free points: cut those links (the grid has no edges, so one end goes solid).\n-\t# Only near shores - tiles with unwalkable ground around them.\n-\tvar shore := PackedByteArray()\n-\tshore.resize(N * N)\n-\tfor i in N:\n-\t\tfor j in N:\n-\t\t\tif not walkable_cell(Vector2i(i, j)):\n-\t\t\t\tfor di in range(-1, 2):\n-\t\t\t\t\tfor dj in range(-1, 2):\n-\t\t\t\t\t\tvar ci := i + di\n-\t\t\t\t\t\tvar cj := j + dj\n-\t\t\t\t\t\tif ci >= 0 and cj >= 0 and ci < N and cj < N:\n-\t\t\t\t\t\t\tshore[ci * N + cj] = 1\n-\tfor a in n:\n-\t\tif _yield_due():\n-\t\t\tawait _breathe()\n-\t\tfor b in n:\n-\t\t\tif shore[clampi(a / NAV_S, 0, N - 1) * N + clampi(b / NAV_S, 0, N - 1)] == 0:\n-\t\t\t\tcontinue\n-\t\t\tvar p := Vector2i(a, b)\n-\t\t\tif _astar.is_point_solid(p):\n-\t\t\t\tcontinue\n-\t\t\tvar w := _nav_from_grid * Vector2(p)\n-\t\t\tfor d in [Vector2i(1, 0), Vector2i(0, 1)]:\n-\t\t\t\tvar q: Vector2i = p + d\n-\t\t\t\tif q.x >= n or q.y >= n or _astar.is_point_solid(q):\n-\t\t\t\t\tcontinue\n-\t\t\t\tvar wq := _nav_from_grid * Vector2(q)\n-\t\t\t\tif not (_ground_ok(w.lerp(wq, 0.25)) and _ground_ok(w.lerp(wq, 0.5)) and _ground_ok(w.lerp(wq, 0.75))):\n-\t\t\t\t\t_astar.set_point_solid(p, true)\n-\t\t\t\t\tbreak\n-\t_open_doorways()\n+## The path-finding grid covers a NAV_WIN x NAV_WIN tile window around you\n+## (NAV_S points per tile): built on a worker thread from a snapshot of the\n+## buildings there, then swapped in. It follows you (re-centred when you're\n+## NAV_SHIFT tiles off its centre) and is rebuilt when a building appears in it.\n+var _nav_origin := Vector2i.ZERO    # the window's first tile\n+var _nav_task := -1                # the running stage's task (or group task)\n+var _nav_stage := 0\n+var _nav_job := {}\n+var _nav_lock := Mutex.new()\n+var _nav_box := {}\n+var _nav_dirty := false\n+\n+func _nav_window(origin := _nav_origin) -> Rect2i:\n+\treturn Rect2i(origin, Vector2i(NAV_WIN, NAV_WIN))\n \n \n-## Every doorway gets a guaranteed lane of free nav points straight through\n-## it (both sides of the wall), whatever way the grid lines up with it.\n-func _open_doorways() -> void:\n-\tfor d in all_doors():\n-\t\tvar along: Vector2 = d.dir.normalized()\n-\t\tvar nrm := along.orthogonal()\n-\t\tvar length: float = d.dir.length()\n-\t\tvar lo := SurfaceTiles.DOOR.x * length + 1.5\n-\t\tvar hi := SurfaceTiles.DOOR.y * length - 1.5\n-\t\tvar c := _nav_point(d.start + d.dir * 0.5)\n-\t\tfor dx in range(-4, 5):\n-\t\t\tfor dy in range(-4, 5):\n-\t\t\t\tvar q := c + Vector2i(dx, dy)\n-\t\t\t\tif not _astar.is_in_boundsv(q) or not _astar.is_point_solid(q):\n-\t\t\t\t\tcontinue\n-\t\t\t\tvar w := _nav_from_grid * Vector2(q)\n-\t\t\t\tvar t: float = (w - d.start).dot(along)\n-\t\t\t\tif t > lo and t < hi and absf((w - d.start).dot(nrm)) < 16.0 and walkable_at(w, 5.0):\n-\t\t\t\t\t_astar.set_point_solid(q, false)\n+func _nav_origin_for(cell: Vector2i) -> Vector2i:\n+\treturn (cell - Vector2i(NAV_WIN / 2, NAV_WIN / 2)).clamp(Vector2i.ZERO, Vector2i(N - NAV_WIN, N - NAV_WIN))\n+\n+\n+## Rebuilds the grid around you now (awaitable).\n+func _build_nav() -> void:\n+\twhile _nav_task >= 0:   # (one at a time)\n+\t\tawait get_tree().process_frame\n+\t\t_poll_nav()\n+\t_start_nav()\n+\twhile _nav_task >= 0:\n+\t\tawait get_tree().process_frame\n+\t\t_poll_nav()\n+\n+\n+func _start_nav() -> void:\n+\tvar origin := _nav_origin_for(_cell_at(pilot.position if pilot else _cell_pos(Vector2i(N / 2, N / 2))))\n+\tvar area := Rect2(_cell_pos(origin), Vector2.ZERO).expand(_cell_pos(origin + Vector2i(NAV_WIN, 0))) \\\n+\t\t.expand(_cell_pos(origin + Vector2i(0, NAV_WIN))).expand(_cell_pos(origin + Vector2i(NAV_WIN, NAV_WIN))).grow(200)\n+\tvar bs := buildings.filter(func(b): return area.intersects(b.bounds))\n+\t_nav_dirty = false\n+\t_nav_box = {}\n+\tvar n := NAV_WIN * NAV_S\n+\tvar k := 1.0 / NAV_S\n+\tvar xf := Transform2D(_g2w.x * k, _g2w.y * k, _g2w * (Vector2(origin) + Vector2(0.5 * k - 0.5, 0.5 * k - 0.5)))\n+\tvar job := {\"origin\": origin, \"bs\": bs, \"xf\": xf, \"n\": n, \"rows\": [], \"rows2\": []}\n+\tjob[\"rows\"].resize(n)\n+\tjob[\"rows2\"].resize(n)\n+\t_nav_job = job\n+\t# 1: walkable points, rows in parallel.\n+\t_nav_stage = 1\n+\t_nav_task = WorkerThreadPool.add_group_task(func(a: int) -> void:\n+\t\tvar row := PackedByteArray()\n+\t\trow.resize(n)\n+\t\tfor b in n:\n+\t\t\tif not _walkable_in(xf * Vector2(a, b), NAV_CLEAR, bs):\n+\t\t\t\trow[b] = 1\n+\t\t_nav_lock.lock()\n+\t\tjob[\"rows\"][a] = row\n+\t\t_nav_lock.unlock(), n, -1, false, \"Surface paths\")\n+\n+\n+## Advances the grid build; swaps in a finished grid.\n+func _poll_nav() -> void:\n+\tif _nav_task < 0:\n+\t\treturn\n+\tif _nav_stage == 3:\n+\t\tif not WorkerThreadPool.is_task_completed(_nav_task):\n+\t\t\treturn\n+\t\tWorkerThreadPool.wait_for_task_completion(_nav_task)\n+\telse:\n+\t\tif not WorkerThreadPool.is_group_task_completed(_nav_task):\n+\t\t\treturn\n+\t\tWorkerThreadPool.wait_for_group_task_completion(_nav_task)\n+\tvar job := _nav_job\n+\tvar n: int = job[\"n\"]\n+\tvar xf: Transform2D = job[\"xf\"]\n+\tmatch _nav_stage:\n+\t\t1:   # 2: no stepping between two free points across water / a crevasse corner\n+\t\t\t_nav_stage = 2\n+\t\t\tvar rows: Array = job[\"rows\"]\n+\t\t\t_nav_task = WorkerThreadPool.add_group_task(func(a: int) -> void:\n+\t\t\t\tvar row: PackedByteArray = rows[a].duplicate()\n+\t\t\t\tvar next: PackedByteArray = rows[a + 1] if a + 1 < n else PackedByteArray()\n+\t\t\t\tfor b in n:\n+\t\t\t\t\tif row[b] == 1:\n+\t\t\t\t\t\tcontinue\n+\t\t\t\t\tvar w := xf * Vector2(a, b)\n+\t\t\t\t\tif a + 1 < n and next[b] == 0:\n+\t\t\t\t\t\tvar wq := xf * Vector2(a + 1, b)\n+\t\t\t\t\t\tif not (_ground_ok(w.lerp(wq, 0.25)) and _ground_ok(w.lerp(wq, 0.5)) and _ground_ok(w.lerp(wq, 0.75))):\n+\t\t\t\t\t\t\trow[b] = 1\n+\t\t\t\t\t\t\tcontinue\n+\t\t\t\t\tif b + 1 < n and rows[a][b + 1] == 0:\n+\t\t\t\t\t\tvar wq := xf * Vector2(a, b + 1)\n+\t\t\t\t\t\tif not (_ground_ok(w.lerp(wq, 0.25)) and _ground_ok(w.lerp(wq, 0.5)) and _ground_ok(w.lerp(wq, 0.75))):\n+\t\t\t\t\t\t\trow[b] = 1\n+\t\t\t\t_nav_lock.lock()\n+\t\t\t\tjob[\"rows2\"][a] = row\n+\t\t\t\t_nav_lock.unlock(), n, -1, false, \"Surface paths\")\n+\t\t2:   # 3: the grid itself, and the doorways\n+\t\t\t_nav_stage = 3\n+\t\t\t_nav_task = WorkerThreadPool.add_task(func() -> void: _nav_box = _make_nav(job), false, \"Surface paths\")\n+\t\t3:\n+\t\t\t_nav_task = -1\n+\t\t\t_nav_stage = 0\n+\t\t\tif not _nav_box.is_empty():\n+\t\t\t\t_astar = _nav_box[\"astar\"]\n+\t\t\t\t_nav_from_grid = _nav_box[\"xf\"]\n+\t\t\t\t_nav_origin = _nav_box[\"origin\"]\n+\n+\n+## Keeps the window around you (call every frame).\n+func _stream_nav() -> void:\n+\t_poll_nav()\n+\tif _nav_task >= 0 or level != 0:\n+\t\treturn\n+\tvar here := _cell_at(pilot.position)\n+\tvar off := here - (_nav_origin + Vector2i(NAV_WIN / 2, NAV_WIN / 2))\n+\tvar want := _nav_origin_for(here)\n+\tif _nav_dirty or (maxi(absi(off.x), absi(off.y)) > NAV_SHIFT and want != _nav_origin):\n+\t\t_start_nav()\n+\n+\n+## The grid from a build job's solid rows, doorways opened (worker thread).\n+func _make_nav(job: Dictionary) -> Dictionary:\n+\tvar n: int = job[\"n\"]\n+\tvar xf: Transform2D = job[\"xf\"]\n+\tvar bs: Array = job[\"bs\"]\n+\tvar origin: Vector2i = job[\"origin\"]\n+\tvar astar := AStarGrid2D.new()\n+\tastar.region = Rect2i(0, 0, n, n)\n+\tastar.cell_size = Vector2.ONE\n+\tastar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES\n+\tastar.default_compute_heuristic = AStarGrid2D.HEURISTIC_OCTILE\n+\tastar.default_estimate_heuristic = AStarGrid2D.HEURISTIC_OCTILE\n+\tastar.update()\n+\tfor a in n:\n+\t\tvar row: PackedByteArray = job[\"rows2\"][a]\n+\t\tfor b in n:\n+\t\t\tif row[b] == 1:\n+\t\t\t\tastar.set_point_solid(Vector2i(a, b), true)\n+\t# Every doorway gets a guaranteed lane of free points straight through it.\n+\tvar inv := xf.affine_inverse()\n+\tfor b in bs:\n+\t\tfor d in b.doors:\n+\t\t\tvar along: Vector2 = d.dir.normalized()\n+\t\t\tvar nrm := along.orthogonal()\n+\t\t\tvar length: float = d.dir.length()\n+\t\t\tvar lo := SurfaceTiles.DOOR.x * length + 1.5\n+\t\t\tvar hi := SurfaceTiles.DOOR.y * length - 1.5\n+\t\t\tvar g: Vector2 = inv * (d.start + d.dir * 0.5)\n+\t\t\tvar c := Vector2i(roundi(g.x), roundi(g.y))\n+\t\t\tfor dx in range(-4, 5):\n+\t\t\t\tfor dy in range(-4, 5):\n+\t\t\t\t\tvar q := c + Vector2i(dx, dy)\n+\t\t\t\t\tif not astar.is_in_boundsv(q) or not astar.is_point_solid(q):\n+\t\t\t\t\t\tcontinue\n+\t\t\t\t\tvar w := xf * Vector2(q)\n+\t\t\t\t\tvar t: float = (w - d.start).dot(along)\n+\t\t\t\t\tif t > lo and t < hi and absf((w - d.start).dot(nrm)) < 16.0 and _walkable_in(w, 5.0, bs):\n+\t\t\t\t\t\tastar.set_point_solid(q, false)\n+\treturn {\"astar\": astar, \"xf\": xf, \"origin\": origin}\n+\n+\n+## Whole-map nav coordinates (NAV_S points per tile, unclamped, not tied to\n+## the window): the upper floors' own little grids use these.\n+func nav_xf_global() -> Transform2D:\n+\tvar k := 1.0 / NAV_S\n+\treturn Transform2D(_g2w.x * k, _g2w.y * k, _g2w * Vector2(0.5 * k - 0.5, 0.5 * k - 0.5))\n+\n+\n+func nav_point_global(world: Vector2) -> Vector2i:\n+\tvar g := nav_xf_global().affine_inverse() * world\n+\treturn Vector2i(roundi(g.x), roundi(g.y))\n+\n+\n+## True if `world` is inside the path grid's window (with `margin` tiles to spare).\n+func in_nav(world: Vector2, margin := 0) -> bool:\n+\treturn _nav_window().grow(-margin).has_point(_cell_at(world))\n \n \n ## Every sliding door on the surface.",
+      "added": 174,
+      "removed": 86,
+      "title": "The path grid window",
+      "note": "The old _build_nav built one grid for the whole map (N x 4 points each way - 12 million at 880). Now the grid covers a 96 x 96-tile window around the player, built off the main thread in three stages: walkable rows in parallel (group task), the water-corner edge check in parallel, then the AStarGrid2D with doorway lanes (_make_nav). _poll_nav advances the stages and swaps the finished grid in; _stream_nav rebuilds it when you're 24 tiles off its centre or a new building appears in it. nav_xf_global / nav_point_global give whole-map coordinates for the upper floors' small grids; in_nav tells if a point is inside the window. Build time went from 3.2 s (one thread) to 0.65 s.",
+      "bubbles": [
+       {
+        "at": "_nav_task = WorkerThreadPool.add_group_task(func(a: int) -> void:",
+        "text": "Stage 1: which grid points are walkable - one row per task, all rows in parallel across the CPU's cores."
+       },
+       {
+        "at": "var bs := buildings.filter(func(b): return area.intersects(b.bounds))",
+        "text": "Only the buildings in the window, as a snapshot for the worker threads."
+       },
+       {
+        "at": "1:   # 2: no stepping between two free points",
+        "text": "Stage 2: blocks steps that would cross water or a crevasse between two walkable points (checked at 1/4, 1/2, 3/4)."
+       },
+       {
+        "at": "2:   # 3: the grid itself, and the doorways",
+        "text": "Stage 3: the AStarGrid2D itself, on one worker thread."
+       },
+       {
+        "at": "_astar = _nav_box[\"astar\"]",
+        "text": "The finished grid is swapped in all at once - paths never see a half-built grid."
+       },
+       {
+        "at": "if _nav_dirty or (maxi(absi(off.x), absi(off.y)) > NAV_SHIFT and want != _nav_origin):",
+        "text": "Rebuild when a building appeared in the window, or when you've walked 24 tiles from its centre."
+       },
+       {
+        "at": "# Every doorway gets a guaranteed lane of free points straight through it.",
+        "text": "Doorways are narrow: the points through them are freed explicitly so paths can always get in."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -1830,156 +2313,95 @@ func door_on\n \treturn null\n \n \n-## Makes sure everything can be walked to from the landing site: flood-fills\n-## the nav grid and, for any citizen or building door cut off by\n-## water or crevasses, raises a causeway of land to it, then rebuilds the nav.\n-func _ensure_reachable() -> void:\n-\t# Islands first (cheap, tile level), then whatever is still cut off.\n-\tif _loading:\n-\t\tawait _breathe(0.85, \"Charting walkable paths\")\n-\tif _connect_islands():\n-\t\t_refresh_terrain()\n-\t\tawait _build_nav()\n-\tfor attempt in 3:\n-\t\tvar reached: Dictionary = await _flood_async(_nearest_free(_nav_point(lander.position + Vector2(0, 90))))\n-\t\tvar sample: Array[Vector2i] = []   # a sparse sample is plenty to aim a causeway\n-\t\tfor q in reached:\n-\t\t\tif (q.x + q.y) % 3 == 0:\n-\t\t\t\tsample.append(q)\n-\t\tvar carved := false\n-\t\tfor target in _reach_targets():\n-\t\t\tvar tp := _nearest_free(_nav_point(target))\n-\t\t\tif reached.has(tp):\n-\t\t\t\tcontinue\n-\t\t\t# Nearest reached nav point, then a land strip between them.\n-\t\t\tvar best := Vector2i(-1, -1)\n-\t\t\tvar best_d := INF\n-\t\t\tif _yield_due():\n-\t\t\t\tawait _breathe()\n-\t\t\tfor q in sample:\n-\t\t\t\tvar d := Vector2(q).distance_squared_to(Vector2(tp))\n-\t\t\t\tif d < best_d:\n-\t\t\t\t\tbest_d = d\n-\t\t\t\t\tbest = q\n-\t\t\tif best.x < 0:\n-\t\t\t\tcontinue\n-\t\t\t_carve_causeway(_nav_from_grid * Vector2(best), target)\n-\t\t\tcarved = true\n-\t\tif not carved:\n-\t\t\treturn\n-\t\t_refresh_terrain()\n-\t\tawait _build_nav()\n-\n-\n-## Cell-level: links every separate patch of walkable land (6+ cells) to\n-## the landmass around the landing site with a sandbar. True if any carved.\n+## Cell level (worker thread): links every separate patch of walkable land\n+## (4+ tiles) to the landmass around the landing site with a sandbar, so\n+## everything can be walked to. True if any was carved.\n func _connect_islands() -> bool:\n \tvar comp := PackedInt32Array()\n \tcomp.resize(N * N)\n \tcomp.fill(-1)\n-\tvar sizes: Array = []\n-\tvar cells_of: Array = []\n-\tfor i in N:\n-\t\tfor j in N:\n-\t\t\tif comp[i * N + j] >= 0 or not walkable_cell(Vector2i(i, j)):\n-\t\t\t\tcontinue\n-\t\t\tvar id := sizes.size()\n-\t\t\tvar list: Array[Vector2i] = [Vector2i(i, j)]\n-\t\t\tcomp[i * N + j] = id\n-\t\t\tvar head := 0\n-\t\t\twhile head < list.size():\n-\t\t\t\tvar c := list[head]\n-\t\t\t\thead += 1\n-\t\t\t\tfor d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:\n-\t\t\t\t\tvar q: Vector2i = c + d\n-\t\t\t\t\tif q.x >= 0 and q.y >= 0 and q.x < N and q.y < N and comp[q.x * N + q.y] < 0 and walkable_cell(q):\n-\t\t\t\t\t\tcomp[q.x * N + q.y] = id\n-\t\t\t\t\t\tlist.append(q)\n-\t\t\tsizes.append(list.size())\n-\t\t\tcells_of.append(list)\n+\tvar walk := PackedByteArray()\n+\twalk.resize(N * N)\n+\tfor k in N * N:\n+\t\twalk[k] = 1 if pdata[\"terrain\"][_terrain[k]][2] else 0\n+\tvar sizes := PackedInt32Array()\n+\tvar firsts := PackedInt32Array()      # a cell of each patch\n+\tvar queue := PackedInt32Array()\n+\tqueue.resize(N * N)\n+\tfor start in N * N:\n+\t\tif comp[start] >= 0 or walk[start] == 0:\n+\t\t\tcontinue\n+\t\tvar id := sizes.size()\n+\t\tcomp[start] = id\n+\t\tqueue[0] = start\n+\t\tvar head := 0\n+\t\tvar tail := 1\n+\t\twhile head < tail:\n+\t\t\tvar c := queue[head]\n+\t\t\thead += 1\n+\t\t\tvar ci := c / N\n+\t\t\tvar cj := c % N\n+\t\t\tif ci > 0 and comp[c - N] < 0 and walk[c - N] == 1:\n+\t\t\t\tcomp[c - N] = id; queue[tail] = c - N; tail += 1\n+\t\t\tif ci < N - 1 and comp[c + N] < 0 and walk[c + N] == 1:\n+\t\t\t\tcomp[c + N] = id; queue[tail] = c + N; tail += 1\n+\t\t\tif cj > 0 and comp[c - 1] < 0 and walk[c - 1] == 1:\n+\t\t\t\tcomp[c - 1] = id; queue[tail] = c - 1; tail += 1\n+\t\t\tif cj < N - 1 and comp[c + 1] < 0 and walk[c + 1] == 1:\n+\t\t\t\tcomp[c + 1] = id; queue[tail] = c + 1; tail += 1\n+\t\tsizes.append(tail)\n+\t\tfirsts.append(start)\n \tvar center := Vector2i(N / 2, N / 2)\n \tvar main_id: int = comp[center.x * N + center.y]\n \tif main_id < 0:\n \t\treturn false\n-\tvar main_cells: Array = cells_of[main_id]\n \tvar carved := false\n-\tvar bridges := 0\n \tfor id in sizes.size():\n-\t\tif id == main_id or sizes[id] < 2 or bridges >= 80:\n+\t\tif id == main_id or sizes[id] < 4:\n \t\t\tcontinue\n-\t\tvar cells: Array = cells_of[id]\n-\t\tvar centroid := Vector2.ZERO\n-\t\tfor c in cells:\n-\t\t\tcentroid += Vector2(c)\n-\t\tcentroid /= cells.size()\n-\t\tvar m_best: Vector2i = main_cells[0]\n-\t\tvar md := INF\n-\t\tfor m in main_cells:\n-\t\t\tvar d := Vector2(m).distance_squared_to(centroid)\n-\t\t\tif d < md:\n-\t\t\t\tmd = d\n-\t\t\t\tm_best = m\n-\t\tvar c_best: Vector2i = cells[0]\n-\t\tvar cd := INF\n-\t\tfor c in cells:\n-\t\t\tvar d := Vector2(c).distance_squared_to(Vector2(m_best))\n-\t\t\tif d < cd:\n-\t\t\t\tcd = d\n-\t\t\t\tc_best = c\n-\t\t_carve_causeway(_cell_pos(m_best), _cell_pos(c_best))\n+\t\t# The nearest bit of the main landmass: rings outward from the patch.\n+\t\tvar c0 := Vector2i(firsts[id] / N, firsts[id] % N)\n+\t\tvar found := Vector2i(-1, -1)\n+\t\tfor r in range(1, 160):\n+\t\t\tfor dx in range(-r, r + 1):\n+\t\t\t\tfor dy in ([-r, r] if absi(dx) != r else range(-r, r + 1)):\n+\t\t\t\t\tvar q: Vector2i = c0 + Vector2i(dx, dy)\n+\t\t\t\t\tif q.x >= 0 and q.y >= 0 and q.x < N and q.y < N and comp[q.x * N + q.y] == main_id:\n+\t\t\t\t\t\tfound = q\n+\t\t\t\t\t\tbreak\n+\t\t\t\tif found.x >= 0:\n+\t\t\t\t\tbreak\n+\t\t\tif found.x >= 0:\n+\t\t\t\tbreak\n+\t\tif found.x < 0:\n+\t\t\tcontinue\n+\t\t_carve_causeway(_cell_pos(found), _cell_pos(c0))\n \t\tcarved = true\n-\t\tbridges += 1\n \treturn carved\n \n \n+## Targets that must be reachable: the open land and doorways in the path\n+## grid's window, and the citizens there.\n func _reach_targets() -> Array:\n \tvar out := []\n-\t# Every bit of open land counts too (every tile).\n-\tfor i in range(1, N - 1):\n-\t\tfor j in range(1, N - 1):\n+\tvar win := _nav_window().grow(-2)\n+\tfor i in range(win.position.x, win.end.x):\n+\t\tfor j in range(win.position.y, win.end.y):\n \t\t\tvar c := Vector2i(i, j)\n \t\t\tif walkable_cell(c) and not _blocked_cells.has(c):\n \t\t\t\tvar w := _cell_pos(c)\n \t\t\t\tif walkable_at(w, NAV_CLEAR):\n \t\t\t\t\tout.append(w)\n \tfor a in npcs:\n-\t\tout.append(a.position)\n+\t\tif in_nav(a.position, 2):\n+\t\t\tout.append(a.position)\n \tfor z in _door_zones:\n-\t\tout.append(z[0])\n+\t\tif in_nav(z[0], 2):\n+\t\t\tout.append(z[0])\n \treturn out\n \n \n ## Nav points reachable from `start` (8-way, like the path finder).\n-## _flood that lets the loading screen through (call with await).\n-## Runs fn(row) -> PackedByteArray for rows 0..n-1 on worker threads, letting\n-## frames through meanwhile; returns the rows in order.\n-func _rows_threaded(n: int, fn: Callable) -> Array:\n-\tvar rows := []\n-\trows.resize(n)\n-\tvar lock := Mutex.new()\n-\tvar task := WorkerThreadPool.add_group_task(func(a: int) -> void:\n-\t\tvar r: PackedByteArray = fn.call(a)\n-\t\tlock.lock()\n-\t\trows[a] = r\n-\t\tlock.unlock(), n, maxi(1, OS.get_processor_count() - 2), false, \"Surface nav\")\n-\twhile not WorkerThreadPool.is_group_task_completed(task):\n-\t\tawait get_tree().process_frame\n-\tWorkerThreadPool.wait_for_group_task_completion(task)\n-\t_slice_t = Time.get_ticks_usec()\n-\treturn rows\n-\n-\n-## _flood on a worker thread (the grid is only read), letting frames through.\n-func _flood_async(start: Vector2i) -> Dictionary:\n-\tvar box := {}\n-\tvar task := WorkerThreadPool.add_task(func() -> void: box[\"seen\"] = _flood(start), false, \"Surface flood\")\n-\twhile not WorkerThreadPool.is_task_completed(task):\n-\t\tawait get_tree().process_frame\n-\tWorkerThreadPool.wait_for_task_completion(task)\n-\t_slice_t = Time.get_ticks_usec()\n-\treturn box[\"seen\"]\n-\n-\n func _flood(start: Vector2i) -> Dictionary:\n \tvar seen := {start: true}\n \tvar queue: Array[Vector2i] = [start]",
+      "added": 61,
+      "removed": 122,
+      "title": "Island causeways at tile level, fast",
+      "note": "_connect_islands is rewritten with packed arrays (flood fill over 774,400 tiles) and finds the nearest bit of the main land by searching rings outward from each island, instead of comparing every island tile with every main-land tile (far too slow at this size). It runs on the worker thread. The old nav-level _ensure_reachable and its helpers are removed: with the plots cleared and islands linked at tile level, a whole-map reachability pass is no longer needed (or possible). _reach_targets now lists the targets inside the window, for the reachability test.",
+      "bubbles": [
+       {
+        "at": "while head < tail:",
+        "text": "A flood fill (breadth-first, a queue in a packed array) labels every separate patch of land."
+       },
+       {
+        "at": "for dy in ([-r, r] if absi(dx) != r else range(-r, r + 1)):",
+        "text": "Searches square rings outward from the island for the nearest main land."
+       },
+       {
+        "at": "_carve_causeway(_cell_pos(found), _cell_pos(c0))",
+        "text": "A sandbar between them: every island can be walked to."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -2020,10 +2442,11 @@ func _carve_causeway\n \n \n ## Re-derives terrain types and the ground shader's height map from _height.\n-func _refresh_terrain() -> void:\n+func _refresh_terrain(area := Rect2i(0, 0, N, N)) -> void:\n \tvar thresholds: Array = pdata[\"thresholds\"]\n-\tfor i in N:\n-\t\tfor j in N:\n+\tvar r := area.intersection(Rect2i(0, 0, N, N))\n+\tfor i in range(r.position.x, r.end.x):\n+\t\tfor j in range(r.position.y, r.end.y):\n \t\t\tvar k := i * N + j\n \t\t\tvar t := 0\n \t\t\twhile t < thresholds.size() and _height[k] > thresholds[t]:",
+      "added": 4,
+      "removed": 3,
+      "title": "Refreshing part of the terrain",
+      "note": "_refresh_terrain takes an area, so editor changes refresh only what changed."
+     },
+     {
+      "diff": "@@ -2031,12 +2454,14 @@ func _refresh_terrain\n \t\t\t_terrain[k] = t\n \t\t\tvar v := (_height[k] + 1.0) * 0.5\n \t\t\t_height_img.set_pixel(i, j, Color(v, v, v))\n+\t\t\t_map_img.set_pixel(i, j, pdata[\"terrain\"][t][1])\n \t_height_tex.update(_height_img)\n+\tmap_tex.update(_map_img)\n \n \n func _nav_point(world: Vector2) -> Vector2i:\n \tvar g := _nav_from_grid.affine_inverse() * world\n-\tvar n := N * NAV_S\n+\tvar n := NAV_WIN * NAV_S\n \treturn Vector2i(clampi(roundi(g.x), 0, n - 1), clampi(roundi(g.y), 0, n - 1))\n \n ",
+      "added": 3,
+      "removed": 1,
+      "title": "Window-sized nav points",
+      "note": "The map picture is refreshed with the terrain; _nav_point clamps to the window's grid (NAV_WIN x NAV_S) instead of the whole map's."
+     },
+     {
+      "diff": "@@ -2066,8 +2491,8 @@ func _nearest_free\n ## and through doorways, straightened. If `to` can't be reached, ends at the\n ## closest reachable point.\n func find_path(from: Vector2, to: Vector2) -> PackedVector2Array:\n-\tif _astar == null:\n-\t\treturn PackedVector2Array([to])\n+\tif _astar == null or not in_nav(from) or not in_nav(to):\n+\t\treturn PackedVector2Array([to])   # (outside the grid's window: walk straight, stop if blocked)\n \tif _segment_clear(from, to):\n \t\treturn PackedVector2Array([to])\n \tvar a := _nearest_free(_nav_point(from))",
+      "added": 2,
+      "removed": 2,
+      "title": "Paths outside the window",
+      "note": "find_path walks straight when either end is outside the grid's window (citizens far away stroll near home; the player's long walks are split into legs).",
+      "bubbles": [
+       {
+        "at": "return PackedVector2Array([to])   # (outside the grid's window",
+        "text": "Outside the window there's no grid: walk straight and stop if blocked."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -2250,6 +2675,17 @@ func _segment_clear\n \n \n func _process(delta: float) -> void:\n+\t# The world around you: scenery, buildings and citizens, the path grid.\n+\t_stream_chunks(3000)\n+\t_stream_plans()\n+\t_stream_nav()\n+\tif _far_goal != Vector2.INF and not pilot.moving and not _climbing and level == 0 and _nav_task < 0:\n+\t\tif pilot.position.distance_to(_far_goal) < 12.0:\n+\t\t\t_far_goal = Vector2.INF\n+\t\telif _nav_origin != _far_origin:\n+\t\t\t_walk_to(_far_goal)   # (the window has moved on: the next leg)\n+\t\telif pilot.position.distance_to(_far_from) < 4.0:\n+\t\t\t_far_goal = Vector2.INF   # (no way on)\n \tvar cam := get_viewport().get_camera_2d()\n \tif cam and not is_equal_approx(cam.zoom.x, _zoom):\n \t\tvar z := lerpf(cam.zoom.x, _zoom, minf(1.0, delta * 12.0))",
+      "added": 11,
+      "removed": 0,
+      "title": "Streaming every frame",
+      "note": "_process now streams the world around the player each frame (scenery chunks within a 3 ms budget, planned buildings and citizens, the path-grid window) and continues long walks: when the window has moved on, the next leg starts toward _far_goal.",
+      "bubbles": [
+       {
+        "at": "_stream_chunks(3000)",
+        "text": "3000 us = 3 ms a frame for placing scenery, so streaming never drops the frame rate."
+       },
+       {
+        "at": "_walk_to(_far_goal)   # (the window has moved on: the next leg)",
+        "text": "The window has caught up with you: plan the next leg toward the far goal."
+       }
+      ]
+     }
+    ],
+    "added": 824,
+    "removed": 388
+   },
+   {
+    "path": "scripts/surface_minimap.gd",
+    "explanation": "The minimap shows the land around you (140 tiles) instead of the whole planet, which at 880 tiles would be too small to read. It uses the map picture made on the worker thread instead of painting 774,400 pixels itself.",
+    "hunks": [
+     {
+      "diff": "@@ -1,21 +1,21 @@ \n extends Control\n-## Planet-surface minimap: a diamond-shaped overview of the terrain (same\n-## isometric orientation as the view) with markers for your ship\n-## buildings, Minoan citizens and you.\n+## Planet-surface minimap: the terrain around you (VIEW tiles across, same\n+## isometric orientation as the view; the planet is far bigger) with markers\n+## for your ship, buildings, Minoan citizens and you. The planet map\n+## (SurfaceMap) shows the whole planet with the same drawing.\n \n+## Tiles across the minimap.\n+const VIEW := 140.0\n var surface: Node\n-var _tex: ImageTexture\n+var _tex: Texture2D\n var _world_to_grid: Transform2D\n+var whole := false                  # the whole planet (the planet map), not around you\n \n \n func setup(s: Node) -> void:\n \tsurface = s\n-\tvar n: int = s.N\n-\tvar img := Image.create_empty(n, n, false, Image.FORMAT_RGBA8)\n-\tfor i in n:\n-\t\tfor j in n:\n-\t\t\timg.set_pixel(i, j, s.terrain_color(Vector2i(i, j)))\n-\t_tex = ImageTexture.create_from_image(img)\n+\tclip_contents = true\n+\t_tex = s.map_tex   # (made on the worker thread with the terrain)\n \t# World position -> fractional grid coordinates (inverse of map_to_local).\n \tvar tm: TileMapLayer = s.tilemap\n \tvar o := tm.map_to_local(Vector2i(0, 0))",
+      "added": 10,
+      "removed": 10,
+      "title": "Local view; texture from the worker",
+      "note": "setup no longer paints its own image pixel by pixel; it takes the surface's map texture (made from the worker's bytes).",
+      "bubbles": [
+       {
+        "at": "_tex = s.map_tex   # (made on the worker thread with the terrain)",
+        "text": "The minimap picture is made with the terrain, so the minimap no longer builds its own."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -28,11 +28,17 @@ func _process\n \tqueue_redraw()\n \n \n-## Grid -> minimap pixel (diamond: x right-down, y left-down).\n+## Grid -> minimap pixel (diamond: x right-down, y left-down): the whole\n+## planet fitted (whole), or VIEW tiles centred on you.\n func _grid_xform() -> Transform2D:\n \tvar n: float = surface.N\n-\tvar a := size.x / (2.0 * n)\n-\treturn Transform2D(Vector2(a, a * 0.5), Vector2(-a, a * 0.5), Vector2(size.x / 2.0, size.y / 2.0 - n * a * 0.5))\n+\tif whole:\n+\t\tvar a := size.x / (2.0 * n)\n+\t\treturn Transform2D(Vector2(a, a * 0.5), Vector2(-a, a * 0.5), Vector2(size.x / 2.0, size.y / 2.0 - n * a * 0.5))\n+\tvar a := size.x / (2.0 * VIEW)\n+\tvar basis := Transform2D(Vector2(a, a * 0.5), Vector2(-a, a * 0.5), Vector2.ZERO)\n+\tvar me: Vector2 = _world_to_grid * surface.pilot.global_position + Vector2(0.5, 0.5)\n+\treturn Transform2D(basis.x, basis.y, size / 2.0 - basis.basis_xform(me))\n \n \n func _to_map(world: Vector2) -> Vector2:",
+      "added": 9,
+      "removed": 3,
+      "title": "Centred on you",
+      "note": "_grid_xform shows VIEW (140) tiles centred on the pilot; the planet map sets whole = true for the old fit-the-whole-planet view.",
+      "bubbles": [
+       {
+        "at": "return Transform2D(basis.x, basis.y, size / 2.0 - basis.basis_xform(me))",
+        "text": "A diamond (isometric) transform, shifted so that you are always in the middle."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -44,12 +50,14 @@ func _draw\n \t\treturn\n \tvar n: float = surface.N\n \tvar g := _grid_xform()\n-\t# Frame behind the diamond.\n \tvar corners := PackedVector2Array([g * Vector2(0, 0), g * Vector2(n, 0), g * Vector2(n, n), g * Vector2(0, n)])\n \tvar pad := PackedVector2Array()\n \tvar c := size / 2.0\n-\tfor p in corners:\n-\t\tpad.append(c + (p - c) * 1.06)\n+\tif whole:   # frame behind the diamond\n+\t\tfor p in corners:\n+\t\t\tpad.append(c + (p - c) * 1.06)\n+\telse:\n+\t\tpad = PackedVector2Array([Vector2.ZERO, Vector2(size.x, 0), size, Vector2(0, size.y)])\n \tdraw_colored_polygon(pad, Color(0.02, 0.06, 0.12, 0.85))\n \t# Terrain.\n \tdraw_set_transform_matrix(g)",
+      "added": 5,
+      "removed": 3,
+      "title": "Frame for the local view",
+      "note": "The diamond frame is only drawn for the whole-planet view; the minimap is a clipped rectangle."
+     },
+     {
+      "diff": "@@ -58,12 +66,11 @@ func _draw\n \tdraw_polyline(pad + PackedVector2Array([pad[0]]), Color(0.4, 0.8, 1.0, 0.7), 2.0, true)\n \n \t# Markers.\n-\t# Buildings: their footprints (Minoan palace, warehouses, temples).\n-\tfor b in surface.buildings:\n-\t\tvar r: Rect2i = b.rect\n+\t# Buildings: their footprints (Minoan palace, warehouses, temples) - built or not yet.\n+\tfor r in surface.building_rects():\n \t\tvar pts := PackedVector2Array([g * Vector2(r.position), g * Vector2(r.end.x, r.position.y),\n \t\t\tg * Vector2(r.end), g * Vector2(r.position.x, r.end.y)])\n-\t\tdraw_colored_polygon(pts, Color(0.75, 0.25, 0.18) if b.material == \"minoan\" else b.light.darkened(0.25))\n+\t\tdraw_colored_polygon(pts, Color(0.75, 0.25, 0.18))\n \t\tdraw_polyline(pts + PackedVector2Array([pts[0]]), Color(0, 0, 0, 0.6), 1.0)\n \tfor a in surface.npcs:\n \t\tdraw_circle(_to_map(a.global_position), 2.5, Color(0.95, 0.75, 0.35))",
+      "added": 3,
+      "removed": 4,
+      "title": "Planned buildings on the map",
+      "note": "Buildings are drawn from building_rects(), so villages you haven't reached yet show up too.",
+      "bubbles": [
+       {
+        "at": "for r in surface.building_rects():",
+        "text": "Planned buildings are on the map too, even before they're built."
+       }
+      ]
+     }
+    ],
+    "added": 27,
+    "removed": 20
+   },
+   {
+    "path": "scripts/surface_map.gd",
+    "explanation": "The planet map (M) shows the whole planet and zooms much further in.",
+    "hunks": [
+     {
+      "diff": "@@ -96,6 +96,10 @@ class MapView extends \"res://scripts/surface_minimap.gd\":\n \tvar _press := Vector2.ZERO\n \tvar _hover := {}\n \n+\tfunc setup(s: Node) -> void:\n+\t\tsuper(s)\n+\t\twhole = true\n+\n \tfunc reset() -> void:\n \t\tzoom = 1.0\n \t\tpan = Vector2.ZERO",
+      "added": 4,
+      "removed": 0,
+      "title": "Whole-planet view",
+      "note": "The map view turns on whole = true for the minimap drawing it inherits.",
+      "bubbles": [
+       {
+        "at": "whole = true",
+        "text": "The planet map is the same drawing as the minimap, showing the whole planet."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -119,7 +123,7 @@ class MapView extends \"res://scripts/surface_minimap.gd\":\n \t\t\tvar mb := ev as InputEventMouseButton\n \t\t\tif mb.pressed and mb.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:\n \t\t\t\tvar f := 1.2 if mb.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0 / 1.2\n-\t\t\t\tvar nz := clampf(zoom * f, 0.6, 8.0)\n+\t\t\t\tvar nz := clampf(zoom * f, 0.6, 60.0)\n \t\t\t\t# Keep the point under the cursor fixed.\n \t\t\t\tvar c := size / 2.0\n \t\t\t\tpan = (mb.position - c) - (mb.position - c - pan) * (nz / zoom)",
+      "added": 1,
+      "removed": 1,
+      "title": "Deeper zoom",
+      "note": "Zoom goes up to x60 (was x8): a tile is a fraction of a pixel when the whole planet fits."
+     }
+    ],
+    "added": 5,
+    "removed": 1
+   },
+   {
+    "path": "scripts/surface_props.gd",
+    "explanation": "Flat scenery records which chunk it belongs to.",
+    "hunks": [
+     {
+      "diff": "@@ -959,6 +959,7 @@ class PropData extends RefCounted:\n \tvar variant := 0\n \tvar position := Vector2.ZERO\n \tvar batch: Node2D\n+\tvar chunk := Vector2i(-1, -1)     # its scenery chunk (streamed), or (-1, -1)\n \n \n class PropBatch extends Prop:",
+      "added": 1,
+      "removed": 0,
+      "title": "PropData.chunk",
+      "note": "The chunk a flat prop was streamed into ((-1, -1) for hand-placed ones), used when its chunk is unloaded and when saving layouts."
+     }
+    ],
+    "added": 1,
+    "removed": 0
+   },
+   {
+    "path": "scripts/building_floors.gd",
+    "explanation": "Upper floors build their own small path grids; they used the surface's grid transform, which now belongs to the moving window, so they switch to whole-map coordinates.",
+    "hunks": [
+     {
+      "diff": "@@ -377,6 +377,7 @@ static func path\n \t\treturn PackedVector2Array([to])\n \tvar f: Floor = b.upper\n \tvar S: int = s.NAV_S\n+\tvar xg: Transform2D = s.nav_xf_global()   # (whole-map nav coordinates)\n \tif f.astar == null:\n \t\tf.astar = AStarGrid2D.new()\n \t\tf.astar.region = Rect2i(b.rect.position * S, b.rect.size * S)",
+      "added": 1,
+      "removed": 0,
+      "title": "Whole-map transform",
+      "note": "The upper floor's grid uses nav_xf_global(), which doesn't move with the window.",
+      "bubbles": [
+       {
+        "at": "var xg: Transform2D = s.nav_xf_global()",
+        "text": "Upper floors use whole-map grid coordinates: the surface's grid now covers only a window."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -385,7 +386,7 @@ static func path\n \t\tf.astar.update()\n \t\tfor x in range(f.astar.region.position.x, f.astar.region.end.x):\n \t\t\tfor y in range(f.astar.region.position.y, f.astar.region.end.y):\n-\t\t\t\tif not walkable(s, b, s._nav_from_grid * Vector2(x, y), s.NAV_CLEAR):\n+\t\t\t\tif not walkable(s, b, xg * Vector2(x, y), s.NAV_CLEAR):\n \t\t\t\t\tf.astar.set_point_solid(Vector2i(x, y), true)\n \t\t# A guaranteed lane through every doorway (as on the ground floor).\n \t\tfor dw in f.doorways:",
+      "added": 1,
+      "removed": 1,
+      "title": "Solid points",
+      "note": "Walkability is sampled with the whole-map transform."
+     },
+     {
+      "diff": "@@ -395,22 +396,22 @@ static func path\n \t\t\tvar nrm := along.orthogonal()\n \t\t\tvar lo := SurfaceTiles.DOOR.x * dir.length() + 1.5\n \t\t\tvar hi := SurfaceTiles.DOOR.y * dir.length() - 1.5\n-\t\t\tvar c: Vector2i = s._nav_point(start + dir * 0.5)\n+\t\t\tvar c: Vector2i = s.nav_point_global(start + dir * 0.5)\n \t\t\tfor dx in range(-4, 5):\n \t\t\t\tfor dy in range(-4, 5):\n \t\t\t\t\tvar q := c + Vector2i(dx, dy)\n \t\t\t\t\tif not f.astar.is_in_boundsv(q) or not f.astar.is_point_solid(q):\n \t\t\t\t\t\tcontinue\n-\t\t\t\t\tvar w: Vector2 = s._nav_from_grid * Vector2(q)\n+\t\t\t\t\tvar w: Vector2 = xg * Vector2(q)\n \t\t\t\t\tvar t := (w - start).dot(along)\n \t\t\t\t\tif t > lo and t < hi and absf((w - start).dot(nrm)) < 16.0 and walkable(s, b, w, 5.0):\n \t\t\t\t\t\tf.astar.set_point_solid(q, false)\n-\tvar pa := _nearest(f.astar, s._nav_point(from))\n-\tvar pb := _nearest(f.astar, s._nav_point(to))\n+\tvar pa := _nearest(f.astar, s.nav_point_global(from))\n+\tvar pb := _nearest(f.astar, s.nav_point_global(to))\n \tvar ids := f.astar.get_id_path(pa, pb, true)\n \tvar pts := PackedVector2Array()\n \tfor id in ids:\n-\t\tpts.append(s._nav_from_grid * Vector2(id))\n+\t\tpts.append(xg * Vector2(id))\n \tif not pts.is_empty() and walkable(s, b, to) and clear_line(s, b, pts[-1], to, 6.0):\n \t\tpts.append(to)\n \treturn pts",
+      "added": 5,
+      "removed": 5,
+      "title": "Doorway lanes and the path",
+      "note": "Nav points of doorways and of the path's ends use nav_point_global, and the path's points convert back with the same transform."
+     }
+    ],
+    "added": 7,
+    "removed": 6
+   },
+   {
+    "path": "tests/test_surface.gd",
+    "explanation": "New test for the streamed planet, and the building test checks every planned plot.",
+    "hunks": [
+     {
+      "diff": "@@ -347,8 +347,89 @@ func test_big_buildings_on_cleared_ground\n \t\t\t\tif is_instance_valid(p) and r.has_point(s.tilemap.local_to_map(p.position)):\n \t\t\t\t\tinside += 1\n \t\t\tcheck(inside == 0, \"%s: no trees or rocks inside the %s (%d)\" % [pid, b.title, inside])\n+\t\t# Every plot planned across the planet (built when you come near) is levelled.\n+\t\tvar wet := 0\n+\t\tfor p in s._plans:\n+\t\t\tvar r: Rect2i = s._plan_rect(p)\n+\t\t\tfor i in range(r.position.x - 1, r.end.x + 1):\n+\t\t\t\tfor j in range(r.position.y - 1, r.end.y + 1):\n+\t\t\t\t\tif not s.walkable_cell(Vector2i(i, j)):\n+\t\t\t\t\t\twet += 1\n+\t\tcheck_eq(wet, 0, \"%s: all %d planned plots on cleared ground\" % [pid, s._plans.size()])\n \t\ts.queue_free()\n \t\tawait tree.process_frame\n+\n+\n+## The planet is 880 x 880 tiles, built piece by piece: generated on a worker\n+## thread without blocking, only the area around you made, scenery chunks\n+## freed behind you and grown again (the same) when you come back, the path\n+## grid following you, and a far destination walked to leg by leg.\n+func test_streamed_planet() -> void:\n+\tSaveGame.landed_planet = \"selene\"\n+\tvar s: Node = load(\"res://scenes/planet_surface.tscn\").instantiate()\n+\ttree.root.add_child(s)\n+\tvar worst := 0.0\n+\tvar last := Time.get_ticks_usec()\n+\twhile not s.is_built:\n+\t\tawait tree.process_frame\n+\t\tvar now := Time.get_ticks_usec()\n+\t\tworst = maxf(worst, (now - last) / 1000.0)\n+\t\tlast = now\n+\tcheck_eq(s.N, 880, \"the surface is 880 x 880 tiles\")\n+\tcheck(worst < 250.0, \"building it never blocks a frame long (worst %.0f ms)\" % worst)\n+\tcheck(s._plans.size() >= 20, \"villages planned all over the planet (%d buildings)\" % s._plans.size())\n+\tvar spread := Rect2i(s._plan_rect(s._plans[0]).get_center(), Vector2i.ZERO)\n+\tfor p in s._plans:\n+\t\tspread = spread.expand(s._plan_rect(p).get_center())\n+\t\tvar r: Rect2i = s._plan_rect(p)\n+\t\tcheck(r.size.x >= 12 and r.size.y >= 12, \"every planned building is at least 12 x 12\")\n+\tcheck(spread.size.x > 400 and spread.size.y > 400, \"spread across the planet (%s)\" % spread.size)\n+\tcheck(s.buildings.size() < s._plans.size() and s.npcs.size() < s._npc_plans.size(), \"only what's near you is built (%d of %d buildings)\" % [s.buildings.size(), s._plans.size()])\n+\tcheck(s._chunks.size() <= 25, \"scenery only around you (%d chunks)\" % s._chunks.size())\n+\t# Remember a chunk's scenery, walk away (it's freed), come back (the same again).\n+\tvar here: Vector2i = s._chunk_of(s._cell_at(s.pilot.position))\n+\tvar before := _chunk_sig(s, here)\n+\tcheck(before.size() > 0, \"the chunk you stand in has scenery\")\n+\tvar home: Vector2 = s.pilot.position\n+\ts.set_process(true)\n+\ts.pilot.position = s._cell_pos(s._cell_at(home) + Vector2i(150, 0))\n+\tfor i in 200:\n+\t\tawait tree.process_frame\n+\tcheck(not s._chunks.has(here), \"a chunk far behind you is freed\")\n+\tcheck(s._cell_at(s.pilot.position) - s._nav_origin == (s._cell_at(s.pilot.position) - s._nav_origin).clamp(Vector2i(8, 8), Vector2i(s.NAV_WIN - 8, s.NAV_WIN - 8)), \"the path grid followed you\")\n+\ts.pilot.position = home\n+\tvar t0 := Time.get_ticks_msec()\n+\twhile not s._chunks.has(here) or not s._place_queue.is_empty() or not s._chunk_tasks.is_empty():\n+\t\tawait tree.process_frame\n+\t\tif Time.get_ticks_msec() - t0 > 8000:\n+\t\t\tbreak\n+\tcheck(_chunk_sig(s, here) == before, \"it grows back the same when you return\")\n+\t# A destination far beyond the grid: walked to leg by leg.\n+\tvar t1 := Time.get_ticks_msec()\n+\twhile s._nav_task >= 0 and Time.get_ticks_msec() - t1 < 8000:\n+\t\tawait tree.process_frame\n+\tvar far: Vector2 = s._cell_pos(s._cell_at(home) + Vector2i(0, 120))\n+\ts._walk_to(far)\n+\tcheck(s._far_goal == far, \"a far destination becomes the goal\")\n+\tcheck(not s.pilot.path.is_empty(), \"the first leg is under way\")\n+\t# A saved layout keeps every building (built or not) and only hand-placed scenery.\n+\tvar lay: Dictionary = s.get_layout()\n+\tcheck_eq(lay[\"buildings\"].size(), s._plans.size(), \"the layout keeps every planned building\")\n+\tcheck(lay[\"props\"].is_empty(), \"the planet's own scenery isn't saved (it grows back)\")\n+\ts.queue_free()\n+\tawait tree.process_frame\n+\n+\n+func _chunk_sig(s: Node, key: Vector2i) -> Array:\n+\tvar out := []\n+\tfor p in s._props:\n+\t\tif not is_instance_valid(p):\n+\t\t\tcontinue\n+\t\tvar k: Vector2i = p.get_meta(\"chunk\", Vector2i(-9, -9)) if p is Node else p.chunk\n+\t\tif k == key:\n+\t\t\tout.append(\"%s %d %d\" % [p.kind, roundi(p.position.x), roundi(p.position.y)])\n+\tout.sort()\n+\treturn out\n \n \n func test_upper_floors_and_stairs() -> void:",
+      "added": 81,
+      "removed": 0,
+      "title": "test_streamed_planet and plot checks",
+      "note": "test_streamed_planet: the map is 880 x 880; building it never blocks a frame for long; villages are planned across the planet; only what's near you is built; a chunk far behind you is freed and grows back the same; the path grid follows you; a far destination becomes a goal walked leg by leg; a saved layout keeps every building and no streamed scenery. test_big_buildings_on_cleared_ground now also checks that every planned plot on the planet is on cleared ground."
+     }
+    ],
+    "added": 81,
+    "removed": 0
+   },
+   {
+    "path": "data/docs/game.md",
+    "explanation": "The pilot's guide explains the bigger planets and the far walks.",
+    "hunks": [
+     {
+      "diff": "@@ -89,7 +89,7 @@ \n Walking on Thalassa, Selene and Krystallos.\n \n ## planets | On the surface | keywords: Stairs, Part\n-Land with the **land** button over a planet. On the surface:\n+Land with the **land** button over a planet. Planets are big - 880 x 880 tiles, several minutes to cross on foot - with Minoan villages scattered across them: a palace, warehouse and temple by your landing pad, and more villages out in the wilds. The world appears around you as you go (the minimap at the top right shows the land near you).\n - You walk the surface as an armoured **android** with a rifle (it turns to face the way you walk). To fire at an enemy, **hold right-click** on it, or **hold F** for the nearest one in reach: you shoulder the rifle and fire until you let go. **Click** to walk, or hold the button to keep walking toward the cursor. Water and crevasses block the way; paths go around them.\n - **Buildings** - walk in through their sliding doors. Palaces have several rooms; bigger buildings have an **upper floor**: click the **stairs** to climb (or simply click a spot upstairs - the path takes the stairs), and click the stairwell upstairs to come down.\n - **Minoan citizens** - guards with laser rifles and archers with laser bows patrol and shoot anything hostile. Click one to hear what they say (the translation is in the event log).",
+      "added": 1,
+      "removed": 1,
+      "title": "On the surface",
+      "note": "Planets are 880 x 880 tiles with villages across them, and the world appears around you as you go."
+     },
+     {
+      "diff": "@@ -97,4 +97,4 @@ \n - **Leaving** - click your landed ship or right-click > Leave planet: you return to orbit where you were.\n \n ## surface-map | The planet map | keywords: Close the map, Reset view\n-**M** or **Tab** shows the whole planet: you, your ship, buildings and citizens. The wheel zooms, dragging pans, and clicking a spot walks you there.\n+**M** or **Tab** shows the whole planet: you, your ship, every village's buildings and the citizens near you. The wheel zooms (far in: the planet is big), dragging pans, and clicking a spot walks you there - a long way off, you set out toward it and keep going until you arrive.",
+      "added": 1,
+      "removed": 1,
+      "title": "The planet map",
+      "note": "The map shows every village, zooms far in, and a click far away sets you on your way there."
+     }
+    ],
+    "added": 2,
+    "removed": 2
+   }
+  ]
+ }
+}

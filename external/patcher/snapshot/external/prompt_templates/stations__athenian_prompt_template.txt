@@ -1,0 +1,52 @@
+=== ATHENIAN LEAGUE: SPACE STATIONS PROMPT TEMPLATE ===============================
+
+The Athenians build stations of the general sheet (stations_1.png: Blue Star,
+Solar Array, Orbital Halo), not designs of their own. This makes their own 12,
+in the style of their ships (athenian_ships_1.png) and the layout of the Ionians'
+station sheet (ionian_spacestations_1.png) - tools/extract_sprites.py cuts it by
+grid.
+
+----------------------------------------------------------------------------------
+HOW TO USE
+----------------------------------------------------------------------------------
+ 1. Attach athenian_ships_1.png (the look) AND ionian_spacestations_1.png (the
+    layout, scale and camera) and send PROMPT A.
+ 2. Check it against the CHECKLIST; regenerate until it passes.
+ 3. Save it as external/images/athenian_spacestations_1.png and ask Claude to cut
+    it in: the cells map, row by row, to the keys in brackets below
+    (station_athens_<key>), listed in tools/extract_sprites.py as ATHENS_STATIONS.
+
+----------------------------------------------------------------------------------
+PROMPT A
+----------------------------------------------------------------------------------
+Make a sprite sheet of 12 space stations in exactly the same style, scale, camera and layout as the attached station sheet: 1536 x 1024 pixels, pure black background, a 4 x 3 grid, each station centred in its cell with clear black space all round it (no part touching another cell), seen straight from above (top-down, roughly round or symmetric silhouettes that read well while slowly spinning), no text or labels. Give them the look of the attached Athenian ships:
+
+The Athenian League: a democratic federation of free colonies, heirs of classical Athens - traders, scholars and the finest navy among the stars. Hulls of sandstone and pale gold marble plating with deep navy blue panels and gold trim; painted like Attic black-figure pottery and temple friezes: owls, the helmeted head of Athena, olive branches and olive wreaths, meander (Greek key) bands, running athletes and hoplites in black figure, winged Nike. Plain Doric temple columns and pediments, round shields. Cyan-blue engine and window glow. Strong, noble, symmetric shapes - never the Ionians' scrolled Ionic columns, lapis blue and floating gardens, never the Minoans' spirals, dolphins and bull horns.
+
+Row 1:
+1. The Parthenon: a temple of Doric columns at the hub of a great ring, pediments on four sides.
+2. An owl station: a round hub painted with Athena's owl, owl-wing docking arms spread round it.
+3. Athena's station: a hub with Athena's helmeted head in gold, crested-helmet fins round it.
+4. A Nike station: four great golden victory wings round a docking core.
+
+Row 2:
+5. An olive station: a ring of olive wreath and branches holding habitat pods.
+6. The Propylaia: a gateway station, four columned gate-halls round a central square.
+7. An agora: a market ring of stoas (long colonnades) with many docking berths.
+8. A trireme dock: a shipyard ring with ram-prowed slipways pointing inward.
+
+Row 3:
+9. An aegis station: a great round hoplite shield with an owl emblem, gun turrets on its rim.
+10. A lyceum: an oval running-track ring painted with black-figure athletes round a library dome.
+11. A theatre station: a round theatre of tiered seats round a glowing orchestra disc.
+12. A lighthouse port: a tall beacon tower hub with four meander-banded harbour arms.
+
+----------------------------------------------------------------------------------
+CHECKLIST
+----------------------------------------------------------------------------------
+[ ] 1536 x 1024, black background, 4 columns x 3 rows, nothing crossing a cell
+[ ] top-down, symmetric enough to spin
+[ ] the Athenian ships' palette and signs (sandstone, gold, navy; owls, Athena,
+    olive, meanders, black-figure athletes, Doric columns) - not the Ionians'
+[ ] no text, numbers or watermarks
+[ ] all 12 clearly different, and different from the Ionian stations

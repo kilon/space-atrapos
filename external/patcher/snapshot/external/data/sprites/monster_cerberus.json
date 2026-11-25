@@ -1,0 +1,104 @@
+{
+ "parts": {
+  "tail": [
+   432,
+   -43
+  ],
+  "left_head": [
+   252,
+   277
+  ],
+  "right_head": [
+   908,
+   277
+  ],
+  "left_leg": [
+   -48,
+   367
+  ],
+  "right_leg": [
+   1188,
+   367
+  ],
+  "front_left_leg": [
+   141,
+   607
+  ],
+  "front_right_leg": [
+   1014,
+   607
+  ],
+  "body": [
+   55,
+   -48
+  ]
+ },
+ "eyes": [
+  [
+   425,
+   470
+  ],
+  [
+   737,
+   535
+  ],
+  [
+   828,
+   535
+  ],
+  [
+   1110,
+   470
+  ]
+ ],
+ "mouths": {
+  "left_head": [
+   400,
+   575
+  ],
+  "body": [
+   790,
+   660
+  ],
+  "right_head": [
+   1170,
+   575
+  ]
+ },
+ "hub": [
+  768,
+  560
+ ],
+ "size": [
+  1536,
+  1024
+ ],
+ "tail_pivot": [
+  985,
+  225
+ ],
+ "left_head_pivot": [
+  555,
+  470
+ ],
+ "right_head_pivot": [
+  981,
+  470
+ ],
+ "left_leg_pivot": [
+  250,
+  470
+ ],
+ "right_leg_pivot": [
+  1286,
+  470
+ ],
+ "front_left_leg_pivot": [
+  430,
+  700
+ ],
+ "front_right_leg_pivot": [
+  1106,
+  700
+ ]
+}

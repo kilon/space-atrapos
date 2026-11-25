@@ -1,0 +1,50 @@
+{
+	"explosion": {
+		"about": "A ship (a raider, a trader, yours, a station's part, a monster) blowing up in space: a white flash, a fireball burning out into smoke, sparks and hull shards glowing as they cool, a shockwave ring and a flash of light. Made for a 10 m blast (CosmosBoom: scale = size / 10).",
+		"duration": 1.0,
+		"light": {"color": "#ffb060ff", "energy": 14.0, "range": 70.0, "life": 0.9},
+		"emitters": [
+			{"name": "flash", "material": "glow", "amount": 1, "lifetime": 0.4, "explosiveness": 1.0, "velocity": [0.0, 0.0], "scale": [28.0, 28.0], "scale_curve": [[0.0, 0.45], [0.12, 1.0], [1.0, 0.25]], "colors": [[0.0, "#fff8e8ff"], [0.35, "#ffc884c0"], [1.0, "#ff602000"]], "emissive": 2.5, "angle": [0.0, 0.0]},
+			{"name": "fireball", "material": "fire", "amount": 22, "lifetime": 1.2, "lifetime_random": 0.35, "explosiveness": 0.95, "shape": "sphere", "size": 2.0, "spread": 180.0, "velocity": [3.0, 12.0], "damping": [4.0, 7.0], "scale": [5.0, 9.0], "scale_curve": [[0.0, 0.35], [0.25, 1.0], [1.0, 1.5]], "spin": [-40.0, 40.0], "colors": [[0.0, "#fffbe6ff"], [0.12, "#ffd27aff"], [0.35, "#ff7a24e0"], [0.7, "#8a2408a0"], [1.0, "#20060000"]], "emissive": 1.8},
+			{"name": "smoke", "material": "smoke", "amount": 16, "lifetime": 3.4, "lifetime_random": 0.3, "explosiveness": 0.9, "delay": 0.3, "shape": "sphere", "size": 2.5, "spread": 180.0, "velocity": [2.0, 7.0], "damping": [1.5, 3.0], "scale": [6.0, 10.0], "scale_curve": [[0.0, 0.5], [1.0, 1.8]], "spin": [-15.0, 15.0], "colors": [[0.0, "#2a242000"], [0.15, "#231e1bb0"], [0.45, "#1c1917a0"], [1.0, "#14121100"]], "emissive": 1.0, "tinted": false},
+			{"name": "sparks", "material": "spark", "mesh": "streak", "amount": 48, "lifetime": 0.9, "lifetime_random": 0.5, "explosiveness": 1.0, "spread": 180.0, "velocity": [25.0, 70.0], "damping": [8.0, 15.0], "scale": [1.2, 2.6], "scale_curve": [[0.0, 1.0], [1.0, 0.3]], "colors": [[0.0, "#fff3d0ff"], [0.5, "#ffa040ff"], [1.0, "#ff401000"]], "emissive": 5.0},
+			{"name": "debris", "material": "debris", "mesh": "shard", "amount": 12, "lifetime": 3.0, "lifetime_random": 0.3, "explosiveness": 1.0, "shape": "sphere", "size": 1.0, "spread": 180.0, "velocity": [6.0, 24.0], "damping": [0.0, 0.5], "scale": [0.8, 2.6], "scale_curve": [[0.0, 1.0], [0.85, 1.0], [1.0, 0.0]], "spin": [-360.0, 360.0], "colors": [[0.0, "#ffb060ff"], [0.12, "#c04a14ff"], [0.35, "#30100400"], [1.0, "#00000000"]], "emissive": 1.4, "tinted": false},
+			{"name": "shockwave", "material": "ring", "amount": 1, "lifetime": 0.6, "explosiveness": 1.0, "velocity": [0.0, 0.0], "scale": [34.0, 34.0], "scale_curve": [[0.0, 0.08], [1.0, 1.6]], "colors": [[0.0, "#ffd9a070"], [1.0, "#ff804000"]], "emissive": 1.4, "angle": [0.0, 0.0]}
+		]
+	},
+	"dust_land": {
+		"about": "Dust kicked up round the automaton's feet as it lands (CosmosWalker: tinted the ground's colour, scaled by how hard it came down; made for a 2 m cloud).",
+		"emitters": [
+			{"name": "puffs", "material": "smoke", "amount": 10, "lifetime": 1.6, "lifetime_random": 0.3, "explosiveness": 1.0, "shape": "ring", "size": 0.5, "spread": 25.0, "velocity": [0.4, 1.2], "radial": [3.0, 6.0], "damping": [2.5, 4.0], "scale": [1.0, 1.6], "scale_curve": [[0.0, 0.5], [1.0, 1.8]], "spin": [-30.0, 30.0], "colors": [[0.0, "#ffffff00"], [0.08, "#ffffff88"], [0.5, "#f4f0ea50"], [1.0, "#ffffff00"]], "emissive": 1.0}
+		]
+	},
+	"dust_jet": {
+		"about": "The jet pack's blast raising dust off the ground under it (CosmosWalker: a few puffs every 0.12 s while it fires low, tinted the ground's colour).",
+		"emitters": [
+			{"name": "puffs", "material": "smoke", "amount": 3, "lifetime": 1.2, "lifetime_random": 0.3, "explosiveness": 1.0, "shape": "ring", "size": 0.3, "spread": 20.0, "velocity": [0.3, 0.8], "radial": [2.0, 4.0], "damping": [2.0, 3.0], "scale": [0.8, 1.2], "scale_curve": [[0.0, 0.6], [1.0, 1.7]], "spin": [-30.0, 30.0], "colors": [[0.0, "#ffffff00"], [0.1, "#ffffff80"], [1.0, "#ffffff00"]], "emissive": 1.0}
+		]
+	},
+	"bolt_hit": {
+		"about": "A laser bolt striking a ship, a monster or a station in space: a flash and a spray of sparks back toward the shooter (CosmosBolt: tinted the bolt's colour).",
+		"emitters": [
+			{"name": "flash", "material": "glow", "amount": 1, "lifetime": 0.14, "explosiveness": 1.0, "velocity": [0.0, 0.0], "scale": [5.0, 5.0], "scale_curve": [[0.0, 1.0], [1.0, 0.3]], "colors": [[0.0, "#ffffffff"], [1.0, "#ffffff00"]], "emissive": 3.0, "angle": [0.0, 0.0]},
+			{"name": "sparks", "material": "spark", "mesh": "streak", "amount": 14, "lifetime": 0.45, "lifetime_random": 0.5, "explosiveness": 1.0, "spread": 60.0, "velocity": [15.0, 45.0], "damping": [10.0, 20.0], "scale": [0.8, 1.8], "colors": [[0.0, "#ffffffff"], [0.4, "#fff0c0ff"], [1.0, "#ffa04000"]], "emissive": 4.0}
+		]
+	},
+	"bolt_hit_ground": {
+		"about": "A rifle bolt striking on a planet (the ground, a creature, a wall): a flash, sparks falling back and a puff of dust (CosmosBolt: the sparks tinted the bolt's colour).",
+		"emitters": [
+			{"name": "flash", "material": "glow", "amount": 1, "lifetime": 0.1, "explosiveness": 1.0, "velocity": [0.0, 0.0], "scale": [1.4, 1.4], "colors": [[0.0, "#ffffffff"], [1.0, "#ffffff00"]], "emissive": 3.0, "angle": [0.0, 0.0]},
+			{"name": "sparks", "material": "spark", "mesh": "streak", "amount": 10, "lifetime": 0.5, "lifetime_random": 0.4, "explosiveness": 1.0, "spread": 55.0, "velocity": [3.0, 9.0], "gravity": [0.0, -9.8, 0.0], "damping": [1.0, 3.0], "scale": [0.2, 0.45], "colors": [[0.0, "#ffffffff"], [0.5, "#ffe0a0ff"], [1.0, "#ff802000"]], "emissive": 4.0},
+			{"name": "dust", "material": "smoke", "amount": 4, "lifetime": 1.0, "lifetime_random": 0.3, "explosiveness": 1.0, "spread": 40.0, "velocity": [0.5, 1.5], "damping": [1.5, 2.5], "scale": [0.5, 0.9], "scale_curve": [[0.0, 0.5], [1.0, 1.6]], "spin": [-30.0, 30.0], "colors": [[0.0, "#8a807500"], [0.1, "#8a807590"], [1.0, "#8a807500"]], "emissive": 1.0, "tinted": false}
+		]
+	},
+	"mining_sparks": {
+		"about": "The mining beam cutting rock (CosmosMining: on where it strikes, on while it cuts): sparks thrown off, a white-hot glow and rock dust drifting away.",
+		"emitters": [
+			{"name": "sparks", "material": "spark", "mesh": "streak", "amount": 40, "lifetime": 0.5, "lifetime_random": 0.5, "one_shot": false, "explosiveness": 0.0, "spread": 70.0, "velocity": [10.0, 35.0], "damping": [6.0, 12.0], "scale": [0.6, 1.6], "colors": [[0.0, "#ffffffff"], [0.3, "#ffd080ff"], [1.0, "#ff501000"]], "emissive": 4.0, "local": false},
+			{"name": "glow", "material": "glow", "amount": 3, "lifetime": 0.15, "lifetime_random": 0.3, "one_shot": false, "explosiveness": 0.0, "velocity": [0.0, 0.0], "scale": [3.0, 5.0], "colors": [[0.0, "#ffd0a0ff"], [1.0, "#ff603000"]], "emissive": 2.5},
+			{"name": "dust", "material": "smoke", "amount": 10, "lifetime": 1.6, "lifetime_random": 0.3, "one_shot": false, "explosiveness": 0.0, "spread": 50.0, "velocity": [2.0, 6.0], "damping": [1.0, 2.0], "scale": [1.5, 3.0], "scale_curve": [[0.0, 0.5], [1.0, 1.8]], "spin": [-20.0, 20.0], "colors": [[0.0, "#8a807500"], [0.1, "#8a807570"], [1.0, "#8a807500"]], "emissive": 1.0, "local": false, "tinted": false}
+		]
+	}
+}

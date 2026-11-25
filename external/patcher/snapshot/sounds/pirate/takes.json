@@ -1,0 +1,13 @@
+{
+ "bolt_hit": 3,
+ "death": 2,
+ "flee": 2,
+ "hurt": 4,
+ "loot_drop": 1,
+ "loot_take": 1,
+ "lower": 2,
+ "raise": 2,
+ "shot": 4,
+ "step": 6,
+ "taunt": 4
+}

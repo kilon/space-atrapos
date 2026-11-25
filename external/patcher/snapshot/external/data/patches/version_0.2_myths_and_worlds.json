@@ -1,0 +1,258 @@
+{
+ "kind": "version",
+ "id": "0.2",
+ "title": "Myths and worlds",
+ "date": "2026-11-11",
+ "summary": "Version 0.2 fills the sector with myth and its planets with life - and makes it all fast. Creatures from Greek myth came out of your art: Skylla, the Minotaur as the main quest's last boss, and Cerberus (patch 0007), then Cetus, Echidna, the Hydra, the Chimera and Charybdis, each fighting in its own patterns and hunting you across the system (patch 0008). Then the planets were rebuilt from tile sets in real elevation - forest, ice, the volcanic Akrotiri and the gas giant Dikte's platforms - with wildlife, teleport gates and furnished buildings, the Minoan androids returned, inventories became slots with 9-slot toolbars and drag and drop, the sector was renamed, and the game reached 240 FPS everywhere, even on a quad core (patch 0009).",
+ "patches": [
+  "0007",
+  "0008",
+  "0009"
+ ],
+ "steps": [
+  {
+   "patch": "0007",
+   "title": "Patch 0007 - Monsters of myth",
+   "text": "Three creatures from Greek myth came alive from your art. Skylla, traced from her reference picture into a rig, sweeps with tentacles and drags you through an ink cloud; the Minotaur became the main quest's final boss at the heart of the Labyrinth; Cerberus joined the monster signals, with a room in the Library for them all. Signal paths show by the signal they lead to.",
+   "diagram": [
+    {
+     "t": "circle",
+     "at": [
+      200,
+      200
+     ],
+     "r": 85,
+     "fill": "dark",
+     "stroke": "purple",
+     "label": "SKYLLA\ntentacles \u00b7 ink",
+     "pulse": true
+    },
+    {
+     "t": "circle",
+     "at": [
+      500,
+      200
+     ],
+     "r": 85,
+     "fill": "dark",
+     "stroke": "red",
+     "label": "THE MINOTAUR\nthe last boss",
+     "pulse": true
+    },
+    {
+     "t": "circle",
+     "at": [
+      800,
+      200
+     ],
+     "r": 85,
+     "fill": "dark",
+     "stroke": "gold",
+     "label": "CERBERUS\nthree heads",
+     "pulse": true
+    },
+    {
+     "t": "text",
+     "at": [
+      500,
+      380
+     ],
+     "text": "traced from the reference art into living rigs",
+     "size": 17,
+     "color": "white",
+     "align": "center"
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      450
+     ],
+     "text": "the Labyrinth: the main quest's end",
+     "color": "red",
+     "size": 15
+    }
+   ]
+  },
+  {
+   "patch": "0008",
+   "title": "Patch 0008 - Beasts of the deep",
+   "text": "Five more monsters from myth, each cut from your art into a rig with its own bullet patterns: Cetus breaching out of the void, Echidna and her brood, the Hydra whose cut heads grow back double, the Chimera's three heads, and Charybdis's whirlpool. Shields became spheres that cover everything, creatures hunt you across the system, and signals got levels and room for their loot.",
+   "diagram": [
+    {
+     "t": "badge",
+     "at": [
+      160,
+      120
+     ],
+     "text": "Cetus",
+     "color": "cyan",
+     "size": 15
+    },
+    {
+     "t": "badge",
+     "at": [
+      330,
+      120
+     ],
+     "text": "Echidna",
+     "color": "green",
+     "size": 15
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      120
+     ],
+     "text": "Hydra",
+     "color": "purple",
+     "size": 15
+    },
+    {
+     "t": "badge",
+     "at": [
+      670,
+      120
+     ],
+     "text": "Chimera",
+     "color": "red",
+     "size": 15
+    },
+    {
+     "t": "badge",
+     "at": [
+      840,
+      120
+     ],
+     "text": "Charybdis",
+     "color": "blue",
+     "size": 15
+    },
+    {
+     "t": "box",
+     "rect": [
+      80,
+      200,
+      380,
+      130
+     ],
+     "label": "every creature\nits own bullet patterns",
+     "size": 17,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      540,
+      200,
+      380,
+      130
+     ],
+     "label": "they hunt you\nacross the system",
+     "size": 17,
+     "stroke": "red"
+    },
+    {
+     "t": "text",
+     "at": [
+      500,
+      420
+     ],
+     "text": "sphere shields \u00b7 signal levels \u00b7 room for the loot",
+     "size": 16,
+     "color": "white",
+     "align": "center"
+    }
+   ]
+  },
+  {
+   "patch": "0009",
+   "title": "Patch 0009 - Androids, tiled worlds and 240 FPS",
+   "text": "The Minoan androids returned with rifle, bow and labrys; planets were rebuilt from tile sets in real elevation - forest Amnissos, icy Ida and Kamares, volcanic Akrotiri, the gas giant Dikte's platforms - full of wildlife, teleport gates and furnished buildings. Slot inventories, 9-slot toolbars and drag and drop; lost items you can win back; the sector renamed. And the game runs at 240 FPS or more everywhere, even on a quad core, with tests that keep it so.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      60,
+      80,
+      270,
+      130
+     ],
+     "label": "ANDROIDS\nrifle \u00b7 bow \u00b7 labrys",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      365,
+      80,
+      270,
+      130
+     ],
+     "label": "TILED WORLDS\n5 planets \u00b7 wildlife\ngates \u00b7 furniture",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      80,
+      270,
+      130
+     ],
+     "label": "SLOTS & TOOLBARS\ndrag and drop\nlost items",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "text",
+     "at": [
+      330,
+      288
+     ],
+     "text": "frame rate",
+     "size": 16,
+     "color": "white",
+     "align": "right"
+    },
+    {
+     "t": "bar",
+     "rect": [
+      350,
+      270,
+      560,
+      30
+     ],
+     "value": 1.0,
+     "color": "green",
+     "label": ""
+    },
+    {
+     "t": "text",
+     "at": [
+      630,
+      340
+     ],
+     "text": "240+ FPS everywhere  \u00b7  a quad core too",
+     "size": 17,
+     "color": "green",
+     "align": "center"
+    },
+    {
+     "t": "text",
+     "at": [
+      500,
+      440
+     ],
+     "text": "the sector renamed after its empires' famous places",
+     "size": 16,
+     "color": "dim",
+     "align": "center"
+    }
+   ]
+  }
+ ]
+}

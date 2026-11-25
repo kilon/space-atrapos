@@ -1,0 +1,3008 @@
+{
+ "id": "0002",
+ "title": "Pirate raiders",
+ "date": "2026-11-06",
+ "summary": "Pirate raiders now roam every planet: about 320 per planet in 90 roaming bands, with a band near every village and a pair close to the landing pad. They walk with their rifles down, raise them through four animation frames and fire bursts of red bolts at you and the Minoan citizens - never at each other - while the guards and archers shoot back. Everyone on foot has health now: citizens can fall, and if your health runs out you're knocked out and come to beside your ship with a tenth of your credits gone. Fallen pirates drop chests of credits and cargo. Fighting is a click: click an enemy (or press F) and you close in and fire until it falls. Behind the scenes, every change is now tracked between patches (external/patcher, tools/patch.py), so patch entries like this one can be published whenever you're ready.",
+ "steps": [
+  {
+   "title": "Pirates on every planet",
+   "text": "Bands of pirate raiders - evil androids in tattered coats - now roam every planet's surface. They shoot you and the Minoan citizens on sight (never each other), the guards and archers shoot back, and so can you. When one falls it leaves a chest of loot.",
+   "diagram": [
+    {
+     "t": "iso",
+     "at": [
+      400,
+      290
+     ],
+     "w": 640,
+     "n": 8,
+     "fill": "forest",
+     "stroke": "cyan",
+     "marks": [
+      [
+       0.5,
+       0.5,
+       "gold",
+       9,
+       "you land"
+      ],
+      [
+       0.22,
+       0.3,
+       "stone",
+       6
+      ],
+      [
+       0.7,
+       0.25,
+       "stone",
+       6
+      ],
+      [
+       0.8,
+       0.7,
+       "stone",
+       6
+      ],
+      [
+       0.3,
+       0.78,
+       "stone",
+       6
+      ],
+      [
+       0.55,
+       0.15,
+       "stone",
+       6
+      ],
+      [
+       0.348,
+       0.2,
+       "red",
+       4
+      ],
+      [
+       0.63,
+       0.132,
+       "red",
+       4
+      ],
+      [
+       0.531,
+       0.384,
+       "red",
+       4
+      ],
+      [
+       0.12,
+       0.506,
+       "red",
+       4
+      ],
+      [
+       0.102,
+       0.443,
+       "red",
+       4
+      ],
+      [
+       0.13,
+       0.148,
+       "red",
+       4
+      ],
+      [
+       0.435,
+       0.781,
+       "red",
+       4
+      ],
+      [
+       0.176,
+       0.262,
+       "red",
+       4
+      ],
+      [
+       0.61,
+       0.885,
+       "red",
+       4
+      ],
+      [
+       0.566,
+       0.411,
+       "red",
+       4
+      ],
+      [
+       0.91,
+       0.11,
+       "red",
+       4
+      ],
+      [
+       0.808,
+       0.319,
+       "red",
+       4
+      ],
+      [
+       0.194,
+       0.171,
+       "red",
+       4
+      ],
+      [
+       0.335,
+       0.772,
+       "red",
+       4
+      ],
+      [
+       0.225,
+       0.57,
+       "red",
+       4
+      ],
+      [
+       0.619,
+       0.39,
+       "red",
+       4
+      ],
+      [
+       0.541,
+       0.124,
+       "red",
+       4
+      ],
+      [
+       0.121,
+       0.247,
+       "red",
+       4
+      ],
+      [
+       0.655,
+       0.438,
+       "red",
+       4
+      ],
+      [
+       0.34,
+       0.574,
+       "red",
+       4
+      ],
+      [
+       0.46,
+       0.328,
+       "red",
+       4
+      ],
+      [
+       0.753,
+       0.671,
+       "red",
+       4
+      ],
+      [
+       0.28,
+       0.564,
+       "red",
+       4
+      ],
+      [
+       0.522,
+       0.823,
+       "red",
+       4
+      ],
+      [
+       0.697,
+       0.318,
+       "red",
+       4
+      ],
+      [
+       0.913,
+       0.172,
+       "red",
+       4
+      ],
+      [
+       0.43,
+       0.721,
+       "red",
+       4
+      ],
+      [
+       0.201,
+       0.491,
+       "red",
+       4
+      ],
+      [
+       0.104,
+       0.645,
+       "red",
+       4
+      ],
+      [
+       0.728,
+       0.563,
+       "red",
+       4
+      ],
+      [
+       0.823,
+       0.34,
+       "red",
+       4
+      ],
+      [
+       0.668,
+       0.581,
+       "red",
+       4
+      ],
+      [
+       0.569,
+       0.462,
+       "red",
+       4
+      ],
+      [
+       0.792,
+       0.882,
+       "red",
+       4
+      ],
+      [
+       0.478,
+       0.641,
+       "red",
+       4
+      ],
+      [
+       0.122,
+       0.673,
+       "red",
+       4
+      ],
+      [
+       0.627,
+       0.924,
+       "red",
+       4
+      ],
+      [
+       0.777,
+       0.315,
+       "red",
+       4
+      ],
+      [
+       0.402,
+       0.645,
+       "red",
+       4
+      ],
+      [
+       0.089,
+       0.467,
+       "red",
+       4
+      ],
+      [
+       0.215,
+       0.171,
+       "red",
+       4
+      ],
+      [
+       0.121,
+       0.731,
+       "red",
+       4
+      ],
+      [
+       0.181,
+       0.283,
+       "red",
+       4
+      ],
+      [
+       0.406,
+       0.819,
+       "red",
+       4
+      ],
+      [
+       0.139,
+       0.456,
+       "red",
+       4
+      ],
+      [
+       0.543,
+       0.83,
+       "red",
+       4
+      ]
+     ]
+    },
+    {
+     "t": "box",
+     "rect": [
+      730,
+      90,
+      250,
+      80
+     ],
+     "label": "~320 pirates per planet\n90 roaming bands",
+     "size": 16,
+     "stroke": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      730,
+      195,
+      250,
+      80
+     ],
+     "label": "a band near every village\n+ a pair near the pad",
+     "size": 16,
+     "stroke": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      730,
+      300,
+      250,
+      80
+     ],
+     "label": "they shoot you and the\ncitizens - never pirates",
+     "size": 16,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      730,
+      405,
+      250,
+      80
+     ],
+     "label": "fallen pirates drop loot",
+     "size": 16,
+     "stroke": "green",
+     "pulse": true
+    },
+    {
+     "t": "text",
+     "at": [
+      400,
+      535
+     ],
+     "text": "red: pirates   stone: villages   gold: you",
+     "size": 14,
+     "align": "center",
+     "color": "dim"
+    }
+   ]
+  },
+  {
+   "title": "The pirate's sprites: 4 frames x 8 views",
+   "text": "Your pirate sheets were cut into sprites automatically: the backdrop colour is found on each sheet, then the figures in its two rows (one sheet had a different layout). Each frame is scaled to the same height so the hat and feet don't jump between frames. As on every sheet, the 90\u00b0 and 270\u00b0 views both face right, so West is East mirrored.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      40,
+      70,
+      250,
+      150
+     ],
+     "label": "4 sheets\n(pirate_frame_1..4)\n8 views each",
+     "size": 17,
+     "stroke": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      290,
+      145
+     ],
+     "to": [
+      370,
+      145
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      370,
+      70,
+      250,
+      150
+     ],
+     "label": "cut automatically\nbackdrop removed,\nlabels & specks gone",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      620,
+      145
+     ],
+     "to": [
+      700,
+      145
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      700,
+      70,
+      260,
+      150
+     ],
+     "label": "art/pirate/\n32 sprites\n252-257 px tall",
+     "size": 17,
+     "stroke": "green"
+    },
+    {
+     "t": "grid",
+     "rect": [
+      200,
+      280,
+      600,
+      190
+     ],
+     "cols": 8,
+     "rows": 4,
+     "fill": "dark",
+     "stroke": "dim",
+     "cells": [
+      [
+       0,
+       0,
+       "#5a2430"
+      ],
+      [
+       0,
+       1,
+       "#5a2430"
+      ],
+      [
+       0,
+       2,
+       "#5a2430"
+      ],
+      [
+       0,
+       3,
+       "#5a2430"
+      ],
+      [
+       1,
+       0,
+       "#5a2430"
+      ],
+      [
+       1,
+       1,
+       "#5a2430"
+      ],
+      [
+       1,
+       2,
+       "#5a2430"
+      ],
+      [
+       1,
+       3,
+       "#5a2430"
+      ],
+      [
+       2,
+       0,
+       "#5a2430"
+      ],
+      [
+       2,
+       1,
+       "#5a2430"
+      ],
+      [
+       2,
+       2,
+       "#5a2430"
+      ],
+      [
+       2,
+       3,
+       "#5a2430"
+      ],
+      [
+       3,
+       0,
+       "#5a2430"
+      ],
+      [
+       3,
+       1,
+       "#5a2430"
+      ],
+      [
+       3,
+       2,
+       "#5a2430"
+      ],
+      [
+       3,
+       3,
+       "#5a2430"
+      ],
+      [
+       4,
+       0,
+       "#5a2430"
+      ],
+      [
+       4,
+       1,
+       "#5a2430"
+      ],
+      [
+       4,
+       2,
+       "#5a2430"
+      ],
+      [
+       4,
+       3,
+       "#5a2430"
+      ],
+      [
+       5,
+       0,
+       "#5a2430"
+      ],
+      [
+       5,
+       1,
+       "#5a2430"
+      ],
+      [
+       5,
+       2,
+       "#5a2430"
+      ],
+      [
+       5,
+       3,
+       "#5a2430"
+      ],
+      [
+       6,
+       0,
+       "#5a2430"
+      ],
+      [
+       6,
+       1,
+       "#5a2430"
+      ],
+      [
+       6,
+       2,
+       "#5a2430"
+      ],
+      [
+       6,
+       3,
+       "#5a2430"
+      ],
+      [
+       7,
+       0,
+       "#5a2430"
+      ],
+      [
+       7,
+       1,
+       "#5a2430"
+      ],
+      [
+       7,
+       2,
+       "#5a2430"
+      ],
+      [
+       7,
+       3,
+       "#5a2430"
+      ],
+      [
+       2,
+       0,
+       "#8a6a30"
+      ],
+      [
+       2,
+       1,
+       "#8a6a30"
+      ],
+      [
+       2,
+       2,
+       "#8a6a30"
+      ],
+      [
+       2,
+       3,
+       "#8a6a30"
+      ]
+     ]
+    },
+    {
+     "t": "text",
+     "at": [
+      190,
+      315
+     ],
+     "text": "idle",
+     "size": 14,
+     "align": "right"
+    },
+    {
+     "t": "text",
+     "at": [
+      190,
+      362
+     ],
+     "text": "raise 1",
+     "size": 14,
+     "align": "right"
+    },
+    {
+     "t": "text",
+     "at": [
+      190,
+      410
+     ],
+     "text": "raise 2",
+     "size": 14,
+     "align": "right"
+    },
+    {
+     "t": "text",
+     "at": [
+      190,
+      457
+     ],
+     "text": "aim",
+     "size": 14,
+     "align": "right"
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      520
+     ],
+     "text": "* West = East mirrored (both side views face right)",
+     "color": "gold",
+     "size": 15
+    },
+    {
+     "t": "text",
+     "at": [
+      237.5,
+      272
+     ],
+     "text": "S",
+     "size": 14,
+     "align": "center",
+     "color": "dim",
+     "delay": 0.8
+    },
+    {
+     "t": "text",
+     "at": [
+      312.5,
+      272
+     ],
+     "text": "SW",
+     "size": 14,
+     "align": "center",
+     "color": "dim",
+     "delay": 0.8
+    },
+    {
+     "t": "text",
+     "at": [
+      387.5,
+      272
+     ],
+     "text": "W*",
+     "size": 14,
+     "align": "center",
+     "color": "dim",
+     "delay": 0.8
+    },
+    {
+     "t": "text",
+     "at": [
+      462.5,
+      272
+     ],
+     "text": "NW",
+     "size": 14,
+     "align": "center",
+     "color": "dim",
+     "delay": 0.8
+    },
+    {
+     "t": "text",
+     "at": [
+      537.5,
+      272
+     ],
+     "text": "N",
+     "size": 14,
+     "align": "center",
+     "color": "dim",
+     "delay": 0.8
+    },
+    {
+     "t": "text",
+     "at": [
+      612.5,
+      272
+     ],
+     "text": "NE",
+     "size": 14,
+     "align": "center",
+     "color": "dim",
+     "delay": 0.8
+    },
+    {
+     "t": "text",
+     "at": [
+      687.5,
+      272
+     ],
+     "text": "E",
+     "size": 14,
+     "align": "center",
+     "color": "dim",
+     "delay": 0.8
+    },
+    {
+     "t": "text",
+     "at": [
+      762.5,
+      272
+     ],
+     "text": "SE",
+     "size": 14,
+     "align": "center",
+     "color": "dim",
+     "delay": 0.8
+    }
+   ]
+  },
+  {
+   "title": "Raising the rifle and firing",
+   "text": "When a pirate isn't attacking it walks with the rifle down - frame 1, its idle pose. Spotting a target, it raises the rifle through frames 2 and 3 (0.45 s), fires bursts from frame 4, keeps the rifle up while there's still someone to shoot, and lowers it back through the frames (0.6 s) before walking on.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      40,
+      70,
+      200,
+      200
+     ],
+     "label": "Frame 1\nidle\nrifle down",
+     "size": 18,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      280,
+      70,
+      200,
+      200
+     ],
+     "label": "Frame 2\nraising",
+     "size": 18,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      520,
+      70,
+      200,
+      200
+     ],
+     "label": "Frame 3\nraising",
+     "size": 18,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      760,
+      70,
+      200,
+      200
+     ],
+     "label": "Frame 4\nfiring",
+     "size": 18,
+     "stroke": "red",
+     "pulse": true
+    },
+    {
+     "t": "arrow",
+     "from": [
+      240,
+      170
+     ],
+     "to": [
+      280,
+      170
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      480,
+      170
+     ],
+     "to": [
+      520,
+      170
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      720,
+      170
+     ],
+     "to": [
+      760,
+      170
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      860,
+      320
+     ],
+     "to": [
+      140,
+      320
+     ],
+     "color": "dim",
+     "bend": 0,
+     "label": "lowering: 4 -> 3 -> 2 -> 1  (0.6 s)",
+     "dashed": true
+    },
+    {
+     "t": "text",
+     "at": [
+      500,
+      40
+     ],
+     "text": "raising: 0.45 s",
+     "size": 16,
+     "align": "center",
+     "color": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      60,
+      430,
+      140,
+      60
+     ],
+     "label": "walk",
+     "size": 17,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      240,
+      430,
+      140,
+      60
+     ],
+     "label": "raise",
+     "size": 17,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      420,
+      430,
+      140,
+      60
+     ],
+     "label": "fire",
+     "size": 17,
+     "stroke": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      600,
+      430,
+      140,
+      60
+     ],
+     "label": "cool",
+     "size": 17,
+     "stroke": "dim"
+    },
+    {
+     "t": "box",
+     "rect": [
+      780,
+      430,
+      160,
+      60
+     ],
+     "label": "lower",
+     "size": 17,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      200,
+      460
+     ],
+     "to": [
+      240,
+      460
+     ]
+    },
+    {
+     "t": "arrow",
+     "from": [
+      380,
+      460
+     ],
+     "to": [
+      420,
+      460
+     ]
+    },
+    {
+     "t": "arrow",
+     "from": [
+      560,
+      460
+     ],
+     "to": [
+      600,
+      460
+     ]
+    },
+    {
+     "t": "arrow",
+     "from": [
+      740,
+      460
+     ],
+     "to": [
+      780,
+      460
+     ]
+    },
+    {
+     "t": "arrow",
+     "from": [
+      670,
+      430
+     ],
+     "to": [
+      490,
+      430
+     ],
+     "bend": -50,
+     "color": "red",
+     "label": "still a target"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      860,
+      490
+     ],
+     "to": [
+      130,
+      490
+     ],
+     "bend": 50,
+     "color": "dim",
+     "label": "rifle down: walk on"
+    }
+   ]
+  },
+  {
+   "title": "Who shoots whom",
+   "text": "A pirate looks four times a second for the nearest target within 560 px - you or any citizen, never another pirate - and fires bursts of three red bolts (6 damage each). Pirates count as hostile, so the guards and archers shoot them, and so can you.",
+   "diagram": [
+    {
+     "t": "circle",
+     "at": [
+      500,
+      280
+     ],
+     "r": 38,
+     "fill": "red",
+     "stroke": "white",
+     "label": "Pirate",
+     "pulse": true
+    },
+    {
+     "t": "circle",
+     "at": [
+      180,
+      140
+     ],
+     "r": 30,
+     "fill": "gold",
+     "stroke": "white",
+     "label": "You"
+    },
+    {
+     "t": "circle",
+     "at": [
+      820,
+      140
+     ],
+     "r": 30,
+     "fill": "green",
+     "stroke": "white",
+     "label": "Guard"
+    },
+    {
+     "t": "circle",
+     "at": [
+      820,
+      420
+     ],
+     "r": 30,
+     "fill": "green",
+     "stroke": "white",
+     "label": "Archer"
+    },
+    {
+     "t": "circle",
+     "at": [
+      180,
+      420
+     ],
+     "r": 30,
+     "fill": "#c9a36a",
+     "stroke": "white",
+     "label": "Citizens"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      465,
+      262
+     ],
+     "to": [
+      215,
+      152
+     ],
+     "color": "red",
+     "width": 4,
+     "label": "shoots"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      465,
+      300
+     ],
+     "to": [
+      215,
+      410
+     ],
+     "color": "red",
+     "width": 4,
+     "label": "shoots"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      215,
+      128
+     ],
+     "to": [
+      465,
+      252
+     ],
+     "color": "gold",
+     "width": 3,
+     "bend": 70,
+     "label": "click to attack"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      785,
+      150
+     ],
+     "to": [
+      535,
+      262
+     ],
+     "color": "green",
+     "width": 3,
+     "label": "shoot back"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      785,
+      410
+     ],
+     "to": [
+      535,
+      300
+     ],
+     "color": "green",
+     "width": 3
+    },
+    {
+     "t": "circle",
+     "at": [
+      500,
+      480
+     ],
+     "r": 24,
+     "fill": "red",
+     "stroke": "white",
+     "label": "Pirate"
+    },
+    {
+     "t": "poly",
+     "points": [
+      [
+       480,
+       365
+      ],
+      [
+       520,
+       405
+      ]
+     ],
+     "stroke": "white",
+     "width": 4,
+     "closed": false
+    },
+    {
+     "t": "poly",
+     "points": [
+      [
+       520,
+       365
+      ],
+      [
+       480,
+       405
+      ]
+     ],
+     "stroke": "white",
+     "width": 4,
+     "closed": false
+    },
+    {
+     "t": "text",
+     "at": [
+      560,
+      390
+     ],
+     "text": "never each other",
+     "size": 15,
+     "color": "dim"
+    }
+   ]
+  },
+  {
+   "title": "Health, and being knocked out",
+   "text": "Everyone on foot has health now. Citizens flash red when hit, show a health bar once hurt and fall at zero. You have 100 health (the bar under your credits), which comes back once you're out of the fight for 4 seconds. At zero you're knocked out: you come to beside your ship, and the pirates have taken a tenth of your credits.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      80,
+      70
+     ],
+     "text": "Health",
+     "size": 18,
+     "color": "dim"
+    },
+    {
+     "t": "bar",
+     "rect": [
+      80,
+      90,
+      560,
+      34
+     ],
+     "value": 0.7692307692307693,
+     "color": "cyan",
+     "label": "you: 100"
+    },
+    {
+     "t": "bar",
+     "rect": [
+      80,
+      140,
+      560,
+      34
+     ],
+     "value": 1.0,
+     "color": "green",
+     "label": "guard: 130"
+    },
+    {
+     "t": "bar",
+     "rect": [
+      80,
+      190,
+      560,
+      34
+     ],
+     "value": 0.7307692307692307,
+     "color": "green",
+     "label": "archer: 95"
+    },
+    {
+     "t": "bar",
+     "rect": [
+      80,
+      240,
+      560,
+      34
+     ],
+     "value": 0.5384615384615384,
+     "color": "red",
+     "label": "pirate: 70"
+    },
+    {
+     "t": "box",
+     "rect": [
+      700,
+      90,
+      260,
+      90
+     ],
+     "label": "regenerates 6 / s\nafter 4 s without a hit",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      700,
+      200,
+      260,
+      90
+     ],
+     "label": "citizens: health bar\nonce hurt; fall at 0",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      80,
+      340,
+      360,
+      120
+     ],
+     "label": "Your health hits 0\n= knocked out",
+     "size": 19,
+     "stroke": "red",
+     "pulse": true
+    },
+    {
+     "t": "arrow",
+     "from": [
+      440,
+      400
+     ],
+     "to": [
+      540,
+      400
+     ],
+     "color": "gold",
+     "width": 4
+    },
+    {
+     "t": "box",
+     "rect": [
+      540,
+      340,
+      420,
+      120
+     ],
+     "label": "you come to beside your ship\nfull health\n-10% of your credits",
+     "size": 17,
+     "stroke": "gold"
+    }
+   ]
+  },
+  {
+   "title": "Loot",
+   "text": "A fallen pirate drops a glowing chest. Walk over it to take what's inside: 15-60 credits every time, and 60% of the time one or two of scrap, energy cells, weapons, data cores, alien alloy or medicine.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      380,
+      120,
+      240,
+      150
+     ],
+     "label": "chest",
+     "size": 22,
+     "fill": "#3a2414",
+     "stroke": "gold",
+     "pulse": true
+    },
+    {
+     "t": "circle",
+     "at": [
+      500,
+      105
+     ],
+     "r": 10,
+     "fill": "red",
+     "pulse": true
+    },
+    {
+     "t": "arrow",
+     "from": [
+      380,
+      195
+     ],
+     "to": [
+      220,
+      195
+     ],
+     "color": "gold",
+     "width": 3
+    },
+    {
+     "t": "arrow",
+     "from": [
+      620,
+      195
+     ],
+     "to": [
+      780,
+      195
+     ],
+     "color": "gold",
+     "width": 3
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      140,
+      190,
+      110
+     ],
+     "label": "credits\n15 - 60\nalways",
+     "size": 17,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      780,
+      140,
+      200,
+      110
+     ],
+     "label": "60%: 1-2 of\nan item",
+     "size": 17,
+     "stroke": "green"
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      350
+     ],
+     "text": "scrap",
+     "color": "dim"
+    },
+    {
+     "t": "badge",
+     "at": [
+      380,
+      410
+     ],
+     "text": "energy cell",
+     "color": "cyan"
+    },
+    {
+     "t": "badge",
+     "at": [
+      620,
+      410
+     ],
+     "text": "weapons",
+     "color": "red"
+    },
+    {
+     "t": "badge",
+     "at": [
+      350,
+      470
+     ],
+     "text": "data core",
+     "color": "purple"
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      470
+     ],
+     "text": "alien alloy",
+     "color": "green"
+    },
+    {
+     "t": "badge",
+     "at": [
+      650,
+      470
+     ],
+     "text": "medicine",
+     "color": "white"
+    },
+    {
+     "t": "text",
+     "at": [
+      500,
+      320
+     ],
+     "text": "walk within 60 px to take it",
+     "size": 15,
+     "align": "center",
+     "color": "dim"
+    }
+   ]
+  },
+  {
+   "title": "Enough pirates to make it interesting",
+   "text": "Pirates are planned with the villages on the worker thread: 90 roaming bands of 2-4 across the planet, a band of three 18-26 tiles from every village, and a pair 30-38 tiles from the landing pad - so you meet them soon, but not the moment you step out. Like the citizens, only those within 64 tiles of you exist (about 8 at landing).",
+   "diagram": [
+    {
+     "t": "iso",
+     "at": [
+      380,
+      300
+     ],
+     "w": 620,
+     "n": 0,
+     "fill": "forest",
+     "stroke": "cyan",
+     "areas": [
+      [
+       0.43,
+       0.43,
+       0.14,
+       0.14,
+       "cyan"
+      ]
+     ],
+     "marks": [
+      [
+       0.5,
+       0.5,
+       "gold",
+       9,
+       "pad"
+      ],
+      [
+       0.58,
+       0.42,
+       "red",
+       6
+      ],
+      [
+       0.25,
+       0.3,
+       "stone",
+       7
+      ],
+      [
+       0.3,
+       0.36,
+       "red",
+       5
+      ],
+      [
+       0.75,
+       0.7,
+       "stone",
+       7
+      ],
+      [
+       0.7,
+       0.62,
+       "red",
+       5
+      ],
+      [
+       0.15,
+       0.75,
+       "red",
+       5
+      ],
+      [
+       0.8,
+       0.2,
+       "red",
+       5
+      ],
+      [
+       0.62,
+       0.85,
+       "red",
+       5
+      ],
+      [
+       0.35,
+       0.12,
+       "red",
+       5
+      ]
+     ]
+    },
+    {
+     "t": "box",
+     "rect": [
+      720,
+      80,
+      260,
+      90
+     ],
+     "label": "90 roaming bands\nof 2-4 pirates",
+     "size": 17,
+     "stroke": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      720,
+      190,
+      260,
+      90
+     ],
+     "label": "a band of 3 near\nevery village",
+     "size": 17,
+     "stroke": "red"
+    },
+    {
+     "t": "box",
+     "rect": [
+      720,
+      300,
+      260,
+      90
+     ],
+     "label": "a pair 30-38 tiles\nfrom the pad",
+     "size": 17,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      720,
+      410,
+      260,
+      90
+     ],
+     "label": "only those within\n64 tiles exist",
+     "size": 17,
+     "stroke": "cyan",
+     "pulse": true
+    },
+    {
+     "t": "text",
+     "at": [
+      448,
+      296
+     ],
+     "text": "the pair by the pad",
+     "size": 14,
+     "color": "red",
+     "delay": 1.2
+    }
+   ]
+  },
+  {
+   "title": "Fighting on foot: click to attack",
+   "text": "Shooting used to mean holding right-click close to an enemy's middle, or holding F. Now you click an enemy - either button, anywhere on its figure (the cursor turns to a crosshair) - or press F for the nearest. Out of range, you walk in (re-planned as it moves); in range, you stand and fire until it falls. A click on the ground ends the fight.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      40,
+      90,
+      200,
+      90
+     ],
+     "label": "click an enemy\n(or press F)",
+     "size": 17,
+     "stroke": "gold",
+     "pulse": true
+    },
+    {
+     "t": "arrow",
+     "from": [
+      240,
+      135
+     ],
+     "to": [
+      300,
+      135
+     ]
+    },
+    {
+     "t": "box",
+     "rect": [
+      300,
+      90,
+      200,
+      90
+     ],
+     "label": "in range?\n(700 px)",
+     "size": 18,
+     "stroke": "cyan"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      500,
+      115
+     ],
+     "to": [
+      600,
+      75
+     ],
+     "label": "no",
+     "color": "dim"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      500,
+      155
+     ],
+     "to": [
+      600,
+      195
+     ],
+     "label": "yes",
+     "color": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      600,
+      40,
+      330,
+      80
+     ],
+     "label": "walk toward it\n(re-planned every 0.4 s)",
+     "size": 16,
+     "stroke": "dim"
+    },
+    {
+     "t": "box",
+     "rect": [
+      600,
+      160,
+      330,
+      80
+     ],
+     "label": "stand and fire\nuntil it falls",
+     "size": 17,
+     "stroke": "red"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      765,
+      120
+     ],
+     "to": [
+      765,
+      160
+     ],
+     "color": "dim"
+    },
+    {
+     "t": "grid",
+     "rect": [
+      120,
+      280,
+      200,
+      240
+     ],
+     "cols": 5,
+     "rows": 6,
+     "fill": "#10301a",
+     "stroke": "dim"
+    },
+    {
+     "t": "box",
+     "rect": [
+      170,
+      300,
+      100,
+      190
+     ],
+     "fill": "#00000000",
+     "stroke": "red",
+     "pulse": true
+    },
+    {
+     "t": "circle",
+     "at": [
+      220,
+      490
+     ],
+     "r": 7,
+     "fill": "red"
+    },
+    {
+     "t": "text",
+     "at": [
+      220,
+      535
+     ],
+     "text": "hit box 100 x 160 px",
+     "size": 14,
+     "align": "center",
+     "color": "dim"
+    },
+    {
+     "t": "box",
+     "rect": [
+      420,
+      300,
+      520,
+      60
+     ],
+     "label": "a click on the ground ends the fight",
+     "size": 17,
+     "stroke": "dim"
+    },
+    {
+     "t": "box",
+     "rect": [
+      420,
+      380,
+      520,
+      60
+     ],
+     "label": "it gets away (1400 px), stairs, knocked out: ends too",
+     "size": 15,
+     "stroke": "dim"
+    },
+    {
+     "t": "box",
+     "rect": [
+      420,
+      460,
+      520,
+      60
+     ],
+     "label": "crosshair cursor over enemies",
+     "size": 17,
+     "stroke": "gold"
+    }
+   ]
+  },
+  {
+   "title": "Every change tracked for the Patcher",
+   "text": "Every change is now tracked between patches, so nothing is lost across sessions: external/patcher keeps a snapshot of the game as of the last patch and a plain-language log; tools/patch.py lists the changes and builds the code review; the Patcher shows unpublished changes at the top of its list; CLAUDE.md gives Claude the workflow in every session. The folder isn't imported (.gdignore) or built.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      40,
+      60,
+      280,
+      170
+     ],
+     "label": "external/patcher/\nsnapshot/ (text files)\nmanifest.json (fingerprints)\npending.md (the log)",
+     "size": 15,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      360,
+      60,
+      280,
+      170
+     ],
+     "label": "tools/patch.py\nstatus\nnotes-template / review\nbaseline",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      680,
+      60,
+      280,
+      170
+     ],
+     "label": "Patcher\n\u25cf Unpublished changes\n(log + changed files)",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "arrow",
+     "from": [
+      320,
+      145
+     ],
+     "to": [
+      360,
+      145
+     ]
+    },
+    {
+     "t": "arrow",
+     "from": [
+      640,
+      145
+     ],
+     "to": [
+      680,
+      145
+     ]
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      290,
+      280,
+      110
+     ],
+     "label": "CLAUDE.md\nthe workflow, read in\nevery session",
+     "size": 15,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      360,
+      290,
+      600,
+      110
+     ],
+     "label": "\"publish patch\" -> this entry: summary, infographic,\ncode review; then a new baseline",
+     "size": 16,
+     "stroke": "gold",
+     "pulse": true
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      470
+     ],
+     "text": "not in builds: all of external/ is excluded; Godot skips it (.gdignore)",
+     "color": "dim",
+     "size": 14
+    }
+   ]
+  },
+  {
+   "title": "Results",
+   "text": "All 61 automated tests pass, including the new ones: pirates (numbers, targeting, damage, the four frames, loot, knock-out), fighting by clicking with real mouse events, and the Patcher's unpublished changes.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      80
+     ],
+     "text": "Pirate raiders",
+     "size": 30,
+     "align": "center",
+     "color": "gold"
+    },
+    {
+     "t": "badge",
+     "at": [
+      250,
+      170
+     ],
+     "text": "~320 pirates per planet",
+     "color": "red",
+     "size": 18
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      170
+     ],
+     "text": "4 frames x 8 views",
+     "color": "cyan",
+     "size": 18
+    },
+    {
+     "t": "badge",
+     "at": [
+      750,
+      170
+     ],
+     "text": "health & loot",
+     "color": "green",
+     "size": 18
+    },
+    {
+     "t": "bar",
+     "rect": [
+      200,
+      240,
+      600,
+      38
+     ],
+     "value": 1.0,
+     "color": "green",
+     "label": "61 tests pass"
+    },
+    {
+     "t": "box",
+     "rect": [
+      200,
+      310,
+      600,
+      140
+     ],
+     "label": "new tests: test_pirates, test_player_attacks_enemies\n(real mouse events: hover, click, close in, fire, kill, F)\ntest_patcher: unpublished changes",
+     "size": 15,
+     "stroke": "cyan"
+    }
+   ]
+  }
+ ],
+ "review": {
+  "intro": "Every change since patch 0001, file by file, as diffs against the game at that patch (- removed, + added), each hunk with what it does and why. The pirates themselves are in scripts/surface_props.gd (SurfacePirate, health, loot) and scripts/planet_surface.gd (planning the bands, fights, loot, knock-out, click to attack); the tracking of changes is tools/patch.py, CLAUDE.md and the Patcher's unpublished changes. New sprites (32 in art/pirate/, the 5 source sheets in external/images/) are listed without diffs.",
+  "files": [
+   {
+    "path": "CLAUDE.md",
+    "kind": "new",
+    "explanation": "New: notes for Claude Code, read automatically at the start of every session in this folder - how to run the tests, and the patch workflow: track every change in external/patcher/pending.md, publish only when asked, and the steps to publish.",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,34 @@ # Space Atrapos - notes for Claude\n+# Space Atrapos - notes for Claude\n+\n+Godot 4.7 game (GDScript). Tests: `godot --headless --path . -s tests/run_tests.gd [-- <file filter>]`\n+(back up and restore `~/.local/share/godot/app_userdata/Space Atrapos` around test runs).\n+Talos is the game's editor (title screen > Talos); the docs are data/docs/*.md (F1).\n+\n+## Patches: track every change, publish when asked\n+\n+The user reviews changes in the game's **Patcher** (Talos > Patcher, F7): each patch\n+entry (data/patches/<id>_<name>.json) has a one-paragraph summary, a step-by-step\n+vector infographic, and a code review with diffs and explanations\n+(format: header comment of scripts/editor/patcher.gd). Changes are tracked between patches:\n+\n+- The tracking lives in `external/patcher/` (not imported by Godot - it has a\n+  `.gdignore`; not in builds - all of `external/` is excluded on export).\n+- Tracking is automatic: `external/patcher/snapshot/` + `manifest.json` hold the game as of\n+  the last published patch; `python3 tools/patch.py status` lists everything changed\n+  since. Never edit `external/patcher/snapshot/` or `manifest.json` by hand.\n+- **After every change you make, add a section to `external/patcher/pending.md`**: the date,\n+  what was asked, what was done (and why), numbers worth an infographic (sizes,\n+  timings, counts), the files changed and new assets. Keep it current - it's what\n+  the patch entry will be written from, possibly in a later session.\n+- Publish only when the user asks (\"publish the pending changes\", \"make a patch\n+  entry\"). Then:\n+  1. `python3 tools/patch.py status` and read `external/patcher/pending.md`.\n+  2. Write `data/patches/<next id>_<name>.json`: id, title, date, a one-paragraph\n+     summary, and steps (title, caption, diagram on the 1000 x 560 canvas) - look at\n+     data/patches/0001_streamed_planets.json for the style; screenshot the steps\n+     (Patcher) and fix overlaps.\n+  3. `python3 tools/patch.py notes-template <scratch>/notes.json`, fill in an\n+     explanation per file and a [title, note] per hunk, then\n+     `python3 tools/patch.py review <scratch>/notes.json data/patches/<file>.json`.\n+  4. Run the editor tests (test_patcher checks every patch).\n+  5. `python3 tools/patch.py baseline <id>` - the next patch starts from here.",
+      "added": 34,
+      "removed": 0,
+      "title": "The workflow, kept with the project",
+      "note": "So the patch workflow survives a lost session: the rules live in the project, not in a conversation. The 'publish' steps are the ones that made this entry."
+     }
+    ],
+    "added": 34,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_aim_e.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_aim_n.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_aim_ne.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_aim_nw.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_aim_s.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_aim_se.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_aim_sw.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_aim_w.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_idle_e.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_idle_n.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_idle_ne.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_idle_nw.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_idle_s.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_idle_se.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_idle_sw.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_idle_w.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_raise1_e.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_raise1_n.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_raise1_ne.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_raise1_nw.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_raise1_s.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_raise1_se.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_raise1_sw.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_raise1_w.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_raise2_e.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_raise2_n.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_raise2_ne.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_raise2_nw.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_raise2_s.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_raise2_se.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_raise2_sw.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "art/pirate/pirate_raise2_w.png",
+    "kind": "new",
+    "explanation": "New sprite: one of the pirate's 32 pictures (4 frames x 8 views).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "data/docs/editor.md",
+    "kind": "modified",
+    "explanation": "Talos docs: the Library's pirate exhibits and the Patcher's unpublished changes.",
+    "hunks": [
+     {
+      "diff": "@@ -83,7 +83,7 @@ # zoo-ch | The Library\n \n ## zoo | The Library\n Every asset of the game, alive, in ten rooms (keys 1-9 and 0):\n-- **Characters** - the rigged archer and the guard (drawn from sprite sheets: a relaxed and an aiming pose, 8 views each - external/images/minoan_npc_guard_idle.png and _aim.png) walking in all 8 directions, idling, shooting and patrolling; the guard's 8 aiming views; the pilot; your landed ship. You on foot - an armoured android with a rifle, drawn from sprite sheets (external/images/player_on_foot_idle.png and _aim.png): walking round a loop, and its 8 relaxed and 8 aiming views.\n+- **Characters** - the rigged archer and the guard (drawn from sprite sheets: a relaxed and an aiming pose, 8 views each - external/images/minoan_npc_guard_idle.png and _aim.png) walking in all 8 directions, idling, shooting and patrolling; the guard's 8 aiming views; the pirate raider (four frames of 8 views, external/images/npc_pirate_frame_1..4.png) walking with its rifle down, its four frames side by side, and one raising its rifle and firing at a drone; the pilot; your landed ship. You on foot - an armoured android with a rifle, drawn from sprite sheets (external/images/player_on_foot_idle.png and _aim.png): walking round a loop, and its 8 relaxed and 8 aiming views.\n - **Ships** - every class at its in-game size, by empire. **Stations** - every design, spinning. **Planets** - the seven planet templates, the named planets and every planet of the galaxy (generated from the templates, each one different). **Asteroids** - the two rock templates (a contact binary of two fused lobes, a long craggy rock), each ore's asteroids (iron: rust; titanium: glowing cyan veins; platinum: dark with gold veins) and a field of variants, all slowly tumbling. **Suns** - the six star templates and every system's sun (each one different). **Nebulae** - the four backdrop templates (supernova remnant, planetary nebula, emission nebula, spiral galaxy) and every system's nebulae.\n - **Buildings** - every Minoan wall, floor, roof, column and decor piece; the scenery. **Effects** - the laser arrows on a firing range, and every effect sprite. **GUI** - every kind of widget on a sample board: the interface's own look.\n Drag, WASD or the arrows look around; the wheel or + / - zoom; Home resets the view; Esc returns to the editor. Everything in the Library uses the game's own code, so it shows exactly what the game shows.",
+      "added": 1,
+      "removed": 1,
+      "title": "Library: the pirate",
+      "note": "The Characters room's new exhibits: the pirate walking in 8 views (rifle down), its four frames, and one firing at a drone."
+     },
+     {
+      "diff": "@@ -312,4 +312,6 @@ ## patcher | Reading a patch | keywords: Replay, Reload patc\n \n **Code review** (the second tab, or Tab) - the change as code: the changed files, each with how many lines were added and removed; pick one to read what changed in it and why, hunk by hunk, each with the diff itself (lines added in green, removed in red, unchanged ones grey for context). Text in the review can be selected and copied.\n \n+**Unpublished changes** - at the top of the list (marked \u25cf) when running the game from its project folder: everything changed since the last patch, not yet published - the change log and the changed files (new, modified, deleted). It's tracked in the project's `external/patcher/` folder (see `external/patcher/README.md`; `python3 tools/patch.py status` lists it too); when you're ready, ask Claude to publish it as a patch entry.\n+\n Patches are files in `data/patches/` (one JSON file each: an id, title, date, summary, the steps with their diagrams, and the code review); **Reload patches** (Ctrl+R) reads them again. Esc goes back to Talos.",
+      "added": 2,
+      "removed": 0,
+      "title": "Patcher: unpublished changes",
+      "note": "What the \u25cf entry at the top of the Patcher's list is, where it comes from (external/patcher) and that Claude publishes it on request."
+     }
+    ],
+    "added": 3,
+    "removed": 1
+   },
+   {
+    "path": "data/docs/game.md",
+    "kind": "modified",
+    "explanation": "Pilot's guide: fighting on foot, pirates, health and loot.",
+    "hunks": [
+     {
+      "diff": "@@ -20,7 +20,7 @@ ## controls | Controls\n - **Flying:** click empty space to fly there; hold and drag to steer. **E** docks at a nearby station.\n - **Combat:** click an enemy to lock on and attack; right-click > Stop attacking. **1-3** pick a weapon, **4-6** use systems (afterburner, shield booster, repair kit). **H** hails a ship.\n - **Windows:** **Tab** Ship Computer \u00b7 **M** sector map \u00b7 **G** galaxy map \u00b7 **I** inventory \u00b7 **Esc** menu \u00b7 **F1** this guide.\n-- **On planets:** click to walk (hold to keep walking); click citizens to talk; click stairs to climb; hold **right-click** on an enemy (or **F**) to fire; **M** or **Tab** the planet map; click your ship to take off.\n+- **On planets:** click to walk (hold to keep walking); click citizens to talk; click stairs to climb; click an enemy (or press **F**) to attack it; **M** or **Tab** the planet map; click your ship to take off.\n \n # space-ch | In space\n Flying, fighting, mining, the people you meet out there, and landing on planets.",
+      "added": 1,
+      "removed": 1,
+      "title": "Controls",
+      "note": "The planet controls line: click an enemy (or F) to attack it."
+     },
+     {
+      "diff": "@@ -90,11 +90,13 @@ # planets-ch | Planets\n \n ## planets | On the surface | keywords: Stairs, Part\n Land with the **land** button over a planet. Planets are big - 880 x 880 tiles, several minutes to cross on foot - with Minoan villages scattered across them: a palace, warehouse and temple by your landing pad, and more villages out in the wilds. The world appears around you as you go (the minimap at the top right shows the land near you).\n-- You walk the surface as an armoured **android** with a rifle (it turns to face the way you walk). To fire at an enemy, **hold right-click** on it, or **hold F** for the nearest one in reach: you shoulder the rifle and fire until you let go. **Click** to walk, or hold the button to keep walking toward the cursor. Water and crevasses block the way; paths go around them.\n+- You walk the surface as an armoured **android** with a rifle (it turns to face the way you walk). To fight an enemy, **click it** (left or right button - the cursor turns to a crosshair over one), or press **F** for the nearest: you close in if it's out of range, shoulder the rifle and fire until it falls. Clicking the ground (or it getting away) ends the fight. **Click** to walk, or hold the button to keep walking toward the cursor. Water and crevasses block the way; paths go around them.\n - **Buildings** - walk in through their sliding doors. Palaces have several rooms; bigger buildings have an **upper floor**: click the **stairs** to climb (or simply click a spot upstairs - the path takes the stairs), and click the stairwell upstairs to come down.\n - **Minoan citizens** - guards with laser rifles and archers with laser bows patrol and shoot anything hostile. Click one to hear what they say (the translation is in the event log).\n+- **Pirates** - bands of pirate raiders (evil androids in tattered coats; red on the minimap) roam every planet, and prowl near the villages. They shoot you and the citizens on sight - never each other - and the guards and archers shoot back. Fight them yourself: click one (or press F). A fallen pirate drops a glowing chest: walk over it for credits and, often, some cargo (scrap, energy cells, weapons, data cores...).\n+- **Health** - the bar under your credits. Pirates' bolts wear it down; it comes back once you're out of the fight for a few seconds. If it runs out you're knocked out and come to beside your ship - and the pirates help themselves to a tenth of your credits. Citizens can fall to the pirates too.\n - Roofs and front walls fade when you're inside or behind them.\n - **Leaving** - click your landed ship or right-click > Leave planet: you return to orbit where you were.\n \n ## surface-map | The planet map | keywords: Close the map, Reset view\n-**M** or **Tab** shows the whole planet: you, your ship, every village's buildings and the citizens near you. The wheel zooms (far in: the planet is big), dragging pans, and clicking a spot walks you there - a long way off, you set out toward it and keep going until you arrive.\n+**M** or **Tab** shows the whole planet: you, your ship, every village's buildings and the citizens and pirates near you. The wheel zooms (far in: the planet is big), dragging pans, and clicking a spot walks you there - a long way off, you set out toward it and keep going until you arrive.",
+      "added": 4,
+      "removed": 2,
+      "title": "On the surface",
+      "note": "How fighting works (click an enemy: close in, fire until it falls; a click on the ground ends it), the pirates (who they shoot, loot), and health (regeneration, being knocked out)."
+     }
+    ],
+    "added": 5,
+    "removed": 3
+   },
+   {
+    "path": "external/images/npc_pirate_frame_1.png",
+    "kind": "new",
+    "explanation": "New source sheet (kept out of builds).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "external/images/npc_pirate_frame_2.png",
+    "kind": "new",
+    "explanation": "New source sheet (kept out of builds).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "external/images/npc_pirate_frame_3.png",
+    "kind": "new",
+    "explanation": "New source sheet (kept out of builds).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "external/images/npc_pirate_frame_4.png",
+    "kind": "new",
+    "explanation": "New source sheet (kept out of builds).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "external/images/npc_pirate_views.png",
+    "kind": "new",
+    "explanation": "New source sheet (kept out of builds).",
+    "hunks": [],
+    "added": 0,
+    "removed": 0
+   },
+   {
+    "path": "scripts/editor/patcher.gd",
+    "kind": "modified",
+    "explanation": "The Patcher shows the changes not yet published, at the top of its list.",
+    "hunks": [
+     {
+      "diff": "@@ -58,6 +58,68 @@ func load_patches\n \t\t\tpatches.append(p)\n \tpatches.sort_custom(func(a, b): return str(a.get(\"date\", \"\")) > str(b.get(\"date\", \"\")) \\\n \t\tor (str(a.get(\"date\", \"\")) == str(b.get(\"date\", \"\")) and str(a.get(\"id\", \"\")) > str(b.get(\"id\", \"\"))))\n+\tvar pending := unpublished()\n+\tif not pending.is_empty():\n+\t\tpatches.push_front(pending)\n+\n+\n+## What changed since the last published patch (from external/patcher/ - see\n+## tools/patch.py; only when running from the project): an entry at the top\n+## of the list with the change log and the changed files. {} if none / no tracking.\n+const TRACK := \"res://external/patcher/\"\n+const TRACKED := [\"gd\", \"tscn\", \"tres\", \"gdshader\", \"json\", \"md\", \"cfg\", \"py\", \"godot\", \"txt\", \"svg\",\n+\t\"png\", \"jpg\", \"jpeg\", \"webp\", \"wav\", \"ogg\", \"mp3\", \"ttf\", \"otf\"]\n+\n+func unpublished() -> Dictionary:\n+\tif not FileAccess.file_exists(TRACK + \"manifest.json\"):\n+\t\treturn {}\n+\tvar man = JSON.parse_string(FileAccess.get_file_as_string(TRACK + \"manifest.json\"))\n+\tif not man is Dictionary:\n+\t\treturn {}\n+\tvar known: Dictionary = man.get(\"files\", {})\n+\tvar times: Dictionary = man.get(\"mtimes\", {})\n+\tvar now := _tracked_files(\"res://\")\n+\tvar files := []\n+\tfor p in now:\n+\t\tvar kind := \"\"\n+\t\tif not known.has(p):\n+\t\t\tkind = \"new\"\n+\t\telif int(times.get(p, 0)) != FileAccess.get_modified_time(\"res://\" + p) and FileAccess.get_md5(\"res://\" + p) != known[p]:\n+\t\t\tkind = \"modified\"\n+\t\tif kind != \"\":\n+\t\t\tfiles.append({\"path\": p, \"kind\": kind, \"explanation\": \"%s since patch %s.\" % [kind.capitalize(), man.get(\"patch\", \"?\")], \"hunks\": []})\n+\tvar here := {}\n+\tfor p in now:\n+\t\there[p] = true\n+\tfor p in known:\n+\t\tif not here.has(p):\n+\t\t\tfiles.append({\"path\": p, \"kind\": \"deleted\", \"explanation\": \"Deleted since patch %s.\" % man.get(\"patch\", \"?\"), \"hunks\": []})\n+\tvar log := FileAccess.get_file_as_string(TRACK + \"pending.md\")\n+\tvar titles := []\n+\tfor l in log.split(\"\\n\"):\n+\t\tif l.begins_with(\"## \"):\n+\t\t\ttitles.append(l.substr(3))\n+\tif files.is_empty() and titles.is_empty():\n+\t\treturn {}\n+\treturn {\"id\": \"pending\", \"pending\": true, \"title\": \"Unpublished changes\", \"date\": \"not yet a patch\",\n+\t\t\"summary\": \"%d change(s) logged since patch %s, %d file(s) changed: %s. Ask Claude to publish them as a patch entry when you're ready.\" % [\n+\t\t\ttitles.size(), man.get(\"patch\", \"?\"), files.size(), \"; \".join(titles) if not titles.is_empty() else \"(not logged yet)\"],\n+\t\t\"steps\": [], \"review\": {\"intro\": log, \"files\": files}}\n+\n+\n+func _tracked_files(dir: String) -> Array:\n+\tvar out := []\n+\tvar d := DirAccess.open(dir)\n+\tif d == null:\n+\t\treturn out\n+\tfor f in d.get_files():\n+\t\tif f.get_extension().to_lower() in TRACKED:\n+\t\t\tout.append((dir + f).trim_prefix(\"res://\"))\n+\tfor sub in d.get_directories():\n+\t\tif sub.begins_with(\".\") or sub in [\"build\", \"export\", \"__pycache__\"] or dir + sub + \"/\" == TRACK:\n+\t\t\tcontinue\n+\t\tout.append_array(_tracked_files(dir + sub + \"/\"))\n+\treturn out\n \n \n func _build() -> void:",
+      "added": 62,
+      "removed": 0,
+      "title": "Unpublished changes",
+      "note": "unpublished() reads external/patcher/manifest.json and pending.md: files whose modification time differs are hashed (md5) and compared, new and deleted ones found by walking the project (skipping the tracking folder). It becomes a pseudo-patch at the top of the list - title, a one-line summary of the logged changes, no steps, a 'review' with the log and the changed files (no diffs: those are made when publishing).",
+      "bubbles": [
+       {
+        "at": "patches.push_front(pending)",
+        "text": "Unpublished changes always come first in the list."
+       },
+       {
+        "at": "elif int(times.get(p, 0)) != FileAccess.get_modified_time(\"res://\" + p) and FileAccess.get_md5(\"res://\" + p) != known[p]:",
+        "text": "Fast check first: only files whose modified time changed get hashed (md5) - hashing every asset would be slow."
+       },
+       {
+        "at": "if l.begins_with(\"## \"):",
+        "text": "Each \"## \" heading in pending.md is one logged change - listed in the summary."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -194,10 +256,17 @@ func _fill_review\n \t_review_intro.text = str(rv.get(\"intro\", \"\"))\n \t_files.clear()\n \tfor f in rv.get(\"files\", []):\n-\t\tvar i := _files.add_item(\"%s   +%d  -%d\" % [str(f[\"path\"]).get_file(), int(f.get(\"added\", 0)), int(f.get(\"removed\", 0))])\n+\t\tvar label := \"%s   +%d  -%d\" % [str(f[\"path\"]).get_file(), int(f.get(\"added\", 0)), int(f.get(\"removed\", 0))]\n+\t\tif f.get(\"hunks\", []).is_empty() and f.has(\"kind\"):\n+\t\t\tlabel = \"%s   (%s)\" % [str(f[\"path\"]).get_file(), f[\"kind\"]]\n+\t\tvar i := _files.add_item(label)\n \t\t_files.set_item_tooltip(i, \"%s\\n%s\" % [f[\"path\"], f.get(\"explanation\", \"\")])\n \t_review.clear()\n-\tif _files.item_count > 0:\n+\tif patches[current].get(\"pending\", false):\n+\t\t# Unpublished changes: the change log in full (pick a file for its status).\n+\t\t_review_intro.text = \"Changed since the last patch, not yet published - the change log, and the files (new, modified, deleted). It becomes a patch entry when you ask Claude to publish it.\"\n+\t\t_review.append_text(\"[color=#dde3ee]%s[/color]\" % _esc(str(rv.get(\"intro\", \"\"))))\n+\telif _files.item_count > 0:\n \t\tshow_file(0)\n \n ",
+      "added": 9,
+      "removed": 2,
+      "title": "The log in the review area",
+      "note": "For unpublished changes the full log goes into the scrollable review text (it pushed the file list off screen as an intro); changed files are listed with their kind (new / modified / deleted)."
+     },
+     {
+      "diff": "@@ -242,7 +311,9 @@ func _fill_list\n \t_list.max_text_lines = 2\n \t_list.auto_height = true\n \tfor p in patches:\n-\t\tvar i := _list.add_item(\"%s  \u00b7  %s\" % [p.get(\"date\", \"\"), p.get(\"title\", p.get(\"id\", \"?\"))])\n+\t\tvar i := _list.add_item((\"\u25cf  %s\" % p[\"title\"]) if p.get(\"pending\", false) else \"%s  \u00b7  %s\" % [p.get(\"date\", \"\"), p.get(\"title\", p.get(\"id\", \"?\"))])\n+\t\tif p.get(\"pending\", false):\n+\t\t\t_list.set_item_custom_fg_color(i, Color(1.0, 0.75, 0.35))\n \t\t_list.set_item_tooltip(i, \"%s\\n%s\" % [p.get(\"title\", \"\"), p.get(\"summary\", \"\")])\n \n ",
+      "added": 3,
+      "removed": 1,
+      "title": "Marked in the list",
+      "note": "Unpublished changes are listed first, marked \u25cf in gold."
+     },
+     {
+      "diff": "@@ -253,9 +324,14 @@ func show_patch\n \t_list.select(i)\n \tvar p: Dictionary = patches[i]\n \t_title.text = str(p.get(\"title\", \"\"))\n-\t_date.text = \"%s  \u00b7  patch %s  \u00b7  %d steps\" % [p.get(\"date\", \"\"), p.get(\"id\", \"\"), p[\"steps\"].size()]\n+\t_date.text = (\"not published yet  \u00b7  tools/patch.py status for the details\" if p.get(\"pending\", false)\n+\t\telse \"%s  \u00b7  patch %s  \u00b7  %d steps\" % [p.get(\"date\", \"\"), p.get(\"id\", \"\"), p[\"steps\"].size()])\n \t_summary.text = str(p.get(\"summary\", \"\"))\n \t_fill_review()\n+\t_tabs.set_tab_disabled(0, p[\"steps\"].is_empty())\n+\tif p[\"steps\"].is_empty():\n+\t\t_tabs.current_tab = 1   # (unpublished changes: no infographic yet)\n+\t_show_tab()\n \tgo_step(0)\n \n ",
+      "added": 6,
+      "removed": 1,
+      "title": "No infographic yet",
+      "note": "Its date line says it's not published; the Infographic tab is disabled and the Code review tab opens.",
+      "bubbles": [
+       {
+        "at": "_tabs.current_tab = 1   # (unpublished changes: no infographic yet)",
+        "text": "Unpublished changes have no steps yet, so they open on the code review."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -263,6 +339,12 @@ func go_step\n \tif current < 0:\n \t\treturn\n \tvar steps: Array = patches[current][\"steps\"]\n+\tif steps.is_empty():\n+\t\t_counter.text = \"\"\n+\t\t_step_title.text = \"\"\n+\t\t_step_text.text = \"\"\n+\t\t_view.show_diagram([])\n+\t\treturn\n \tstep = clampi(i, 0, steps.size() - 1)\n \tvar s: Dictionary = steps[step]\n \t_counter.text = \"Step %d / %d\" % [step + 1, steps.size()]",
+      "added": 6,
+      "removed": 0,
+      "title": "Steps may be missing",
+      "note": "go_step copes with an entry without steps."
+     }
+    ],
+    "added": 86,
+    "removed": 4
+   },
+   {
+    "path": "scripts/planet_surface.gd",
+    "kind": "modified",
+    "explanation": "Pirates on the planet: planned in bands, streamed in, fighting, loot, knock-out - and fighting by clicking an enemy.",
+    "hunks": [
+     {
+      "diff": "@@ -675,6 +675,7 @@ func _place_everything\n \tobjects.add_child(lander)\n \n \tpilot = PROPS.Pilot.new()\n+\tpilot.surface = self\n \tpilot.position = _cell_pos(center) + Vector2(0, 90)\n \tobjects.add_child(pilot)\n \tvar cam := Camera2D.new()",
+      "added": 1,
+      "removed": 0,
+      "title": "The pilot knows the surface",
+      "note": "So its health can report being knocked out (knocked_out).",
+      "bubbles": [
+       {
+        "at": "pilot.surface = self",
+        "text": "The pilot needs the surface to tell it when its health runs out (knocked_out)."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -723,6 +724,26 @@ func _plan_world\n \t\t\t\tcontinue\n \t\t\t_plan_village(c, c, _rng.randf() < 0.35, vid)\n \t\t\tvid += 1\n+\t# Pirate bands roaming the wilds.\n+\tfor b in PIRATE_BANDS:\n+\t\tvar c := Vector2i(_rng.randi_range(20, N - 21), _rng.randi_range(20, N - 21))\n+\t\tif Vector2(c).distance_to(Vector2(center)) < 30.0:\n+\t\t\tcontinue\n+\t\t_plan_pirate_band(c, _rng.randi_range(2, 4))\n+\n+\n+## Pirate bands: this many roam each planet (plus one near every village).\n+const PIRATE_BANDS := 90\n+\n+func _plan_pirate_band(c: Vector2i, count: int) -> void:\n+\tvar home := _cell_pos(c.clamp(Vector2i(8, 8), Vector2i(N - 9, N - 9)))\n+\tfor k in count:\n+\t\tvar pos := home + Vector2(_rng.randf_range(-160, 160), _rng.randf_range(-80, 80))\n+\t\tif not _ground_ok(pos):\n+\t\t\tpos = home\n+\t\tif not _ground_ok(pos):\n+\t\t\tcontinue\n+\t\t_npc_plans.append({\"pos\": pos, \"variant\": _rng.randi_range(0, 9999), \"home\": home, \"spawned\": false, \"kind\": \"pirate\"})\n \n \n ## A village: maybe a palace (near `palace_near`), a warehouse and a temple",
+      "added": 20,
+      "removed": 0,
+      "title": "Pirate bands across the planet",
+      "note": "90 bands of 2-4 pirates at random spots (not within 30 tiles of the pad), planned on the worker thread with the villages; _plan_pirate_band places each pirate on ground near its camp. They're citizen plans with kind 'pirate', streamed in like the others (within 64 tiles).",
+      "bubbles": [
+       {
+        "at": "if Vector2(c).distance_to(Vector2(center)) < 30.0:",
+        "text": "No band within 30 tiles of the landing site - you don't land in the middle of a fight."
+       },
+       {
+        "at": "_npc_plans.append({\"pos\": pos, \"variant\": _rng.randi_range(0, 9999), \"home\": home, \"spawned\": false, \"kind\": \"pirate\"})",
+        "text": "Pirates are only planned here, like the citizens: they're made when you come near (streamed), so 320 of them cost nothing far away."
+       },
+       {
+        "at": "var pos := home + Vector2(_rng.randf_range(-160, 160)",
+        "text": "Each member stands near the band's camp; on water or a wall it falls back to the camp itself."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -769,7 +790,11 @@ func _plan_village\n \t\tvar pos := home + Vector2(_rng.randf_range(-spread.x, spread.x), _rng.randf_range(-spread.y, spread.y))\n \t\tif not _ground_ok(pos):\n \t\t\tpos = home\n-\t\t_npc_plans.append({\"pos\": pos, \"variant\": k + vid * 9, \"home\": home, \"spawned\": false})\n+\t\t_npc_plans.append({\"pos\": pos, \"variant\": k + vid * 9, \"home\": home, \"spawned\": false, \"kind\": \"\"})\n+\t# Pirates prowl near every village (a band a little way out).\n+\tvar ang := _rng.randf() * TAU\n+\tvar dist := _rng.randf_range(30.0, 38.0) if vid == 0 else _rng.randf_range(18.0, 26.0)\n+\t_plan_pirate_band(near + Vector2i(Vector2.from_angle(ang) * dist), 2 if vid == 0 else 3)\n \n \n func _add_plan(spec: Dictionary) -> void:",
+      "added": 5,
+      "removed": 1,
+      "title": "A band near every village",
+      "note": "Each village gets a band of 3 pirates 18-26 tiles out; the landing village a pair 30-38 tiles out, so you meet pirates soon - not the moment you land.",
+      "bubbles": [
+       {
+        "at": "var dist := _rng.randf_range(30.0, 38.0) if vid == 0 else",
+        "text": "The first village (where you land) gets its band further out - 30 to 38 tiles - so landing is safe."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -809,7 +834,7 @@ func _stream_plans\n \tfor n in _npc_plans:\n \t\tif not n[\"spawned\"] and _cell_at(n[\"pos\"]).distance_to(here) <= BUILD_R:\n \t\t\tn[\"spawned\"] = true\n-\t\t\t_spawn_npc(n[\"pos\"], n[\"variant\"], n[\"home\"])\n+\t\t\t_spawn_npc(n[\"pos\"], n[\"variant\"], n[\"home\"], str(n.get(\"kind\", \"\")))\n \n \n ## Plants, rocks and crystals for one chunk (worker thread): every walkable",
+      "added": 1,
+      "removed": 1,
+      "title": "Spawning by kind",
+      "note": "Planned citizens are spawned with their kind."
+     },
+     {
+      "diff": "@@ -1012,8 +1037,8 @@ func _spawn_flat_prop\n \treturn d\n \n \n-func _spawn_npc(pos: Vector2, variant: int, home: Vector2) -> Node2D:\n-\tvar a: Node2D = PROPS.citizen(\"\", variant)\n+func _spawn_npc(pos: Vector2, variant: int, home: Vector2, kind := \"\") -> Node2D:\n+\tvar a: Node2D = PROPS.citizen(kind, variant)\n \ta.surface = self\n \ta.home = home\n \ta.position = pos",
+      "added": 2,
+      "removed": 2,
+      "title": "_spawn_npc takes a kind",
+      "note": "'pirate' makes a SurfacePirate (via SurfaceProps.citizen); '' the usual guard or archer.",
+      "bubbles": [
+       {
+        "at": "var a: Node2D = PROPS.citizen(kind, variant)",
+        "text": "One factory for everyone: the kind \"pirate\" makes a SurfacePirate, \"\" a villager."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -1615,7 +1640,8 @@ func _place_from_layout\n \t\tfor spec in _layout.get(\"buildings\", []):\n \t\t\t_add_plan(spec)\n \t\tfor a in _layout.get(\"npcs\", []):\n-\t\t\t_npc_plans.append({\"pos\": Vector2(a[0], a[1]), \"variant\": int(a[2]), \"home\": Vector2(a[0], a[1]), \"spawned\": false})\n+\t\t\t_npc_plans.append({\"pos\": Vector2(a[0], a[1]), \"variant\": int(a[2]), \"home\": Vector2(a[0], a[1]), \"spawned\": false,\n+\t\t\t\t\"kind\": str(a[3]) if a.size() > 3 else \"\"})\n \t\tawait _stream_plans(true)\n \telse:\n \t\tawait _place_small_layout(w)",
+      "added": 2,
+      "removed": 1,
+      "title": "Layouts load pirates",
+      "note": "A saved layout's citizens can be pirates ([x, y, variant, \"pirate\"])."
+     },
+     {
+      "diff": "@@ -1714,15 +1740,15 @@ func get_layout\n \tfor p in _plans:\n \t\tif p[\"built\"] == null:\n \t\t\tspecs.append(p[\"spec\"].duplicate(true))\n-\tvar people: Array = npcs.map(func(a): return [roundi(a.position.x), roundi(a.position.y), a.variant])\n+\tvar people: Array = npcs.map(func(a): return [roundi(a.position.x), roundi(a.position.y), a.variant] + ([\"pirate\"] if a.species == \"pirate\" else []))\n \tfor n in _npc_plans:\n \t\tif not n[\"spawned\"]:\n-\t\t\tpeople.append([roundi(n[\"pos\"].x), roundi(n[\"pos\"].y), n[\"variant\"]])\n+\t\t\tpeople.append([roundi(n[\"pos\"].x), roundi(n[\"pos\"].y), n[\"variant\"]] + ([\"pirate\"] if n.get(\"kind\") == \"pirate\" else []))\n \t# Only scenery placed by hand: the planet's own grows back by itself.\n \tvar kept := _props.keys().filter(func(p): return is_instance_valid(p) \\\n \t\tand (not p.has_meta(\"chunk\") if p is Node else p.chunk == Vector2i(-1, -1)))\n \treturn {\n-\t\t\"_help\": \"Planet surface layout made in the Level Editor (right-click > Level Editor). heights: %dx%d terrain heights; buildings: blueprints; npcs (Minoan citizens): [x, y, variant]; props: scenery placed by hand [kind, x, y, scale, colour, variant] (the rest grows by itself). Delete this file (or use 'Revert to generated') to go back to the generated planet.\" % [N, N],\n+\t\t\"_help\": \"Planet surface layout made in the Level Editor (right-click > Level Editor). heights: %dx%d terrain heights; buildings: blueprints; npcs (Minoan citizens and pirates): [x, y, variant(, pirate)]; props: scenery placed by hand [kind, x, y, scale, colour, variant] (the rest grows by itself). Delete this file (or use 'Revert to generated') to go back to the generated planet.\" % [N, N],\n \t\t\"planet\": planet_id,\n \t\t\"heights\": h,\n \t\t\"buildings\": specs,",
+      "added": 3,
+      "removed": 3,
+      "title": "Layouts save pirates",
+      "note": "Pirates (spawned or still planned) are saved with their kind.",
+      "bubbles": [
+       {
+        "at": "([\"pirate\"] if a.species == \"pirate\"",
+        "text": "A layout saves a 4th field only for pirates; old layouts without it still load as villagers."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -1971,20 +1997,26 @@ func _unhandled_input\n \t\tpause_menu.open()\n \t\tget_viewport().set_input_as_handled()\n \t\treturn\n-\t# Firing on foot: hold right-click on an enemy, or F for the nearest one.\n-\tif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:\n-\t\tvar foe := _hostile_at(get_canvas_transform().affine_inverse() * event.position) if event.pressed else null\n+\t# Fighting on foot: click an enemy (left or right) to attack it - you close\n+\t# in if it's out of range and fire until it falls; F attacks the nearest.\n+\tif event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT] \\\n+\t\t\tand not _climbing and level == 0:\n+\t\tvar foe := _hostile_at(get_canvas_transform().affine_inverse() * event.position)\n \t\tif foe:\n-\t\t\tpilot.trigger = foe\n-\t\telif not event.pressed:\n-\t\t\tpilot.trigger = null\n-\t\telse:\n-\t\t\t_holding = false\n-\t\t\t_context_menu(event.position)\n+\t\t\tattack(foe)\n+\t\t\tget_viewport().set_input_as_handled()\n+\t\t\treturn\n+\tif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:\n+\t\t_holding = false\n+\t\t_context_menu(event.position)\n \t\tget_viewport().set_input_as_handled()\n \t\treturn\n-\tif event is InputEventKey and event.keycode == KEY_F and not event.echo:\n-\t\tpilot.trigger = nearest_hostile() if event.pressed else null\n+\tif event is InputEventKey and event.keycode == KEY_F and event.pressed and not event.echo:\n+\t\tvar foe := nearest_hostile(2.0)\n+\t\tif foe:\n+\t\t\tattack(foe)\n+\t\telse:\n+\t\t\tshow_prompt(\"No enemy in sight.\", 1.5)\n \t\tget_viewport().set_input_as_handled()\n \t\treturn\n \t# Mouse wheel: zoom in / out.",
+      "added": 17,
+      "removed": 11,
+      "title": "Click (or F) to attack",
+      "note": "Mouse buttons on an enemy start an attack (either button); right-click elsewhere still opens the planet menu; F attacks the nearest enemy within twice your range, or says there's none. Replaces 'hold right-click near its middle / hold F'.",
+      "bubbles": [
+       {
+        "at": "var foe := _hostile_at(get_canvas_transform().affine_inverse() * event.position)",
+        "text": "Screen to world: the mouse position through the inverse of the camera's transform."
+       },
+       {
+        "at": "var foe := nearest_hostile(2.0)",
+        "text": "F looks twice as far as your rifle reaches, then you walk in to fire."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -2001,6 +2033,7 @@ func _unhandled_input\n \t\t\tif _climbing:\n \t\t\t\treturn\n \t\t\tvar world: Vector2 = get_canvas_transform().affine_inverse() * event.position\n+\t\t\tstop_attack()   # (a click elsewhere ends the fight)\n \t\t\tvar thing := _thing_at(world)\n \t\t\tif thing:\n \t\t\t\t_pending_target = []",
+      "added": 1,
+      "removed": 0,
+      "title": "A click elsewhere ends the fight",
+      "note": "Left-clicking anywhere else stops attacking before walking there."
+     },
+     {
+      "diff": "@@ -2020,6 +2053,12 @@ func _unhandled_input\n \t\t\t_holding = false\n \telif event is InputEventMouseMotion and not _holding:\n \t\tvar world: Vector2 = get_canvas_transform().affine_inverse() * event.position\n+\t\tvar foe := _hostile_at(world) if level == 0 else null\n+\t\tif foe:   # an enemy under the cursor: crosshair\n+\t\t\tInput.set_default_cursor_shape(Input.CURSOR_CROSS)\n+\t\t\t_hovered = foe\n+\t\t\tshow_prompt(\"%s  -  click to attack\" % foe.title.get_slice(\"  -\", 0), 0.6)\n+\t\t\treturn\n \t\tvar thing := _thing_at(world)\n \t\tInput.set_default_cursor_shape(Input.CURSOR_POINTING_HAND if thing else Input.CURSOR_ARROW)\n \t\t_hovered = thing",
+      "added": 6,
+      "removed": 0,
+      "title": "Crosshair over enemies",
+      "note": "Hovering an enemy: crosshair cursor and '<name> - click to attack'.",
+      "bubbles": [
+       {
+        "at": "Input.set_default_cursor_shape(Input.CURSOR_CROSS)",
+        "text": "A crosshair over an enemy shows that a click attacks it."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -2030,25 +2069,135 @@ ## The enemy under the cursor \n ## The enemy under the cursor (group \"surface_hostiles\"), or null.\n func _hostile_at(world: Vector2) -> Node2D:\n \tvar best: Node2D = null\n-\tvar best_d := 70.0\n+\tvar best_d := INF\n \tfor h in get_tree().get_nodes_in_group(\"surface_hostiles\"):\n-\t\tvar d: float = world.distance_to(h.global_position + Vector2(0, -35))\n+\t\t# Anywhere on the figure (about 100 x 140 px over its feet), with a little slack.\n+\t\tif not Rect2(h.global_position + Vector2(-50, -145), Vector2(100, 160)).has_point(world):\n+\t\t\tcontinue\n+\t\tvar d: float = world.distance_to(h.global_position + Vector2(0, -60))\n \t\tif d < best_d:\n \t\t\tbest = h\n \t\t\tbest_d = d\n \treturn best\n \n \n-## The nearest enemy within your rifle's reach, or null.\n-func nearest_hostile() -> Node2D:\n+## The nearest enemy within your rifle's reach (times `reach`), or null.\n+func nearest_hostile(reach := 1.0) -> Node2D:\n \tvar best: Node2D = null\n-\tvar best_d: float = PROPS.Pilot.RANGE\n+\tvar best_d: float = PROPS.Pilot.RANGE * reach\n \tfor h in get_tree().get_nodes_in_group(\"surface_hostiles\"):\n \t\tvar d: float = pilot.position.distance_to(h.position)\n \t\tif d < best_d:\n \t\t\tbest = h\n \t\t\tbest_d = d\n \treturn best\n+\n+\n+# --- Fights on foot ----------------------------------------------------------------------\n+\n+## The enemy you're fighting (attack): you close in until it's in range,\n+## then fire until it falls - or you click elsewhere, or it gets away.\n+var _attack_target: Node2D\n+var _attack_repath := 0.0\n+const GIVE_UP := 1400.0              # px: it got away\n+\n+func attack(foe: Node2D) -> void:\n+\t_attack_target = foe\n+\t_attack_repath = 0.0\n+\t_target_thing = null\n+\t_far_goal = Vector2.INF\n+\t_holding = false\n+\n+\n+func stop_attack() -> void:\n+\t_attack_target = null\n+\tif pilot:\n+\t\tpilot.trigger = null\n+\n+\n+func _update_attack(delta: float) -> void:\n+\tvar foe := _attack_target\n+\tif foe == null:\n+\t\treturn\n+\tif not is_instance_valid(foe) or foe.get(\"dead\") == true or not foe.is_in_group(\"surface_hostiles\") \\\n+\t\t\tor pilot.position.distance_to(foe.position) > GIVE_UP or level != 0 or _climbing:\n+\t\tstop_attack()\n+\t\treturn\n+\tvar d := pilot.position.distance_to(foe.position)\n+\tif d > PROPS.Pilot.RANGE * 0.9:\n+\t\t# Out of range: walk toward it (re-planned as it moves).\n+\t\tpilot.trigger = null\n+\t\t_attack_repath -= delta\n+\t\tif _attack_repath <= 0.0 or not pilot.moving:\n+\t\t\t_attack_repath = 0.4\n+\t\t\t_walk_to(foe.position)\n+\telse:\n+\t\t# In range: stand and fire.\n+\t\tif pilot.moving:\n+\t\t\tpilot.moving = false\n+\t\t\tpilot.path = PackedVector2Array()\n+\t\tpilot.trigger = foe\n+\n+\n+## Loot lying about (LootDrop), taken when you walk over it.\n+var loot: Array = []\n+const LOOT_ITEMS := [\"scrap\", \"energy_cell\", \"weapons\", \"data_core\", \"alien_alloy\", \"medicine\"]\n+\n+## Can pirates aim at you? (Not while you're knocked out, upstairs or on the stairs.)\n+func pilot_targetable() -> bool:\n+\treturn pilot != null and pilot.hp > 0.0 and level == 0 and not _climbing\n+\n+\n+## A citizen or pirate fell: off the surface; a pirate drops loot.\n+func npc_died(n: Node2D) -> void:\n+\tnpcs.erase(n)\n+\tif n.species == \"pirate\":\n+\t\tvar drop := PROPS.LootDrop.new()\n+\t\tdrop.position = n.position\n+\t\tdrop.contents = [[\"credits\", randi_range(15, 60)]]\n+\t\tif randf() < 0.6:\n+\t\t\tdrop.contents.append([LOOT_ITEMS.pick_random(), randi_range(1, 2)])\n+\t\tobjects.add_child(drop)\n+\t\tloot.append(drop)\n+\t\tGameLog.post(\"The pirate %s is down.\" % n.npc_name, \"info\")\n+\telse:\n+\t\tGameLog.post(\"%s (%s) has fallen to the pirates.\" % [n.npc_name, n.role], \"warning\")\n+\n+\n+## Takes the loot you're standing on.\n+func _collect_loot() -> void:\n+\tfor d in loot.duplicate():\n+\t\tif not is_instance_valid(d):\n+\t\t\tloot.erase(d)\n+\t\telif pilot.position.distance_to(d.position) < 60.0 and level == 0:\n+\t\t\tfor c in d.contents:\n+\t\t\t\t_give(c[0], int(c[1]))\n+\t\t\tloot.erase(d)\n+\t\t\td.queue_free()\n+\n+\n+## Your health ran out: you come to beside your ship, the pirates having\n+## helped themselves to a tenth of your credits.\n+func knocked_out() -> void:\n+\tvar player: Dictionary = state[\"player\"]\n+\tvar lost := int(int(player.get(\"credits\", 0)) * 0.1)\n+\tplayer[\"credits\"] = int(player.get(\"credits\", 0)) - lost\n+\tstop_attack()\n+\tpilot.path = PackedVector2Array()\n+\tpilot.moving = false\n+\t_far_goal = Vector2.INF\n+\t_target_thing = null\n+\t_holding = false\n+\tif level == 1:\n+\t\t_set_level(0, null)\n+\tpilot.position = lander.position + Vector2(0, 90)\n+\tpilot.hp = pilot.MAX_HP\n+\t_update_hud()\n+\tGameLog.post(\"Knocked out by pirates! You come to beside your ship - %d credits gone.\" % lost, \"warning\")\n+\tshow_prompt(\"You were knocked out - the pirates took %d credits.\" % lost, 4.0)\n+\tfor c in pilot.get_children():\n+\t\tif c is Camera2D:\n+\t\t\tc.reset_smoothing()\n \n \n ## A walkable spot at or near `p` (spiral search, up to ~5 tiles).",
+      "added": 115,
+      "removed": 5,
+      "title": "Fights, loot and knock-out",
+      "note": "_hostile_at: a 100 x 160 px box over the enemy's figure (was 70 px around its middle). nearest_hostile(reach). attack / stop_attack / _update_attack: out of range (700 px) walk toward it, re-planned every 0.4 s; in range stand and fire (the pilot's trigger); stop when it falls, gets 1400 px away, or you go upstairs. pilot_targetable: pirates don't aim at you upstairs, on the stairs or knocked out. npc_died: a fallen citizen leaves; a pirate drops a LootDrop (15-60 credits, 60% an item). _collect_loot: within 60 px. knocked_out: back beside the ship with full health, 10% of credits gone, the fight and any walk cancelled.",
+      "bubbles": [
+       {
+        "at": "if not Rect2(h.global_position + Vector2(-50, -145), Vector2(100, 160)).has_point(world):",
+        "text": "Clicks hit the whole figure (a box over its feet), not just a dot at its feet."
+       },
+       {
+        "at": "if d > PROPS.Pilot.RANGE * 0.9:",
+        "text": "Out of range: walk toward it, re-planning the path every 0.4 s since it moves. In range: stop and fire."
+       },
+       {
+        "at": "pilot.trigger = foe",
+        "text": "The pilot fires at whatever its trigger is set to - the fight is just this field."
+       },
+       {
+        "at": "or pilot.position.distance_to(foe.position) > GIVE_UP",
+        "text": "The fight ends by itself when the enemy dies, gets 1400 px away, or you go upstairs."
+       },
+       {
+        "at": "drop.contents = [[\"credits\", randi_range(15, 60)]]",
+        "text": "Always credits; 60% of the time a cargo item too."
+       },
+       {
+        "at": "var lost := int(int(player.get(\"credits\", 0)) * 0.1)",
+        "text": "The price of falling: a tenth of your credits. You wake beside your ship at full health."
+       },
+       {
+        "at": "c.reset_smoothing()",
+        "text": "Otherwise the camera would glide across the map to your ship."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -2679,6 +2828,9 @@ func _process\n \t_stream_chunks(3000)\n \t_stream_plans()\n \t_stream_nav()\n+\t_update_attack(delta)\n+\t_collect_loot()\n+\t_update_health()\n \tif _far_goal != Vector2.INF and not pilot.moving and not _climbing and level == 0 and _nav_task < 0:\n \t\tif pilot.position.distance_to(_far_goal) < 12.0:\n \t\t\t_far_goal = Vector2.INF",
+      "added": 3,
+      "removed": 0,
+      "title": "Every frame",
+      "note": "The attack, loot pick-up and the health bar are updated each frame."
+     },
+     {
+      "diff": "@@ -2811,6 +2963,21 @@ func _build_hud\n \tv.add_child(UI.label(pdata[\"desc\"], 13, UI.TEXT_DIM))\n \t_credits_label = UI.label(\"\", 15, UI.GOLD)\n \tv.add_child(_credits_label)\n+\t# Health on foot.\n+\t_health = ProgressBar.new()\n+\t_health.max_value = 100.0\n+\t_health.show_percentage = false\n+\t_health.custom_minimum_size = Vector2(220, 12)\n+\tvar hb := StyleBoxFlat.new()\n+\thb.bg_color = Color(0.1, 0.05, 0.06, 0.9)\n+\thb.set_corner_radius_all(4)\n+\t_health.add_theme_stylebox_override(\"background\", hb)\n+\tvar hf := StyleBoxFlat.new()\n+\thf.bg_color = Color(0.35, 0.95, 0.5)\n+\thf.set_corner_radius_all(4)\n+\t_health.add_theme_stylebox_override(\"fill\", hf)\n+\t_health.tooltip_text = \"Your health on foot. Pirates' bolts wear it down; it comes back when you're\\nout of the fight for a few seconds. At 0 you're knocked out (back at your ship, minus 10% of your credits).\"\n+\tv.add_child(_health)\n \n \t# Top-right: surface minimap.\n \tvar mm := Control.new()",
+      "added": 15,
+      "removed": 0,
+      "title": "The health bar",
+      "note": "Under the credits: a bar from green to red, with a tooltip on how health works."
+     },
+     {
+      "diff": "@@ -2870,6 +3037,14 @@ func _build_hud\n \t_update_hud()\n \n \n+var _health: ProgressBar\n+\n+func _update_health() -> void:\n+\tif _health and pilot:\n+\t\t_health.value = pilot.hp / pilot.MAX_HP * 100.0\n+\t\t(_health.get_theme_stylebox(\"fill\") as StyleBoxFlat).bg_color = Color(0.95, 0.3, 0.25).lerp(Color(0.35, 0.95, 0.5), pilot.hp / pilot.MAX_HP)\n+\n+\n func _update_hud() -> void:\n \t_credits_label.text = \"Credits: %d\" % int(state[\"player\"].get(\"credits\", 0))\n ",
+      "added": 8,
+      "removed": 0,
+      "title": "Keeping the bar current",
+      "note": "_update_health sets its value and colour from the pilot's health.",
+      "bubbles": [
+       {
+        "at": "Color(0.95, 0.3, 0.25).lerp(Color(0.35, 0.95, 0.5)",
+        "text": "The bar's colour slides from red (low) to green (full)."
+       }
+      ]
+     }
+    ],
+    "added": 199,
+    "removed": 24
+   },
+   {
+    "path": "scripts/sheet_puppet.gd",
+    "kind": "modified",
+    "explanation": "Sprite sheets can animate the raise: idle, the in-between frames, then aim.",
+    "hunks": [
+     {
+      "diff": "@@ -10,6 +10,8 @@ ## The guard: art/guard/, from the \"relaxed\" and \"aiming\" sh\n ## The guard: art/guard/, from the \"relaxed\" and \"aiming\" sheets of the Minoan\n ## android guard (external/images/minoan_npc_guard_idle.png / _aim.png).\n ## You on foot: art/player/ (external/images/player_on_foot_idle.png / _aim.png).\n+## Pirates: art/pirate/ - four frames (external/images/npc_pirate_frame_1..4.png):\n+## idle (rifle down), raise1, raise2, aim - raising the rifle and firing.\n \n const DIRS := [\"e\", \"se\", \"s\", \"sw\", \"w\", \"nw\", \"n\", \"ne\"]\n ## Height of the pictures on screen (px), unless set before setup().",
+      "added": 2,
+      "removed": 0,
+      "title": "Pirate sprites",
+      "note": "Where the pirate's four frames come from."
+     },
+     {
+      "diff": "@@ -37,8 +39,19 @@ ## Citizens whose rig name differs from their sheets' folder\n const SHEETS := {\"gunner\": \"guard\"}\n \n \n+## The poses raising the weapon, in order: idle .. aim (raise_amt picks one);\n+## sheets with in-between frames (<id>_raise1_, _raise2_...) animate the raise.\n+var sequence: Array = [\"idle\", \"aim\"]\n+\n+\n func setup(id: String) -> void:\n \trig_id = SHEETS.get(id, id)\n+\tsequence = [\"idle\"]\n+\tvar k := 1\n+\twhile ResourceLoader.exists(\"res://art/%s/%s_raise%d_s.png\" % [rig_id, rig_id, k]):\n+\t\tsequence.append(\"raise%d\" % k)\n+\t\tk += 1\n+\tsequence.append(\"aim\")\n \t_sprite = Sprite2D.new()\n \t_sprite.centered = false\n \t_sprite.use_parent_material = true",
+      "added": 11,
+      "removed": 0,
+      "title": "Frame sequences",
+      "note": "sequence lists a sheet's poses in order: idle, raise1, raise2 ... (whichever <id>_raiseN_ files exist), aim. The guard has none, so stays idle / aim.",
+      "bubbles": [
+       {
+        "at": "while ResourceLoader.exists(\"res://art/%s/%s_raise%d_s.png\"",
+        "text": "The raise frames are found, not listed: raise1, raise2... as long as the pictures exist."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -54,7 +67,10 @@ func _frame\n func _frame(pose: String, dir: String) -> Dictionary:\n \tvar key := \"%s/%s/%s\" % [rig_id, pose, dir]\n \tif not _cache.has(key):\n-\t\tvar tex: Texture2D = load(\"res://art/%s/%s_%s_%s.png\" % [rig_id, rig_id, pose, dir])\n+\t\tvar path := \"res://art/%s/%s_%s_%s.png\" % [rig_id, rig_id, pose, dir]\n+\t\tif not ResourceLoader.exists(path):   # (a one-pose sheet: the relaxed pictures for everything)\n+\t\t\tpath = \"res://art/%s/%s_idle_%s.png\" % [rig_id, rig_id, dir]\n+\t\tvar tex: Texture2D = load(path)\n \t\t_cache[key] = {\"tex\": tex, \"anchor\": Vector2(tex.get_width() * 0.5, tex.get_height()), \"muzzle\": Vector2.ZERO}\n \t\tvar img := tex.get_image()\n \t\tif img:",
+      "added": 4,
+      "removed": 1,
+      "title": "One-pose sheets",
+      "note": "If a sheet has no aim pictures, its idle ones are used (the first pirate sheet had one pose).",
+      "bubbles": [
+       {
+        "at": "path = \"res://art/%s/%s_idle_%s.png\" % [rig_id, rig_id, dir]",
+        "text": "Sheets with fewer poses fall back to the idle picture, so any character works with any pose."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -115,7 +131,7 @@ func muzzle\n \n \n func _process(delta: float) -> void:\n-\tvar pose := \"aim\" if raise_amt > 0.5 else \"idle\"\n+\tvar pose: String = sequence[clampi(roundi(raise_amt * (sequence.size() - 1)), 0, sequence.size() - 1)]\n \tif pose != _pose:\n \t\t_pose = pose\n \t\t_show()",
+      "added": 1,
+      "removed": 1,
+      "title": "raise_amt picks the frame",
+      "note": "0 = idle, 1 = aim, the in-between frames in between (rounded), instead of idle / aim at 0.5.",
+      "bubbles": [
+       {
+        "at": "var pose: String = sequence[clampi(roundi(raise_amt * (sequence.size() - 1))",
+        "text": "raise_amt 0..1 is spread across the frames: 0 = idle, 1 = aim, the raise frames in between."
+       }
+      ]
+     }
+    ],
+    "added": 18,
+    "removed": 2
+   },
+   {
+    "path": "scripts/surface_map.gd",
+    "kind": "modified",
+    "explanation": "The planet map's legend.",
+    "hunks": [
+     {
+      "diff": "@@ -51,7 +51,7 @@ func _build\n \tvar legend := HBoxContainer.new()\n \tlegend.add_theme_constant_override(\"separation\", 16)\n \tfor l in [[Color.WHITE, \"You\"], [Color(0.4, 1.0, 0.6), \"Your ship\"],\n-\t\t\t[Color(0.75, 0.25, 0.18), \"Building\"], [Color(0.95, 0.75, 0.35), \"Citizens\"]]:\n+\t\t\t[Color(0.75, 0.25, 0.18), \"Building\"], [Color(0.95, 0.75, 0.35), \"Citizens\"], [Color(1.0, 0.25, 0.2), \"Pirates\"]]:\n \t\tvar h := HBoxContainer.new()\n \t\th.add_theme_constant_override(\"separation\", 5)\n \t\tvar dot := ColorRect.new()",
+      "added": 1,
+      "removed": 1,
+      "title": "'Pirates' in the legend",
+      "note": "Red, like their dots."
+     }
+    ],
+    "added": 1,
+    "removed": 1
+   },
+   {
+    "path": "scripts/surface_minimap.gd",
+    "kind": "modified",
+    "explanation": "Pirates on the maps.",
+    "hunks": [
+     {
+      "diff": "@@ -73,7 +73,8 @@ func _draw\n \t\tdraw_colored_polygon(pts, Color(0.75, 0.25, 0.18))\n \t\tdraw_polyline(pts + PackedVector2Array([pts[0]]), Color(0, 0, 0, 0.6), 1.0)\n \tfor a in surface.npcs:\n-\t\tdraw_circle(_to_map(a.global_position), 2.5, Color(0.95, 0.75, 0.35))\n+\t\tvar pirate: bool = a.get(\"species\") == \"pirate\"\n+\t\tdraw_circle(_to_map(a.global_position), 3.0 if pirate else 2.5, Color(1.0, 0.25, 0.2) if pirate else Color(0.95, 0.75, 0.35))\n \tvar lp := _to_map(surface.lander.global_position)\n \tdraw_rect(Rect2(lp - Vector2(4, 4), Vector2(8, 8)), Color(0.4, 1.0, 0.6))\n \tvar pp := _to_map(surface.pilot.global_position)",
+      "added": 2,
+      "removed": 1,
+      "title": "Red dots",
+      "note": "Pirates are slightly bigger red dots; citizens stay gold.",
+      "bubbles": [
+       {
+        "at": "draw_circle(_to_map(a.global_position), 3.0 if pirate else 2.5",
+        "text": "Pirates: bigger red dots; citizens: small gold ones."
+       }
+      ]
+     }
+    ],
+    "added": 2,
+    "removed": 1
+   },
+   {
+    "path": "scripts/surface_props.gd",
+    "kind": "modified",
+    "explanation": "The pirate itself, health for everyone on foot, and loot.",
+    "hunks": [
+     {
+      "diff": "@@ -66,6 +66,24 @@ class Pilot extends Node2D:\n \t## The enemy you're holding the trigger on (the surface sets it while the\n \t## fire button is held; null: not firing).\n \tvar trigger: Node2D\n+\t## Health on foot: pirates' bolts wear it down; it comes back once you're\n+\t## out of the fight for a while; at 0 you're knocked out (the surface).\n+\tconst MAX_HP := 100.0\n+\tconst REGEN := 6.0                # per second, after CALM s without a hit\n+\tconst CALM := 4.0\n+\tvar hp := MAX_HP\n+\tvar surface: Node\n+\tvar _hurt := 0.0\n+\tvar _since_hit := 99.0\n+\n+\tfunc surface_hit(d: float) -> void:\n+\t\tif hp <= 0.0:\n+\t\t\treturn\n+\t\thp = maxf(0.0, hp - d)\n+\t\t_hurt = 1.0\n+\t\t_since_hit = 0.0\n+\t\tif hp <= 0.0 and surface and surface.has_method(\"knocked_out\"):\n+\t\t\tsurface.knocked_out()\n \n \tfunc _ready() -> void:\n \t\tpuppet = SheetPuppet.new()",
+      "added": 18,
+      "removed": 0,
+      "title": "Your health",
+      "note": "The pilot: 100 health, surface_hit (from bolts), knocked out at 0 (the surface takes over).",
+      "bubbles": [
+       {
+        "at": "if hp <= 0.0 and surface and surface.has_method(\"knocked_out\"):",
+        "text": "At 0 the surface knocks you out (knocked_out) - you don't die, you lose credits."
+       },
+       {
+        "at": "const REGEN := 6.0",
+        "text": "Health comes back at 6 per second - but only after 4 s without being hit."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -119,6 +137,12 @@ class Pilot extends Node2D:\n \n \tfunc _process(delta: float) -> void:\n \t\t_cd = maxf(0.0, _cd - delta)\n+\t\t_since_hit += delta\n+\t\tif _since_hit > CALM and hp < MAX_HP:\n+\t\t\thp = minf(MAX_HP, hp + REGEN * delta)\n+\t\t_hurt = move_toward(_hurt, 0.0, delta * 3.0)\n+\t\tif puppet:\n+\t\t\tpuppet.modulate = Color.WHITE.lerp(Color(1.0, 0.3, 0.25), _hurt * 0.7)\n \t\tif trigger != null and not (is_instance_valid(trigger) and fire_at(trigger)):\n \t\t\ttrigger = null   # (gone, or out of reach)\n \t\tvar moved := position - _last_pos",
+      "added": 6,
+      "removed": 0,
+      "title": "Regeneration and the red flash",
+      "note": "6 health a second after 4 s without a hit; the sprite flashes red when hit.",
+      "bubbles": [
+       {
+        "at": "puppet.modulate = Color.WHITE.lerp(Color(1.0, 0.3, 0.25), _hurt * 0.7)",
+        "text": "The red flash when hit: _hurt jumps to 1 and fades over a third of a second."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -260,6 +284,10 @@ ## hostile \n \n ## A citizen of the given kind (\"gunner\" / \"archer\"; anything else: by variant).\n static func citizen(kind: String, variant := 0) -> MinoanNpc:\n+\tif kind == \"pirate\":\n+\t\tvar p := SurfacePirate.new()\n+\t\tp.variant = variant\n+\t\treturn p\n \tif not kind in CITIZENS:\n \t\tkind = CITIZENS[posmod(variant, CITIZENS.size())]\n \tvar c: MinoanNpc = MinoanGunner.new() if kind == \"gunner\" else MinoanArcher.new()",
+      "added": 4,
+      "removed": 0,
+      "title": "Pirates from the citizen factory",
+      "note": "citizen('pirate') makes a SurfacePirate."
+     },
+     {
+      "diff": "@@ -295,8 +323,15 @@ class MinoanNpc extends Thing:\n \tvar _bubble := \"\"\n \tvar _bubble_t := 0.0\n \tvar _bubble_node: Node2D\n+\t## Health: laser bolts (pirates', yours) wear it down; at 0 they fall.\n+\tvar max_hp := 80.0\n+\tvar hp := -1.0\n+\tvar dead := false\n+\tvar _hurt := 0.0\n \n \tfunc _ready() -> void:\n+\t\tif hp < 0.0:\n+\t\t\thp = max_hp\n \t\tif npc_name == \"\":\n \t\t\tvar pool: Array = FEMALE_NAMES if female else NAMES\n \t\t\tnpc_name = pool[(variant / CITIZENS.size()) % pool.size()]",
+      "added": 7,
+      "removed": 0,
+      "title": "Citizens' health",
+      "note": "max_hp / hp / dead and the hurt flash for every citizen.",
+      "bubbles": [
+       {
+        "at": "var hp := -1.0",
+        "text": "-1: not set yet - filled from max_hp on _ready, after guards and archers set theirs."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -379,7 +414,30 @@ class MinoanNpc extends Thing:\n \t\tset(\"_state\", s)\n \t\t_st = 0.0\n \n+\t## Hit by a bolt: a red flash, and down at 0 health.\n+\tfunc surface_hit(d: float) -> void:\n+\t\tif dead:\n+\t\t\treturn\n+\t\thp -= d\n+\t\t_hurt = 1.0\n+\t\tif hp <= 0.0:\n+\t\t\t_die()\n+\n+\t## Falls: out of the fight, fades away (the surface drops a pirate's loot).\n+\tfunc _die() -> void:\n+\t\tdead = true\n+\t\tremove_from_group(\"surface_hostiles\")\n+\t\tset_process(false)\n+\t\tif surface and surface.has_method(\"npc_died\"):\n+\t\t\tsurface.npc_died(self)\n+\t\tvar tw := create_tween()\n+\t\ttw.tween_property(self, \"rotation\", 1.3 if randf() < 0.5 else -1.3, 0.35)\n+\t\ttw.parallel().tween_property(self, \"modulate:a\", 0.0, 1.2).set_delay(0.4)\n+\t\ttw.tween_callback(queue_free)\n+\n \tfunc _animate(delta: float, moving: bool) -> void:\n+\t\t_hurt = move_toward(_hurt, 0.0, delta * 3.0)\n+\t\tpuppet.modulate = Color.WHITE.lerp(Color(1.0, 0.35, 0.3), _hurt * 0.7)\n \t\t_walk = move_toward(_walk, 1.0 if moving else 0.0, delta * 5.0)\n \t\tpuppet.walk = _walk\n \t\tpuppet.phase = _phase",
+      "added": 23,
+      "removed": 0,
+      "title": "Being hit, and falling",
+      "note": "surface_hit takes damage; at 0 _die: out of the hostile group, processing off, tilts and fades, freed - the surface's npc_died is told (loot). _animate decays the red flash.",
+      "bubbles": [
+       {
+        "at": "remove_from_group(\"surface_hostiles\")",
+        "text": "Out of the group at once, so nobody keeps shooting a falling pirate."
+       },
+       {
+        "at": "tw.tween_property(self, \"rotation\", 1.3 if randf() < 0.5 else -1.3, 0.35)",
+        "text": "Falling: tips over to either side, then fades out and is freed."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -396,6 +454,11 @@ class MinoanNpc extends Thing:\n \n \tfunc _draw_bubble() -> void:\n \t\tvar c := _bubble_node\n+\t\tif hp < max_hp and not dead:   # a health bar once hurt\n+\t\t\tvar w := 54.0\n+\t\t\tvar r := Rect2(-w / 2.0, -HEIGHT - 14, w, 6)\n+\t\t\tc.draw_rect(r.grow(1), Color(0, 0, 0, 0.7))\n+\t\t\tc.draw_rect(Rect2(r.position, Vector2(w * clampf(hp / max_hp, 0.0, 1.0), 6)), Color(1.0, 0.3, 0.25) if species == \"pirate\" else Color(0.4, 0.95, 0.5))\n \t\tif _bubble_t > 0.0:\n \t\t\tvar font := ThemeDB.fallback_font\n \t\t\tvar size := Settings.fs(\"world\", 14)",
+      "added": 5,
+      "removed": 0,
+      "title": "A health bar once hurt",
+      "note": "Above the head: red for pirates, green for citizens.",
+      "bubbles": [
+       {
+        "at": "if hp < max_hp and not dead:   # a health bar once hurt",
+        "text": "Health bars appear only once someone is hurt - no clutter over healthy crowds."
+       }
+      ]
+     },
+     {
+      "diff": "@@ -436,6 +499,7 @@ class MinoanGunner extends MinoanNpc:\n \t\tspecies = \"gunner\"\n \t\trig_name = \"gunner\"\n \t\trole = \"Minoan guard\"\n+\t\tmax_hp = 130.0\n \n \t## The guard is drawn from sprite sheets (art/guard/: relaxed and aiming, 8 views each).\n \tfunc _new_puppet() -> Node2D:",
+      "added": 1,
+      "removed": 0,
+      "title": "Guards are tough",
+      "note": "130 health."
+     },
+     {
+      "diff": "@@ -534,6 +598,7 @@ class MinoanArcher extends MinoanNpc:\n \t\trig_name = \"archer\"\n \t\trole = \"Minoan archer\"\n \t\tfemale = true\n+\t\tmax_hp = 95.0\n \t\twander = 230.0\n \n \t## The arrow tip in local space (where a shot leaves the bow).",
+      "added": 1,
+      "removed": 0,
+      "title": "Archers",
+      "note": "95 health."
+     },
+     {
+      "diff": "@@ -629,6 +694,179 @@ class MinoanArcher extends MinoanNpc:\n \n \n ## A brief glowing effect (flash, impact burst): grows a little and fades, additive.\n+## A pirate raider: an evil android in a tattered coat with a rifle (four\n+## frames of 8 views each, external/images/npc_pirate_frame_1..4.png, cut to\n+## art/pirate/: rifle down - the idle frame, walking - then raising it and\n+## firing: it raises the rifle through the frames, fires from the last, and\n+## lowers it again when there's no one left to shoot). Pirates\n+## roam in bands and shoot whoever comes in range - you and the citizens,\n+## never another pirate - in bursts of red bolts. They count as hostile\n+## (group \"surface_hostiles\"): guards and archers fire back, and so can you\n+## (right-click / F). When one falls it drops loot (the surface's npc_died).\n+class SurfacePirate extends MinoanNpc:\n+\tconst RANGE := 560.0\n+\tconst BURST := 3\n+\tconst EVERY := 0.2               # s between shots in a burst\n+\tconst COOL := 1.2                # s between bursts\n+\tconst DAMAGE := 6.0\n+\tconst PIRATE_NAMES := [\"Rust-Jaw\", \"Kraken\", \"Black Vane\", \"Grimtide\", \"Scuttle\", \"Hookhand\", \"Bilge\", \"Red Cog\",\n+\t\t\"Saltbones\", \"Deadlight\", \"Barnacle\", \"Ironbeard\"]\n+\tconst TAUNTS := [\"Your credits or your circuits!\", \"Nothing personal, it's plunder.\", \"This rock is ours now.\",\n+\t\t\"Run, little pilot!\", \"Yo-ho... and a barrel of coolant!\"]\n+\tconst RAISE_TIME := 0.45           # s to bring the rifle up (through the raise frames)\n+\tconst LOWER_TIME := 0.6\n+\tvar _state := \"walk\"              # walk / raise / fire / cool / lower\n+\tvar _shots := 0\n+\tvar _raise := 0.0                  # 0 rifle down (idle frame) .. 1 aimed\n+\tvar _aim_at: Node2D\n+\tvar _look := 0.0                   # time to the next look around for targets\n+\n+\tfunc _init() -> void:\n+\t\tspecies = \"pirate\"\n+\t\trig_name = \"pirate\"\n+\t\trole = \"pirate raider\"\n+\t\tmax_hp = 70.0\n+\t\twander = 520.0\n+\n+\tfunc _ready() -> void:\n+\t\tnpc_name = PIRATE_NAMES[posmod(variant, PIRATE_NAMES.size())]\n+\t\tsuper()\n+\t\ttitle = \"%s (pirate)  -  right-click or F to fire\" % npc_name\n+\t\tadd_to_group(\"surface_hostiles\")\n+\t\tadd_to_group(\"surface_pirates\")\n+\t\t_look = randf() * 0.25\n+\n+\tfunc _new_puppet() -> Node2D:\n+\t\tvar p := SheetPuppet.new()\n+\t\tp.glow_color = Color(1.0, 0.35, 0.25)\n+\t\treturn p\n+\n+\t## The nearest living target in reach: you, or anyone who isn't a pirate.\n+\tfunc _target() -> Node2D:\n+\t\tif is_instance_valid(watch):   # (the Library: a drone to shoot at)\n+\t\t\treturn watch if position.distance_to(watch.position) < RANGE else null\n+\t\tif surface == null:\n+\t\t\treturn null\n+\t\tvar best: Node2D = null\n+\t\tvar best_d := RANGE\n+\t\tvar you: Node2D = surface.get(\"pilot\")\n+\t\tif you and surface.has_method(\"pilot_targetable\") and surface.pilot_targetable():\n+\t\t\tvar d := position.distance_to(you.position)\n+\t\t\tif d < best_d:\n+\t\t\t\tbest = you\n+\t\t\t\tbest_d = d\n+\t\tfor n in surface.npcs:\n+\t\t\tif n == self or not is_instance_valid(n) or n.dead or n.species == \"pirate\":\n+\t\t\t\tcontinue\n+\t\t\tvar d: float = position.distance_to(n.position)\n+\t\t\tif d < best_d:\n+\t\t\t\tbest = n\n+\t\t\t\tbest_d = d\n+\t\treturn best\n+\n+\tfunc _alive(t: Node2D) -> bool:\n+\t\tif not is_instance_valid(t) or position.distance_to(t.position) > RANGE * 1.15:\n+\t\t\treturn false\n+\t\tif t.get(\"dead\") == true:\n+\t\t\treturn false\n+\t\tif surface and t == surface.get(\"pilot\"):\n+\t\t\treturn surface.pilot_targetable()\n+\t\treturn true\n+\n+\tfunc _process(delta: float) -> void:\n+\t\t_st += delta\n+\t\tvar moving := false\n+\t\t_look -= delta\n+\t\tmatch _state:\n+\t\t\t\"walk\":\n+\t\t\t\tif _look <= 0.0:\n+\t\t\t\t\t_look = 0.25\n+\t\t\t\t\t_aim_at = _target()\n+\t\t\t\tif _aim_at and _alive(_aim_at):\n+\t\t\t\t\t_path = PackedVector2Array()\n+\t\t\t\t\t_go(\"raise\")\n+\t\t\t\telse:\n+\t\t\t\t\tmoving = _stroll(delta)\n+\t\t\t\"raise\":   # the rifle comes up (frames 1 -> 4)\n+\t\t\t\tif _aim_at and _alive(_aim_at):\n+\t\t\t\t\t_aim_toward(_aim_at)\n+\t\t\t\t_raise = move_toward(_raise, 1.0, delta / RAISE_TIME)\n+\t\t\t\tif _raise >= 1.0:\n+\t\t\t\t\t_shots = BURST\n+\t\t\t\t\t_go(\"fire\")\n+\t\t\t\"fire\":\n+\t\t\t\tif not _alive(_aim_at):\n+\t\t\t\t\t_go(\"cool\")\n+\t\t\t\telse:\n+\t\t\t\t\t_aim_toward(_aim_at)\n+\t\t\t\t\tif _st >= EVERY:\n+\t\t\t\t\t\t_shoot()\n+\t\t\t\t\t\t_shots -= 1\n+\t\t\t\t\t\t_st = 0.0\n+\t\t\t\t\t\tif _shots <= 0:\n+\t\t\t\t\t\t\t_go(\"cool\")\n+\t\t\t\"cool\":\n+\t\t\t\tif _aim_at and _alive(_aim_at):\n+\t\t\t\t\t_aim_toward(_aim_at)\n+\t\t\t\tif _st > COOL:\n+\t\t\t\t\t_aim_at = _target()\n+\t\t\t\t\tif _aim_at and _alive(_aim_at):\n+\t\t\t\t\t\t_shots = BURST   # still a target: fire again, rifle still up\n+\t\t\t\t\t\t_go(\"fire\")\n+\t\t\t\t\telse:\n+\t\t\t\t\t\t_go(\"lower\")\n+\t\t\t\"lower\":   # the rifle goes down (frames 4 -> 1)\n+\t\t\t\t_raise = move_toward(_raise, 0.0, delta / LOWER_TIME)\n+\t\t\t\tif _raise <= 0.0:\n+\t\t\t\t\t_look = 0.0\n+\t\t\t\t\t_go(\"walk\")\n+\t\tpuppet.raise_amt = _raise\n+\t\t_animate(delta, moving)\n+\n+\tfunc _shoot() -> void:\n+\t\tpuppet.release = 1.0\n+\t\tpuppet.cooling = 1.0\n+\t\tvar tip: Vector2 = puppet.muzzle()\n+\t\tvar bolt := LaserBolt.new()\n+\t\tbolt.position = position + tip\n+\t\tbolt.target = _aim_at\n+\t\tbolt.speed = 820.0\n+\t\tbolt.damage = DAMAGE\n+\t\tbolt.color = Color(1.0, 0.25, 0.2)\n+\t\tget_parent().add_child(bolt)\n+\n+\tfunc interact(_surface: Node) -> void:\n+\t\tsay([TAUNTS.pick_random(), \"a pirate's growl\"])\n+\n+\n+## What a fallen pirate leaves behind: a small glowing chest; walk over it\n+## to take what's inside (contents: [[item id or \"credits\", amount], ...]).\n+class LootDrop extends Thing:\n+\tvar contents: Array = []\n+\tvar _t := 0.0\n+\n+\tfunc _ready() -> void:\n+\t\ttitle = \"Pirate loot  -  walk over it to take it\"\n+\t\tclick_radius = 36.0\n+\t\theight = 30.0\n+\t\t_t = randf() * 3.0\n+\n+\tfunc _process(delta: float) -> void:\n+\t\t_t += delta\n+\t\tqueue_redraw()\n+\n+\tfunc _draw() -> void:\n+\t\tSurfaceProps.shadow(self, 18, 7, 0.35)\n+\t\tvar y := -8.0 - 3.0 * (0.5 + 0.5 * sin(_t * 3.0))\n+\t\tvar glow := 0.5 + 0.5 * sin(_t * 4.0)\n+\t\tdraw_circle(Vector2(0, y - 6), 26.0, Color(1.0, 0.7, 0.25, 0.12 + 0.1 * glow))\n+\t\tdraw_rect(Rect2(-14, y - 12, 28, 16), Color(0.42, 0.24, 0.12))\n+\t\tdraw_rect(Rect2(-14, y - 18, 28, 7), Color(0.55, 0.32, 0.16))\n+\t\tdraw_rect(Rect2(-14, y - 12, 28, 2), Color(0.85, 0.65, 0.25))\n+\t\tdraw_rect(Rect2(-3, y - 14, 6, 6), Color(1.0, 0.8, 0.3))\n+\t\tdraw_circle(Vector2(0, y - 22), 3.0 + glow, Color(1.0, 0.3, 0.2, 0.9))   # (a pirate's red light)\n+\n+\n class Glow extends Sprite2D:\n \tvar life := 0.3\n \tvar _age := 0.0",
+      "added": 173,
+      "removed": 0,
+      "title": "SurfacePirate and LootDrop",
+      "note": "The pirate: four frames (rifle down while walking), wanders 520 px around its camp, 70 health, in surface_hostiles (and surface_pirates). Every 0.25 s it looks for the nearest target within 560 px - you (when targetable) or any living citizen, never a pirate (or a watched drone in the Library). States: walk -> raise (0.45 s, through the raise frames) -> fire (bursts of 3 red bolts, 6 damage, 0.2 s apart) -> cool (1.2 s; fire again if still a target) -> lower (0.6 s) -> walk. Clicked: a taunt. LootDrop: the glowing chest a pirate leaves, with its contents.",
+      "bubbles": [
+       {
+        "at": "species = \"pirate\"",
+        "text": "A pirate is a MinoanNpc underneath: it walks, strolls and talks like a citizen; only its brain (_process) differs."
+       },
+       {
+        "at": "add_to_group(\"surface_hostiles\")",
+        "text": "This group is what guards, archers and your clicks look for."
+       },
+       {
+        "at": "func _target() -> Node2D:",
+        "text": "Picks the nearest target in RANGE: you (if you can be shot) or any non-pirate."
+       },
+       {
+        "at": "match _state:",
+        "text": "A small state machine: walk -> raise the rifle -> fire a burst -> cool down -> fire again or lower it -> walk."
+       },
+       {
+        "at": "_raise = move_toward(_raise, 1.0, delta / RAISE_TIME)",
+        "text": "_raise 0..1 drives the animation frames (puppet.raise_amt) - the rifle comes up over 0.45 s."
+       },
+       {
+        "at": "_shots = BURST   # still a target",
+        "text": "Still someone to shoot after cooling: another burst, without lowering the rifle."
+       },
+       {
+        "at": "var tip: Vector2 = puppet.muzzle()",
+        "text": "Bolts start at the rifle's muzzle in the current view, found from the sprite."
+       },
+       {
+        "at": "class LootDrop extends Thing:",
+        "text": "A Thing like a crate or a tree: clickable, drawn in code; the surface collects it when you stand on it."
+       },
+       {
+        "at": "var y := -8.0 - 3.0 * (0.5 + 0.5 * sin(_t * 3.0))",
+        "text": "The chest bobs and glows on two different sine waves, so it catches your eye."
+       }
+      ]
+     }
+    ],
+    "added": 238,
+    "removed": 0
+   },
+   {
+    "path": "scripts/zoo.gd",
+    "kind": "modified",
+    "explanation": "The Library shows the pirate.",
+    "hunks": [
+     {
+      "diff": "@@ -74,7 +74,7 @@ class Walker extends Node2D:\n \tvar puppet   # RigPuppet / SheetPuppet\n \n \tfunc _ready() -> void:\n-\t\tpuppet = SheetPuppet.new() if rig == \"gunner\" else RigPuppet.new()   # (the guard: sprite sheets)\n+\t\tpuppet = SheetPuppet.new() if rig in [\"gunner\", \"pirate\"] else RigPuppet.new()   # (the guard, pirates: sprite sheets)\n \t\tadd_child(puppet)\n \t\tpuppet.setup(rig)\n \t\tpuppet.set_facing(dir)",
+      "added": 1,
+      "removed": 1,
+      "title": "Pirates use sprite sheets",
+      "note": "The Library's walkers draw pirates (and guards) from their sheets."
+     },
+     {
+      "diff": "@@ -537,12 +537,13 @@ func _room_characters\n \t_plate(\"Patrolling\", Vector2(550, y + 170), 15)\n \t_room_pilot_views(y + 520.0)\n \t_room_guard_aiming(y + 1240.0)\n+\t_room_pirate(y + 1640.0)\n \t# Scenery around the edges.\n \tvar rng := RandomNumberGenerator.new()\n \trng.seed = 3\n \tfor i in 40:\n-\t\tvar p := Vector2(rng.randf_range(-1900, 1900), rng.randf_range(-1500, 1300))\n-\t\tif absf(p.x) < 1700 and p.y > -1500 and p.y < 1250:\n+\t\tvar p := Vector2(rng.randf_range(-1900, 1900), rng.randf_range(-1500, 2200))\n+\t\tif absf(p.x) < 1700 and p.y > -1500 and p.y < 2050:\n \t\t\tcontinue   # keep the exhibits clear\n \t\tvar pr: Node2D = PROPS.Prop.new()\n \t\tpr.kind = [\"tree\", \"bush\", \"flowers\", \"tuft\", \"rock\"][i % 5]",
+      "added": 3,
+      "removed": 2,
+      "title": "The pirate's row; clear of scenery",
+      "note": "_room_pirate under the guard's rows; the scenery around the room keeps clear of the new rows."
+     },
+     {
+      "diff": "@@ -550,6 +551,41 @@ func _room_characters\n \t\tpr.variant = i\n \t\tpr.position = p\n \t\tworld.add_child(pr)\n+\n+\n+## The pirate raider (planet surfaces' hostiles): its 8 views, walking.\n+func _room_pirate(y: float) -> void:\n+\t_heading(\"PIRATE RAIDER  \u00b7  8 views  \u00b7  shoots you and the citizens\", Vector2(-200, y - 300))\n+\tvar names := [\"East\", \"South-east\", \"South\", \"South-west\", \"West\", \"North-west\", \"North\", \"North-east\"]\n+\tfor i in 8:\n+\t\tvar w := Walker.new()\n+\t\tw.rig = \"pirate\"\n+\t\tw.dir = Vector2.from_angle(i * PI / 4.0)\n+\t\tw.position = Vector2(-700 + i * 200, y)\n+\t\tworld.add_child(w)\n+\t\t_plate(names[i], w.position + Vector2(0, 14), 15, Color(0.92, 0.95, 1.0), 180.0)\n+\t# Its four frames (raising the rifle, then firing), and one firing at a drone.\n+\tvar y2 := y + 330.0\n+\tfor k in 4:\n+\t\tvar w := Walker.new()\n+\t\tw.rig = \"pirate\"\n+\t\tw.dir = Vector2(0, 1)\n+\t\tw.position = Vector2(-700 + k * 170, y2)\n+\t\tworld.add_child(w)\n+\t\tw.puppet.walk = 0.0\n+\t\tw.puppet.raise_amt = k / 3.0\n+\t\tw.set_process(false)\n+\t\t_plate(\"Frame %d%s\" % [k + 1, \" (idle)\" if k == 0 else (\" (firing)\" if k == 3 else \"\")], w.position + Vector2(0, 14), 15, Color.WHITE, 170.0)\n+\tvar p: Node2D = PROPS.citizen(\"pirate\", 1)\n+\tp.position = Vector2(100, y2)\n+\tp.home = p.position\n+\tp.wander = 0.0\n+\tworld.add_child(p)\n+\tvar drone := Drone.new()\n+\tdrone.position = Vector2(500, y2 + 30)\n+\tworld.add_child(drone)\n+\tp.watch = drone\n+\t_plate(\"Raising the rifle and firing at a drone\", Vector2(300, y2 + 80), 15, Color.WHITE, 360.0)\n \n \n ## The guard's aiming pose: its 8 views.",
+      "added": 35,
+      "removed": 0,
+      "title": "The pirate exhibits",
+      "note": "Its 8 views walking (rifle down), its four frames side by side (labelled idle / firing), and a pirate raising its rifle and firing at a drone.",
+      "bubbles": [
+       {
+        "at": "w.puppet.raise_amt = k / 3.0",
+        "text": "Four stills along the raise (0, 1/3, 2/3, 1), frozen (set_process false)."
+       },
+       {
+        "at": "p.watch = drone",
+        "text": "In the Library the pirate shoots a practice drone instead of looking for real targets."
+       }
+      ]
+     }
+    ],
+    "added": 39,
+    "removed": 3
+   },
+   {
+    "path": "tests/test_editor.gd",
+    "kind": "modified",
+    "explanation": "The Patcher test covers unpublished changes.",
+    "hunks": [
+     {
+      "diff": "@@ -268,7 +268,17 @@ func test_patcher\n \tawait tree.process_frame\n \tcheck(not p.patches.is_empty(), \"there are patches (%d)\" % p.patches.size())\n \tvar kinds := [\"box\", \"text\", \"arrow\", \"circle\", \"grid\", \"iso\", \"bar\", \"badge\", \"poly\"]\n-\tfor patch in p.patches:\n+\t# Unpublished changes (tracked in external/patcher/) come first, when there are any.\n+\tif not p.patches.is_empty() and p.patches[0].get(\"pending\", false):\n+\t\tvar un: Dictionary = p.patches[0]\n+\t\tcheck(un[\"review\"][\"intro\"].contains(\"# Pending changes\"), \"unpublished changes show the change log\")\n+\t\tp.show_patch(0)\n+\t\tawait tree.process_frame\n+\t\tcheck(p._review_box.visible and p._tabs.is_tab_disabled(0), \"unpublished changes open on the review (no infographic yet)\")\n+\t\tcheck(p._review.get_parsed_text().contains(\"Pending changes\") and p._files.item_count > 0, \"with the log and the changed files\")\n+\tvar published: Array = p.patches.filter(func(x): return not x.get(\"pending\", false))\n+\tcheck(not published.is_empty(), \"there are published patches\")\n+\tfor patch in published:\n \t\tcheck(str(patch.get(\"summary\", \"\")).length() > 100, \"%s: a one-paragraph summary\" % patch[\"id\"])\n \t\tcheck(not str(patch.get(\"summary\", \"\")).contains(\"\\n\"), \"%s: the summary is one paragraph\" % patch[\"id\"])\n \t\tcheck(patch[\"steps\"].size() >= 3, \"%s: several steps\" % patch[\"id\"])",
+      "added": 11,
+      "removed": 1,
+      "title": "Unpublished changes",
+      "note": "When there are unpublished changes they come first: the log is shown, the review tab opens (no infographic), the changed files are listed; published patches are checked as before."
+     },
+     {
+      "diff": "@@ -292,19 +302,20 @@ func test_patcher\n \t\t\t\t\tadds += 1 if l.begins_with(\"+\") else 0\n \t\t\t\t\trems += 1 if l.begins_with(\"-\") else 0\n \t\t\t\tcheck(adds == int(h[\"added\"]) and rems == int(h[\"removed\"]), \"%s: %s line counts match the diff\" % [patch[\"id\"], fl[\"path\"]])\n-\tp.show_patch(0)\n+\tvar first: int = p.patches.find(published[0])\n+\tp.show_patch(first)\n \tp._tabs.current_tab = 1\n \tawait tree.process_frame\n \tcheck(p._review_box.visible and not p._info_box.visible, \"the Code review tab\")\n-\tcheck(p._files.item_count == p.patches[0][\"review\"][\"files\"].size(), \"lists the changed files\")\n+\tcheck(p._files.item_count == published[0][\"review\"][\"files\"].size(), \"lists the changed files\")\n \tp.show_file(1)\n-\tcheck(p._review.get_parsed_text().contains(p.patches[0][\"review\"][\"files\"][1][\"path\"]), \"shows the chosen file's review\")\n+\tcheck(p._review.get_parsed_text().contains(published[0][\"review\"][\"files\"][1][\"path\"]), \"shows the chosen file's review\")\n \tp._tabs.current_tab = 0\n \tp.go_step(2)\n \tcheck_eq(p.step, 2, \"steps can be stepped through\")\n-\tcheck(p._view.elements == p.patches[0][\"steps\"][2][\"diagram\"], \"the step's diagram is shown\")\n+\tcheck(p._view.elements == published[0][\"steps\"][2][\"diagram\"], \"the step's diagram is shown\")\n \tp.go_step(999)\n-\tcheck_eq(p.step, p.patches[0][\"steps\"].size() - 1, \"and stop at the last\")\n+\tcheck_eq(p.step, published[0][\"steps\"].size() - 1, \"and stop at the last\")\n \tfor i in 30:\n \t\tawait tree.process_frame   # (draws every element kind while animating in)\n \tp.queue_free()",
+      "added": 6,
+      "removed": 5,
+      "title": "Published patches",
+      "note": "The rest of the test uses the first published patch."
+     }
+    ],
+    "added": 17,
+    "removed": 6
+   },
+   {
+    "path": "tests/test_surface.gd",
+    "kind": "modified",
+    "explanation": "Tests for pirates and for fighting by clicking.",
+    "hunks": [
+     {
+      "diff": "@@ -69,7 +69,9 @@ func test_walk_into_and_out_of_buildings\n \tfor pid in PLANETS:\n \t\tvar s: Node = await _surface(pid)\n \t\tvar tried := 0\n-\t\tfor b in s.buildings:\n+\t\t# The buildings in the path grid's window as you land (walking about\n+\t\t# streams in more, beyond the window - this test drives frames itself).\n+\t\tfor b in s.buildings.filter(func(b): return s.in_nav(b.bounds.get_center(), 12)):\n \t\t\tfor k in 6:\n \t\t\t\tvar a: Vector2\n \t\t\t\tvar z: Vector2",
+      "added": 3,
+      "removed": 1,
+      "title": "Walking test: buildings in the window",
+      "note": "Walking about streams in buildings beyond the path window, which this hand-driven test can't route to - it walks the buildings in the window at landing."
+     },
+     {
+      "diff": "@@ -170,6 +172,8 @@ func test_minoan_citizens\n \tcheck(s.npcs.size() >= 6, \"Minoan citizens on the surface\")\n \tvar kinds := {}\n \tfor a in s.npcs:\n+\t\tif a.species == \"pirate\":\n+\t\t\tcontinue   # (see test_pirates)\n \t\tkinds[a.species] = true\n \t\tif a.species == \"gunner\":   # the guard: sprite sheets\n \t\t\tcheck(a.puppet is SheetPuppet and a.puppet._sprite.texture != null, \"the guard is drawn from its sprite sheets\")",
+      "added": 2,
+      "removed": 0,
+      "title": "Citizens test ignores pirates",
+      "note": "Pirates are checked in their own test."
+     },
+     {
+      "diff": "@@ -258,6 +262,133 @@ func test_guard_sprite_sheets\n \tvar h: float = p._sprite.texture.get_height() * p._sprite.scale.y\n \tcheck(absf(h - SheetPuppet.HEIGHT) < 2.0, \"drawn %.0f px tall\" % h)\n \tg.queue_free()\n+\tawait tree.process_frame\n+\n+\n+## Pirates: bands all over the planet (and near you), shooting you and the\n+## citizens but never each other, shot back by guards and by you, dropping\n+## loot when they fall; and you get knocked out (back to your ship) at 0 health.\n+func test_pirates() -> void:\n+\tvar s: Node = await _surface(\"thalassa\")\n+\tvar planned: Array = s._npc_plans.filter(func(n): return n[\"kind\"] == \"pirate\")\n+\tcheck(planned.size() >= 200, \"plenty of pirates on the planet (%d)\" % planned.size())\n+\tvar near: Array = s.npcs.filter(func(n): return n.species == \"pirate\")\n+\tcheck(not near.is_empty(), \"pirates around the landing site (%d)\" % near.size())\n+\tvar nearest := INF\n+\tfor n in planned:\n+\t\tnearest = minf(nearest, n[\"pos\"].distance_to(s.lander.position))\n+\tcheck(nearest > 600.0, \"not right on the landing pad (%.0f px)\" % nearest)\n+\tfor p in near:\n+\t\tcheck(p.puppet is SheetPuppet and p.puppet._sprite.texture.resource_path.contains(\"pirate_\"), \"a pirate is drawn from its sprite sheet\")\n+\t# Four frames: rifle down while not attacking, raised through the frames to fire.\n+\tvar pz: Node2D = near[0]\n+\tcheck_eq(pz.puppet.sequence, [\"idle\", \"raise1\", \"raise2\", \"aim\"], \"the pirate's four frames\")\n+\tpz.set_process(false)\n+\tpz.puppet._process(0.016)\n+\tcheck(pz.puppet._sprite.texture.resource_path.contains(\"pirate_idle_\"), \"rifle down (frame 1) when not attacking\")\n+\tvar seen := []\n+\tpz._aim_at = s.pilot\n+\tpz._go(\"raise\")\n+\tfor i in 60:\n+\t\tpz._process(0.02)\n+\t\tpz.puppet._process(0.02)\n+\t\tvar fr: String = pz.puppet._pose\n+\t\tif seen.is_empty() or seen[-1] != fr:\n+\t\t\tseen.append(fr)\n+\tcheck(seen.slice(0, 4) == [\"idle\", \"raise1\", \"raise2\", \"aim\"], \"raising the rifle runs through the frames, firing from the last (%s)\" % [seen])\n+\tpz.set_process(true)\n+\t# A pirate next to you and a guard: it picks the nearest - never a pirate.\n+\tvar at: Vector2 = s.pilot.position\n+\tvar pa: Node2D = s._spawn_npc(at + Vector2(200, 0), 1, at + Vector2(200, 0), \"pirate\")\n+\tvar pb: Node2D = s._spawn_npc(at + Vector2(240, 30), 2, at + Vector2(240, 30), \"pirate\")\n+\tawait tree.process_frame\n+\tcheck(pa._target() == s.pilot, \"it aims at you\")\n+\tcheck(pa.is_in_group(\"surface_hostiles\"), \"guards and you count it as hostile\")\n+\ts.pilot.position = at + Vector2(-3000, 0)   # (you're away: only other pirates are close)\n+\tcheck(pa._target() != pb, \"never at another pirate\")\n+\ts.pilot.position = at\n+\tvar hp0: float = s.pilot.hp\n+\tfor i in 240:\n+\t\tawait tree.process_frame\n+\t\tif s.pilot.hp < hp0:\n+\t\t\tbreak\n+\tcheck(s.pilot.hp < hp0, \"its bolts hurt you (%.0f -> %.0f)\" % [hp0, s.pilot.hp])\n+\t# Down it goes: loot where it fell, yours when you walk over it.\n+\tvar credits := int(s.state[\"player\"][\"credits\"])\n+\tpa.surface_hit(1000.0)\n+\tcheck(pa.dead and not s.npcs.has(pa) and not pa.is_in_group(\"surface_hostiles\"), \"a shot-down pirate is out of the fight\")\n+\tcheck(s.loot.size() == 1, \"it dropped loot\")\n+\ts.pilot.position = s.loot[0].position\n+\ts._collect_loot()\n+\tcheck(s.loot.is_empty() and int(s.state[\"player\"][\"credits\"]) > credits, \"walking over the loot takes it (%d -> %d credits)\" % [credits, int(s.state[\"player\"][\"credits\"])])\n+\t# Knocked out: back at your ship, healed, a tenth of your credits gone.\n+\tcredits = int(s.state[\"player\"][\"credits\"])\n+\ts.pilot.position = at + Vector2(400, 300)\n+\ts.pilot.surface_hit(1000.0)\n+\tcheck(is_equal_approx(s.pilot.hp, s.pilot.MAX_HP) and s.pilot.position.distance_to(s.lander.position) < 150.0, \"knocked out: you come to beside your ship\")\n+\tcheck(int(s.state[\"player\"][\"credits\"]) == credits - int(credits * 0.1), \"and the pirates took a tenth of your credits\")\n+\t# Citizens can fall too.\n+\tvar g: Node2D = s.npcs.filter(func(n): return n.species == \"gunner\")[0]\n+\tg.surface_hit(10000.0)\n+\tcheck(g.dead and not s.npcs.has(g), \"a citizen can fall\")\n+\tpb.queue_free()\n+\ts.queue_free()\n+\tawait tree.process_frame\n+\n+\n+## You shoot enemies: click one (anywhere on it, left or right button) and\n+## you close in if it's out of range and fire until it falls; a click on the\n+## ground ends the fight; F attacks the nearest; the cursor is a crosshair over them.\n+func test_player_attacks_enemies() -> void:\n+\tvar s: Node = await _surface(\"thalassa\")\n+\tfor n in s.npcs.filter(func(n): return n.species == \"pirate\"):\n+\t\tn.set_process(false)   # (only ours in this test: the others stand aside)\n+\t\tn.position += Vector2(0, 20000)\n+\tawait tree.process_frame\n+\tvar at: Vector2 = s.pilot.position\n+\tvar foe: Node2D = s._spawn_npc(at + Vector2(1000, 120), 3, at + Vector2(1000, 120), \"pirate\")\n+\tfoe.set_process(false)   # (it stands still and doesn't shoot back here)\n+\tawait tree.process_frame\n+\tvar click := func(world: Vector2, button: MouseButton) -> void:\n+\t\tvar e := InputEventMouseButton.new()\n+\t\te.button_index = button\n+\t\te.pressed = true\n+\t\te.position = s.get_canvas_transform() * world\n+\t\ts._unhandled_input(e)\n+\tvar hover := InputEventMouseMotion.new()\n+\thover.position = s.get_canvas_transform() * (foe.position + Vector2(0, -110))\n+\ts._unhandled_input(hover)\n+\tcheck(s._hovered == foe, \"hovering an enemy (crosshair cursor)\")\n+\t# A click on its head (not just its middle) attacks it.\n+\tclick.call(foe.position + Vector2(10, -125), MOUSE_BUTTON_LEFT)\n+\tcheck(s._attack_target == foe, \"clicking an enemy attacks it\")\n+\ts.set_process(true)\n+\tvar t0 := Time.get_ticks_msec()\n+\tvar fired := false\n+\twhile Time.get_ticks_msec() - t0 < 20000 and is_instance_valid(foe) and not foe.dead:\n+\t\tawait tree.process_frame\n+\t\tfired = fired or s.pilot.trigger == foe\n+\tvar t := (Time.get_ticks_msec() - t0) / 1000.0\n+\tcheck(fired, \"out of range: you closed in and opened fire\")\n+\tcheck(not is_instance_valid(foe) or foe.dead, \"and it fell (%.1f s)\" % t)\n+\tawait tree.process_frame\n+\tawait tree.process_frame\n+\tcheck(s._attack_target == null, \"the fight is over\")\n+\t# Right-click on another: attacks too; a click on the ground ends it.\n+\tvar foe2: Node2D = s._spawn_npc(s.pilot.position + Vector2(300, 0), 4, s.pilot.position + Vector2(300, 0), \"pirate\")\n+\tfoe2.set_process(false)\n+\tawait tree.process_frame\n+\ts.set_process(false)\n+\tclick.call(foe2.position + Vector2(0, -20), MOUSE_BUTTON_RIGHT)\n+\tcheck(s._attack_target == foe2, \"right-click on an enemy attacks it too\")\n+\tclick.call(s.pilot.position + Vector2(-200, 40), MOUSE_BUTTON_LEFT)\n+\tcheck(s._attack_target == null and s.pilot.trigger == null, \"a click on the ground ends the fight\")\n+\tvar f := InputEventKey.new()\n+\tf.keycode = KEY_F\n+\tf.pressed = true\n+\ts._unhandled_input(f)\n+\tcheck(s._attack_target == foe2, \"F attacks the nearest enemy\")\n+\ts.queue_free()\n \tawait tree.process_frame\n \n ",
+      "added": 127,
+      "removed": 0,
+      "title": "test_pirates and test_player_attacks_enemies",
+      "note": "test_pirates: 200+ planned, some near you but not on the pad, drawn from the sheets, the four frames (idle when not attacking, raising runs idle -> raise1 -> raise2 -> aim), aims at you and never at a pirate, hostile, its bolts hurt you, falls -> loot -> collected, knock-out, citizens can fall. test_player_attacks_enemies with real mouse events: hover (crosshair), a click on the head attacks, closing in from 1000 px, firing until it falls, the fight ends, right-click attacks too, a click on the ground ends it, F attacks the nearest."
+     }
+    ],
+    "added": 132,
+    "removed": 1
+   },
+   {
+    "path": "tools/patch.py",
+    "kind": "new",
+    "explanation": "New: the tracking tool - status, notes-template, review, baseline (see its header).",
+    "hunks": [
+     {
+      "diff": "@@ -1,0 +1,197 @@ \n+#!/usr/bin/env python3\n+\"\"\"Patch tracking for the Patcher (Talos > Patcher): everything changed since\n+the last published patch, and the code review for the next one.\n+\n+The baseline is the game as it was at the last published patch:\n+  external/patcher/snapshot/   a copy of every tracked text file (scripts, scenes,\n+                       shaders, data, docs, tests, tools, project.godot)\n+  external/patcher/manifest.json  {\"patch\", \"date\", \"files\": {path: md5}, \"mtimes\":\n+                       {path: modified time}} for every tracked file, art and\n+                       sounds included (the Patcher reads it too)\n+Changes are found by comparing the project with it - however they were made.\n+external/patcher/pending.md is the plain-language log of what changed and why.\n+\n+  python3 tools/patch.py status\n+      What changed since the last patch: modified / new / deleted files\n+      (text files with lines added and removed).\n+  python3 tools/patch.py notes-template <notes.json>\n+      A notes file to fill in: one entry per changed text file, one\n+      [title, note] per hunk (with the hunk's header to see which is which).\n+  python3 tools/patch.py review <notes.json> data/patches/<id>_<name>.json\n+      Adds the code review (diffs against the snapshot, each hunk with its\n+      note) to a patch entry. Changed art / sounds are listed without diffs.\n+  python3 tools/patch.py baseline <patch id>\n+      After publishing a patch: the project as it is now becomes the new\n+      baseline, and pending.md is emptied for the next patch.\n+\n+Run from the project folder.\n+\"\"\"\n+import datetime, difflib, hashlib, json, os, shutil, sys\n+\n+ROOT = \".\"\n+TRACK = os.path.join(\"external\", \"patcher\")\n+SNAP = os.path.join(TRACK, \"snapshot\")\n+MANIFEST = os.path.join(TRACK, \"manifest.json\")\n+PENDING = os.path.join(TRACK, \"pending.md\")\n+TEXT = (\".gd\", \".tscn\", \".tres\", \".gdshader\", \".json\", \".md\", \".cfg\", \".py\", \".godot\", \".txt\", \".svg\")\n+BINARY = (\".png\", \".jpg\", \".jpeg\", \".webp\", \".wav\", \".ogg\", \".mp3\", \".ttf\", \".otf\")\n+SKIP_DIRS = {\".godot\", \".git\", \".import\", \"__pycache__\", \"build\", \"export\"}\n+SKIP_PATHS = {os.path.join(\"external\", \"patcher\")}   # (the tracking itself)\n+\n+\n+def tracked():\n+    \"\"\"Every tracked file (relative paths): text and binary assets.\"\"\"\n+    out = []\n+    for root, dirs, files in os.walk(ROOT):\n+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS and not d.startswith(\".\")\n+                   and os.path.relpath(os.path.join(root, d), ROOT) not in SKIP_PATHS]\n+        for f in files:\n+            if f.endswith(TEXT + BINARY) and not f.endswith(\".import\"):\n+                out.append(os.path.relpath(os.path.join(root, f), ROOT))\n+    return sorted(out)\n+\n+\n+def md5(path):\n+    h = hashlib.md5()\n+    with open(path, \"rb\") as fh:\n+        for chunk in iter(lambda: fh.read(1 << 20), b\"\"):\n+            h.update(chunk)\n+    return h.hexdigest()\n+\n+\n+def is_text(path):\n+    return path.endswith(TEXT)\n+\n+\n+def lines(path):\n+    with open(path, encoding=\"utf-8\", errors=\"replace\") as fh:\n+        return fh.read().splitlines()\n+\n+\n+def changes():\n+    \"\"\"[(path, \"modified\" / \"new\" / \"deleted\")] since the baseline.\"\"\"\n+    man = json.load(open(MANIFEST))[\"files\"]\n+    now = tracked()\n+    out = []\n+    for p in now:\n+        if p not in man:\n+            if p.startswith(\"data/patches/\"):\n+                continue   # (a patch entry being written is the publication, not a change)\n+            out.append((p, \"new\"))\n+        elif md5(p) != man[p]:\n+            out.append((p, \"modified\"))\n+    for p in man:\n+        if p not in now:\n+            out.append((p, \"deleted\"))\n+    return sorted(out)\n+\n+\n+def old_lines(path):\n+    snap = os.path.join(SNAP, path)\n+    return lines(snap) if os.path.exists(snap) else []\n+\n+\n+def hunks(old, new):\n+    out = []\n+    for g in difflib.SequenceMatcher(None, old, new, autojunk=False).get_grouped_opcodes(3):\n+        i1, i2, j1, j2 = g[0][1], g[-1][2], g[0][3], g[-1][4]\n+        ctx = \"\"\n+        for l in range(min(j1, len(new) - 1), -1, -1):\n+            if new[l].startswith((\"func \", \"class \", \"static func \", \"# \", \"## \")):\n+                ctx = new[l].split(\"(\")[0][:60]\n+                break\n+        head = [\"@@ -%d,%d +%d,%d @@ %s\" % (i1 + 1, i2 - i1, j1 + 1, j2 - j1, ctx)]\n+        body, add, rem = [], 0, 0\n+        for t, a1, a2, b1, b2 in g:\n+            if t == \"equal\":\n+                body += [\" \" + l for l in old[a1:a2]]\n+            if t in (\"delete\", \"replace\"):\n+                body += [\"-\" + l for l in old[a1:a2]]\n+                rem += a2 - a1\n+            if t in (\"insert\", \"replace\"):\n+                body += [\"+\" + l for l in new[b1:b2]]\n+                add += b2 - b1\n+        out.append({\"diff\": \"\\n\".join(head + body), \"added\": add, \"removed\": rem})\n+    return out\n+\n+\n+def file_hunks(path, kind):\n+    if not is_text(path):\n+        return []\n+    new = [] if kind == \"deleted\" else lines(path)\n+    return hunks(old_lines(path), new)\n+\n+\n+def cmd_status():\n+    man = json.load(open(MANIFEST))\n+    ch = changes()\n+    print(\"Changes since patch %s (%s): %d files\" % (man.get(\"patch\"), man.get(\"date\"), len(ch)))\n+    for p, kind in ch:\n+        if is_text(p):\n+            hs = file_hunks(p, kind)\n+            print(\"  %-9s %-55s +%d -%d\" % (kind, p, sum(h[\"added\"] for h in hs), sum(h[\"removed\"] for h in hs)))\n+        else:\n+            print(\"  %-9s %s\" % (kind, p))\n+    if os.path.exists(PENDING):\n+        sections = [l for l in lines(PENDING) if l.startswith(\"## \")]\n+        print(\"pending.md: %d logged change(s)%s\" % (len(sections), \"\".join(\"\\n  \" + s[3:] for s in sections)))\n+\n+\n+def cmd_notes_template(out):\n+    notes = {\"_intro\": \"\", \"_assets\": \"\"}\n+    for p, kind in changes():\n+        hs = file_hunks(p, kind)\n+        notes[p] = {\"kind\": kind, \"explanation\": \"\",\n+                    \"hunks\": [[h[\"diff\"].split(\"\\n\")[0], \"\"] for h in hs]}\n+    json.dump(notes, open(out, \"w\"), indent=1)\n+    print(\"wrote\", out, \"-\", sum(len(v[\"hunks\"]) for k, v in notes.items() if not k.startswith(\"_\")), \"hunks to describe\")\n+\n+\n+def cmd_review(notes_path, patch_path):\n+    notes = json.load(open(notes_path))\n+    files = []\n+    for p, kind in changes():\n+        hs = file_hunks(p, kind)\n+        meta = notes.get(p)\n+        if meta is None or not meta.get(\"explanation\"):\n+            sys.exit(\"%s (%s): no explanation in the notes\" % (p, kind))\n+        if len(meta.get(\"hunks\", [])) != len(hs):\n+            sys.exit(\"%s: %d notes for %d hunks\" % (p, len(meta.get(\"hunks\", [])), len(hs)))\n+        for h, n in zip(hs, meta[\"hunks\"]):\n+            if not n[0] or not n[1] or n[0].startswith(\"@@\"):\n+                sys.exit(\"%s: a hunk without its title / note (%s)\" % (p, h[\"diff\"].split(\"\\n\")[0]))\n+            h[\"title\"], h[\"note\"] = n\n+        files.append({\"path\": p, \"kind\": kind, \"explanation\": meta[\"explanation\"], \"hunks\": hs,\n+                      \"added\": sum(h[\"added\"] for h in hs), \"removed\": sum(h[\"removed\"] for h in hs)})\n+    p = json.load(open(patch_path))\n+    p[\"review\"] = {\"intro\": notes.get(\"_intro\", \"\"), \"files\": files}\n+    json.dump(p, open(patch_path, \"w\"), indent=1)\n+    print(\"review added to\", patch_path, \":\", len(files), \"files,\", sum(len(f[\"hunks\"]) for f in files), \"hunks\")\n+\n+\n+def cmd_baseline(patch_id):\n+    if os.path.exists(SNAP):\n+        shutil.rmtree(SNAP)\n+    files = {}\n+    times = {}\n+    for p in tracked():\n+        files[p] = md5(p)\n+        times[p] = int(os.path.getmtime(p))\n+        if is_text(p):\n+            dst = os.path.join(SNAP, p)\n+            os.makedirs(os.path.dirname(dst), exist_ok=True)\n+            shutil.copy2(p, dst)\n+    json.dump({\"patch\": patch_id, \"date\": datetime.date.today().isoformat(), \"files\": files, \"mtimes\": times},\n+              open(MANIFEST, \"w\"), indent=0)\n+    with open(PENDING, \"w\") as fh:\n+        fh.write(\"# Pending changes (since patch %s, %s)\\n\" % (patch_id, datetime.date.today().isoformat()))\n+    print(\"baseline: patch\", patch_id, \"-\", len(files), \"files tracked; pending.md emptied\")\n+\n+\n+if __name__ == \"__main__\":\n+    a = sys.argv[1:]\n+    if not a or a[0] not in (\"status\", \"notes-template\", \"review\", \"baseline\"):\n+        print(__doc__)\n+        sys.exit(1)\n+    {\"status\": lambda: cmd_status(), \"notes-template\": lambda: cmd_notes_template(a[1]),\n+     \"review\": lambda: cmd_review(a[1], a[2]), \"baseline\": lambda: cmd_baseline(a[1])}[a[0]]()",
+      "added": 197,
+      "removed": 0,
+      "title": "Tracking by snapshot",
+      "note": "Changes are found by comparing the project with external/patcher/snapshot + manifest.json (the game at the last patch), however they were made; new patch entries in data/patches aren't counted as changes. review builds the code review (this one), checking that every hunk has a note; baseline starts tracking afresh after publishing.",
+      "bubbles": [
+       {
+        "at": "if p.startswith(\"data/patches/\"):",
+        "text": "A patch entry being written is the publication itself, not a change to report."
+       },
+       {
+        "at": "for g in difflib.SequenceMatcher(None, old, new, autojunk=False).get_grouped_opcodes(3):",
+        "text": "The hunks: runs of changes with 3 lines of context, like git's unified diff."
+       },
+       {
+        "at": "if new[l].startswith((\"func \", \"class \", \"static func \", \"# \", \"## \")):",
+        "text": "The header names the function or class the hunk is in, searching upward."
+       },
+       {
+        "at": "def cmd_baseline(patch_id):",
+        "text": "After publishing: copy every text file into the snapshot and record every file's md5 - the next patch is measured from here."
+       }
+      ]
+     }
+    ],
+    "added": 197,
+    "removed": 0
+   }
+  ]
+ }
+}

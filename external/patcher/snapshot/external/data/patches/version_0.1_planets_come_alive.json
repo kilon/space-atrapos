@@ -1,0 +1,804 @@
+{
+	"kind": "version",
+	"id": "0.1",
+	"title": "Planets come alive",
+	"date": "2026-11-08",
+	"summary": "Version 0.1 brings the game's planets, and the sector around them, to life. Planet surfaces became a hundred times bigger, streamed around you as you walk (patch 0001). Pirate raiders came to every planet (patch 0002), then became a 3D model with smooth animations that fights back and runs when badly hurt (patch 0003). The sector found its voice: synthesised sound and music, a spoken story begun by Kilon Alios, a rebalanced economy, missions, fog of war and the ship's scanner (patch 0004). The scanner now finds signal sources with six encounters, including the Void Leviathan; dying keeps your progress; and the title screen plays itself under an arcade-Greek PLEASE INSERT DRACHMA and a CRT filter (patch 0005). Finally the game took the map-console look, with one teal-and-orange GUI, a console-style planet map, map icons, anime exhaust trails and 80s-anime sprites (patch 0006). Along the way the Patcher arrived in Talos, and every change is tracked between patches.",
+	"patches": [
+		"0001",
+		"0002",
+		"0003",
+		"0004",
+		"0005",
+		"0006"
+	],
+	"steps": [
+		{
+			"patch": "0001",
+			"title": "Patch 0001 - Streamed planets: 880 x 880 tiles",
+			"text": "Planets became a hundred times bigger, with villages all over them. A worker thread plans the whole planet while you land; the world is then made around you as you walk - scenery in chunks grown on worker threads, buildings and citizens as you come near, a path grid that follows you. Landing takes about 4 s without a stalled frame.",
+			"diagram": [
+				{
+					"t": "box",
+					"rect": [
+						40,
+						70,
+						170,
+						170
+					],
+					"label": "88 x 88",
+					"size": 20,
+					"stroke": "dim"
+				},
+				{
+					"t": "arrow",
+					"from": [
+						215,
+						155
+					],
+					"to": [
+						300,
+						155
+					],
+					"color": "gold"
+				},
+				{
+					"t": "box",
+					"rect": [
+						300,
+						40,
+						230,
+						230
+					],
+					"label": "880 x 880\ntiles",
+					"size": 24,
+					"stroke": "green",
+					"pulse": true
+				},
+				{
+					"t": "text",
+					"at": [
+						415,
+						300
+					],
+					"text": "x100 the area",
+					"size": 16,
+					"color": "green",
+					"align": "center"
+				},
+				{
+					"t": "box",
+					"rect": [
+						600,
+						50,
+						360,
+						60
+					],
+					"label": "worker thread plans the planet",
+					"size": 16,
+					"stroke": "cyan"
+				},
+				{
+					"t": "box",
+					"rect": [
+						600,
+						125,
+						360,
+						60
+					],
+					"label": "16 x 16-tile chunks stream in / out",
+					"size": 16,
+					"stroke": "cyan"
+				},
+				{
+					"t": "box",
+					"rect": [
+						600,
+						200,
+						360,
+						60
+					],
+					"label": "a path grid that follows you",
+					"size": 16,
+					"stroke": "cyan"
+				},
+				{
+					"t": "bar",
+					"rect": [
+						60,
+						380,
+						880,
+						30
+					],
+					"value": 0.4,
+					"color": "gold",
+					"label": "landing: ~4 s, no stalled frame",
+					"size": 15
+				},
+				{
+					"t": "badge",
+					"at": [
+						250,
+						470
+					],
+					"text": "villages everywhere",
+					"color": "green",
+					"size": 16
+				},
+				{
+					"t": "badge",
+					"at": [
+						500,
+						470
+					],
+					"text": "planet map: go anywhere",
+					"color": "cyan",
+					"size": 16
+				},
+				{
+					"t": "badge",
+					"at": [
+						760,
+						470
+					],
+					"text": "7 files changed",
+					"color": "dim",
+					"size": 16
+				}
+			]
+		},
+		{
+			"patch": "0002",
+			"title": "Patch 0002 - Pirate raiders",
+			"text": "Pirate raiders came to every planet - about 320 in 90 bands - shooting you and the citizens while guards and archers shoot back. Everyone on foot got health: fall, and you wake by your ship a tenth of your credits poorer. Fallen pirates drop loot; fighting is a click (or F). And every change began to be tracked between patches, for the Patcher.",
+			"diagram": [
+				{
+					"t": "box",
+					"rect": [
+						40,
+						60,
+						280,
+						150
+					],
+					"label": "~320 pirates\nin 90 bands\nper planet",
+					"size": 18,
+					"stroke": "red",
+					"pulse": true
+				},
+				{
+					"t": "box",
+					"rect": [
+						360,
+						60,
+						280,
+						150
+					],
+					"label": "health for\neveryone on foot",
+					"size": 18,
+					"stroke": "green"
+				},
+				{
+					"t": "box",
+					"rect": [
+						680,
+						60,
+						280,
+						150
+					],
+					"label": "loot chests:\ncredits & cargo",
+					"size": 18,
+					"stroke": "gold"
+				},
+				{
+					"t": "arrow",
+					"from": [
+						180,
+						215
+					],
+					"to": [
+						180,
+						290
+					],
+					"color": "red"
+				},
+				{
+					"t": "box",
+					"rect": [
+						40,
+						290,
+						280,
+						90
+					],
+					"label": "they shoot you and\nthe citizens",
+					"size": 16,
+					"stroke": "red"
+				},
+				{
+					"t": "arrow",
+					"from": [
+						500,
+						215
+					],
+					"to": [
+						500,
+						290
+					],
+					"color": "green"
+				},
+				{
+					"t": "box",
+					"rect": [
+						360,
+						290,
+						280,
+						90
+					],
+					"label": "knocked out:\n-10% credits",
+					"size": 16,
+					"stroke": "green"
+				},
+				{
+					"t": "arrow",
+					"from": [
+						820,
+						215
+					],
+					"to": [
+						820,
+						290
+					],
+					"color": "gold"
+				},
+				{
+					"t": "box",
+					"rect": [
+						680,
+						290,
+						280,
+						90
+					],
+					"label": "click / F to attack",
+					"size": 16,
+					"stroke": "gold"
+				},
+				{
+					"t": "text",
+					"at": [
+						500,
+						450
+					],
+					"text": "every change tracked between patches: external/patcher, tools/patch.py",
+					"size": 15,
+					"color": "dim",
+					"align": "center"
+				},
+				{
+					"t": "badge",
+					"at": [
+						500,
+						505
+					],
+					"text": "50 files changed",
+					"color": "dim",
+					"size": 16
+				}
+			]
+		},
+		{
+			"patch": "0003",
+			"title": "Patch 0003 - The pirate in 3D",
+			"text": "The pirate became a 3D model - your Tripo pirate and rifle, rigged and animated in Blender and rendered into 320 sprites: a 12-frame attack and a 28-frame walk, about 25 frames a second. Pirates now fight back and run when badly hurt, shots can't be dodged, and the Patcher shows pictures, sounds and fonts in its code review.",
+			"diagram": [
+				{
+					"t": "box",
+					"rect": [
+						30,
+						60,
+						170,
+						120
+					],
+					"label": "Tripo\nmodels",
+					"size": 17,
+					"stroke": "purple"
+				},
+				{
+					"t": "arrow",
+					"from": [
+						200,
+						120
+					],
+					"to": [
+						240,
+						120
+					],
+					"color": "gold"
+				},
+				{
+					"t": "box",
+					"rect": [
+						240,
+						50,
+						200,
+						140
+					],
+					"label": "Blender\nrig, poses, walk",
+					"size": 17,
+					"stroke": "gold",
+					"pulse": true
+				},
+				{
+					"t": "arrow",
+					"from": [
+						440,
+						120
+					],
+					"to": [
+						480,
+						120
+					],
+					"color": "gold"
+				},
+				{
+					"t": "box",
+					"rect": [
+						480,
+						60,
+						200,
+						120
+					],
+					"label": "320 sprites\n8 views",
+					"size": 17,
+					"stroke": "green"
+				},
+				{
+					"t": "box",
+					"rect": [
+						720,
+						40,
+						250,
+						70
+					],
+					"label": "fights back",
+					"size": 17,
+					"stroke": "red"
+				},
+				{
+					"t": "box",
+					"rect": [
+						720,
+						125,
+						250,
+						70
+					],
+					"label": "runs when badly hurt",
+					"size": 17,
+					"stroke": "red"
+				},
+				{
+					"t": "bar",
+					"rect": [
+						60,
+						260,
+						880,
+						28
+					],
+					"value": 0.3333333333333333,
+					"color": "dim",
+					"label": "attack before: 4 frames",
+					"size": 15
+				},
+				{
+					"t": "bar",
+					"rect": [
+						60,
+						298,
+						880,
+						28
+					],
+					"value": 1.0,
+					"color": "cyan",
+					"label": "attack now: 12 frames",
+					"size": 15
+				},
+				{
+					"t": "bar",
+					"rect": [
+						60,
+						348,
+						880,
+						28
+					],
+					"value": 0.2857142857142857,
+					"color": "dim",
+					"label": "walk first: 8 frames",
+					"size": 15
+				},
+				{
+					"t": "bar",
+					"rect": [
+						60,
+						386,
+						880,
+						28
+					],
+					"value": 1.0,
+					"color": "green",
+					"label": "walk now: 28 frames  (~25 fps)",
+					"size": 15
+				},
+				{
+					"t": "badge",
+					"at": [
+						260,
+						480
+					],
+					"text": "homing shots: 2600 px/s",
+					"color": "cyan",
+					"size": 16
+				},
+				{
+					"t": "badge",
+					"at": [
+						560,
+						480
+					],
+					"text": "Patcher shows assets",
+					"color": "gold",
+					"size": 16
+				},
+				{
+					"t": "badge",
+					"at": [
+						820,
+						480
+					],
+					"text": "343 files changed",
+					"color": "dim",
+					"size": 16
+				}
+			]
+		},
+		{
+			"patch": "0004",
+			"title": "Patch 0004 - The sector speaks",
+			"text": "The game got its sound, all synthesised: effects for every ship, weapon, station and planet, and three ambient tracks that follow you from the title screen to space and the planets. The story is spoken, each character in their own voice, and Kilon Alios on Thalassa now gives the main quest. Trading moves prices and bounties pay more, side quests became missions in reputation tiers, the maps have fog of war and the ship got a scanner.",
+			"diagram": [
+				{
+					"t": "box",
+					"rect": [
+						40,
+						50,
+						280,
+						110
+					],
+					"label": "SOUND\nsynthesised effects,\n3 ambient tracks",
+					"size": 16,
+					"stroke": "gold"
+				},
+				{
+					"t": "box",
+					"rect": [
+						360,
+						50,
+						280,
+						110
+					],
+					"label": "THE STORY SPOKEN\nPiper voices,\none per character",
+					"size": 16,
+					"stroke": "purple"
+				},
+				{
+					"t": "box",
+					"rect": [
+						680,
+						50,
+						280,
+						110
+					],
+					"label": "KILON ALIOS\ngives the main quest\non Thalassa",
+					"size": 16,
+					"stroke": "green"
+				},
+				{
+					"t": "box",
+					"rect": [
+						40,
+						200,
+						280,
+						110
+					],
+					"label": "ECONOMY\ntrades move prices,\nbounties x2+",
+					"size": 16,
+					"stroke": "cyan"
+				},
+				{
+					"t": "box",
+					"rect": [
+						360,
+						200,
+						280,
+						110
+					],
+					"label": "MISSIONS\nin reputation tiers",
+					"size": 16,
+					"stroke": "cyan"
+				},
+				{
+					"t": "box",
+					"rect": [
+						680,
+						200,
+						280,
+						110
+					],
+					"label": "FOG OF WAR\nmaps clear where\nyou've been",
+					"size": 16,
+					"stroke": "cyan"
+				},
+				{
+					"t": "bar",
+					"rect": [
+						60,
+						360,
+						880,
+						28
+					],
+					"value": 0.7,
+					"color": "#2a6a8a",
+					"label": "the ship's scanner: right-click scans rocks and the system",
+					"size": 15
+				},
+				{
+					"t": "badge",
+					"at": [
+						250,
+						460
+					],
+					"text": "furnished buildings",
+					"color": "gold",
+					"size": 16
+				},
+				{
+					"t": "badge",
+					"at": [
+						520,
+						460
+					],
+					"text": "Patcher versions",
+					"color": "purple",
+					"size": 16
+				},
+				{
+					"t": "badge",
+					"at": [
+						780,
+						460
+					],
+					"text": "following ships",
+					"color": "green",
+					"size": 16
+				}
+			]
+		},
+		{
+			"patch": "0005",
+			"title": "Patch 0005 - Signals and drachmas",
+			"text": "The scanner finds signal sources that lead to six encounters in empty pockets of space, including the Void Leviathan and its bullet-hell orbs and a deathtrap field. Dying now respawns you with your progress kept. Left alone, the title screen plays the game itself under a blinking arcade-Greek PLEASE INSERT DRACHMA and an old-CRT filter, which is also in Settings with its own page. Fixes cover followed ships flying back and forth, dialogues keeping the mouse hidden, and quiet voices.",
+			"diagram": [
+				{
+					"t": "box",
+					"rect": [
+						40,
+						50,
+						300,
+						120
+					],
+					"label": "SIGNAL SOURCES\nfound by the scanner,\nentered like planets",
+					"size": 16,
+					"stroke": "cyan",
+					"pulse": true
+				},
+				{
+					"t": "box",
+					"rect": [
+						360,
+						50,
+						280,
+						120
+					],
+					"label": "6 ENCOUNTERS\nstranded, attacked, wreck,\ncreature, anomaly, deathtrap",
+					"size": 16,
+					"stroke": "gold"
+				},
+				{
+					"t": "box",
+					"rect": [
+						660,
+						50,
+						300,
+						120
+					],
+					"label": "VOID LEVIATHAN\nbullet-hell orbs:\nhard, never impossible",
+					"size": 16,
+					"stroke": "purple"
+				},
+				{
+					"t": "box",
+					"rect": [
+						40,
+						210,
+						450,
+						100
+					],
+					"label": "RESPAWN\ndying keeps your progress (cargo + 10 % lost)",
+					"size": 16,
+					"stroke": "green"
+				},
+				{
+					"t": "box",
+					"rect": [
+						510,
+						210,
+						450,
+						100
+					],
+					"label": "ATTRACT MODE\nthe title screen plays itself after 30 s",
+					"size": 16,
+					"stroke": "gold"
+				},
+				{
+					"t": "text",
+					"at": [
+						500,
+						360
+					],
+					"text": "ΡLΣΛSΣ ΙΝSΣRΤ ΔRΛCΗΜΛ  -  arcade Greek letters  ·  CRT filter (Settings, its own page)",
+					"size": 17,
+					"color": "gold",
+					"align": "center"
+				},
+				{
+					"t": "badge",
+					"at": [
+						250,
+						460
+					],
+					"text": "followed ships fly steady",
+					"color": "green",
+					"size": 16
+				},
+				{
+					"t": "badge",
+					"at": [
+						520,
+						460
+					],
+					"text": "voices 50 % louder",
+					"color": "purple",
+					"size": 16
+				},
+				{
+					"t": "badge",
+					"at": [
+						790,
+						460
+					],
+					"text": "dialogues free the mouse",
+					"color": "cyan",
+					"size": 16
+				}
+			]
+		},
+		{
+			"patch": "0006",
+			"title": "Patch 0006 - The console look",
+			"text": "The whole GUI took the map-console reference's look: dark teal glass, glowing cyan borders and orange highlights, the same everywhere. It brought a planet card, a planet map like the console's terrain map, and matching icons for the system and galaxy maps and the tabs. Every ship leaves an anime-style exhaust trail, the sprites got an 80s-anime cel look, and the scanner draws glowing routes, rings and sweeps.",
+			"diagram": [
+				{
+					"t": "box",
+					"rect": [
+						40,
+						50,
+						440,
+						130
+					],
+					"label": "ONE CONSOLE LOOK\ndark teal glass, cyan borders,\norange highlights - no per-empire palettes",
+					"size": 16,
+					"stroke": "cyan",
+					"pulse": true
+				},
+				{
+					"t": "box",
+					"rect": [
+						520,
+						50,
+						440,
+						130
+					],
+					"label": "PLANET MAP\nglowing coasts, orange routes,\ncircled icons, layers, planet card",
+					"size": 16,
+					"stroke": "gold"
+				},
+				{
+					"t": "box",
+					"rect": [
+						40,
+						210,
+						280,
+						110
+					],
+					"label": "EXHAUST TRAILS\nblue / orange / magenta",
+					"size": 16,
+					"stroke": "purple"
+				},
+				{
+					"t": "box",
+					"rect": [
+						360,
+						210,
+						280,
+						110
+					],
+					"label": "80s-ANIME SPRITES\ncel tones, ink outlines\n339 sprites",
+					"size": 16,
+					"stroke": "red"
+				},
+				{
+					"t": "box",
+					"rect": [
+						680,
+						210,
+						280,
+						110
+					],
+					"label": "MAP ICONS\nsystem + galaxy maps,\ntab icons that fit",
+					"size": 16,
+					"stroke": "cyan"
+				},
+				{
+					"t": "bar",
+					"rect": [
+						60,
+						360,
+						880,
+						28
+					],
+					"value": 1.0,
+					"color": "#7a4a14",
+					"label": "the scanner: glowing signal routes, rings and sweeps",
+					"size": 15
+				},
+				{
+					"t": "badge",
+					"at": [
+						250,
+						460
+					],
+					"text": "planet card",
+					"color": "cyan",
+					"size": 16
+				},
+				{
+					"t": "badge",
+					"at": [
+						500,
+						460
+					],
+					"text": "Rajdhani headings",
+					"color": "gold",
+					"size": 16
+				},
+				{
+					"t": "badge",
+					"at": [
+						760,
+						460
+					],
+					"text": "105 tests pass",
+					"color": "green",
+					"size": 16
+				}
+			]
+		}
+	]
+}

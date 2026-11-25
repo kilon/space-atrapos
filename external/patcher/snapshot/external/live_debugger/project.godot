@@ -1,0 +1,6 @@
+; The live debugger daemon (see debugger.gd) - a separate, tiny project:
+; not part of the game (external/ is ignored by the game and its exports).
+config_version=5
+
+[application]
+config/name="Space Atrapos live debugger"

@@ -1,0 +1,54 @@
+=== MYCENAEAN KINGDOMS: SPACE STATIONS PROMPT TEMPLATE =============================
+
+DONE (2026-11-11): the sheet is external/images/mycenaean_spacestations_1.png. Before it, their old designs (Forge,
+Gateway, Wheel, Trident) went to the Independents, and Mycenaean stations fly
+placeholders (station_mycenae_ph_wheel / _trident: recoloured gold) until this
+sheet exists. They have no ship sheet of their own either (they fly six adopted
+designs in olive, gold, bronze and red-cream), so the prompt describes their
+look in words; the layout comes from the Ionians' station sheet.
+
+----------------------------------------------------------------------------------
+HOW TO USE
+----------------------------------------------------------------------------------
+ 1. Attach ionian_spacestations_1.png (the layout, scale and camera) - and, for
+    the painted style, spartan_spacestations_1.png - and send PROMPT A.
+ 2. Check it against the CHECKLIST; regenerate until it passes.
+ 3. Save it as external/images/mycenaean_spacestations_1.png (or leave it in
+    Downloads) and ask Claude to cut it in: the cells map, row by row, to the
+    keys in brackets (station_mycenae_<key>), MYCENAE_STATIONS in
+    tools/extract_sprites.py.
+
+----------------------------------------------------------------------------------
+PROMPT A
+----------------------------------------------------------------------------------
+Make a sprite sheet of 12 space stations in exactly the same painted style, scale, camera and layout as the attached station sheets: 1536 x 1024 pixels, pure black background, a 4 x 3 grid, each station centred in its cell with clear black space all round it (no part touching another cell), seen straight from above (top-down, roughly round or symmetric silhouettes that read well while slowly spinning), no text or labels. Make them the stations of the Mycenaean Kingdoms:
+
+The Mycenaean Kingdoms: warrior-kings of cyclopean citadels and golden fleets - miners and shipwrights of the Bronze Age mainland, reborn among the stars. Massive armour of huge rough-cut cyclopean stone blocks and olive-drab plating, heavy bronze and hammered gold everywhere, red-cream painted panels; the royal signs of Mycenae: the Lion Gate's two rampant lions, gold death masks, beehive tholos domes, figure-eight shields, boar's-tusk helmets, chariots, griffins, spirals and rosettes in gold leaf, the octopus of their pottery. Amber-gold engine and window glow. Heavy, proud, fortress-like shapes - never the Spartans' crimson and lambdas, never the Athenians' temples and owls, never the Minoans' cream ceramic and dolphins.
+
+Row 1:
+1. The Lion Gate: a citadel gate station, two rampant gold lions over a docking portal, stone walls round it.
+2. The golden mask: a hub shaped like a hammered gold death mask, docking arms round it.
+3. A tholos: a great beehive dome of stone rings with an entrance passage, gold capstone.
+4. A megaron: a royal hall station - a square hall with a round hearth glowing at its centre, four porches.
+
+Row 2:
+5. A cyclopean ring: a ring of colossal stone blocks with bronze gun emplacements.
+6. A figure-eight shield: a station shaped like a giant figure-eight hide shield with bronze bosses.
+7. A boar's-tusk station: a hub ringed with curved ivory tusk plates like the old helmets.
+8. A chariot wheel: a great four-spoked bronze chariot wheel with docking pods on its rim.
+
+Row 3:
+9. A griffin station: two gold griffins facing each other round a shrine hub.
+10. A shipwright's forge: a dry-dock with a half-built golden warship in bronze cradles.
+11. A treasury: a vault station of gold-banded stone chambers round a sealed core.
+12. A mining hub: an ore refinery of crushers, conveyor arms and ore silos, olive and bronze.
+
+----------------------------------------------------------------------------------
+CHECKLIST
+----------------------------------------------------------------------------------
+[ ] 1536 x 1024, black background, 4 columns x 3 rows, nothing crossing a cell
+[ ] top-down, symmetric enough to spin
+[ ] olive, bronze, gold, cyclopean stone, red-cream; lions, masks, tholos domes,
+    figure-eight shields, boar's tusks, griffins - not the other empires' signs
+[ ] no text, numbers or watermarks
+[ ] all 12 clearly different

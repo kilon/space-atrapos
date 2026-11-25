@@ -1,0 +1,161 @@
+{
+ "kind": "version",
+ "id": "0.32",
+ "title": "Make it yours",
+ "date": "2026-11-24",
+ "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds.",
+ "patches": [
+  "0023"
+ ],
+ "steps": [
+  {
+   "patch": "0023",
+   "title": "Patch 0023 - Mods, meshes and the Live Editor",
+   "text": "Mods that change any file of the game and a Mod Editor to make them; a mesh editor, an animation editor and an effects editor in Talos; the Live Editor (F10) for anything in the running world, its edits kept for every thing of that kind. Also: Patch Notes on the title screen, a tooltip on every control (about 215 were missing), smooth turns and mended clips, the slung rifle, and the browser build in 6-7 s instead of up to 140.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "PATCH 0023 - MODS, MESHES AND THE LIVE EDITOR",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      90,
+      300,
+      110
+     ],
+     "label": "mods: replace or\nmerge any file",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      90,
+      300,
+      110
+     ],
+     "label": "the Mod Editor",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      90,
+      300,
+      110
+     ],
+     "label": "Patch Notes on\nthe title screen",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      225,
+      300,
+      110
+     ],
+     "label": "mesh editor:\n120 shapes, booleans,\nknife, loop cut",
+     "size": 16,
+     "stroke": "purple",
+     "pulse": true
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      225,
+      300,
+      110
+     ],
+     "label": "animation editor,\neffects editor",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      225,
+      300,
+      110
+     ],
+     "label": "the Live Editor  F10:\nedit the running world",
+     "size": 16,
+     "stroke": "gold",
+     "pulse": true
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      360,
+      300,
+      110
+     ],
+     "label": "a tooltip on\nevery control",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      360,
+      300,
+      110
+     ],
+     "label": "smooth turns,\nthe slung rifle",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      360,
+      300,
+      110
+     ],
+     "label": "the browser:\n6-7 s to play",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "badge",
+     "at": [
+      260,
+      515
+     ],
+     "text": "14 steps",
+     "color": "gold",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      740,
+      515
+     ],
+     "text": "176 files",
+     "color": "cyan",
+     "size": 16
+    }
+   ]
+  }
+ ],
+ "open": true
+}

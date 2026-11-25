@@ -1,0 +1,13 @@
+{
+	"Minoan tile assembly": 347.565,
+	"galaxy route search": 0.069015,
+	"galaxy simulation (per 0.5 s tick)": 1.26337,
+	"space frame process time (warm)": 3.95131666666665,
+	"sprite load (per sprite)": 1.15671202531646,
+	"startup sprite load": 893.869,
+	"surface build: krystallos": 2172.661,
+	"surface build: selene": 1020.055,
+	"surface build: thalassa": 2829.284,
+	"surface find_path (per query)": 7.14541,
+	"surface frame update (walking)": 0.106703333333333
+}

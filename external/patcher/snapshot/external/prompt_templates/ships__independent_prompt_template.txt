@@ -1,0 +1,68 @@
+=== INDEPENDENTS: SHIPS + STATIONS PROMPT TEMPLATE =================================
+
+The Independents (free ports and ships that answer to no empire) have two station
+designs (Lotus Gardens and Violet Sun, the Minoans' old ones) and placeholder
+haulers: existing sprites recoloured steel and emerald with tools/recolor_sprite.py
+(ship_traced_drifter, ship_traced_prospector). These two sheets give them designs
+of their own (more stations, and real haulers). Same canvas and layout as the other sheets
+(player_ships_1.png, stations_1.png): tools/extract_sprites.py cuts them by grid.
+
+----------------------------------------------------------------------------------
+HOW TO USE
+----------------------------------------------------------------------------------
+ 1. Attach player_ships_1.png (for the style, scale and layout) and send PROMPT A.
+ 2. Attach stations_1.png and send PROMPT B.
+ 3. Check each against the CHECKLIST; regenerate until it passes.
+ 4. Save them as external/images/independent_ships_1.png and
+    external/images/independent_stations_1.png and ask Claude to cut them in
+    (it adds them to tools/extract_sprites.py and swaps the placeholders out).
+
+----------------------------------------------------------------------------------
+THE INDEPENDENTS (copy unchanged into both prompts)
+----------------------------------------------------------------------------------
+Civilian free traders and free ports of a far-future Greek-inspired galaxy, who
+answer to no empire and stay neutral in every war. Practical, patched-together,
+well-travelled: bare brushed steel and gunmetal hulls, panels of mismatched
+grey, cargo frames and docking clamps, emerald-green running lights, trim and
+engine glow. No empire's colours, crests or symbols (no owls, lambdas, bull
+horns, lapis-and-gold, laurels), no skulls or pirate motifs.
+
+----------------------------------------------------------------------------------
+PROMPT A - SHIPS
+----------------------------------------------------------------------------------
+Make a sprite sheet in exactly the same style, scale, camera and layout as the
+attached sheet: 1536 x 1024 pixels, pure black background, a 4 x 3 grid of 12
+spaceships, each centred in its cell with clear black space all round it (no
+part touching another cell), seen straight from above, nose pointing RIGHT,
+no text or labels, no shadows on the background.
+{THE INDEPENDENTS}
+Row 1: four freighters of different shapes (bulk hauler, container carrier,
+tanker with round tanks, long modular freighter).
+Row 2: two mining haulers (ore drills or claws at the nose, ore bins), a courier,
+an explorer with a sensor dish.
+Row 3: four light escorts the free ports hire (a fighter, an interceptor, a
+gunship with turrets, a small frigate) - armed but civilian, same steel and
+emerald livery.
+
+----------------------------------------------------------------------------------
+PROMPT B - STATIONS
+----------------------------------------------------------------------------------
+Make a sprite sheet in exactly the same style, scale, camera and layout as the
+attached sheet: 1536 x 1024 pixels, pure black background, a 4 x 3 grid of 12
+space stations, each centred in its cell with clear black space all round it,
+seen straight from above (top-down, roughly round or symmetric silhouettes that
+read well while slowly spinning), no text or labels.
+{THE INDEPENDENTS}
+Twelve different free ports: trading posts with docking arms and cargo pods,
+waystations, a refinery port, a mining depot, a market ring with many berths,
+a caravanserai of docked freighters, a repair yard - every silhouette distinct
+from the others and from the attached sheet's.
+
+----------------------------------------------------------------------------------
+CHECKLIST
+----------------------------------------------------------------------------------
+[ ] 1536 x 1024, black background, 4 columns x 3 rows, nothing crossing a cell
+[ ] top-down; ships' noses point right
+[ ] steel / gunmetal with emerald lights only - no empire colours or symbols
+[ ] no text, numbers or watermarks
+[ ] every design clearly different from the others

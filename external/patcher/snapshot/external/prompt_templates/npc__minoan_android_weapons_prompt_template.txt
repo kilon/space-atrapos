@@ -1,0 +1,78 @@
+Minoan android citizen - static 8-view sprite sheets, three weapons (2026-11-10)
+Reference: the attached concept sheet (triceratops-headed Minoan android).
+Make one image per sheet below: three character sheets (bow, rifle, double axe)
+and one projectiles / effects sheet. Paste the SHARED STYLE block into each.
+
+=== SHARED STYLE (paste into every prompt) ===
+1980s anime cel style, clean bold black ink outlines, flat cel shading with 2-3
+tones per colour, crisp edges, no blur, no gradients in the background. Game
+sprite sheet on a flat pure chroma-green background (#00B000), no shadows on
+the ground, no text except what is asked, no panel borders, no labels.
+The character is exactly the one in the reference image: a Minoan android built
+in a triceratops's image - cream ceramic armour plates over dark blue-grey
+mechanical joints, gold bronze trim, a large round frill with red Minoan spirals
+and a studded gold rim, two long brow horns and a short nose horn, glowing cyan
+eyes, a glowing cyan sun-disc core on the chest, a gold earring with a cyan gem,
+a dark red cape with a gold triskelion, a gold bull-head belt, a cream kilt with
+a red wave border and red tassels, digitigrade clawed feet. Palette: cream
+#E8D8B8, Minoan red #8B2A2A, bronze gold #D4A030, deep blue #1E4E8C, steel grey
+#505050, cyan glow #00F0FF. Same proportions, same height and same scale in
+every figure; full body, feet fully visible, nothing cropped. Orthographic-like
+3/4 top-down game view (camera about 30 degrees above), as for an isometric RPG.
+
+=== SHEET 1: BOW (the archer) ===
+[SHARED STYLE]
+The android holds a Minoan composite laser bow: recurved, cream ceramic limbs
+with gold bronze tips and spirals, a glowing cyan energy string, a cyan crystal
+at the grip. A small bronze quiver of glowing arrows on the back.
+Layout: 2 rows x 8 columns, evenly spaced, one figure per cell, all standing on
+the same baseline per row. Columns left to right are the 8 view directions:
+front, front 3/4 (facing down-right), side (facing right), back 3/4 (facing
+up-right), back, back 3/4 (facing up-left), opposite side (facing left), front
+3/4 (facing down-left).
+Row 1 - RELAXED: standing, bow held low in the left hand, pointing down.
+Row 2 - SHOOTING: bow raised to shoulder height, string drawn to the cheek with
+a glowing arrow nocked, aiming straight ahead in the direction it faces.
+
+=== SHEET 2: RIFLE (the guard) ===
+[SHARED STYLE]
+The android holds the laser rifle from the reference: gold and grey body, a
+cyan energy cell along the barrel, dark grey stock and grip.
+Layout: 2 rows x 8 columns, same 8 view directions as above (front, front 3/4
+down-right, side right, back 3/4 up-right, back, back 3/4 up-left, opposite side
+left, front 3/4 down-left), all on the same baseline per row.
+Row 1 - RELAXED: rifle held across the body at the ready, barrel pointing down
+and to the side.
+Row 2 - AIMING: rifle shouldered, both hands on it, aiming straight ahead in the
+direction it faces, a tiny cyan glow at the muzzle.
+
+=== SHEET 3: DOUBLE AXE (the labrys guardian) ===
+[SHARED STYLE]
+The android holds a Minoan labrys: a long double-headed axe, two symmetrical
+crescent bronze blades engraved with red spirals and edged with a thin cyan
+energy line, on a long dark-grey shaft wrapped in red leather with a gold pommel.
+Layout: 3 rows x 8 columns, same 8 view directions as above (front, front 3/4
+down-right, side right, back 3/4 up-right, back, back 3/4 up-left, opposite side
+left, front 3/4 down-left), all on the same baseline per row.
+Row 1 - RELAXED: axe held upright in one hand, its butt resting on the ground.
+Row 2 - WIND-UP: both hands on the shaft, axe raised high over the shoulder,
+ready to strike in the direction it faces.
+Row 3 - STRIKE: the axe swung down and forward at the end of the blow, a cyan
+arc trail behind the blades.
+
+=== SHEET 4: PROJECTILES AND EFFECTS ===
+1980s anime cel style, glowing energy effects on a pure black background
+(#000000), crisp shapes, each effect centred in its own cell, no text, no
+borders. Colours: cyan #00F0FF and white cores for the android's weapons.
+Layout: 3 rows x 6 columns, evenly spaced cells, every projectile pointing to
+the RIGHT (horizontal).
+Row 1 - ARROWS: a glowing cyan laser arrow (bronze arrowhead, light shaft,
+energy fletching); the same arrow with a short motion trail; an arrow stuck
+(only the back half); the bow's release flash; an arrow impact burst (cyan
+star); a small spark puff.
+Row 2 - BULLETS: a cyan laser bolt (short capsule, white core); a heavy bolt
+(longer, thicker); the muzzle flash seen from the side; a small muzzle flash;
+a bolt impact burst; a cloud of hit sparks.
+Row 3 - AXE: a crescent cyan slash arc (sweeping right); a wider slash arc;
+a ground-strike shockwave (flat ellipse ring); stone debris chips; a cyan
+spark burst; a small dust puff.

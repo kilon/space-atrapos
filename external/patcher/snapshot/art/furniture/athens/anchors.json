@@ -1,0 +1,178 @@
+{
+ "dining_table_a": [
+  81,
+  117
+ ],
+ "dining_table_b": [
+  84,
+  117
+ ],
+ "chair_a": [
+  36,
+  75
+ ],
+ "chair_b": [
+  36,
+  75
+ ],
+ "throne_a": [
+  51,
+  183
+ ],
+ "throne_b": [
+  51,
+  183
+ ],
+ "bench_a": [
+  68,
+  85
+ ],
+ "bench_b": [
+  68,
+  85
+ ],
+ "couch_a": [
+  75,
+  113
+ ],
+ "couch_b": [
+  75,
+  113
+ ],
+ "bed_a": [
+  80,
+  73
+ ],
+ "bed_b": [
+  80,
+  73
+ ],
+ "tech_desk_a": [
+  64,
+  141
+ ],
+ "tech_desk_b": [
+  64,
+  141
+ ],
+ "cabinet_a": [
+  45,
+  183
+ ],
+ "cabinet_b": [
+  44,
+  183
+ ],
+ "pithoi": [
+  36,
+  140
+ ],
+ "amphora_rack": [
+  51,
+  124
+ ],
+ "chest": [
+  50,
+  78
+ ],
+ "locker": [
+  41,
+  152
+ ],
+ "round_table": [
+  38,
+  83
+ ],
+ "cauldron": [
+  29,
+  109
+ ],
+ "hearth": [
+  60,
+  62
+ ],
+ "fruit_basket": [
+  24,
+  43
+ ],
+ "water_basin": [
+  29,
+  90
+ ],
+ "altar": [
+  52,
+  113
+ ],
+ "goddess_statue": [
+  36,
+  200
+ ],
+ "offering_table": [
+  48,
+  69
+ ],
+ "lamp_stand": [
+  14,
+  199
+ ],
+ "incense_burner": [
+  16,
+  140
+ ],
+ "console": [
+  52,
+  140
+ ],
+ "holo_table": [
+  34,
+  107
+ ],
+ "power_core": [
+  28,
+  164
+ ],
+ "med_pod": [
+  70,
+  105
+ ],
+ "weapon_rack": [
+  48,
+  200
+ ],
+ "charging_alcove": [
+  39,
+  212
+ ],
+ "workbench": [
+  64,
+  103
+ ],
+ "rug_spiral": [
+  87,
+  45
+ ],
+ "cushions": [
+  36,
+  22
+ ],
+ "lilies": [
+  23,
+  96
+ ],
+ "olive_pot": [
+  34,
+  166
+ ],
+ "tablets": [
+  45,
+  116
+ ],
+ "loom": [
+  38,
+  198
+ ],
+ "shards": [
+  17,
+  13
+ ]
+}

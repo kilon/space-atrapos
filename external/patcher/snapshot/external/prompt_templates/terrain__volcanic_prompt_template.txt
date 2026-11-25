@@ -1,0 +1,66 @@
+Create a single game tile sheet image for an isometric 2D game: the TERRAIN of a VOLCANIC
+PLANET like Venus - a scorched world of black and red-brown volcanic rock, cracked basalt,
+grey-ochre ash and sulphur-yellow crust, with rivers and lakes of glowing magma everywhere,
+under a thick orange haze. Style: 1980s anime background art - cel-painted, clean bold dark
+outlines, flat colour areas with 2-3 tone cel shading, crisp highlights, saturated warm
+palette (deep basalt black-purple, rust red, burnt umber, ash grey, sulphur yellow, and magma
+glowing from deep red through orange to yellow-white in its hottest cracks), hand-painted
+detail like an 80s anime film's backgrounds. Magma glows: its light warms the rock edges
+next to it (a thin orange rim light), but no blur and no soft glow halos onto the background.
+
+LAYOUT REFERENCE: attach ice_terrain_tile_set.png (or forest_terrain_tile_set.png) and copy
+its layout exactly - the same canvas, the same grid, the same piece in the same cell, the same
+shapes, sizes and projection; only the materials change to volcanic ones as listed below.
+
+=== CANVAS (exact) ===
+- Image size: exactly 1536 x 1024 pixels.
+- Background: one flat solid colour, pure magenta #FF00FF, everywhere that is not a piece.
+  No gradient, no texture, no vignette, no grid lines, no borders, no labels, no text.
+- Grid: 8 columns x 6 rows of invisible cells, each 192 x 170 pixels. Exactly ONE piece per
+  cell, centred in it, never crossing its cell; at least 6 px of magenta around each piece.
+
+=== PROJECTION (exact, no perspective) ===
+- True 2:1 isometric projection: every receding edge rises 1 pixel per 2 pixels across.
+  Vertical edges perfectly vertical. NO perspective - parallel lines stay parallel.
+- Every flat ground tile is the same diamond (about 176 x 88 px top face) with a thin side
+  thickness (about 10 px) showing on its two front faces, exactly like the reference sheet.
+- Light from the upper-left: left/front-left faces lit, right faces about 20% darker.
+  Magma is self-lit (bright on every side).
+
+=== CELL CONTENTS (row by row, columns 0..7) ===
+Row 0 - GROUND TILES (flat diamonds, they must tile seamlessly edge to edge):
+  0 dark basalt ground (cracked plates), 1 basalt with thin glowing magma cracks,
+  2 grey-ochre ash plain (soft dunes), 3 sulphur-yellow crust with small vents,
+  4 path - a straight trail of crushed black cinder across the tile (running corner to
+  corner along one axis), 5 path corner (the same trail turning), 6 paved path of dark
+  hexagonal basalt columns seen from above, 7 rough rock ground (pumice and scoria).
+Row 1 - LEDGE BLOCKS (a raised ground tile on top, cliff faces below, exactly the shapes of
+  the reference's row 1): 0 block corner (both front faces), 1 block left face only,
+  2 block right face only, 3 inner corner, 4 left end, 5 right end, 6 double-height block
+  (two storeys of cliff), 7 ledge back (only a thin top edge). Cliffs: layered dark basalt
+  with columnar joints, red-brown strata, glowing magma seeping out of a few cracks.
+Row 2 - SLOPES: 0 ramp rising to the north-east, 1 ramp rising to the north-west,
+  2 ramp rising to the south-west, 3 ramp rising to the south-east (ash-covered rock ramps),
+  4 steps rising north-east, 5 steps rising north-west (cut into black basalt), 6 scree of
+  broken volcanic rubble (a tile-sized heap), 7 rock slope with a jagged basalt outcrop.
+Row 3 - MAGMA (the liquid tiles, like the reference's water row): 0 deep magma lake
+  (dark crusted red with bright cracks between floating black crust plates), 1 shallow
+  bright magma (orange-yellow, flowing ripples), 2 cooled ash flat (walkable, grey),
+  3 ash with cooling lava rope-patterns (pahoehoe), 4 magma shore on the left half of the
+  tile (rock on the right), 5 magma shore on the right half (rock on the left), 6 magma
+  shore corner (magma in one corner), 7 a narrow lava river running across the tile with
+  black rock banks on both sides.
+Row 4 - VOLCANIC FEATURES (standing objects, base touching the bottom of the cell's middle,
+  up to 170 px tall): 0 smoking fumarole cone with a wisp of yellow-grey smoke, 1 tall black
+  obsidian spire, 2 small glowing magma vent (a crater spitting a few sparks), 3 jagged
+  basalt boulder, 4 sulphur crystal cluster (yellow), 5 dead charred tree, 6 cluster of
+  hexagonal basalt columns, 7 small glowing rock with lava veins.
+Row 5 - RUINS (Greek ruins half-buried in ash and scorched, standing objects): 0 column
+  stump, 1 standing column, 2 fallen column, 3 Ionic capital in the ash, 4 broken arch,
+  5 short colonnade, 6 ruined steps, 7 ruined wall with a meander frieze - all in pale
+  marble blackened by soot, with cooled lava flows wrapped round their bases.
+
+=== RULES ===
+- Same scale for every piece; ground, blocks, ramps and liquid tiles share the same diamond.
+- Do not use magenta (#FF00FF) or near-magenta / pink colours anywhere in the artwork.
+- No characters, no buildings, no text, no labels, no watermark anywhere on the image.
