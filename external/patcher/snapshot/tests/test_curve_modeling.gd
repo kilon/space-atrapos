@@ -3468,3 +3468,242 @@ func test_right_click_cancels_a_drag() -> void:
 	ct.view_input(_mouse_btn(at + Vector2(60, 30), false))
 	check((ct.curves[0]["ctrl"] as PackedVector3Array)[1].is_equal_approx(was) and ed._undo.size() == undo0, "letting go after: nothing moves, no undo step")
 	await _done(ed)
+
+
+func test_cut_picked_from_its_ghost() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve(_rect(1.0, 1.0))
+	ct.select(0)
+	var blk: MeshInstance3D = ct.make_part("extrude", 0.5)
+	# a tall cylinder cut out of the block: it stands out of the block's top - its ghost there
+	ct.add_curve(_circle(Vector3(0.5, 0, 0.5), 0.2))
+	ct.select(ct.curves.size() - 1)
+	var cyl: MeshInstance3D = ct.make_part("extrude", 1.5)
+	check(ct.cut_from(cyl, blk), "cut")
+	ct.select(-1)
+	ed.select_part(null)
+	ct.update_ghosts()
+	ed.frame_all()
+	await tree.process_frame
+	var top: Vector3 = blk.global_transform * Vector3(0.5, 1.3, 0.5)
+	var at: Vector2 = ed.view.project(top)
+	var gh: Dictionary = ct._ghost_hit(at)
+	check(not gh.is_empty() and gh["part"] == blk, "the cut's ghost found under the mouse")
+	# pressed there: the cut step picked - its solid selected, the circle picked
+	var b := InputEventMouseButton.new()
+	b.button_index = MOUSE_BUTTON_LEFT
+	b.pressed = true
+	b.position = at
+	ct.view_input(b)
+	check(ed.part == blk, "its solid selected")
+	check(ct.sel.size() == 1 and int(ct.curves[ct.sel[0]].get("id", -1)) == int(ct.spec_ids(blk.get_meta("curve_solid")["b"])[0]), "the cut's edge picked (%s)" % [ct.sel])
+	check(ct.has_meta("step_pick"), "its ghost shown picked")
+	# dragged: the cut moves whole - its place in the recipe, its edge's shape kept
+	var k0: PackedVector3Array = (ct.curves[ct.sel[0]]["ctrl"] as PackedVector3Array).duplicate()
+	var xf0: Array = (blk.get_meta("curve_solid")["b_xf"] as Array).duplicate()
+	var v0 := Shapes.volume(blk.mesh)
+	for i in 6:
+		var m := InputEventMouseMotion.new()
+		m.position = at + Vector2(8 + i * 6, 0)
+		ct.view_input(m)
+	b.pressed = false
+	b.position = at + Vector2(44, 0)
+	ct.view_input(b)
+	check(ct.curves[ct.sel[0]]["ctrl"] == k0, "the cut's edge kept its shape")
+	check(blk.get_meta("curve_solid")["b_xf"] != xf0, "the cut moved")
+	ed.undo()
+	check(blk.get_meta("curve_solid")["b_xf"] == xf0, "undone: back where it was (%.4f vs %.4f)" % [Shapes.volume(blk.mesh), v0])
+	# the overview lists the step even with the solid folded
+	ct._unfolded().erase(blk.get_instance_id())
+	ct._refresh_panel()
+	var found := false
+	var it: TreeItem = (ct._w("tree") as Tree).get_root()
+	while it:
+		if it.get_text(0).begins_with("Cut:"):
+			found = true
+		it = it.get_next_in_tree()
+	check(found, "the cut's row in the overview, the solid folded")
+	await _done(ed)
+
+
+func test_revolve_near_axis_is_closed_and_cuts() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	# a half circle whose ends sit a hair off the axis (left so by a drag): revolved, it's still a closed solid
+	var arc := {"kind": "arc", "ctrl": PackedVector3Array([Vector3(0.0002, -0.5, 0), Vector3(0.5, 0, 0), Vector3(0.0002, 0.5, 0)]), "closed": false, "n": Vector3.BACK}
+	var m: ArrayMesh = ct.revolve_mesh([arc], TAU, 32, [Vector3.ZERO, Vector3.UP, -1])
+	var MB: GDScript = load("res://scripts/editor/mesh/mesh_bool.gd")
+	var big := BoxMesh.new()
+	big.size = Vector3(2, 2, 2)
+	var box := ArrayMesh.new()
+	box.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, big.get_mesh_arrays())
+	var r: Dictionary = MB.run(box, m, Transform3D(), "difference")
+	check(str(r.get("error", "")) == "", "cut from a box: a solid (%s)" % r.get("error", ""))
+	await _done(ed)
+
+
+func test_lines_follow_a_moved_step() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve(_rect(1.0, 1.0))
+	ct.select(0)
+	var blk: MeshInstance3D = ct.make_part("extrude", 0.5)
+	ct.add_curve(_circle(Vector3(0.5, 0, 0.5), 0.2))
+	ct.select(ct.curves.size() - 1)
+	var cyl: MeshInstance3D = ct.make_part("extrude", 1.5)
+	ct.cut_from(cyl, blk)
+	ct.select(-1)
+	await tree.process_frame
+	await tree.process_frame
+	var mi: MeshInstance3D = ct.get_meta("lines_mi")
+	var sig0 = mi.get_meta("sig", 0)
+	var spec: Dictionary = blk.get_meta("curve_solid").duplicate(true)
+	spec["b_xf"] = ct.xf_arr(Transform3D(Basis.IDENTITY, Vector3(0.1, 0, 0)) * ct.xf_of(spec["b_xf"]))
+	blk.set_meta("curve_solid", spec)
+	ct.layer.queue_redraw()
+	await tree.process_frame
+	await tree.process_frame
+	check(mi.get_meta("sig", 0) != sig0, "the cut's edge lines drawn where it went")
+	await _done(ed)
+
+
+func test_simplify_keeps_a_curved_rim() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	# a rim round a curved solid: a closed line of 48 points, not flat (a saddle), its plane's normal wrong
+	var k := PackedVector3Array()
+	for i in 48:
+		var a := TAU * i / 48.0
+		k.append(Vector3(cos(a), 0.3 * sin(2.0 * a), sin(a)))
+	var c := {"kind": "line", "ctrl": k, "closed": true, "n": Vector3.UP}
+	var e: Dictionary = ct.simplified(c)
+	check(not e.is_empty() and (e["ctrl"] as PackedVector3Array).size() < 24, "made lean (%d vertices)" % (e["ctrl"] as PackedVector3Array).size() if not e.is_empty() else 0)
+	var s: PackedVector3Array = ct.sample(e)
+	s.append(s[0])
+	var worst := 0.0
+	for q in k:
+		var best := INF
+		for j in range(1, s.size()):
+			best = minf(best, Geometry3D.get_closest_point_to_segment(q, s[j - 1], s[j]).distance_to(q))
+		worst = maxf(worst, best)
+	check(worst < 0.02, "its shape kept - not flattened (%.4f off at most)" % worst)
+	await _done(ed)
+
+
+func test_baked_cut_sphere_has_few_slivers() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	var EN: GDScript = load("res://scripts/editor/mesh/edge_net.gd")
+	ed.new_model(true)
+	# a revolved sphere, a smaller revolved sphere cut out of its side, baked into one solid
+	ct.add_curve({"kind": "arc", "ctrl": PackedVector3Array([Vector3(0, 0, 0), Vector3(0.69, 0.68, 0), Vector3(0, 1.36, 0)]), "closed": false, "n": Vector3.BACK})
+	ct.select(0)
+	var big: MeshInstance3D = ct.make_part("revolve", 360.0)
+	ct.add_curve({"kind": "arc", "ctrl": PackedVector3Array([Vector3(0, 0.5, 0), Vector3(0.5, 1.0, 0), Vector3(0, 1.5, 0)]), "closed": false, "n": Vector3.BACK})
+	ct.select(1)
+	var small: MeshInstance3D = ct.make_part("revolve", 360.0)
+	small.position = Vector3(0.6, 0, 0)
+	check(ct.cut_from(small, big), "cut")
+	ed.select_part(big)
+	check(ct.bake_solid(big), "baked")
+	var sp: Dictionary = big.get_meta("curve_solid")
+	var flat: Array = sp["mesh"]["v"]
+	var v := PackedVector3Array()
+	for i in range(0, flat.size(), 3):
+		v.append(Vector3(flat[i], flat[i + 1], flat[i + 2]))
+	var t := PackedInt32Array(sp["mesh"]["t"])
+	var thin := 0
+	for i in range(0, t.size(), 3):
+		if ct._min_angle(v[t[i]], v[t[i + 1]], v[t[i + 2]]) < 15.0:
+			thin += 1
+	check(thin * 10 < t.size() / 3, "few slivers - halves of quads over 4 to 1: %d of %d triangles" % [thin, t.size() / 3])
+	check(EN._open_edges(t) == 0, "still closed")
+	check(t.size() / 3 < 12000, "not too dense (%d triangles)" % (t.size() / 3))
+	await _done(ed)
+
+
+
+## (bakes' topology) The baked solid's quads: [faces, lone triangles, open edges, dense].
+func _quad_stats(blk: MeshInstance3D) -> Array:
+	var EN: GDScript = load("res://scripts/editor/mesh/edge_net.gd")
+	var sp: Dictionary = blk.get_meta("curve_solid")
+	var flat: Array = sp["mesh"]["v"]
+	var v := PackedVector3Array()
+	for i in range(0, flat.size(), 3):
+		v.append(Vector3(flat[i], flat[i + 1], flat[i + 2]))
+	var t := PackedInt32Array(sp["mesh"]["t"])
+	var faces: Array = EN._pair_faces(v, t, sp["fv"])
+	var lone := 0
+	for f in faces:
+		if (f as Array).size() == 3:
+			lone += 1
+	return [faces.size(), lone, EN._open_edges(t), int(sp.get("dense", 0))]
+
+
+func test_bake_lays_quads_along_the_edges() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	# a block with a tilted block cut into its corner (faces of many corners: rings round a middle grid)
+	ct.add_curve(_rect(1.0, 1.0))
+	ct.select(0)
+	var blk: MeshInstance3D = ct.make_part("extrude", 0.6)
+	ct.add_curve(_rect(0.5, 0.5))
+	ct.select(1)
+	var cut: MeshInstance3D = ct.make_part("extrude", 0.5)
+	cut.position = Vector3(0.75, 0.35, 0.75)
+	cut.rotation = Vector3(0.3, 0.5, 0.2)
+	check(ct.cut_from(cut, blk), "cut")
+	ed.select_part(blk)
+	check(ct.bake_solid(blk), "baked")
+	var st := _quad_stats(blk)
+	check(st[3] == 3 and st[2] == 0, "made as grids of quads, closed (dense %d, open %d - %s)" % [st[3], st[2], load("res://scripts/editor/mesh/edge_net.gd").grid_why])
+	check(st[1] * 100 < st[0] * 15, "quads: %d of %d faces are triangles" % [st[1], st[0]])
+	await _done(ed)
+
+
+func test_baked_dome_rings_follow_its_rim() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	# a revolved sphere with a smaller one cut out of its side: the dome round the cut's rim made rings
+	ct.add_curve({"kind": "arc", "ctrl": PackedVector3Array([Vector3(0, 0, 0), Vector3(0.69, 0.68, 0), Vector3(0, 1.36, 0)]), "closed": false, "n": Vector3.BACK})
+	ct.select(0)
+	var big: MeshInstance3D = ct.make_part("revolve", 360.0)
+	ct.add_curve({"kind": "arc", "ctrl": PackedVector3Array([Vector3(0, 0.5, 0), Vector3(0.5, 1.0, 0), Vector3(0, 1.5, 0)]), "closed": false, "n": Vector3.BACK})
+	ct.select(1)
+	var small: MeshInstance3D = ct.make_part("revolve", 360.0)
+	small.position = Vector3(0.6, 0, 0)
+	check(ct.cut_from(small, big), "cut")
+	ed.select_part(big)
+	check(ct.bake_solid(big), "baked")
+	var st := _quad_stats(big)
+	check(st[3] == 3 and st[2] == 0, "made as grids of quads, closed (dense %d, open %d - %s)" % [st[3], st[2], load("res://scripts/editor/mesh/edge_net.gd").grid_why])
+	check(st[1] * 100 < st[0] * 15, "quads: %d of %d faces are triangles" % [st[1], st[0]])
+	await _done(ed)
+
+
+func test_baked_tunnel_rows_run_between_its_rims() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	# a sphere with a tunnel bored through it: the outer surface between two rims, the tunnel's wall too -
+	# ring-shaped faces, their rows running from one rim to the other
+	ct.add_curve({"kind": "arc", "ctrl": PackedVector3Array([Vector3(0, 0, 0), Vector3(0.69, 0.68, 0), Vector3(0, 1.36, 0)]), "closed": false, "n": Vector3.BACK})
+	ct.select(0)
+	var big: MeshInstance3D = ct.make_part("revolve", 360.0)
+	ct.add_curve(_circle(Vector3(0, 0, 0), 0.25, Vector3.BACK))
+	ct.select(1)
+	var bore: MeshInstance3D = ct.make_part("extrude", 3.0)
+	bore.position = Vector3(0.0, 0.68, -1.5)
+	check(ct.cut_from(bore, big), "bored")
+	ed.select_part(big)
+	check(ct.bake_solid(big), "baked")
+	var st := _quad_stats(big)
+	check(st[3] == 3 and st[2] == 0, "made as grids of quads, closed (dense %d, open %d - %s)" % [st[3], st[2], load("res://scripts/editor/mesh/edge_net.gd").grid_why])
+	check(st[1] * 100 < st[0] * 15, "quads: %d of %d faces are triangles" % [st[1], st[0]])
+	await _done(ed)

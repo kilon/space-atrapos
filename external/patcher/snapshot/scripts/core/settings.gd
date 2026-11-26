@@ -314,6 +314,8 @@ func available_resolutions() -> Array[Vector2i]:
 			result.append(r)
 	if result.is_empty():
 		result.append(RESOLUTIONS[0])
+	if not screen in result and screen.x >= RESOLUTIONS[0].x:
+		result.append(screen)   # (the screen's own size too - fullscreen's sharpest)
 	return result
 
 
@@ -329,28 +331,121 @@ static func on_phone() -> bool:
 
 
 func apply() -> void:
+	if DisplayServer.get_name() == "headless":
+		return   # (no window: a test run - its view's size left as the run made it)
 	if on_web():
 		if fullscreen:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 		return
+	# (through the game's own window, not the display server behind it: set there, the window shrank back from
+	# fullscreen while the game still drew its frames at the screen's size - 4K squeezed into a 1080p window)
+	var win := get_tree().root if is_inside_tree() else null
 	if fullscreen:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		if win:
+			win.mode = Window.MODE_FULLSCREEN
+		else:
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	else:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-		# Resize after the mode change has taken effect.
-		_resize_window.call_deferred()
+		var was_full := (win.mode == Window.MODE_FULLSCREEN or win.mode == Window.MODE_EXCLUSIVE_FULLSCREEN) if win else false
+		if win:
+			win.mode = Window.MODE_WINDOWED
+		else:
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		if was_full:
+			# (out of fullscreen the window manager puts the window back by itself - resized now, mid-way,
+			# it was a 0.75 s frame: sized once it's back, only if it isn't the size picked)
+			set_meta("size_when_back", true)
+		else:
+			_resize_window.call_deferred()   # (after the mode change has taken effect)
+	_apply_render_scale()
+
+
+## How the frame is drawn - always the same way, windowed or fullscreen: at the resolution picked (never
+## more than the screen), laid out as ever (`base`, the project's size), scaled to fill the window -
+## [the drawing size, the 2D scale inside it]. (One way always: going in or out of fullscreen changes only
+## the window - switching the stretch itself laid every text out again, a 0.6 s frame.)
+static func frame_plan(full: bool, res: Vector2i, screen: Vector2i, base: Vector2i) -> Array:
+	var r := res
+	if screen.x > 0 and screen.y > 0:
+		r = Vector2i(mini(res.x, screen.x), mini(res.y, screen.y))
+	if base.y <= 0 or r.y <= 0:
+		return [base, 1.0]
+	return [r, float(r.y) / base.y]
+
+
+## The frame drawn by frame_plan - and the setting kept true to the window: left fullscreen (or put in it)
+## some other way - the window manager's keys - the setting follows, saved, and the menus show it.
+func _apply_render_scale() -> void:
+	if not is_inside_tree():
+		return
+	var root := get_tree().root
+	if not root.size_changed.is_connected(_window_changed):
+		root.size_changed.connect(_window_changed)   # (self-healing: connected on the first apply)
+	var base := Vector2i(int(ProjectSettings.get_setting("display/window/size/viewport_width", 1920)), int(ProjectSettings.get_setting("display/window/size/viewport_height", 1080)))
+	var plan := frame_plan(fullscreen and not on_web(), resolution, DisplayServer.screen_get_size(DisplayServer.window_get_current_screen()), base)
+	root.scaling_3d_scale = 1.0
+	if root.content_scale_mode != Window.CONTENT_SCALE_MODE_VIEWPORT:
+		root.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT
+	if root.content_scale_size != (plan[0] as Vector2i):
+		root.content_scale_size = plan[0]
+	if not is_equal_approx(root.content_scale_factor, plan[1]):
+		root.content_scale_factor = plan[1]
+
+
+signal display_changed   # (fullscreen or the resolution changed - the settings page shows it)
+
+
+## (four times a second) The window as it really is: drawing at a fixed size, the game hears no resize when
+## only the window changes - fullscreen left with the window manager's keys is found here.
+func _process(_d: float) -> void:
+	var now := Time.get_ticks_msec()
+	if now - int(get_meta("window_check_at", 0)) < 250:
+		return
+	set_meta("window_check_at", now)
+	_window_changed()
+
+
+func _window_changed() -> void:
+	if on_web() or DisplayServer.get_name() == "headless":
+		return
+	var m := DisplayServer.window_get_mode()
+	var full := m == DisplayServer.WINDOW_MODE_FULLSCREEN or m == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
+	var root := get_tree().root
+	var os_size := DisplayServer.window_get_size()
+	if not full and m == DisplayServer.WINDOW_MODE_WINDOWED and root.size != os_size and os_size.x > 0:
+		root.size = os_size   # (the window's real size: frames drawn at what it shows, never more)
+	if not full and has_meta("size_when_back") and os_size.x > 0 and os_size.x < DisplayServer.screen_get_size().x:
+		remove_meta("size_when_back")
+		if os_size != resolution:
+			_resize_window.call_deferred()   # (back from fullscreen at another size than the one picked)
+	if full != fullscreen:
+		fullscreen = full
+		_apply_render_scale()
+		save_settings()
+		display_changed.emit()
 
 
 func _resize_window() -> void:
 	# Don't open a window bigger than the screen (e.g. 1920x1080 on a laptop).
 	var fits := available_resolutions()
 	var size := resolution if resolution in fits else fits[-1]
-	DisplayServer.window_set_size(size)
 	var screen := DisplayServer.window_get_current_screen()
 	var origin := DisplayServer.screen_get_position(screen)
 	var screen_size := DisplayServer.screen_get_size(screen)
 	var at := window_at_arg()
-	DisplayServer.window_set_position(at if at != Vector2i(-1, -1) else origin + (screen_size - size) / 2)
+	var pos := at if at != Vector2i(-1, -1) else origin + (screen_size - size) / 2
+	if is_inside_tree():
+		var win := get_tree().root
+		# (only what's not so already: out of fullscreen the window comes back at its size and place by itself -
+		# setting them again then waited on the window manager, a 0.6 s frame)
+		if win.size != size:
+			win.size = size   # (the game's window: its frames drawn at this size)
+			win.position = pos
+		elif at != Vector2i(-1, -1) and win.position != pos:
+			win.position = pos
+	else:
+		DisplayServer.window_set_size(size)
+		DisplayServer.window_set_position(pos)
 
 
 ## `-- --window-at=X,Y` on the command line (playtests): the window goes there

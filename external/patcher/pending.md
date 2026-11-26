@@ -1,1 +1,1 @@
-# Pending changes (since patch 0025, 2026-11-26)
+# Pending changes (since patch 0026, 2026-11-27)

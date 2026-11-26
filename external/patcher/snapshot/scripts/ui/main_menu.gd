@@ -61,8 +61,8 @@ func _ready() -> void:
 	%QuitToMenuButton.tooltip_text = "Leaves this game for the title screen (unsaved progress since your last save is lost)."
 	%ExitButton.tooltip_text = "Closes the game (unsaved progress since your last save is lost)."
 	%BackButton.tooltip_text = "Back to the menu (the settings are already kept)."
-	resolution_option.tooltip_text = "The window's size in pixels (windowed). Fullscreen uses the screen's own."
-	fullscreen_check.tooltip_text = "Fills the whole screen. Off: a window of the size above."
+	resolution_option.tooltip_text = "Windowed: the window's size in pixels. Fullscreen: the resolution the world is drawn at, scaled up to fill the screen (lower: faster; the menus stay sharp)."
+	fullscreen_check.tooltip_text = "Fills the whole screen, the world drawn at the resolution above. Off: a window of that size."
 	# Pause-only buttons.
 	%SaveButton.visible = overlay
 	%QuitToMenuButton.visible = overlay
@@ -642,13 +642,11 @@ static func _bind_name_width() -> float:
 func _apply_text_size() -> void:
 	if _lazy:
 		return   # (sized when it's built)
-	for l in _bind_names:
-		if is_instance_valid(l):
-			l.custom_minimum_size.x = _bind_name_width()
 	UI.scale_fonts(self, "menu", 2.0)
 	UI.scale_fonts(settings_panel, "menu", 1.5)
 	if crt_panel:
 		UI.scale_fonts(crt_panel, "menu", 1.5)
+	_fit_controls()   # (the names and bindings fitted to the new text size)
 	_fit.call_deferred()   # (bigger text: taller pages)
 
 
@@ -677,7 +675,7 @@ func _sync_settings_ui() -> void:
 	var index := _resolutions.find(Settings.resolution)
 	resolution_option.select(index if index >= 0 else _resolutions.size() - 1)
 	fullscreen_check.set_pressed_no_signal(Settings.fullscreen)
-	resolution_option.disabled = Settings.fullscreen
+	resolution_option.disabled = false   # (fullscreen too: the world drawn at the resolution picked, scaled to the screen)
 	_sync_crt_ui()
 
 
@@ -714,7 +712,6 @@ func _on_resolution_selected(index: int) -> void:
 
 func _on_fullscreen_toggled(on: bool) -> void:
 	Settings.fullscreen = on
-	resolution_option.disabled = on
 	Settings.apply()
 	Settings.save_settings()
 
@@ -1030,9 +1027,12 @@ func _build_controls() -> VBoxContainer:
 	all.pressed.connect(func(): Keybinds.reset(); _sync_controls())
 	top.add_child(all)
 	box.add_child(top)
-	# The groups side by side (Menus | Flight | Toolbar): the page never scrolls.
-	var cols := HBoxContainer.new()
-	cols.add_theme_constant_override("separation", 28)
+	# The groups side by side (Menus | Flight | Toolbar) - as many as the window's width fits, the rest on
+	# the next line (wider than the window, the panel ran off its edges).
+	var cols := HFlowContainer.new()
+	cols.name = "ControlsCols"
+	cols.add_theme_constant_override("h_separation", 28)
+	cols.add_theme_constant_override("v_separation", 12)
 	box.add_child(cols)
 	var col: VBoxContainer = null
 	var group := ""
@@ -1071,9 +1071,7 @@ func _build_controls() -> VBoxContainer:
 		var l := Label.new()
 		l.text = a[2]
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		l.clip_text = true
-		# (wider with bigger text, so the names stay whole - up to a point:
-		# at the largest sizes the three groups must still fit the window)
+		# (as wide as its column's longest name, whole - _fit_controls; the groups wrap when they don't fit)
 		l.custom_minimum_size.x = _bind_name_width()
 		_bind_names.append(l)
 		l.add_theme_font_size_override("font_size", 14)
@@ -1122,6 +1120,103 @@ func _sync_controls() -> void:
 				b.remove_theme_color_override("font_color")
 	if _listen_id == "":
 		_controls_hint.text = "Click a binding, then press the key, mouse button or gamepad input. Right-click clears one; red: used twice."
+	_fit_controls()
+
+
+## The Controls page's columns fitted to their text: each column's action names as wide as its longest (a
+## gap after them - never cut off), every binding button and its heading as wide as the longest binding
+## shown. Done again when the bindings or the text size change.
+func _fit_controls() -> void:
+	var flow := settings_panel.find_child("ControlsCols", true, false) if settings_panel else null
+	if flow == null:
+		return
+	var bw := 0.0
+	var buttons := []
+	for b in _bind_buttons.values():
+		if not is_instance_valid(b):
+			continue
+		var bt := b as Button
+		buttons.append(bt)
+		var f: Font = bt.get_theme_font("font")
+		var fs: int = bt.get_theme_font_size("font_size")
+		for txt in [bt.text, "press..."]:
+			bw = maxf(bw, f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x)
+	var pad := 24.0
+	if not buttons.is_empty():
+		var sb: StyleBox = (buttons[0] as Button).get_theme_stylebox("normal")
+		if sb:
+			pad = sb.get_minimum_size().x + 14.0   # (its style's own margins - the accent bar - and room either side)
+	bw = maxf(90.0, ceilf(bw + pad))
+	for bt in buttons:
+		bt.custom_minimum_size.x = bw
+	# (a group split over two columns - a menu built before its actions were in order: its rows put back
+	# with the rest of it, the empty column gone)
+	var seen := {}   # group -> [column, the index after its last row]
+	for col in flow.get_children():
+		var cur := ""
+		var k := 0
+		while k < col.get_child_count():
+			var row = col.get_child(k)
+			if row is HBoxContainer and row.get_child_count() > 1 and not (row.get_child(1) is Button):
+				cur = str((row.get_child(0) as Label).text)
+				if seen.has(cur) and seen[cur][0] != col:
+					# (moved: this header's rows into the earlier column)
+					var dest: Node = seen[cur][0]
+					var at: int = seen[cur][1]
+					col.remove_child(row)
+					row.queue_free()
+					while k < col.get_child_count() and col.get_child(k) is HBoxContainer and col.get_child(k).get_child(1) is Button:
+						var mv = col.get_child(k)
+						col.remove_child(mv)
+						dest.add_child(mv)
+						dest.move_child(mv, at)
+						at += 1
+					seen[cur][1] = at
+					continue
+				seen[cur] = [col, k + 1]
+			elif row is HBoxContainer and row.get_child_count() > 1 and seen.has(cur) and seen[cur][0] == col:
+				seen[cur][1] = k + 1
+			k += 1
+	for col in flow.get_children():
+		if col.get_child_count() == 0:
+			col.queue_free()
+	# (one name width for every column - the buttons line up down the page; a longer name wraps onto two
+	# lines or more instead of pushing its buttons along)
+	var names := []
+	var nw := 0.0
+	for col in flow.get_children():
+		if col.is_queued_for_deletion():
+			continue
+		for row in col.get_children():
+			if not (row is HBoxContainer) or row.get_child_count() < 2:
+				continue
+			(row as HBoxContainer).add_theme_constant_override("separation", 4)
+			if row.get_child(1) is Button:
+				# (an action's row: its name, its three bindings, its reset)
+				var l := row.get_child(0) as Label
+				for k in range(1, row.get_child_count()):
+					(row.get_child(k) as Control).size_flags_vertical = Control.SIZE_SHRINK_CENTER   # (its own height, beside a name on two lines)
+				l.clip_text = false
+				l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				l.size_flags_horizontal = Control.SIZE_FILL
+				l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+				nw = maxf(nw, l.get_theme_font("font").get_string_size(l.text, HORIZONTAL_ALIGNMENT_LEFT, -1, l.get_theme_font_size("font_size")).x)
+				names.append(l)
+			else:
+				# (the group's heading row: KEY / ALT KEY / GAMEPAD over the buttons)
+				var gl := row.get_child(0) as Label
+				for k in range(1, row.get_child_count()):
+					var hl := row.get_child(k) as Label
+					if hl and hl.text != "":
+						hl.custom_minimum_size.x = bw
+				names.append(gl)
+	var fs0 := 15.0
+	if not names.is_empty():
+		fs0 = float((names[0] as Label).get_theme_font_size("font_size"))
+	nw = minf(nw, fs0 * 15.0)   # (about fifteen letters' width at most: longer names take two lines)
+	for l in names:
+		(l as Label).custom_minimum_size.x = ceilf(nw + 16.0)   # (a gap before the buttons)
+		(l as Label).size_flags_horizontal = Control.SIZE_FILL
 
 
 func _start_listen(id: String, slot: int) -> void:
@@ -1312,16 +1407,67 @@ func cycle_tab(d: int) -> void:
 ## else the window's height less the panel's own chrome. The title hides
 ## while either shows (it alone is a quarter of the window).
 func _fit() -> void:
+	if fullscreen_check and fullscreen_check.button_pressed != Settings.fullscreen:
+		fullscreen_check.set_pressed_no_signal(Settings.fullscreen)   # (left fullscreen some other way: shown)
+	if not Settings.display_changed.is_connected(_fit):
+		Settings.display_changed.connect(_fit)   # (the window changed some other way: the switch shows it)
 	if _settings_scroll == null or not is_inside_tree():
 		return
+	if not has_meta("controls_fitted"):
+		set_meta("controls_fitted", true)
+		_fit_controls()   # (a menu built before the columns fitted their text: fitted once - self-healing)
 	var avail := get_viewport().get_visible_rect().size.y - 48.0
 	$Center/Layout.get_child(0).visible = not (settings_panel.visible or crt_panel.visible)
 	var tallest := 0.0
 	var widest := 0.0
 	for pg in _settings_pages:
+		var cpg: Node = pg.find_child("ControlsPage", true, false)   # (the page built inside the tab's own page)
+		if cpg == null and pg.name == "ControlsPage":
+			cpg = pg
+		if cpg and cpg.get_child_count() > 1 and cpg.get_child(1) is HBoxContainer:
+			# (a Controls page built before its columns wrapped: its row of columns made a flow - self-healing)
+			var old_row: HBoxContainer = cpg.get_child(1)
+			var flow2 := HFlowContainer.new()
+			flow2.name = "ControlsCols"
+			flow2.add_theme_constant_override("h_separation", 28)
+			flow2.add_theme_constant_override("v_separation", 12)
+			for c in old_row.get_children():
+				old_row.remove_child(c)
+				flow2.add_child(c)
+			cpg.add_child(flow2)
+			cpg.move_child(flow2, 1)
+			old_row.queue_free()
 		var m := pg.get_combined_minimum_size()
 		widest = maxf(widest, m.x)   # (one width for every tab: the panel doesn't jump sideways)
-	tallest = _settings_pages[settings_tab].get_combined_minimum_size().y   # (the tab showing)
+		var flow := pg.find_child("ControlsCols", true, false) as HFlowContainer
+		if flow:
+			# (as wide as its widest key group - the groups one under another: the panel no wider than the
+			# settings need, its other tabs not stretched across the screen)
+			var ws := []
+			for c in flow.get_children():
+				if not (c as Node).is_queued_for_deletion():
+					ws.append((c as Control).get_combined_minimum_size().x)
+			ws.sort()
+			ws.reverse()
+			var row := float(ws[0]) if not ws.is_empty() else 0.0   # (its widest group: the others under it)
+			widest = maxf(widest, row)
+	# (never wider than the window: the panel's margins, the scroll bar's room and a gap each side kept)
+	widest = minf(widest, get_viewport().get_visible_rect().size.x - 48.0 - 14.0 - 80.0)
+	# (one height for every tab - the tallest's, within the window: the panel doesn't jump as tabs change)
+	for pg in _settings_pages:
+		tallest = maxf(tallest, pg.get_combined_minimum_size().y)
+		var flow_now := pg.find_child("ControlsCols", true, false) as HFlowContainer
+		if flow_now:
+			# (wrapped key groups: their height comes with the width they're laid out at - fitted again once they are)
+			tallest = maxf(tallest, flow_now.size.y + 60.0)
+			# (laid out or not yet: its groups one under another at this width - their heights added up)
+			var stack := 60.0
+			for c in flow_now.get_children():
+				if not (c as Node).is_queued_for_deletion():
+					stack += (c as Control).get_combined_minimum_size().y + 12.0
+			tallest = maxf(tallest, stack)
+			if not flow_now.resized.is_connected(_fit):
+				flow_now.resized.connect(_fit, CONNECT_DEFERRED)
 	_settings_scroll.custom_minimum_size.x = widest + 14.0
 	var box: Control = _crt_scroll.get_child(0)
 	_crt_scroll.custom_minimum_size.x = box.get_combined_minimum_size().x

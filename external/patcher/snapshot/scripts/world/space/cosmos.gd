@@ -1935,6 +1935,7 @@ func passenger_view(on: bool) -> void:
 		cam.walker = null
 		cam.target = s
 		cam.zoom = clampf(s.reach / 22.0, 1.0, 6.0) * 1.35
+		cam.set_meta("zoom_home", cam.zoom)   # (a middle click comes back to this, the ship's own)
 		cam.zoom_max = maxf(4.0, cam.zoom * 3.0)
 		cam._q = s.global_basis.get_rotation_quaternion()
 		cam.free_look = true   # (the mouse turns the view round the ship, as on foot)
@@ -1943,6 +1944,7 @@ func passenger_view(on: bool) -> void:
 		_passenger = false
 		cam.target = ship
 		cam.zoom = 1.35
+		cam.remove_meta("zoom_home")
 		cam.zoom_max = 4.0
 		cam.free_look = false
 		cam._look = Vector2.ZERO

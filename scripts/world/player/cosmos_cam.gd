@@ -12,8 +12,11 @@ const LOOK_AHEAD := 70.0
 ## centre's reticle - about a quarter of the screen's height under the middle (was 0.35: ~an eighth).
 const LOOK_UP := 1.85
 
+const ZOOM_HOME := 1.35        # (the wheel's zoom to start with - and after a middle click)
+const FOOT_ZOOM_HOME := 1.0
+
 var target: Node3D
-var zoom := 1.35
+var zoom := ZOOM_HOME
 var zoom_max := 4.0               # (a big ship watched from its passenger seat: further out)
 var cosmos: Node
 var _q := Quaternion.IDENTITY
@@ -23,7 +26,7 @@ var _fov := 70.0
 ## On foot (stage 2): the walker it orbits instead of the ship - the mouse
 ## turns the view round it (its `heading`) and up and down.
 var walker: Node3D = null
-var foot_zoom := 1.0
+var foot_zoom := FOOT_ZOOM_HOME
 var _pitch := 0.25
 
 
@@ -46,18 +49,28 @@ func _unhandled_input(event: InputEvent) -> void:
 				foot_zoom = maxf(0.4, foot_zoom / 1.12)
 			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 				foot_zoom = minf(5.0, foot_zoom * 1.12)
+			elif event.button_index == MOUSE_BUTTON_MIDDLE and not _builder_out():
+				foot_zoom = FOOT_ZOOM_HOME   # (the middle button: the wheel's zoom back to its start)
 		return
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			zoom = maxf(0.45, zoom / 1.12)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			zoom = minf(zoom_max, zoom * 1.12)
+		elif event.button_index == MOUSE_BUTTON_MIDDLE:
+			zoom = float(get_meta("zoom_home", ZOOM_HOME))   # (the middle button: the wheel's zoom back to its start - the stick centred too, CosmosShip)
 	elif event is InputEventMouseMotion and free_look and (cosmos.mouse_steers() if cosmos else Input.mouse_mode == Input.MOUSE_MODE_CAPTURED):
 		_look += event.relative * 0.004
 		_look.y = clampf(_look.y, -1.3, 1.3)
 	elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
 		_look += event.relative * 0.005
 		_look.y = clampf(_look.y, -1.2, 1.2)
+
+
+## The builder out (on foot): the middle button turns its piece instead.
+func _builder_out() -> bool:
+	var b = cosmos.get("builds") if cosmos else null
+	return b != null and is_instance_valid(b) and b.tool_out()
 
 
 func _process(delta: float) -> void:

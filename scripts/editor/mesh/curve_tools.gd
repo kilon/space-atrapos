@@ -4886,6 +4886,9 @@ func pick_handle(at: Vector2) -> Array:
 func select(i: int, add := false) -> void:
 	if i >= 0 and i < curves.size() and _locked_ids().has(int(curves[i].get("id", -1))):
 		return   # (an edge of a solid that can't be picked: left as it is)
+	if has_meta("step_pick"):
+		remove_meta("step_pick")   # (a tool step no longer the pick: its ghost back to its own colour)
+		update_ghosts()
 	if not add:
 		sel = _kept_sel()
 		remove_meta("last_handle")
@@ -4928,6 +4931,9 @@ func view_input(e: InputEvent) -> bool:
 		if _drag.has("coll"):
 			if mm.position.distance_to(_drag["press"]) >= DRAG_DEAD_PX or _drag.get("moved", false):
 				_coll_to(mm.position, mm.ctrl_pressed)
+			return true
+		if _drag.has("step"):
+			_step_to(mm.position, mm.ctrl_pressed)
 			return true
 		if not _drag.is_empty():
 			if _drag.has("surface") or _drag.has("baked_curve"):
@@ -5100,6 +5106,17 @@ func view_input(e: InputEvent) -> bool:
 			var at3: Vector3 = cx(curves[i], own) * (hit["p"] as Vector3) if not hit.is_empty() else cx(curves[i], own) * (curves[i]["ctrl"][0] as Vector3)
 			_drag = {"curve": i, "before": _state(), "press": mb.position, "start": at3, "orig": curves.duplicate(true), "moved": false, "own": own, "grow_c": grow_c}
 			return true
+		if not mb.shift_pressed:
+			var gh := _ghost_hit(mb.position)
+			if not gh.is_empty():
+				# (a tool step's ghost - a cut's, a join's - under the mouse: that step picked, its solid selected;
+				# a drag moves the whole step - its place in the recipe - the solid following)
+				pick_step(gh["part"], gh["step"])
+				var gp: MeshInstance3D = gh["part"]
+				var parent: Array = (gh["step"] as Array).slice(0, -1)
+				_drag = {"step": [gp, gh["step"]], "spec0": (gp.get_meta("curve_solid") as Dictionary).duplicate(true), "press": mb.position,
+					"start": _mx().affine_inverse() * (gh["world"] as Vector3), "xf0": xf_of(node_at(gp.get_meta("curve_solid"), parent).get("b_xf", [])), "moved": false}
+				return true
 		if ed.curve_tab_shown() and not mb.shift_pressed:
 			var sh := _baked_hit(mb.position)
 			if not sh.is_empty():
@@ -5117,6 +5134,23 @@ func view_input(e: InputEvent) -> bool:
 		if not mb.shift_pressed and (not sel.is_empty() or not picked_points().is_empty() or not (get_meta("patch", {}) as Dictionary).is_empty() or picked_solid() != null):
 			select(-1)   # (a click on nothing: everything let go - a picked solid's or patch's shading too)
 		return false
+	if _drag.has("step"):
+		var ds := _drag
+		_drag = {}
+		ed.view.hint = ""
+		var sp: MeshInstance3D = ds["step"][0]
+		if ds.get("moved", false) and is_instance_valid(sp):
+			var new_spec: Dictionary = sp.get_meta("curve_solid")
+			var apply := func(spec: Dictionary):
+				if is_instance_valid(sp):
+					sp.set_meta("curve_solid", spec)
+					refresh_solids()
+					update_ghosts()
+					_refresh_panel()
+			ed._push("Move %s" % _step_word(sp, ds["step"][1]), apply.bind(ds["spec0"]), apply.bind(new_spec.duplicate(true)))
+			ed.dirty = true
+		layer.queue_redraw()
+		return true
 	if _drag.has("coll"):
 		var dc := _drag
 		_drag = {}
@@ -6255,7 +6289,12 @@ func cancel_drag() -> void:
 	var d := _drag
 	_drag = {}
 	ed.view.hint = ""
-	if d.has("coll"):
+	if d.has("step"):
+		var sp0 = d["step"][0]
+		if is_instance_valid(sp0):
+			(sp0 as Node).set_meta("curve_solid", d["spec0"])
+			update_ghosts()
+	elif d.has("coll"):
 		var g = d["coll"]
 		if is_instance_valid(g):
 			(g as Node3D).transform = d["orig"]
@@ -6983,7 +7022,9 @@ func simplify_selected() -> void:
 				c[k] = lean[k]
 		if not lean.has("sharp"):
 			c.erase("sharp")
-		c.erase("radii")
+		for k in ["radii", "tin", "tout"]:
+			c.erase(k)
+		_reparam_holding(int(c.get("id", -1)))   # (a baked solid's edge: its mesh kept, its edge points placed along it anew)
 		done += 1
 	if done == 0:
 		ed._say("Simplify edge: pick closed lines or paths with more vertices than they need.")
@@ -6992,28 +7033,103 @@ func simplify_selected() -> void:
 	ed._say("Simplified %d edge%s: %d vertices -> %d." % [done, "" if done == 1 else "s", was, now_n])
 
 
-## `c` (a closed line or path with many points) as a lean line or path ({} - nothing to gain).
+## `c` (a closed line or path with many points) as a lean line or path ({} - nothing to gain): its vertices
+## that matter kept (in 3D - a rim round a curved solid isn't flat), the corners sharp, the bends smooth;
+## checked against the edge as it was and made finer till it keeps its shape within half a percent of its size.
 static func simplified(c: Dictionary) -> Dictionary:
 	if not c.get("closed", false) or not str(c["kind"]) in ["line", "path"] or (c["ctrl"] as PackedVector3Array).size() < 7:
 		return {}
-	var n: Vector3 = (c.get("n", Vector3.UP) as Vector3).normalized()
+	var EN: GDScript = load("res://scripts/editor/mesh/edge_net.gd")
 	var k: PackedVector3Array = c["ctrl"]
-	var o := k[0]
-	var u := _any_perp(n)
-	var v := n.cross(u)
-	var f := PackedVector2Array()
-	for q in sample(c):
-		f.append(Vector2((q - o).dot(u), (q - o).dot(v)))
-	var fit := fit_path(_tidy(f))
-	if fit.is_empty() or (fit["pts"] as PackedVector2Array).size() >= k.size():
-		return {}
-	var k3 := PackedVector3Array()
-	for q: Vector2 in fit["pts"]:
-		k3.append(o + u * q.x + v * q.y)
-	var e := {"kind": "path" if fit["curved"] else "line", "ctrl": k3, "closed": true}
-	if fit["curved"]:
-		e["sharp"] = fit["sharp"]
-	return e
+	var n := k.size()
+	var orig := sample(c)
+	var box := AABB(k[0], Vector3.ZERO)
+	for q in k:
+		box = box.expand(q)
+	var size := maxf(box.size.length(), 1e-6)
+	# (split at the vertex farthest from the first: two runs, each made lean on its own)
+	var far := 0
+	for i in n:
+		if k[i].distance_to(k[0]) > k[far].distance_to(k[0]):
+			far = i
+	var loop := k.duplicate()
+	loop.append(k[0])
+	var tol := size * 0.06   # (loose first - a smooth path through few vertices follows a bend chords can't - then finer till it fits)
+	for attempt in 9:
+		var keep := PackedByteArray()
+		keep.resize(loop.size())
+		keep[0] = 1
+		keep[far] = 1
+		keep[loop.size() - 1] = 1
+		EN._dp(loop, 0, far, tol, keep)
+		EN._dp(loop, far, loop.size() - 1, tol, keep)
+		var idx := []
+		for i in n:
+			if keep[i] == 1:
+				idx.append(i)
+		if idx.size() < 3 or idx.size() >= n:
+			return {}
+		var pts := PackedVector3Array()
+		var sh := PackedByteArray()
+		var any_smooth := false
+		for i in idx:
+			pts.append(k[i])
+			# (a corner of the edge as it was - a turn over 40 degrees at that vertex: kept sharp)
+			var d0 := (k[i] - k[(i - 1 + n) % n]).normalized()
+			var d1 := (k[(i + 1) % n] - k[i]).normalized()
+			var corner := d0.angle_to(d1) > deg_to_rad(40.0)
+			sh.append(1 if corner else 0)
+			any_smooth = any_smooth or not corner
+		var e := {"kind": "path" if any_smooth else "line", "ctrl": pts, "closed": true}
+		if any_smooth:
+			e["sharp"] = sh
+		# (its shape checked: every point of the edge as it was near the new one)
+		var s := sample(e)
+		s.append(s[0])
+		var worst := 0.0
+		for q in orig:
+			var best := INF
+			for j in range(1, s.size()):
+				best = minf(best, Geometry3D.get_closest_point_to_segment(q, s[j - 1], s[j]).distance_to(q))
+			worst = maxf(worst, best)
+		if worst <= size * 0.005:
+			return e
+		tol *= 0.5
+	return {}
+
+
+## A baked solid holding the curve with id `id` (its points just changed in number and place - simplified):
+## its mesh kept as it is, its edge points on that curve placed along it anew (by where they are), the
+## curves as they are now its start.
+func _reparam_holding(id: int) -> void:
+	var p := _edges_part_of(id)
+	if p == null:
+		return
+	var EN: GDScript = load("res://scripts/editor/mesh/edge_net.gd")
+	var spec := _rebase_part(p)
+	var chs: Array = spec.get("chains", [])
+	var ci := -1
+	for j in chs.size():
+		if int(chs[j].get("id", -1)) == id:
+			ci = j
+	var cv := curve_by_id(id)
+	if ci < 0 or cv.is_empty():
+		_set_edges_spec(p, spec)
+		return
+	var flat: Array = spec["mesh"]["v"]
+	var fv: Array = (spec.get("fv", []) as Array).duplicate(true)
+	var on := []
+	var pts := PackedVector3Array()
+	for e in fv:
+		if int(e[1]) == ci:
+			var vi := int(e[0])
+			on.append(e)
+			pts.append(Vector3(flat[vi * 3], flat[vi * 3 + 1], flat[vi * 3 + 2]))
+	var ts: PackedFloat32Array = EN.params(pts, cv)
+	for j in on.size():
+		on[j][2] = ts[j]
+	spec["fv"] = fv
+	_set_edges_spec(p, spec)
 
 
 ## The closed curves `cs` (placed) all on the first one's plane.
@@ -8849,6 +8965,17 @@ static func revolve_mesh(cs: Array, angle: float, steps: int, axis: Array) -> Ar
 		any_closed = any_closed or closed
 		if s.size() < 2:
 			continue
+		if not closed:
+			# (an end a hair off the axis - a thousandth of the profile's size - put on it: the turn closes there
+			# to a point, not a pinhole a boolean can't use as a solid)
+			var ext := AABB(s[0], Vector3.ZERO)
+			for q in s:
+				ext = ext.expand(q)
+			var tol := maxf(ext.size.length() * 1e-3, 1e-6)
+			for e in [0, s.size() - 1]:
+				var off: Vector3 = (s[e] - o) - ax * (s[e] - o).dot(ax)
+				if off.length() < tol:
+					s[e] -= off
 		if closed:
 			s.append(s[0])
 		var P := []
@@ -9918,6 +10045,7 @@ func _fill_tree() -> void:
 			_tree_steps(tree, it, p, spec, [])
 			it.collapsed = false
 		else:
+			_tree_step_rows(tree, it, p, spec, [])   # (its cuts / joins shown even folded - each a thing of its own)
 			var ph := tree.create_item(it)
 			ph.set_text(0, "%d edges" % spec_ids(spec).size())
 			ph.set_icon(0, EditorIcons.get_icon("m_cv_ol_edge"))
@@ -10509,8 +10637,12 @@ func bake_edges(p: MeshInstance3D = null) -> bool:
 			area += (sv[sx[ti + 1]] - sv[sx[ti]]).cross(sv[sx[ti + 2]] - sv[sx[ti]]).length() * 0.5
 	var L := clampf(sqrt(area / 380.0), 0.003, 1.0)   # (a few thousand triangles, whatever its size - splitting leaves them about half this across)
 	var rm: Dictionary = EN.quad_mesh(base, net["chains"], L * 0.6)   # (walls as rows of quads between their edges)
+	var to_quads := false
 	if rm.is_empty() or EN._open_edges(rm["t"]) > 0:
-		rm = EN.remesh(base, net["chains"], L)   # (not a solid standing along one axis - or its quads left holes: an even mesh)
+		# (not a solid standing along one axis - or its quads left holes: an even mesh - made grids of quads
+		# following its edges below)
+		rm = EN.remesh(base, net["chains"], L)
+		to_quads = true
 	var vv: PackedVector3Array = rm["v"]
 	var fv := []
 	for ci in chains.size():
@@ -10522,13 +10654,41 @@ func bake_edges(p: MeshInstance3D = null) -> bool:
 		var ts: PackedFloat32Array = EN.params(pts, cur)
 		for j in vis.size():
 			fv.append([vis[j], ci, ts[j]])
+	var tt: PackedInt32Array = rm["t"]
+	var gridded := false
+	if to_quads:
+		# (the rules for any topology: quads, laid out evenly, following the edges - each face a grid between
+		# its edges, mapped onto its surface)
+		var gq: Dictionary = EN.grid_faces(vv, tt, fv, chains, L * 0.55)
+		if not gq.is_empty():
+			vv = gq["v"]
+			tt = gq["t"]
+			fv = gq["fv"]
+			gridded = true
+	var thin := 0
+	for ti in range(0, tt.size(), 3):
+		if _min_angle(vv[tt[ti]], vv[tt[ti + 1]], vv[tt[ti + 2]]) < 15.0:
+			thin += 1
+	if not gridded and thin > tt.size() / 3 / 20:
+		# (no grids possible - a face with a hole...: slivers cleared - points too close merged, the
+		# triangles made even inside each face, its shape kept - then they pair into quads)
+		var nowc := {}
+		for ch in chains:
+			nowc[int(ch["id"])] = from_json([c0[str(int(ch["id"]))]])[0]
+		var td: Dictionary = EN.tidy_mesh(vv, tt, fv, chains, nowc, L * 0.6 * 0.35)
+		var ev: Dictionary = EN.even_faces(vv, td["t"], td["fv"], 8, true)
+		vv = ev["v"]
+		tt = ev["t"]
+		fv = td["fv"]
 	var flat := []
 	for q in vv:
 		flat.append_array([q.x, q.y, q.z])
 	for ch in chains:
 		ch.erase("pts")
 		ch.erase("t")
-	var core := {"kind": "edges", "ids": ids, "net": net_id, "chains": chains, "c0": c0, "mesh": {"v": flat, "t": Array(rm["t"])}, "fv": fv}
+	var core := {"kind": "edges", "ids": ids, "net": net_id, "chains": chains, "c0": c0, "mesh": {"v": flat, "t": Array(tt)}, "fv": fv}
+	if gridded:
+		core["dense"] = 3   # (quads: its settles even it out without regridding or turning diagonals)
 	if rm.has("axis"):
 		core["up"] = rm["axis"]   # (the way it stands - its walls along it)
 	curves = kept
@@ -12235,6 +12395,24 @@ func _act_attach_curve(i: int, q: MeshInstance3D, op: String) -> void:
 	add_tool_curves(op)
 
 
+## (a folded solid) Its tool steps' rows - each cut / join / common with its own edges under it.
+func _tree_step_rows(tree: Tree, parent: TreeItem, p: MeshInstance3D, node: Dictionary, path: Array) -> void:
+	if str(node.get("kind", "")) != "bool":
+		return
+	_tree_step_rows(tree, parent, p, node.get("a", {}), path + ["a"])
+	var eye_on := EditorIcons.get_icon("eye")
+	var eye_off := EditorIcons.get_icon("eye_off")
+	var b: Dictionary = node.get("b", {})
+	var si := tree.create_item(parent)
+	si.set_text(0, "%s: %s" % [{"union": "Join", "difference": "Cut", "intersection": "Common"}.get(str(node.get("op", "")), "Tool"), _spec_words(b)])
+	si.set_metadata(0, {"step": path + ["b"], "of": p})
+	si.set_icon(0, EditorIcons.get_icon("m_cv_ol_step"))
+	si.set_tooltip_text(0, "A tool step of %s. Click: select the solid and pick this step's edges. The eye hides its ghost." % p.name)
+	si.add_button(1, eye_off if bool(b.get("ghost_hidden", false)) else eye_on, 0, false, "Hide / show this step's ghost.")
+	_tree_steps(tree, si, p, b, path + ["b"])
+	si.collapsed = true
+
+
 ## A solid's recipe under its row: its own curves, and each tool step (cut / join / common) as a row of
 ## its own with that step's curves under it - the step's eye hides its ghost.
 func _tree_steps(tree: Tree, parent: TreeItem, p: MeshInstance3D, node: Dictionary, path: Array) -> void:
@@ -12633,13 +12811,13 @@ func update_ghosts() -> void:
 		for p: MeshInstance3D in ed.parts():
 			var spec: Dictionary = p.get_meta("curve_solid", {})
 			if not spec.is_empty() and p.is_visible_in_tree():
-				_ghost_walk(spec, p.global_transform, nodes)
+				_ghost_walk(spec, p.global_transform, nodes, p, [])
 	set_meta("ghost_nodes", nodes)
 	if ed and ed.view:
 		ed.view.request()
 
 
-func _ghost_walk(spec: Dictionary, xf: Transform3D, nodes: Array) -> void:
+func _ghost_walk(spec: Dictionary, xf: Transform3D, nodes: Array, part: MeshInstance3D = null, path := []) -> void:
 	if str(spec.get("kind", "")) == "baked":
 		return   # (a baked solid is one solid: its curves shape it - no tools, no ghosts)
 	if str(spec.get("kind", "")) != "bool":
@@ -12657,12 +12835,110 @@ func _ghost_walk(spec: Dictionary, xf: Transform3D, nodes: Array) -> void:
 					one["both"] = bool(per[str(id)].get("both", one.get("both", false)))
 				_ghost_add(solid_of(one), xf, "difference", nodes)
 		return
-	_ghost_walk(spec.get("a", {}), xf, nodes)
+	_ghost_walk(spec.get("a", {}), xf, nodes, part, path + ["a"])
 	var bx := xf * xf_of(spec.get("b_xf", []))
 	var b: Dictionary = spec.get("b", {})
 	if not bool(b.get("ghost_hidden", false)) and not _all_hidden(spec_ids(b)):
-		_ghost_add(solid_of(b), bx, str(spec.get("op", "difference")), nodes)
-	_ghost_walk(spec.get("b", {}), bx, nodes)
+		var picked_step := false
+		if part != null and has_meta("step_pick"):
+			var spk: Array = get_meta("step_pick")
+			picked_step = spk.size() == 2 and spk[0] == part and spk[1] == path + ["b"]
+		_ghost_add(solid_of(b), bx, str(spec.get("op", "difference")) + ("_picked" if picked_step else ""), nodes)
+		if not nodes.is_empty() and part != null:
+			(nodes.back() as Node).set_meta("step", [part, path + ["b"]])   # (clicked in the view: this step picked)
+	_ghost_walk(spec.get("b", {}), bx, nodes, part, path + ["b"])
+
+
+## The tool step whose ghost is under `at` (the nearest, when several): {part, step, world} ({} - none).
+func _ghost_hit(at: Vector2) -> Dictionary:
+	if ed == null or ed.view == null or not ghosts_on():
+		return {}
+	var o: Vector3 = ed.view.cam.project_ray_origin(at)
+	var dir: Vector3 = ed.view.cam.project_ray_normal(at)
+	var best := INF
+	var got := {}
+	for g in get_meta("ghost_nodes", []):
+		if not is_instance_valid(g) or not (g as Node).has_meta("step"):
+			continue
+		var st: Array = (g as Node).get_meta("step")
+		if not is_instance_valid(st[0]) or locked(st[0]):
+			continue
+		var d := _ray_mesh(g, o, dir)
+		if d < best:
+			best = d
+			got = {"part": st[0], "step": st[1], "world": o + dir * d}
+	return got   # (ghosts are drawn over everything: one seen under the mouse is the one clicked, a solid in front or not)
+
+
+## How far along the ray (world space) mesh instance `mi` is first hit (INF: missed) - its triangles kept per mesh.
+func _ray_mesh(mi: MeshInstance3D, o: Vector3, dir: Vector3) -> float:
+	if mi.mesh == null:
+		return INF
+	var tmc: Array = mi.get_meta("hit_tm", [])
+	if tmc.is_empty() or tmc[0] != mi.mesh:
+		tmc = [mi.mesh, mi.mesh.generate_triangle_mesh()]
+		mi.set_meta("hit_tm", tmc)
+	if tmc[1] == null:
+		return INF
+	var inv := mi.global_transform.affine_inverse()
+	var r: Dictionary = (tmc[1] as TriangleMesh).intersect_ray(inv * o, (inv.basis * dir).normalized())
+	if r.is_empty():
+		return INF
+	return o.distance_to(mi.global_transform * (r["position"] as Vector3))
+
+
+## Tool step `step` (a path in solid `p`'s recipe) picked: its solid selected, the step's edges picked - as
+## its row in the overview does.
+func pick_step(p: MeshInstance3D, step: Array) -> void:
+	set_meta("patch", {})
+	set_meta("solid", 0)
+	set_meta("group_pick", 0)
+	set_meta("points", [])
+	if ed.part != p:
+		ed.select_part(p)
+	var cidx := []
+	for id in spec_ids(node_at(p.get_meta("curve_solid", {}), step)):
+		var ci := _curve_index(int(id))
+		if ci >= 0:
+			cidx.append(ci)
+	sel = cidx
+	set_meta("step_pick", [p, step])
+	update_ghosts()
+	_refresh_panel()
+	layer.queue_redraw()
+	ed.view.request()
+	var node := node_at(p.get_meta("curve_solid", {}), step.slice(0, -1))
+	ed._say("%s's %s step picked - drag it to move the %s whole (its edges reshape it)." % [p.name, {"union": "join", "difference": "cut", "intersection": "common"}.get(str(node.get("op", "")), "tool"),
+		{"union": "join", "difference": "cut", "intersection": "common part"}.get(str(node.get("op", "")), "tool")])
+
+
+## (dragging a tool step) The step moved whole - its placement in the recipe, not its edges: a revolved
+## cut keeps its shape and goes where it's dragged; along the axis nearest the drag, as any drag.
+func _step_to(at: Vector2, stepped: bool) -> void:
+	var p = _drag["step"][0]
+	if not is_instance_valid(p):
+		return
+	var d := _drag_delta(at, stepped)
+	if d == Vector3.INF:
+		return
+	_drag["moved"] = true
+	var rel: Transform3D = _mx().affine_inverse() * (p as Node3D).global_transform
+	var dl: Vector3 = rel.basis.inverse() * d
+	var step: Array = _drag["step"][1]
+	var parent := step.slice(0, -1)
+	var spec: Dictionary = (_drag["spec0"] as Dictionary).duplicate(true)
+	var node := node_at(spec, parent).duplicate(true)
+	node["b_xf"] = xf_arr(Transform3D(Basis.IDENTITY, dl) * (_drag["xf0"] as Transform3D))
+	(p as Node).set_meta("curve_solid", with_node(spec, parent, node))
+	refresh_solids()
+	update_ghosts()
+	layer.queue_redraw()
+
+
+## A tool step's word: cut, join or common part.
+func _step_word(p: MeshInstance3D, step: Array) -> String:
+	var node := node_at(p.get_meta("curve_solid", {}), step.slice(0, -1))
+	return {"union": "join", "difference": "cut", "intersection": "common part"}.get(str(node.get("op", "")), "tool step")
 
 
 ## Every one of these curves hidden in the overview (a ghost made only of hidden curves isn't shown).
@@ -12698,6 +12974,8 @@ func _ghost_mat(op: String) -> StandardMaterial3D:
 		m.cull_mode = BaseMaterial3D.CULL_DISABLED
 		m.no_depth_test = true
 		m.albedo_color = {"difference": Color(1.0, 0.3, 0.25, 0.16), "union": Color(0.35, 1.0, 0.45, 0.16), "intersection": Color(0.4, 0.65, 1.0, 0.16)}.get(op, Color(1, 1, 1, 0.16))
+		if op.ends_with("_picked"):
+			m.albedo_color = Color(PICKED_PT_COL, 0.38)   # (the picked step: in the picked colour, stronger)
 		mats[op] = m
 		set_meta("ghost_mats", mats)
 	return mats[op]
@@ -13118,7 +13396,7 @@ func _sync_curve_lines(own: Dictionary, pt_of: Dictionary, gone: Dictionary) -> 
 		return
 	# (a drag: only the curves of the solids it changes can differ from last time - the rest's keys taken as
 	# they were, nothing else hashed; the whole set hashed every frame was most of 8 ms)
-	var ctx := hash([gone.keys(), get_meta("placed_sig", 0), own.keys().size(), curves.size()])
+	var ctx := hash([gone.keys(), get_meta("placed_sig", 0), own, curves.size()])   # (the placements themselves: a moved tool step's edges go with it)
 	var drag_cis: Dictionary = _drag_line_curves()
 	if not drag_cis.is_empty():
 		mi.set_meta("last_cis", drag_cis)
@@ -13139,7 +13417,7 @@ func _sync_curve_lines(own: Dictionary, pt_of: Dictionary, gone: Dictionary) -> 
 				for i in d:
 					drag_cis[int(i)] = true
 	if not reuse:
-		var sig := hash([curves, sel, pt_of.keys(), gone.keys(), get_meta("placed_sig", 0), own.keys().size()])
+		var sig := hash([curves, sel, pt_of.keys(), gone.keys(), get_meta("placed_sig", 0), own])
 		if int(mi.get_meta("sig", 0)) == sig:
 			return   # (nothing changed: turning the view costs one hash)
 		mi.set_meta("sig", sig)

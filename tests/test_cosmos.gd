@@ -2772,3 +2772,26 @@ func test_field_posts_are_solid() -> void:
 				found += 1
 				break
 	check_eq(found, 4, "all four corner posts solid")
+
+
+func test_middle_click_resets_the_zoom() -> void:
+	var cam := CosmosCam.new()
+	var mid := InputEventMouseButton.new()
+	mid.button_index = MOUSE_BUTTON_MIDDLE
+	mid.pressed = true
+	# flying: the wheel's zoom back to its start
+	cam.zoom = 3.2
+	cam._unhandled_input(mid)
+	check(is_equal_approx(cam.zoom, CosmosCam.ZOOM_HOME), "flying: zoom reset (%.2f)" % cam.zoom)
+	# a passenger: back to the ship's own start
+	cam.set_meta("zoom_home", 2.5)
+	cam.zoom = 6.0
+	cam._unhandled_input(mid)
+	check(is_equal_approx(cam.zoom, 2.5), "passenger: the ship's own zoom (%.2f)" % cam.zoom)
+	# on foot: the walking zoom
+	cam.walker = Node3D.new()
+	cam.foot_zoom = 4.0
+	cam._unhandled_input(mid)
+	check(is_equal_approx(cam.foot_zoom, CosmosCam.FOOT_ZOOM_HOME), "on foot: zoom reset (%.2f)" % cam.foot_zoom)
+	cam.walker.free()
+	cam.free()

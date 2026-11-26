@@ -27,7 +27,7 @@ data/docs/*.md (F1).
 - `scripts/ui/` - HUD (hud.gd, the gauge, radar, toolbar, event log), the menus (main_menu = title + Esc
   menu, ship_menu = the Automaton (Tab), station_menu), pages, theme (NeonTheme), Archive/Encyclopedia.
 - `scripts/editor/` - Talos (data editors, the ECurves editor - mesh_editor.gd + mesh/curve_tools.gd: every model an ECurve
-  object of solids made of faces, edges and vertices, no mesh editing - and the animation editor; EditTarget - where they save: the game or a mod),
+  object of solids made of faces, edges and vertices, no mesh editing; the rules for any topology it builds: quads with a uniform layout, following the flow and shape of the edges - and the animation editor; EditTarget - where they save: the game or a mod),
   the Patcher (the title screen's Patch Notes), the Mod Editor (mod_editor.gd; standalone: `-- --mod-editor`).
 - Mods: `scripts/core/mods.gd` (the first autoload): user://mods/<id>/ (mod.json, files/ laid out like res://,
   `<file>.json.merge` patches) mounted as a zip over res:// plus a front ResourceFormatLoader for what's load()ed;
