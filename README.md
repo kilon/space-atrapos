@@ -6,6 +6,10 @@ independents and the pirates compete. Fly your ship between stars and planets, l
 procedural ground and walk them, trade, mine, fight, dock at stations and make your own way. There is
 no story to follow: the galaxy is yours.
 
+**Play it in your browser or download it for Windows and Linux on itch.io:
+[kilonalios.itch.io/space-atrapos](https://kilonalios.itch.io/space-atrapos)** - or grab a build from this
+repository's [Releases](https://github.com/kilon/space-atrapos/releases).
+
 ![Flying over Amnissos, the Minoans' ocean world](data/docs/shots/space3d.jpg)
 
 ## What's in it
@@ -33,6 +37,9 @@ no story to follow: the galaxy is yours.
 ![The planet map](data/docs/shots/planet3d.jpg)
 
 ## Running it
+
+The quickest way is the [itch.io page](https://kilonalios.itch.io/space-atrapos) (in the browser, or the
+Windows and Linux downloads). To run it from the source:
 
 1. Install [Git LFS](https://git-lfs.com/) **before cloning**: images, models, audio and fonts are
    stored in LFS.

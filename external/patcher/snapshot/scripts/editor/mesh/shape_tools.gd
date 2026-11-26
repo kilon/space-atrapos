@@ -77,7 +77,7 @@ func _exit_tree() -> void:
 
 ## The BOOLEAN and SHAPE sections of the right panel, into `box`.
 func build_right(box: VBoxContainer) -> void:
-	box.add_child(UI.section("BOOLEAN"))
+	box.add_child(EditorIcons.tipped(UI.section("BOOLEAN"), EditorIcons.tip("Boolean", "", "Two parts made one, cut or trimmed - as solids: join, subtract, intersect, slice.")))
 	var row := HFlowContainer.new()
 	row.add_theme_constant_override("h_separation", 2)
 	row.add_theme_constant_override("v_separation", 2)
@@ -104,7 +104,7 @@ func build_right(box: VBoxContainer) -> void:
 	_bool_note = UI.note("", 13, 200)   # (kept for its messages, not shown: the tools' tooltips say what they need)
 	_bool_note.visible = false
 	box.add_child(_bool_note)
-	box.add_child(UI.section("SHAPE"))
+	box.add_child(EditorIcons.tipped(UI.section("SHAPE"), EditorIcons.tip("Shape", "", "The selected shape from the library: its settings, made again as you change them.")))
 	box.add_child(panel)
 	refresh()
 
@@ -568,6 +568,15 @@ func _bool_apply(ctx: Dictionary, r: Dictionary) -> void:
 	var a_mesh: Mesh = a.mesh
 	var a_mirror: Dictionary = a.get_meta("mesh_mirror", {})
 	var a_shape: Dictionary = a.get_meta("mesh_shape", {})
+	var a_curves: Dictionary = a.get_meta("curve_solid", {})
+	# (both made from curves: the result stays live - a recipe "A op B" made again whenever either's
+	# curves change; B where it is in A now)
+	var live := {}
+	if not a_curves.is_empty() and b.has_meta("curve_solid") and op != "slice":
+		var CT: GDScript = load("res://scripts/editor/mesh/curve_tools.gd")
+		live = {"kind": "bool", "op": op, "a": a_curves, "b": b.get_meta("curve_solid"),
+			"b_xf": CT.xf_arr(a.global_transform.affine_inverse() * b.global_transform)}
+	var live_key: String = ed.curve_tools._solid_key(live) if not live.is_empty() else ""
 	var new_a: Mesh = meshes[meshes.size() - 1]
 	var piece: MeshInstance3D = null
 	if op == "slice":
@@ -585,6 +594,11 @@ func _bool_apply(ctx: Dictionary, r: Dictionary) -> void:
 		a.mesh = new_a
 		a.remove_meta("mesh_mirror")
 		a.remove_meta("mesh_shape")
+		if live.is_empty():
+			a.remove_meta("curve_solid")   # (a plain mesh after a boolean with a plain mesh)
+		else:
+			a.set_meta("curve_solid", live)
+			a.set_meta("curve_solid_key", live_key)
 		ed._make_ghosts(a)
 		if piece:
 			a_parent.add_child(piece)
@@ -603,6 +617,8 @@ func _bool_apply(ctx: Dictionary, r: Dictionary) -> void:
 			a.set_meta("mesh_mirror", a_mirror)
 		if not a_shape.is_empty():
 			a.set_meta("mesh_shape", a_shape)
+		if not a_curves.is_empty():
+			a.set_meta("curve_solid", a_curves)
 		ed._make_ghosts(a)
 		if piece and piece.get_parent():
 			piece.get_parent().remove_child(piece)
@@ -621,5 +637,5 @@ func _bool_apply(ctx: Dictionary, r: Dictionary) -> void:
 	for m in meshes:
 		for s in m.get_surface_count():
 			tris += m.surface_get_array_index_len(s) / 3
-	ed._say("%s of %s and %s: done in %.0f ms (%d triangles)%s." % [MeshBool.LABEL[op], a.name, b.name, ms, tris,
-		(", the inside piece is " + str(piece.name)) if piece else ""])
+	ed._say("%s of %s and %s: done in %.0f ms (%d triangles)%s%s." % [MeshBool.LABEL[op], a.name, b.name, ms, tris,
+		(", the inside piece is " + str(piece.name)) if piece else "", " - live: it follows both solids' curves" if not live.is_empty() else ""])

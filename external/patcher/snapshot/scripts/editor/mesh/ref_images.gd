@@ -288,7 +288,7 @@ func _save_now() -> void:
 # --- the panel ----------------------------------------------------------------------------
 
 func build_right(box: VBoxContainer) -> void:
-	box.add_child(UI.section("REFERENCE IMAGES"))
+	box.add_child(EditorIcons.tipped(UI.section("REFERENCE IMAGES"), EditorIcons.tip("Reference images", "", "Pictures shown behind the model in the front, side and top views, to model over.")))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 2)
 	row.add_child(ed._btn("Add reference image", "m_ref_image", "", "A picture from anywhere on this computer (png, jpg, webp) shown in the view to model from -\nlined up with the front view at first, behind the model. Kept with this model.", open_dialog))

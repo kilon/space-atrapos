@@ -5,6 +5,9 @@ extends Node
 ##   Auto merge: after each move / turn / scale, the points it moved onto others welded to them.
 ## - Inset (I): a ring of new faces inside the selected region's border, its width by the mouse
 ##   (or typed); click keeps, right-click / Esc cancels.
+## - Fillet (Ctrl+B): the selected edges (face mode: the faces' border) rounded off (mesh_bevel.gd) -
+##   the mouse sets the width (or typed), the wheel or + / - the segments; click keeps, right-click /
+##   Esc cancels.
 ## - Loop cut (Ctrl+R): the ring of quads across the edge under the mouse shown; a click cuts a new
 ##   edge loop through it, then the mouse slides it along the ring; click keeps it (right-click /
 ##   Esc: kept in the middle).
@@ -15,6 +18,7 @@ extends Node
 ## (xf: "step" / "on_cancel" / "name" - mesh_editor.gd calls them) and its undo (one step each).
 
 const EditMesh := preload("res://scripts/editor/mesh/edit_mesh.gd")
+const MeshBevel := preload("res://scripts/editor/mesh/mesh_bevel.gd")
 const DEFAULT_DIST := 0.0001
 
 var ed: Control
@@ -24,6 +28,8 @@ var merge_dist := DEFAULT_DIST
 var auto_merge := false
 ## The loop cut is waiting for a click (the ring under the mouse shown).
 var cutting := false
+## Fillet's rows of quads across each edge (the next fillet starts with as many as the last).
+var fillet_segments := 4
 var _ring := {}
 var _alt_at := Vector2(-1, -1)
 var _auto_btn: Button
@@ -525,6 +531,7 @@ func items() -> Array:
 	return [
 		["m_duplicate_mesh", "Duplicate selection", "Shift+D", "The selected faces copied, their points too, then moved with the mouse (click keeps it where it is;\nthe copy stays even if the move is cancelled). Points and edges alone copy nothing: the mesh is faces.", duplicate_selection],
 		["m_inset", "Inset", "I", "A ring of new faces inside the selected faces' border (the selection inset as one region):\nthe mouse towards the middle makes it wider, or type the width (metres); click keeps it,\nright-click / Esc cancels.", begin_inset],
+		["m_fillet", "Fillet", "Ctrl+B", "The selected edges rounded off (in face mode, the selected faces' border): each a strip of quads,\nits profile an arc. Move the mouse away from the middle to widen it, or type the width (metres);\nthe wheel or + / - sets the segments (1: a flat chamfer). Click keeps it, right-click / Esc cancels.", begin_fillet],
 		["m_loop_cut", "Loop cut", "Ctrl+R", "A new edge loop round a ring of quads: point at an edge to see the ring across it, click to cut,\nthen slide it along with the mouse and click to keep it (right-click / Esc: kept in the middle).", begin_loopcut],
 		["m_sel_loop", "Select loop", "Alt+click", "The selected edges' loops: on straight through each four-way point to a pole or an open end\n(Alt+click an edge: its loop; Shift+Alt+click adds; in face mode the ring of quads, in vertex mode its points).", select_loops],
 		["m_sel_ring", "Select ring", "", "The edges across the ring of quads either side of each selected edge.", select_rings],
@@ -778,16 +785,29 @@ func _undo_cancel(x: Dictionary) -> void:
 
 
 ## Keys while a tool of these runs (mesh_editor's key handling asks first): true if taken.
+## (Also Ctrl+B - Fillet - from edit mode.)
 func key(k: InputEventKey) -> bool:
 	if cutting and k.keycode == KEY_ESCAPE:
 		cancel_loopcut()
 		ed._say("Loop cut stopped.")
 		return true
 	var x: Dictionary = ed.xf
-	if x.get("kind", "") != "INS" or k.ctrl_pressed:
-		return false
-	var typed := str(x.get("typed", ""))
 	var kc := k.keycode
+	if kc == KEY_B and k.ctrl_pressed and not k.shift_pressed and not k.alt_pressed:
+		if ed.em == null or ed.mode != "edit" or not x.is_empty() or not ed.knife.is_empty():
+			return false
+		begin_fillet()
+		return true
+	if not x.get("kind", "") in ["INS", "FIL"] or k.ctrl_pressed:
+		return false
+	if x["kind"] == "FIL":
+		if kc in [KEY_EQUAL, KEY_PLUS, KEY_KP_ADD]:
+			set_fillet_segments(int(x["segments"]) + 1)
+			return true
+		if kc in [KEY_MINUS, KEY_KP_SUBTRACT]:
+			set_fillet_segments(int(x["segments"]) - 1)
+			return true
+	var typed := str(x.get("typed", ""))
 	if kc >= KEY_0 and kc <= KEY_9:
 		typed += str(kc - KEY_0)
 	elif kc >= KEY_KP_0 and kc <= KEY_KP_9:
@@ -801,6 +821,103 @@ func key(k: InputEventKey) -> bool:
 	x["typed"] = typed
 	ed._xf_update()
 	return true
+
+
+# --- fillet (Ctrl+B) -------------------------------------------------------------------
+
+## Fillet (Ctrl+B): the selected edges (face mode: the selected faces' border; a closed selection:
+## all their edges) rounded off - made again from the mesh as it was whenever the width (the mouse
+## away from the middle: wider; or typed) or the segments (the wheel, + / -) change. Click / Enter
+## keeps it (one undo step, the new strips selected), right-click / Esc cancels it all.
+func begin_fillet() -> void:
+	var em = ed.em
+	if em == null or ed.mode != "edit":
+		return
+	cancel_loopcut()
+	ed._cancel_xf()
+	var es: PackedInt32Array = MeshBevel.usable_edges(em, _fillet_edges())
+	if es.is_empty():
+		ed._say("Fillet: select edges between two faces first (2: edge mode), or faces (3: their border).")
+		return
+	var ids := PackedInt32Array()
+	var length := 0.0
+	for e in es:
+		ids.append(em.edges[e * 2])
+		ids.append(em.edges[e * 2 + 1])
+		length += (em.points[em.edges[e * 2]] as Vector3).distance_to(em.points[em.edges[e * 2 + 1]])
+	var x := {"kind": "FIL", "name": "Fillet", "snap": ed._snap(), "m0": ed._mouse, "axis": -1, "dir": Vector3.ZERO,
+		"pivot": ed.part.global_transform * em.centroid(ids), "edges": es, "w0": 0.1 * length / es.size(),
+		"segments": fillet_segments, "typed": "", "ids": PackedInt32Array(), "all": PackedInt32Array(), "verts": [],
+		"made": [], "step": _fillet_step, "on_cancel": _undo_cancel}
+	ed.xf = x
+	ed._xf_update()
+
+
+## The edges a fillet starts from: the selected ones - in face mode the selected faces' border
+## (none: every edge between them).
+func _fillet_edges() -> PackedInt32Array:
+	var em = ed.em
+	var ts: PackedByteArray = ed.sel_t
+	if ed.sel_kind != 2 or not ts.has(1):
+		return _sel_edges()
+	var border := PackedInt32Array()
+	var inside := PackedInt32Array()
+	for e in em.edge_count():
+		if em.edge_tn[e] != 2 or em.edge_inner[e]:
+			continue
+		var t0: int = em.edge_tris[e * 2]
+		var t1: int = em.edge_tris[e * 2 + 1]
+		var a := t0 < ts.size() and ts[t0] == 1
+		var b := t1 < ts.size() and ts[t1] == 1
+		if a != b:
+			border.append(e)
+		elif a:
+			inside.append(e)
+	return border if not border.is_empty() else inside
+
+
+## The fillet's width now: typed, else from the mouse (away from the middle: wider).
+func fillet_width() -> float:
+	var x: Dictionary = ed.xf
+	var w0: float = x.get("w0", 0.1)
+	if str(x.get("typed", "")) != "":
+		return maxf(str(x["typed"]).to_float(), w0 * 0.001)
+	var pivot: Vector3 = x["pivot"]
+	var ps: Vector2 = ed.view.project(pivot)
+	var m0: Vector2 = x["m0"]
+	var mouse: Vector2 = ed._mouse
+	return maxf(w0 + ((mouse - ps).length() - (m0 - ps).length()) * _px_local(pivot), w0 * 0.01)
+
+
+## The running fillet's segments (1 .. MeshBevel.MAX_SEGMENTS); the next fillet starts with them too.
+func set_fillet_segments(n: int) -> void:
+	fillet_segments = clampi(n, 1, MeshBevel.MAX_SEGMENTS)
+	if ed.xf.get("kind", "") == "FIL":
+		ed.xf["segments"] = fillet_segments
+		ed._xf_update()
+
+
+func _fillet_step() -> void:
+	var x: Dictionary = ed.xf
+	var w := fillet_width()
+	var n: int = x["segments"]
+	if x["made"] != [w, n]:
+		x["made"] = [w, n]
+		var em = ed.em
+		em.restore(x["snap"])
+		var r: Dictionary = MeshBevel.fillet(em, x["edges"], w, n)
+		x["ok"] = r["ok"]
+		x["msg"] = r["msg"]
+		x["used"] = r.get("width", w)
+		x["ids"] = r["new_points"]
+		x["verts"] = em.verts_of(r["new_points"]) if r["ok"] else []
+		_select_points(r["new_points"])
+		ed._mesh_changed()
+	var typed := str(x.get("typed", ""))
+	var used: float = x.get("used", w)
+	var what := "%s m%s, %d segment%s" % [_fmt(used), " (at most, here)" if used < w - 1e-9 else "", n, "" if n == 1 else "s"] if x.get("ok", false) else str(x.get("msg", ""))
+	ed.view.hint = "Fillet  %s%s   (mouse away from the middle: wider · type a width · wheel / + -: segments · click / Enter: done · right-click / Esc: cancel)" % [what, "  [" + typed + "]" if typed != "" else ""]
+	ed.view.request()
 
 
 # --- loop cut (Ctrl+R) ----------------------------------------------------------------
@@ -1067,6 +1184,10 @@ func view_input(e: InputEvent) -> bool:
 	var mb := e as InputEventMouseButton
 	if mb == null:
 		return false
+	if ed.xf.get("kind", "") == "FIL" and (mb.button_index == MOUSE_BUTTON_WHEEL_UP or mb.button_index == MOUSE_BUTTON_WHEEL_DOWN):
+		if mb.pressed:   # (the wheel: the fillet's segments, not the zoom)
+			set_fillet_segments(fillet_segments + (1 if mb.button_index == MOUSE_BUTTON_WHEEL_UP else -1))
+		return true
 	if cutting:
 		if mb.button_index == MOUSE_BUTTON_LEFT and not mb.alt_pressed:
 			if mb.pressed:

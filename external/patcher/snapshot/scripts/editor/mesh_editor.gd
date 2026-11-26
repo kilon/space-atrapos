@@ -20,6 +20,7 @@ const MaterialTools := preload("res://scripts/editor/mesh/material_tools.gd")
 const MeshOps := preload("res://scripts/editor/mesh/mesh_ops.gd")
 const DeformTools := preload("res://scripts/editor/mesh/deform_tools.gd")
 const RefImages := preload("res://scripts/editor/mesh/ref_images.gd")
+const CurveTools := preload("res://scripts/editor/mesh/curve_tools.gd")
 const ACCENT := Color(1.0, 0.72, 0.38)
 const KINDS := ["Vertex", "Edge", "Face"]
 ## Over this many vertices a part's edit mode is prepared on a worker thread.
@@ -105,6 +106,9 @@ var mat_tools: MaterialTools
 var mesh_ops: MeshOps
 var deform: DeformTools   # (curve deform, flatten: deform_tools.gd)
 var ref_images: RefImages   # (the view's reference images: ref_images.gd)
+var curve_tools: CurveTools   # (the Curve modeling tab: sketched curves made into solids - curve_tools.gd)
+var _right_tabs: TabContainer
+var _menu_tab := 0   # (the right-click menu's tab: 0 Mesh, 1 Curve modeling)
 var left_tab := "models"
 var _models_box: VBoxContainer
 var _tab_btns := {}
@@ -184,6 +188,9 @@ func _build() -> void:
 	ref_images = RefImages.new()
 	add_child(ref_images)
 	ref_images.setup(self)
+	curve_tools = CurveTools.new()
+	add_child(curve_tools)
+	curve_tools.setup(self)
 	var hn := TalosNav.header("MESHES", "", ACCENT)
 	var header: HBoxContainer = hn[0]
 	_note = hn[1]
@@ -246,6 +253,7 @@ func _build() -> void:
 			_focus = Vector3.INF
 			_overlays())
 	mid.add_child(view)
+	curve_tools.attach(view)
 	# the view's maximise button, in its top-right corner
 	_max_btn = Button.new()
 	_max_btn.icon = EditorIcons.get_icon("m_maximize")
@@ -440,7 +448,7 @@ func _build_left() -> Control:
 	left.add_child(shape_tools.browser)
 	mat_tools.browser.visible = false
 	left.add_child(mat_tools.browser)
-	lower.add_child(UI.section("PARTS"))
+	lower.add_child(EditorIcons.tipped(UI.section("PARTS"), EditorIcons.tip("Parts", "click / Ctrl+click", "The model's parts: groups of solids, with their solids and meshes under them. Click a row to\nselect it (Ctrl+click: more, two for a boolean), double-click to rename, right-click for its menu;\nthe eye hides or shows it.")))
 	_parts = Tree.new()
 	_parts.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_parts.custom_minimum_size.y = 80
@@ -448,12 +456,13 @@ func _build_left() -> Control:
 	_parts.columns = 1
 	_parts.focus_mode = Control.FOCUS_NONE
 	_parts.add_theme_font_size_override("font_size", 14)
-	_parts.tooltip_text = EditorIcons.tip("Parts", "click / Ctrl+click", "The model's parts (its meshes). Click one to select it, Ctrl+click (Shift+click: a run) to\nselect more (two for a boolean); the eye hides or shows it.")
+	_parts.tooltip_text = ""   # (each row its own tooltip - none for the list as a whole)
+	_parts.set_meta("tip_fn", _parts.get_tooltip)   # (PinTips: the row's under the mouse)
 	_parts.select_mode = Tree.SELECT_MULTI
 	_parts.multi_selected.connect(func(it: TreeItem, _c, on: bool):
 		if _syncing:
 			return
-		if on:
+		if on and it.get_metadata(0) is MeshInstance3D:
 			_tree_active = it.get_metadata(0)
 		if not _tree_due:
 			_tree_due = true
@@ -464,8 +473,153 @@ func _build_left() -> Control:
 		_place_ghosts()
 		_fill_parts()
 		view.request())
+	# (an overview: parts - groups of solids - with theirs under them; right-click: its menu; double-click: rename)
+	_parts.allow_rmb_select = true
+	_parts.item_mouse_selected.connect(func(pos: Vector2, mb: int): curve_tools.parts_click(pos, mb, _parts))
+	_parts.item_edited.connect(func(): curve_tools.parts_renamed(_parts))
 	lower.add_child(_parts)
 	return split
+
+
+## Preview in game: the model, as it is now, set down in the game under Talos to look at - not saved.
+func _preview_button() -> Button:
+	var b := _small("Preview in game", EditorIcons.tip("Preview in game", "", "The model as it is now (unsaved edits too) set down in front of you in the game - Talos\nhidden, the game running: walk or fly round it. F8 or Esc: back here. Only a look: nothing\nis added to the game or its save. (Talos opened from the title: your latest save loaded first,\nTalos carried over it as it is - your model, its undo history, everything.)"), preview_in_game)
+	b.name = "PreviewInGame"
+	b.icon = EditorIcons.get_icon("play")
+	b.text = ""   # (an icon only - its tooltip says what it does)
+	return b
+
+
+func _wire_button() -> Button:
+	var b := _small("Wireframe", EditorIcons.tip("Wireframe", "Shift+W", "The parts' edges drawn over them (in object mode too): every quad as a quad (its two triangles'\nshared edge left out), every lone triangle as one - to see the mesh's shape and spot a stretched\nor folded patch at a glance. Edges behind a surface stay hidden."), toggle_wire)
+	b.name = "Wireframe"
+	b.toggle_mode = true
+	b.button_pressed = wire_on()
+	b.icon = EditorIcons.get_icon("m_cv_wire")
+	b.text = ""   # (an icon only)
+	return b
+
+
+## The Wireframe button beside Preview in game - put in when missing (a toolbar built before it was
+## added, by a live update: there at once, no restart).
+func _ensure_wire_button() -> void:
+	var pv := find_child("PreviewInGame", true, false)
+	if pv == null:
+		return
+	set_meta("wire_btn_ok", true)
+	(pv as Button).text = ""   # (icons only, a live update too)
+	var wb := find_child("Wireframe", true, false)
+	if wb != null:
+		(wb as Button).text = ""
+		(wb as Button).icon = EditorIcons.get_icon("m_cv_wire")
+		return
+	var b := _wire_button()
+	pv.get_parent().add_child(b)
+	pv.get_parent().move_child(b, pv.get_index() + 1)
+
+
+## The wireframe over the parts on (a meta - hot reload safe).
+func wire_on() -> bool:
+	return bool(get_meta("wire_on", false))
+
+
+func toggle_wire() -> void:
+	set_meta("wire_on", not wire_on())
+	var b = find_child("Wireframe", true, false)
+	if b is Button:
+		(b as Button).set_pressed_no_signal(wire_on())
+	set_meta("wire_sig", 0)
+	update_wire()
+	_say("Wireframe " + ("on" if wire_on() else "off") + ".")
+
+
+## (each frame, cheap) The wireframe drawn again when a part, its mesh or its place changed.
+func update_wire() -> void:
+	var mi: MeshInstance3D = get_meta("wire_mi") if has_meta("wire_mi") and is_instance_valid(get_meta("wire_mi")) else null
+	if not wire_on() or model == null or view == null:
+		if mi:
+			mi.visible = false
+		return
+	var sig := 0
+	var ps := parts()
+	for p: MeshInstance3D in ps:
+		if p.is_visible_in_tree() and p.mesh:
+			sig = hash([sig, p.get_instance_id(), p.mesh.get_instance_id(), p.global_transform])
+	if mi and sig == int(get_meta("wire_sig", 0)):
+		mi.visible = true
+		return
+	set_meta("wire_sig", sig)
+	if mi == null:
+		mi = view._overlay(Color(0.55, 0.85, 1.0, 0.55), 0.004, false, 1)
+		mi.name = "PartsWire"
+		set_meta("wire_mi", mi)
+	var pts := PackedVector3Array()
+	var idx := PackedInt32Array()
+	for p: MeshInstance3D in ps:
+		if not p.is_visible_in_tree() or p.mesh == null:
+			continue
+		var xf := p.global_transform
+		for si in p.mesh.get_surface_count():
+			if p.mesh.surface_get_primitive_type(si) != Mesh.PRIMITIVE_TRIANGLES:
+				continue
+			var a := p.mesh.surface_get_arrays(si)
+			var vs: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+			var ix: PackedInt32Array = a[Mesh.ARRAY_INDEX] if a[Mesh.ARRAY_INDEX] != null else PackedInt32Array(range(vs.size()))
+			# (points welded by place - a shaded mesh splits them at its sharp edges)
+			var weld := {}
+			var wid := PackedInt32Array()
+			wid.resize(vs.size())
+			for i in vs.size():
+				var k := Vector3i((vs[i] * 1e5).round())
+				if not weld.has(k):
+					weld[k] = pts.size()
+					pts.append(xf * vs[i])
+				wid[i] = weld[k]
+			var edges := {}   # "a,b" -> [triangles with it]
+			var tri_n := []
+			var tri_long := []
+			for t in range(0, ix.size(), 3):
+				var tr := [wid[ix[t]], wid[ix[t + 1]], wid[ix[t + 2]]]
+				var n := (pts[tr[2]] - pts[tr[0]]).cross(pts[tr[1]] - pts[tr[0]])
+				tri_n.append(n.normalized() if n.length() > 1e-14 else Vector3.ZERO)
+				var lk := ""
+				var ll := -1.0
+				for j in 3:
+					var x: int = tr[j]
+					var y: int = tr[(j + 1) % 3]
+					var ek := "%d,%d" % [mini(x, y), maxi(x, y)]
+					if not edges.has(ek):
+						edges[ek] = []
+					edges[ek].append(t / 3)
+					var l := pts[x].distance_to(pts[y])
+					if l > ll:
+						ll = l
+						lk = ek
+				tri_long.append(lk)
+			for ek in edges:
+				var ts: Array = edges[ek]
+				# (a quad's diagonal - the longest edge of both its flat-together triangles: not drawn)
+				if ts.size() == 2 and tri_long[ts[0]] == ek and tri_long[ts[1]] == ek and (tri_n[ts[0]] as Vector3).dot(tri_n[ts[1]]) > 0.85:
+					continue
+				var ab: PackedStringArray = (ek as String).split(",")
+				idx.append(int(ab[0]))
+				idx.append(int(ab[1]))
+	view._lines(mi.mesh as ArrayMesh, pts, idx)
+	mi.visible = true
+
+
+func preview_in_game() -> Node:
+	if model == null:
+		return null
+	var MP: GDScript = load("res://scripts/editor/mesh/model_preview.gd")
+	var p: Node = MP.start(self)
+	var scene := get_tree().current_scene
+	if p == null and SaveGame.talos_overlay() == null and scene != null and not scene.has_method("get_save_data") and (scene == self or scene.is_ancestor_of(self)):
+		MP.launch(self)   # (Talos from the title: into your latest save first, the model carried along)
+		_say("Preview in game: loading your game...")
+	elif p == null:
+		_say("Preview in game: there's no game world here to preview in.")
+	return p
 
 
 func _build_toolbar(mid: VBoxContainer) -> void:
@@ -516,6 +670,8 @@ func _build_toolbar(mid: VBoxContainer) -> void:
 	IconAnim.attach(_gizmo_btn, "m_gizmo")
 	row.add_child(_compact(_gizmo_btn))
 	row.add_child(_small("Frame", EditorIcons.tip("Frame selected", "F / Numpad .", "Centres the view on the selection (Home: the whole model)."), frame_selected))
+	row.add_child(_preview_button())
+	row.add_child(_wire_button())
 	var row2 := row
 	row2.add_child(VSeparator.new())
 	_prop_btn = Button.new()
@@ -570,7 +726,7 @@ func _build_right() -> Control:
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_theme_constant_override("separation", 3)
 	sc.add_child(box)
-	box.add_child(UI.section("PART"))
+	box.add_child(EditorIcons.tipped(UI.section("PART"), EditorIcons.tip("Part", "", "The selected part: its name, where it is (place, turn, size), the primitives to add, and binding\nit to a character's skeleton.")))
 	var name_e := LineEdit.new()
 	name_e.add_theme_font_size_override("font_size", 14)
 	name_e.placeholder_text = "(no part selected)"
@@ -617,7 +773,7 @@ func _build_right() -> Control:
 	_build_bind(box)
 	shape_tools.build_right(box)
 
-	box.add_child(UI.section("MIRROR MODIFIER"))
+	box.add_child(EditorIcons.tipped(UI.section("MIRROR MODIFIER"), EditorIcons.tip("Mirror modifier", "", "The selected part mirrored across its own X / Y / Z: you shape one side, the other follows\n(applied when saved).")))
 	var mrow := HBoxContainer.new()
 	for a in 3:
 		var c := CheckBox.new()
@@ -653,7 +809,7 @@ func _build_right() -> Control:
 	mrow2.add_child(_small("Apply", EditorIcons.tip("Apply the mirror", "", "Makes the mirrored copy part of the mesh, and removes the modifier."), apply_mirror))
 
 	_edit_box = VBoxContainer.new()
-	_edit_box.add_child(UI.section("EDIT MESH"))
+	_edit_box.add_child(EditorIcons.tipped(UI.section("EDIT MESH"), EditorIcons.tip("Edit mesh", "Tab", "Edit mode's operations on the selected vertices, edges and faces.")))
 	# The selection's coordinates (its one point, or the middle of several - in the part's own
 	# space), live as it's moved; typed, the selection moves there.
 	var sr := HBoxContainer.new()
@@ -697,7 +853,7 @@ func _build_right() -> Control:
 	mesh_ops.build_panel(_edit_box)
 	box.add_child(_edit_box)
 
-	box.add_child(UI.section("MATERIAL"))
+	box.add_child(EditorIcons.tipped(UI.section("MATERIAL"), EditorIcons.tip("Material", "", "The selected part's materials: colour, metal, roughness, glow - from the library or its own.")))
 	var surf := OptionButton.new()
 	surf.add_theme_font_size_override("font_size", 14)
 	surf.focus_mode = Control.FOCUS_NONE
@@ -708,7 +864,39 @@ func _build_right() -> Control:
 	mat_tools.build_right(box)
 	ref_images.build_right(box)
 	box.move_child(_edit_box, 0)   # (edit mesh first: what's used most)
-	return sc
+	# Two tabs: the mesh's tools, and Curve modeling (curves sketched on a plane, made into solids) -
+	# each its own page, so neither gets crowded.
+	_right_tabs = TabContainer.new()
+	_right_tabs.custom_minimum_size.x = 220
+	_right_tabs.add_theme_font_size_override("font_size", 14)
+	sc.name = "Mesh"
+	_right_tabs.add_child(sc)
+	var csc := ScrollContainer.new()
+	csc.name = "Curve modeling"
+	csc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var cbox := VBoxContainer.new()
+	cbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cbox.add_theme_constant_override("separation", 1)
+	csc.add_child(cbox)
+	curve_tools.build_panel(cbox)
+	_right_tabs.add_child(csc)
+	_right_tabs.set_tab_tooltip(0, "The part, edit mesh, booleans, shapes, mirror, materials, reference images.")
+	_right_tabs.set_tab_tooltip(1, "Curve modeling: lines, splines, circles, arcs, rectangles and polygons drawn on a construction\nplane (snapped to its grid and to points), then extruded, revolved, lofted, swept or piped into solids.\nWith this tab open: L line, P spline, C circle, Shift+C arc, Shift+R rectangle, Shift+P polygon, E extrude.")
+	_right_tabs.tab_changed.connect(func(_t): curve_tools._refresh_panel())
+	return _right_tabs
+
+
+## The right panel's tab `i` shown (0 Mesh, 1 Curve modeling).
+func show_right_tab(i: int) -> void:
+	if _right_tabs:
+		_right_tabs.current_tab = i
+	if i == 1 and not right_shown:
+		set_right_panel(true)
+
+
+## The Curve modeling tab is open (its tool keys work).
+func curve_tab_shown() -> bool:
+	return _right_tabs != null and _right_tabs.current_tab == 1 and right_shown
 
 
 # --- the model -----------------------------------------------------------------
@@ -769,6 +957,7 @@ func _set_model(root: Node3D, res_path: String) -> void:
 	model = root
 	path = res_path
 	ref_images.model_opened(res_path)
+	curve_tools.model_opened(res_path)
 	part = null
 	sel_parts = []
 	_menu_prev = null
@@ -777,6 +966,8 @@ func _set_model(root: Node3D, res_path: String) -> void:
 		var ex = p.get_meta("extras", {})
 		if ex is Dictionary and ex.get("atrapos_shape") is Dictionary:
 			p.set_meta("mesh_shape", ex["atrapos_shape"])
+		if ex is Dictionary and ex.get("atrapos_curves") is Dictionary:
+			p.set_meta("curve_solid", ex["atrapos_curves"])
 	view.world.add_child(model)
 	for sk in model.find_children("*", "Skeleton3D", true, false):
 		(sk as Skeleton3D).reset_bone_poses()   # (the rest pose: as the mesh is stored)
@@ -826,15 +1017,30 @@ func _fill_parts() -> void:
 	var root := _parts.create_item()
 	var eye := EditorIcons.get_icon("eye")
 	var eye_off := EditorIcons.get_icon("eye_off")
+	# parts (groups of solids, curve_tools.is_group) as rows with what's in them under them
+	var rows := {}
+	if model:
+		for g in curve_tools.groups():
+			var up: Node = curve_tools.group_of(g)
+			var gi := _parts.create_item(rows.get(up, root))
+			gi.set_text(0, str(g.name))
+			gi.set_metadata(0, g)
+			gi.set_editable(0, true)
+			gi.set_tooltip_text(0, "A part: a group of solids. Click: select them all. Right-click: more; double-click: rename.")
+			gi.add_button(0, eye if g.visible else eye_off, 0, false, "Hide / show")
+			rows[g] = gi
 	for p: MeshInstance3D in parts():
-		var it := _parts.create_item(root)
+		var g: Node = curve_tools.group_of(p)
+		var it := _parts.create_item(rows.get(g, root))
 		var depth := 0
 		var n := p.get_parent()
-		while n and n != model:
+		while n and n != model and n != g:
 			depth += 1
 			n = n.get_parent()
 		it.set_text(0, "  ".repeat(depth) + str(p.name) + ("  (mirror)" if p.has_meta("mesh_mirror") else "") + ("  (bound)" if p.has_meta("bound_part") else ""))
 		it.set_metadata(0, p)
+		it.set_editable(0, true)
+		it.set_tooltip_text(0, "%s - %s. Click: select (Ctrl+click: more, two for a boolean); double-click: rename;\nright-click: more." % [p.name, "a solid made from curves" if p.has_meta("curve_solid") else "a mesh"])
 		it.add_button(0, eye if p.visible else eye_off, 0, false, "Hide / show")
 		if p == part or p in sel_parts:
 			it.select(0)
@@ -1192,15 +1398,23 @@ func _leave_edit(keep := true) -> void:
 		p.mesh = before
 	elif not _eundo.is_empty():
 		# (its vertices edited: a part made from a shape is a plain mesh from now on)
+		# (and one made from curves stops following them)
 		var shp: Dictionary = p.get_meta("mesh_shape", {})
+		var cso: Dictionary = p.get_meta("curve_solid", {})
 		p.remove_meta("mesh_shape")
+		p.remove_meta("curve_solid")
+		if not cso.is_empty():
+			_say("%s's mesh edited: a plain mesh now - its curves no longer change it (undo: linked again)." % p.name)
 		_push("Edit " + str(p.name), func():
 			p.mesh = before
 			if not shp.is_empty():
 				p.set_meta("mesh_shape", shp)
+			if not cso.is_empty():
+				p.set_meta("curve_solid", cso)
 			_place_ghosts(); _update_ui(); view.request(), func():
 			p.mesh = after
 			p.remove_meta("mesh_shape")
+			p.remove_meta("curve_solid")
 			_place_ghosts(); _update_ui(); view.request())
 	em = null
 	_em_tm = null
@@ -1730,6 +1944,17 @@ func begin_transform(kind: String, axis := Vector3.ZERO) -> void:
 			return   # (spherize: points - edit mode)
 		x["orig"] = part.global_transform
 		x["pivot"] = part.global_position
+		# (every selected solid moves; a part - a group - whose solids are all selected moves as one)
+		var nodes := xf_nodes()
+		var origs := []
+		var mid := Vector3.ZERO
+		for n: Node3D in nodes:
+			origs.append(n.global_transform)
+			mid += n.global_position
+		x["nodes"] = nodes
+		x["origs"] = origs
+		if nodes.size() > 1 or nodes[0] != part:
+			x["pivot"] = mid / nodes.size()
 	else:
 		if em == null:
 			return
@@ -1895,7 +2120,7 @@ func _xf_update() -> void:
 				dir_name = "   axis " + "XYZ"[k]
 	view.hint += ("   axis " + "XYZ"[ax] if ax >= 0 else dir_name) + "   (X / Y / Z: lock an axis · click / Enter: done · right-click / Esc: cancel%s)" % (" · wheel: radius" if prop_on and mode == "edit" else "")
 	if mode == "object":
-		part.global_transform = t * (xf["orig"] as Transform3D)
+		_set_xfs(xf, t)
 		_syncing = true
 		_show_part()
 		_syncing = false
@@ -1924,6 +2149,10 @@ func _xf_update() -> void:
 
 
 func _process(_dt: float) -> void:
+	if not has_meta("wire_btn_ok"):
+		_ensure_wire_button()
+	if wire_on() or has_meta("wire_mi"):
+		update_wire()
 	if _tpose_task >= 0 and WorkerThreadPool.is_task_completed(_tpose_task):
 		WorkerThreadPool.wait_for_task_completion(_tpose_task)
 		_tpose_task = -1
@@ -1970,11 +2199,11 @@ func confirm_transform() -> void:
 	view.hint = ""
 	view.circle_r = 0.0
 	if mode == "object":
-		var p := part
-		var before: Transform3D = x["orig"]
-		var after := p.global_transform
+		var nodes: Array = x.get("nodes", [part])
+		var before: Array = x.get("origs", [x["orig"]])
+		var after := nodes.map(func(n: Node3D): return n.global_transform)
 		if before != after:
-			_push("Transform", func(): p.global_transform = before; _transformed(), func(): p.global_transform = after; _transformed())
+			_push("Transform", _put_xfs.bind(nodes, before), _put_xfs.bind(nodes, after))
 		_transformed()
 		return
 	_refill = false
@@ -1984,6 +2213,38 @@ func confirm_transform() -> void:
 		_edit_done(x["name"], x["snap"])
 		return
 	_edit_done({"G": "Move", "R": "Rotate", "S": "Scale", "SPH": "Spherize", "CRV": "Curve deform", "FLT": "Flatten"}.get(x["kind"], "Edit"), x["snap"])
+
+
+## What an object-mode transform moves: the selected parts - each part (a group of solids) whose
+## solids are all selected as one - and nothing whose parent moves already.
+func xf_nodes() -> Array:
+	var sel := selected_parts()
+	var out: Array = []
+	for p: Node3D in sel:
+		var n: Node3D = p
+		var g := curve_tools.group_of(p)
+		while g and curve_tools.group_parts(g).all(func(q): return q in sel):
+			n = g
+			g = curve_tools.group_of(g)
+		if not n in out:
+			out.append(n)
+	out = out.filter(func(n): return not out.any(func(o): return o != n and o.is_ancestor_of(n)))
+	return out if not out.is_empty() else [part]
+
+
+func _set_xfs(x: Dictionary, t: Transform3D) -> void:
+	var nodes: Array = x.get("nodes", [part])
+	var origs: Array = x.get("origs", [x["orig"]])
+	for i in nodes.size():
+		if is_instance_valid(nodes[i]):
+			(nodes[i] as Node3D).global_transform = t * (origs[i] as Transform3D)
+
+
+func _put_xfs(nodes: Array, xfs: Array) -> void:
+	for i in nodes.size():
+		if is_instance_valid(nodes[i]):
+			(nodes[i] as Node3D).global_transform = xfs[i]
+	_transformed()
 
 
 func _cancel_xf() -> void:
@@ -1998,8 +2259,7 @@ func _cancel_xf() -> void:
 	view.circle_r = 0.0
 	if mode == "object":
 		if part:
-			part.global_transform = x["orig"]
-			_transformed()
+			_put_xfs(x.get("nodes", [part]), x.get("origs", [x["orig"]]))
 		return
 	if x.has("on_cancel"):   # (a tool's own: an inset undone, a loop slide kept in the middle)
 		(x["on_cancel"] as Callable).call(x)
@@ -2575,6 +2835,9 @@ func _view_input(e: InputEvent) -> void:
 	if mesh_ops.view_input(e):   # (the loop cut's hover and click; Alt+click: a loop)
 		view.accept_event()
 		return
+	if curve_tools.view_input(e):   # (sketching, the curves' points dragged, extrude's drag)
+		view.accept_event()
+		return
 	var mm := e as InputEventMouseMotion
 	if mm:
 		_mouse = mm.position
@@ -3124,6 +3387,116 @@ func menu(at: Vector2) -> PopupPanel:
 		["redo", "Redo", "Ctrl+Y", "Does it again.", redo, true],
 		["save", "Save", "Ctrl+S", "Saves the model.", func(): save(), EditTarget.writable()],
 	])
+	# Two tabs, as the right panel has: the mesh's tools and Curve modeling's (the one last used shown).
+	var tabs := TabBar.new()
+	tabs.name = "MenuTabs"
+	tabs.add_tab("Mesh")
+	tabs.add_tab("Curve modeling")
+	tabs.set_tab_tooltip(0, "The model's parts and the mesh's tools.")
+	tabs.set_tab_tooltip(1, "Curve modeling: sketch curves on a plane, edit them, make solids of them.")
+	tabs.focus_mode = Control.FOCUS_NONE
+	tabs.add_theme_font_size_override("font_size", 14)
+	tabs.tooltip_text = "The menu's pages: the mesh's tools, or Curve modeling's."
+	box.add_child(tabs)
+	var pages := [VBoxContainer.new(), VBoxContainer.new()]
+	if curve_tools.active() or not curve_tools.sel.is_empty() or not curve_tools.point_items(at).is_empty():
+		_menu_tab = 1
+	for pi in 2:
+		(pages[pi] as VBoxContainer).add_theme_constant_override("separation", 4)
+		(pages[pi] as VBoxContainer).name = ["MeshPage", "CurvePage"][pi]
+		box.add_child(pages[pi])
+		_menu_page(pages[pi], groups if pi == 0 else curve_tools.menu_groups(at))
+		(pages[pi] as Control).visible = pi == _menu_tab
+	tabs.current_tab = _menu_tab
+	tabs.tab_changed.connect(func(t):
+		_menu_tab = t
+		for pi in 2:
+			(pages[pi] as Control).visible = pi == t
+		_fit_menu.call_deferred())
+	add_child(_menu)
+	# (where it fits: its size measured, then kept inside the window - shifted left / up from the edges)
+	var sz := Vector2(_menu.get_contents_minimum_size())
+	var win := get_viewport().get_visible_rect().size
+	var pos := view.get_global_rect().position + at
+	pos.x = clampf(pos.x, 4.0, maxf(4.0, win.x - sz.x - 4.0))
+	pos.y = clampf(pos.y, 4.0, maxf(4.0, win.y - sz.y - 4.0))
+	_menu.popup(Rect2i(Vector2i(pos), Vector2i(sz)))
+	_fit_menu.call_deferred()   # (again with its real size, once it's laid out)
+	_menu.popup_hide.connect(_menu_hidden.bind(_menu))
+	# (a glint running round its edge - on the panel's own border, out past the content's margins)
+	var shine: Control = load("res://scripts/ui/edge_shine.gd").call("add_to", _menu)
+	var sb := _menu.get_theme_stylebox("panel")
+	if sb:
+		shine.set("inset", 1.5 - sb.get_margin(SIDE_LEFT))
+	_menu_fold.call_deferred(_menu, true)   # (unfolds from where you clicked, once it has its size)
+	return _menu
+
+
+## The right-click menu folding open (its height unrolling down from the top, its icons fading in) or
+## shut (rolling back up) - then `done`.
+func _menu_fold(m: PopupPanel, open: bool, done := Callable()) -> void:
+	if m == null or not is_instance_valid(m) or not m.visible:
+		if done.is_valid():
+			done.call()
+		return
+	if open:
+		_fit_menu()
+		m.set_meta("full_h", m.size.y)
+	var full: int = int(m.get_meta("full_h", m.size.y))
+	var w: int = m.size.x
+	var box: Control = m.get_child(0) as Control if m.get_child_count() > 0 else null
+	var tw := m.create_tween()
+	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT if open else Tween.EASE_IN)
+	tw.tween_method(func(f: float):
+		if is_instance_valid(m):
+			m.size = Vector2i(w, maxi(6, int(round(full * f))))
+			if box:
+				box.modulate.a = clampf(f * 1.5 - 0.3, 0.0, 1.0), 0.0 if open else 1.0, 1.0 if open else 0.0, 0.5 if open else 0.4)
+	if open:
+		tw.tween_callback(func():
+			if is_instance_valid(m):
+				m.size = Vector2i(w, full))
+	if done.is_valid():
+		tw.tween_callback(done)
+
+
+## The menu folded shut, then gone.
+func _menu_close(m: PopupPanel) -> void:
+	if m == null or not is_instance_valid(m) or m.has_meta("closing"):
+		return
+	m.set_meta("closing", true)
+	_menu_fold(m, false, func():
+		if is_instance_valid(m):
+			m.hide())
+
+
+## (closed by a click elsewhere or Esc - hidden at once by the popup itself) its fold played by a
+## stand-in: a panel in its look and place, rolling up and fading, then gone.
+func _menu_hidden(m: PopupPanel) -> void:
+	if not is_instance_valid(m) or m.has_meta("closing") or m.is_queued_for_deletion():
+		return
+	m.set_meta("closing", true)
+	var ghost := Panel.new()
+	ghost.name = "MenuFoldOut"
+	ghost.top_level = true
+	ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := m.get_theme_stylebox("panel")
+	if sb:
+		ghost.add_theme_stylebox_override("panel", sb)
+	ghost.position = Vector2(m.position)
+	ghost.size = Vector2(m.size)
+	add_child(ghost)
+	var h := float(m.size.y)
+	var tw := ghost.create_tween()
+	tw.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.tween_method(func(f: float):
+		ghost.size = Vector2(ghost.size.x, maxf(4.0, h * f))
+		ghost.modulate.a = clampf(f * 1.4, 0.0, 1.0), 1.0, 0.0, 0.4)
+	tw.tween_callback(ghost.queue_free)
+
+
+## One page of the right-click menu: its groups of icon buttons, a line between groups.
+func _menu_page(box: VBoxContainer, groups: Array) -> void:
 	for gi in groups.size():
 		if gi > 0:
 			box.add_child(HSeparator.new())
@@ -3144,19 +3517,9 @@ func menu(at: Vector2) -> PopupPanel:
 			b.disabled = not it[5]
 			b.name = "Menu_" + str(it[1]).validate_node_name()
 			b.pressed.connect(func():
-				_menu.hide()
+				_menu_close(_menu)   # (folds shut as the tool starts)
 				cb.call())
 			row.add_child(b)
-	add_child(_menu)
-	# (where it fits: its size measured, then kept inside the window - shifted left / up from the edges)
-	var sz := Vector2(_menu.get_contents_minimum_size())
-	var win := get_viewport().get_visible_rect().size
-	var pos := view.get_global_rect().position + at
-	pos.x = clampf(pos.x, 4.0, maxf(4.0, win.x - sz.x - 4.0))
-	pos.y = clampf(pos.y, 4.0, maxf(4.0, win.y - sz.y - 4.0))
-	_menu.popup(Rect2i(Vector2i(pos), Vector2i(sz)))
-	_fit_menu.call_deferred()   # (again with its real size, once it's laid out)
-	return _menu
 
 
 ## The menu kept inside the window, by its real size.
@@ -3234,6 +3597,9 @@ func _unhandled_key_input(e: InputEvent) -> void:
 	if mesh_ops.key(k):   # (an inset's typed width, the loop cut's Esc)
 		get_viewport().set_input_as_handled()
 		return
+	if curve_tools.key(k):   # (the sketch tools; typed sizes; the selected curves' Delete / Shift+D)
+		get_viewport().set_input_as_handled()
+		return
 	var handled := true
 	var kc := k.keycode
 	if k.ctrl_pressed:
@@ -3271,7 +3637,11 @@ func _unhandled_key_input(e: InputEvent) -> void:
 			KEY_BRACKETLEFT: set_left_panel(not left_shown)
 			KEY_BRACKETRIGHT: set_right_panel(not right_shown)
 			KEY_T: toggle_tpose()
-			KEY_W: set_weapons(not weapons_shown)
+			KEY_W:
+				if k.shift_pressed:
+					toggle_wire()
+				else:
+					set_weapons(not weapons_shown)
 			KEY_O: _import()
 			KEY_KP_1: view.set_view("front", true)
 			KEY_KP_3: view.set_view("side", true)
@@ -3307,6 +3677,11 @@ func _unhandled_key_input(e: InputEvent) -> void:
 	else:
 		match kc:
 			KEY_TAB: toggle_edit()
+			KEY_F2:
+				if mode == "object":
+					curve_tools.rename_selected()
+				else:
+					handled = false
 			KEY_K:
 				if mode == "edit":
 					begin_knife(k.shift_pressed)
@@ -3681,6 +4056,10 @@ func _drop_entries(entries: Array) -> void:
 
 func undo() -> void:
 	knife_cancel()
+	if curve_tools.active():
+		curve_tools.cancel_op()
+		curve_tools.stop()
+		return
 	if not xf.is_empty():
 		_cancel_xf()
 		return
@@ -4099,12 +4478,17 @@ func write_to(res_path: String) -> int:
 		if is_instance_valid(p):
 			SelectOutline.show(p, false, Color.WHITE, false)
 	_outlined_more = []
+	curve_tools.rebase_edges()   # (baked solids: their edges as they are now - opened again as saved)
 	for p: MeshInstance3D in parts():   # (a part's shape recipe kept in the glb's extras)
 		var ex: Dictionary = p.get_meta("extras", {}).duplicate()
 		if p.has_meta("mesh_shape"):
 			ex["atrapos_shape"] = p.get_meta("mesh_shape")
 		else:
 			ex.erase("atrapos_shape")
+		if p.has_meta("curve_solid"):   # (a solid made from curves: its recipe, made again from them when opened)
+			ex["atrapos_curves"] = p.get_meta("curve_solid")
+		else:
+			ex.erase("atrapos_curves")
 		if ex.is_empty():
 			p.remove_meta("extras")
 		else:
@@ -4135,6 +4519,7 @@ func write_to(res_path: String) -> int:
 	var err := MeshIO.write(model, file)
 	if err == OK:
 		_forget_game(res_path)
+		curve_tools.save_beside(file)   # (the model's curves: <file>.curves.json beside it)
 	if err == OK and MeshIO.is_character(res_path):
 		_write_material_table(res_path)
 	if err == OK:
@@ -4299,6 +4684,11 @@ func show_stats() -> void:
 
 func _update_ui() -> void:
 	show_stats()
+	var pv: Button = _toolbar.get_node_or_null("PreviewInGame") if _toolbar else null
+	if pv:
+		pv.disabled = model == null
+	if curve_tools:
+		curve_tools._refresh_panel()
 	_outline_part()
 	if shape_tools and shape_tools.panel:
 		shape_tools.refresh()
@@ -4350,7 +4740,14 @@ func _sync_tree_selection() -> void:
 	var picked := []
 	var it := _parts.get_next_selected(null)
 	while it:
-		picked.append(it.get_metadata(0))
+		var n = it.get_metadata(0)
+		if n is MeshInstance3D:
+			if not n in picked:
+				picked.append(n)
+		elif n is Node:
+			for q in curve_tools.group_parts(n):   # (a part - a group: all its solids)
+				if not q in picked:
+					picked.append(q)
 		it = _parts.get_next_selected(it)
 	if picked.is_empty():
 		return
@@ -4968,7 +5365,7 @@ func _fill_bones() -> void:
 ## A part's binding as it is: [mesh, skin, skeleton, global transform, its metas].
 func _bind_state(p: MeshInstance3D) -> Array:
 	var mt := {}
-	for k in ["tpose", "tpose_mats", "tpose_skin", "tpose_skel", "bound_part", "mesh_shape"]:
+	for k in ["tpose", "tpose_mats", "tpose_skin", "tpose_skel", "bound_part", "mesh_shape", "curve_solid"]:
 		if p.has_meta(k):
 			mt[k] = p.get_meta(k)
 	return [p.mesh, p.skin, p.skeleton, p.global_transform, mt]
@@ -4980,7 +5377,7 @@ func _set_bind_state(p: MeshInstance3D, st: Array) -> void:
 	p.skeleton = st[2]
 	if p.is_inside_tree():
 		p.global_transform = st[3]
-	for k in ["tpose", "tpose_mats", "tpose_skin", "tpose_skel", "bound_part", "mesh_shape"]:
+	for k in ["tpose", "tpose_mats", "tpose_skin", "tpose_skel", "bound_part", "mesh_shape", "curve_solid"]:
 		if (st[4] as Dictionary).has(k):
 			p.set_meta(k, st[4][k])
 		else:

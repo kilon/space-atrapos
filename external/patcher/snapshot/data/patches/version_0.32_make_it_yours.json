@@ -3,15 +3,164 @@
  "id": "0.32",
  "title": "Make it yours",
  "date": "2026-11-24",
- "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Then mods, meshes and the Live Editor (patch 0023).",
+ "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024).",
  "patches": [
-  "0023"
+  "0023",
+  "0024"
  ],
  "steps": [
   {
    "patch": "0023",
    "title": "Patch 0023 - Mods, meshes and the Live Editor",
-   "text": "Patch 0023 opens the whole game to change: mods that can replace or merge into any of its files, and a Mod Editor to make them; a mesh editor in Talos with edit mode, proportional editing, mirror and symmetry, 120 editable shapes, booleans, a knife, n-gon faces, loop cuts, insets, curve deform, a material editor, saves kept as overrides with variants, and parts bound to a character's skeleton; an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which changes anything in the world while the game runs and keeps the edit for every thing of that kind. Patch Notes moves to the title screen (the SVG editor is gone), every control has a tooltip, bodies turn and animate without snaps, the rifle is slung, drawn and aimed where the shots go, and the browser build starts in 6-7 seconds instead of up to two minutes.",
+   "text": "Mods that change any file of the game and a Mod Editor to make them; a mesh editor, an animation editor and an effects editor in Talos; the Live Editor (F10) for anything in the running world, its edits kept for every thing of that kind. Also: Patch Notes on the title screen, a tooltip on every control (about 215 were missing), smooth turns and mended clips, the slung rifle, and the browser build in 6-7 s instead of up to 140.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "PATCH 0023 - MODS, MESHES AND THE LIVE EDITOR",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      90,
+      300,
+      110
+     ],
+     "label": "mods: replace or\nmerge any file",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      90,
+      300,
+      110
+     ],
+     "label": "the Mod Editor",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      90,
+      300,
+      110
+     ],
+     "label": "Patch Notes on\nthe title screen",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      225,
+      300,
+      110
+     ],
+     "label": "mesh editor:\n120 shapes, booleans,\nknife, loop cut",
+     "size": 16,
+     "stroke": "purple",
+     "pulse": true
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      225,
+      300,
+      110
+     ],
+     "label": "animation editor,\neffects editor",
+     "size": 16,
+     "stroke": "purple"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      225,
+      300,
+      110
+     ],
+     "label": "the Live Editor  F10:\nedit the running world",
+     "size": 16,
+     "stroke": "gold",
+     "pulse": true
+    },
+    {
+     "t": "box",
+     "rect": [
+      30,
+      360,
+      300,
+      110
+     ],
+     "label": "a tooltip on\nevery control",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      350,
+      360,
+      300,
+      110
+     ],
+     "label": "smooth turns,\nthe slung rifle",
+     "size": 16,
+     "stroke": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      360,
+      300,
+      110
+     ],
+     "label": "the browser:\n6-7 s to play",
+     "size": 16,
+     "stroke": "green"
+    },
+    {
+     "t": "badge",
+     "at": [
+      260,
+      515
+     ],
+     "text": "14 steps",
+     "color": "gold",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      740,
+      515
+     ],
+     "text": "176 files",
+     "color": "cyan",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "patch": "0024",
+   "title": "Patch 0024 - Curve modeling",
+   "text": "Patch 0024 brings curve modelling to the mesh editor: a Curve modeling tab where curves are sketched on any surface and turned into solids - extruded, revolved, lofted, swept, piped or filled - that stay tied to their curves, every step editable any time, with curve booleans, an overview of solids and parts, and edge fillets. A solid can be baked into one clean mesh whose curves are its edges: drag any edge point and the faces follow, and when you let go it settles into a tidy grid of quads, rebuilt where it stretched.",
    "diagram": [
     {
      "t": "box",
@@ -21,7 +170,7 @@
       600,
       80
      ],
-     "label": "PATCH 0023\nMods, meshes and the Live Editor",
+     "label": "PATCH 0024\nCurve modeling",
      "size": 18,
      "stroke": "gold"
     },
@@ -31,7 +180,7 @@
       210,
       200
      ],
-     "text": "Patch Notes on the title screen",
+     "text": "A Curve modeling tab",
      "color": "cyan",
      "size": 15,
      "delay": 0.3
@@ -42,7 +191,7 @@
       500,
       200
      ],
-     "text": "Mods and the Mod Editor",
+     "text": "Solids that follow their curves",
      "color": "green",
      "size": 15,
      "delay": 0.44999999999999996
@@ -53,7 +202,7 @@
       790,
       200
      ],
-     "text": "The mesh editor",
+     "text": "Curve booleans and lean curves",
      "color": "purple",
      "size": 15,
      "delay": 0.6
@@ -64,7 +213,7 @@
       210,
       290
      ],
-     "text": "Working in the mesh editor",
+     "text": "Overview and parts",
      "color": "gold",
      "size": 15,
      "delay": 0.75
@@ -75,7 +224,7 @@
       500,
       290
      ],
-     "text": "120 shapes and booleans",
+     "text": "Bake a solid: its curves are its e",
      "color": "red",
      "size": 15,
      "delay": 0.8999999999999999
@@ -86,7 +235,7 @@
       790,
       290
      ],
-     "text": "Faces, the knife, dissolve",
+     "text": "Editing points: smart, smooth, gui",
      "color": "blue",
      "size": 15,
      "delay": 1.05
@@ -97,7 +246,7 @@
       500,
       400
      ],
-     "text": "... and 8 more steps",
+     "text": "... and 2 more steps",
      "size": 15,
      "color": "dim",
      "align": "center"

@@ -27,6 +27,33 @@ var _dim: ColorRect
 var overlay := false
 
 
+## Over a game: an opaque ground under every tool - the Library's world too - so nothing of the game
+## shows through.
+func _add_ground() -> void:
+	var ground_layer := CanvasLayer.new()
+	ground_layer.name = "Ground"
+	ground_layer.layer = -3
+	add_child(ground_layer)
+	var ground := ColorRect.new()
+	ground.color = Color(0.01, 0.0, 0.03)
+	ground.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	ground.mouse_filter = MOUSE_FILTER_IGNORE
+	ground_layer.add_child(ground)
+
+
+## Talos opened from the title, carried over a game (Preview in game): as if opened over it - its
+## ground, the rail's way out "Back" (to the game).
+func became_overlay() -> void:
+	overlay = true
+	if get_node_or_null("Ground") == null:
+		_add_ground()
+	Galaxy.active = false
+	for b in find_children("Nav_menu", "Button", true, false):
+		(b as Button).text = "Back"
+		b.remove_meta("tip")   # (PinTips' copy of the old one)
+		(b as Button).tooltip_text = EditorIcons.tip("Back to the game", "Esc", "Back to your game, where you left it. Each tool asks about unsaved changes first;\nwhat you changed here applies to it.")
+
+
 func _ready() -> void:
 	add_to_group("talos_host")
 	NeonTheme.set_empire("")
@@ -38,15 +65,8 @@ func _ready() -> void:
 	_sky = CanvasLayer.new()
 	_sky.layer = -1
 	add_child(_sky)
-	if overlay:   # (over a game: an opaque ground under every tool - the Library's world too - so nothing of the game shows through)
-		var ground_layer := CanvasLayer.new()
-		ground_layer.layer = -3
-		add_child(ground_layer)
-		var ground := ColorRect.new()
-		ground.color = Color(0.01, 0.0, 0.03)
-		ground.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
-		ground.mouse_filter = MOUSE_FILTER_IGNORE
-		ground_layer.add_child(ground)
+	if overlay:
+		_add_ground()
 	var stars: Node2D = preload("res://scripts/ui/starfield.gd").new()
 	stars.drift = Vector2(-12, 4)
 	_sky.add_child(stars)

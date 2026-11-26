@@ -327,7 +327,7 @@ var _talos_state := {}
 ## that closed it - else that same Esc would close the menu too).
 var talos_closed_frame := -1
 
-func open_talos() -> bool:
+func open_talos(existing: Node = null) -> bool:
 	if talos_overlay() != null:
 		return true
 	var g := _game(true)
@@ -345,10 +345,16 @@ func open_talos() -> bool:
 		tree.node_added.connect(_lift_layer)
 	tree.paused = true
 	talos_return = true
-	var host: Node = TalosNav.scene(EDITOR_SCENE).instantiate()   # (loaded in the background since the game began: TalosNav._warm)
+	# (`existing`: a Talos carried in from the title - Preview in game - set down as it was)
+	var host: Node = existing if existing != null else TalosNav.scene(EDITOR_SCENE).instantiate()   # (loaded in the background since the game began: TalosNav._warm)
 	host.set("overlay", true)
 	layer.add_child(host)
 	tree.root.add_child(layer)
+	if existing != null:
+		if host.has_method("became_overlay"):
+			host.became_overlay()
+		for n in host.find_children("*", "CanvasLayer", true, false):
+			_lift_layer(n)
 	return true
 
 

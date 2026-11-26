@@ -5641,13 +5641,22 @@ func settle_edges() -> void:
 		var cache: Dictionary = _edge_bases().get(int(spec.get("net", 0)), {}) if _edge_bases().get(int(spec.get("net", 0))) is Dictionary else {}
 		if cache.is_empty() or not cache.has("pv"):
 			continue
-		var pv: PackedVector3Array = cache["pv"]
+		var pv: PackedVector3Array = (cache["pv"] as PackedVector3Array).duplicate()
 		var td: PackedInt32Array = cache["t_draw"]
+		# (the walls' columns straight again across the edges that were reshaped)
+		var moved_ids := {}
+		for id in now:
+			if not c0.has(str(int(id))) or JSON.stringify(to_json([now[id]])[0]) != JSON.stringify(c0[str(int(id))]):
+				moved_ids[int(id)] = true
+		var fv_now: Array = (spec.get("fv", []) as Array).duplicate(true)
+		var upa: Array = spec.get("up", [0, 0, 0])
+		if cache.has("bw"):
+			EN.straighten_columns(pv, fv_now, spec.get("chains", []), now, moved_ids, cache["bw"], Vector3(upa[0], upa[1], upa[2]), td)
 		var area := 0.0
 		for i in range(0, td.size(), 3):
 			area += (pv[td[i + 1]] - pv[td[i]]).cross(pv[td[i + 2]] - pv[td[i]]).length() * 0.5
 		var L := clampf(sqrt(area / 380.0), 0.003, 1.0) * 0.6
-		var r: Dictionary = EN.settle(pv, td, spec.get("fv", []), spec.get("chains", []), now, 25.0, L * 0.35)
+		var r: Dictionary = EN.settle(pv, td, fv_now, spec.get("chains", []), now, 25.0, L * 0.35, moved_ids, L)
 		var nv: PackedVector3Array = r["v"]
 		var flat := []
 		for q in nv:

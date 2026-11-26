@@ -3,9 +3,10 @@
  "id": "0.32",
  "title": "Make it yours",
  "date": "2026-11-24",
- "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds.",
+ "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024).",
  "patches": [
-  "0023"
+  "0023",
+  "0024"
  ],
  "steps": [
   {
@@ -153,6 +154,131 @@
      "text": "176 files",
      "color": "cyan",
      "size": 16
+    }
+   ]
+  },
+  {
+   "patch": "0024",
+   "title": "Patch 0024 - Curve modeling",
+   "text": "Patch 0024 brings curve modelling to the mesh editor: curves sketched on any surface become solids that stay tied to them, every step editable; a solid can be baked into one clean mesh of quads whose curves are its edges - drag any point and the faces follow, settling into a tidy grid when you let go - with smart dragging and guides, a wireframe view and a preview in the running game.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "PATCH 0024 - CURVE MODELING",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      110,
+      260,
+      120
+     ],
+     "stroke": "gold",
+     "label": "sketch curves\non any surface",
+     "size": 18
+    },
+    {
+     "t": "arrow",
+     "from": [
+      310,
+      170
+     ],
+     "to": [
+      370,
+      170
+     ],
+     "color": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      380,
+      110,
+      260,
+      120
+     ],
+     "stroke": "cyan",
+     "label": "solids that\nfollow them",
+     "size": 18
+    },
+    {
+     "t": "arrow",
+     "from": [
+      650,
+      170
+     ],
+     "to": [
+      710,
+      170
+     ],
+     "color": "cyan"
+    },
+    {
+     "t": "box",
+     "rect": [
+      720,
+      110,
+      240,
+      120
+     ],
+     "stroke": "green",
+     "label": "bake: one mesh,\nits curves its edges",
+     "size": 18
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      280,
+      280,
+      100
+     ],
+     "stroke": "purple",
+     "label": "drag: axis from\nyour drag, guides",
+     "size": 16
+    },
+    {
+     "t": "box",
+     "rect": [
+      360,
+      280,
+      280,
+      100
+     ],
+     "stroke": "green",
+     "label": "let go: it settles\ninto quads",
+     "size": 16
+    },
+    {
+     "t": "box",
+     "rect": [
+      680,
+      280,
+      280,
+      100
+     ],
+     "stroke": "cyan",
+     "label": "wireframe,\npreview in game",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      470
+     ],
+     "text": "a CAD-style way to model, in Talos",
+     "color": "gold",
+     "size": 18,
+     "pulse": true
     }
    ]
   }

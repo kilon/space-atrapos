@@ -74,6 +74,8 @@ static func warm() -> void:
 
 ## What icon `name` is drawn with ([] for unknown names).
 static func layers_of(name: String) -> Array:
+	if name.begins_with("m_cv_"):   # (the Curve modeling tab's: their own file)
+		return (load("res://scripts/editor/mesh/curve_icons.gd") as GDScript).call("layers", name)
 	if name.begins_with("m_"):
 		return _mesh_icon(name)
 	var layers: Array = []
@@ -328,7 +330,7 @@ const MESH_ICONS := ["m_move", "m_rotate", "m_scale", "m_extrude", "m_subdivide"
 	"m_union", "m_difference", "m_intersect", "m_slice", "m_shapes", "m_shape_save", "m_shape_add",
 	"m_knife", "m_ngons", "m_auto_select", "m_dissolve", "m_symmetrize_topo", "m_bind_auto", "m_bind_bone", "m_bone_parts",
 	"m_materials", "m_mat_new", "m_mat_duplicate", "m_mat_rename", "m_mat_delete", "m_mat_assign",
-	"m_duplicate_mesh", "m_merge_dist", "m_auto_merge", "m_inset", "m_loop_cut", "m_sel_loop", "m_sel_ring"]
+	"m_duplicate_mesh", "m_merge_dist", "m_auto_merge", "m_inset", "m_fillet", "m_loop_cut", "m_sel_loop", "m_sel_ring"]
 const AX := [Color(1.0, 0.38, 0.35), Color(0.45, 0.95, 0.45), Color(0.4, 0.65, 1.0)]   # (X red, Y green, Z blue)
 const INK := Color(0.1, 0.12, 0.18)
 
@@ -537,6 +539,18 @@ static func _mesh_icon(name: String) -> Array:
 			return [_l([[2, 2], [18, 2], [18, 18], [2, 18], [2, 2]], 1.4, W), _f([[6, 6], [14, 6], [14, 14], [6, 14]], Color(BLUE, 0.7)),
 				_l([[6, 6], [14, 6], [14, 14], [6, 14], [6, 6]], 1.3, GOLD), _l([[2, 2], [6, 6]], 1.0, Color(W, 0.7)), _l([[18, 2], [14, 6]], 1.0, Color(W, 0.7)),
 				_l([[18, 18], [14, 14]], 1.0, Color(W, 0.7)), _l([[2, 18], [6, 14]], 1.0, Color(W, 0.7))]
+		"m_fillet":   # a block's corner rounded off: the arc (its strip's rows marked), the old sharp corner faint
+			var arc := []
+			for i in 7:
+				var a := -PI * 0.5 + i * PI / 12.0
+				arc.append([10.0 + 8.0 * cos(a), 11.0 + 8.0 * sin(a)])
+			var out := [_f([[2, 18], [2, 3]] + arc + [[18, 18]], Color(BLUE, 0.45)), _l([[10, 3], [18, 3], [18, 11]], 1.0, Color(W, 0.4)),
+				_l([[2, 18], [2, 3], [10, 3]], 1.3, W), _l([[18, 11], [18, 18], [2, 18]], 1.3, W)]
+			for i in range(1, 6):
+				var q: Array = arc[i]
+				out.append(_l([q, [q[0] - (q[0] - 10.0) * 0.4, q[1] - (q[1] - 11.0) * 0.4]], 1.0, Color(W, 0.7)))
+			out.append(_l(arc, 2.0, GOLD))
+			return out
 		"m_loop_cut":   # a band of quads, a new loop cut round it (marked where it crosses)
 			return [_f([[2, 5], [18, 5], [18, 15], [2, 15]], Color(BLUE, 0.45)), _l([[2, 5], [18, 5]], 1.2, W), _l([[2, 15], [18, 15]], 1.2, W),
 				_l([[2, 5], [2, 15]], 1.0, Color(W, 0.7)), _l([[18, 5], [18, 15]], 1.0, Color(W, 0.7)), _l([[10, 2], [10, 18]], 1.8, GOLD),
@@ -664,3 +678,10 @@ static func _mesh_icon(name: String) -> Array:
 				out.append(_c(c, 2.0, GOLD) if on else _ring(c, 1.8, 1.0, Color(W, 0.6)))
 			return out
 	return []
+
+
+## Label `l` with tooltip `tip` (a label takes the mouse for it: a section's heading says what the section is).
+static func tipped(l: Label, tip: String) -> Label:
+	l.tooltip_text = tip
+	l.mouse_filter = Control.MOUSE_FILTER_STOP
+	return l

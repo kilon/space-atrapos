@@ -2248,3 +2248,47 @@ func test_edit_settles_baked_mesh_and_wireframe() -> void:
 	ed.toggle_wire()
 	check(not wm.visible, "off again")
 	await _done(ed)
+
+
+func test_settle_rebuilds_stretched_walls() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve(_rect(1.0, 1.0))
+	ct.select(0)
+	var blk: MeshInstance3D = ct.make_part("extrude", 0.5)
+	ed.select_part(blk)
+	check(ct.bake_solid(blk), "baked")
+	# a top corner pulled 0.6 out (on every edge that has it): the two walls at it stretched at the top
+	var before: Array = ct._state()
+	var hit := 0
+	for i in ct.curves.size():
+		var k: PackedVector3Array = ct.curves[i]["ctrl"]
+		var ch := false
+		for j in k.size():
+			if k[j].distance_to(Vector3(1, 0.5, 1)) < 1e-3:
+				k[j] = Vector3(1.6, 0.5, 1.6)
+				ch = true
+		if ch:
+			ct.curves[i]["ctrl"] = k
+			hit += 1
+	check(hit >= 2, "the corner on its edges (%d)" % hit)
+	ct.refresh_solids()
+	ct._changed("Move curve point", before)
+	var spec: Dictionary = blk.get_meta("curve_solid")
+	var EN = load("res://scripts/editor/mesh/edge_net.gd")
+	check(EN._open_edges(PackedInt32Array(spec["mesh"]["t"])) == 0, "closed after settling")
+	# the stretched wall's columns: none much longer than the wall is tall (no fanning)
+	var mv: Array = spec["mesh"]["v"]
+	var t: Array = spec["mesh"]["t"]
+	var worst := 0.0
+	for i in range(0, t.size(), 3):
+		for j in 3:
+			var a := int(t[i + j])
+			var b := int(t[i + (j + 1) % 3])
+			var pa := Vector3(mv[a * 3], mv[a * 3 + 1], mv[a * 3 + 2])
+			var pb := Vector3(mv[b * 3], mv[b * 3 + 1], mv[b * 3 + 2])
+			if absf(pa.y - pb.y) > 0.4:   # (bottom to top)
+				worst = maxf(worst, Vector2(pa.x - pb.x, pa.z - pb.z).length())
+	check(worst < 0.75, "columns run across the walls, not fanned (longest lean %.3f)" % worst)
+	await _done(ed)
