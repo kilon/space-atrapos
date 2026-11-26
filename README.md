@@ -1,16 +1,14 @@
 # Space Atrapos
 
 [![Play on itch.io](.github/play-itch.svg)](https://kilonalios.itch.io/space-atrapos)
+[![Download for Windows](.github/download-windows.svg)](https://github.com/kilon/space-atrapos/releases/latest)
+[![Download for Linux](.github/download-linux.svg)](https://github.com/kilon/space-atrapos/releases/latest)
 
 A procedural 3D space game made with [Godot 4](https://godotengine.org/). You are an automaton in
 **New Hellas**, a galaxy of 120 star systems where six star empires of ancient Greece, the
 independents and the pirates compete. Fly your ship between stars and planets, land on worlds of
 procedural ground and walk them, trade, mine, fight, dock at stations and make your own way. There is
 no story to follow: the galaxy is yours.
-
-**Play it in your browser or download it for Windows and Linux on itch.io:
-[kilonalios.itch.io/space-atrapos](https://kilonalios.itch.io/space-atrapos)** - or grab a build from this
-repository's [Releases](https://github.com/kilon/space-atrapos/releases).
 
 ![Flying over Amnissos, the Minoans' ocean world](data/docs/shots/space3d.jpg)
 
