@@ -1,6 +1,6 @@
 # Space Atrapos
 
-[![Play on itch.io](https://img.shields.io/badge/Play-on%20itch.io-FA5C5C?style=for-the-badge&logo=itchdotio&logoColor=white)](https://kilonalios.itch.io/space-atrapos)
+[![Play on itch.io](.github/play-itch.svg)](https://kilonalios.itch.io/space-atrapos)
 
 A procedural 3D space game made with [Godot 4](https://godotengine.org/). You are an automaton in
 **New Hellas**, a galaxy of 120 star systems where six star empires of ancient Greece, the
