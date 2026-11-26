@@ -123,6 +123,18 @@ static func _with_parts(body: MeshInstance3D, extra: Array) -> ArrayMesh:
 			var bs: PackedInt32Array = a[Mesh.ARRAY_BONES]
 			var ws: PackedFloat32Array = a[Mesh.ARRAY_WEIGHTS]
 			var pp := bs.size() / nv
+			var same := pp == per
+			for k in map.size():
+				if map[k] != k:
+					same = false
+					break
+			if same:
+				# (skinned with the Body's own skin - an ECurve object's solids: its bones as they are, no
+				# vertex by vertex renumbering - 90 ms saved on a character of ninety solids)
+				a[Mesh.ARRAY_TANGENT] = null
+				out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a, [], {}, Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS if per == 8 else 0)
+				out.surface_set_material(out.get_surface_count() - 1, p.mesh.surface_get_material(i))
+				continue
 			var nb := PackedInt32Array()
 			var nw := PackedFloat32Array()
 			for v in nv:
@@ -157,6 +169,34 @@ static func merged(id: String, src: Mesh, hide: Array = []) -> ArrayMesh:
 	var key := id + ("|" + ",".join(hide) if not hide.is_empty() else "")
 	if _meshes.has(key):
 		return _meshes[key]
+	var out := _merge(id, src, hide)
+	_meshes[key] = out
+	return out
+
+
+## (worker) A character's merged mesh made from its scene `ps` - its Body and the parts skinned with it
+## (an ECurve object's solids) - nothing remembered: Stage3D.warm makes it there, keep() keeps it.
+## Stage3D.info(id) read before (on the main thread).
+static func premerge(ps: PackedScene, id: String) -> ArrayMesh:
+	if ps == null:
+		return null
+	var root := ps.instantiate()
+	var body: MeshInstance3D = root.find_child("Body", true, false)
+	var out: ArrayMesh = null
+	if body and body.mesh:
+		var extra := _bound_parts(root, body)
+		out = _merge(id, _with_parts(body, extra) if not extra.is_empty() else body.mesh, [])
+	root.free()
+	return out
+
+
+## A merged mesh premerge() made kept as `id`'s (unless one's been made meanwhile).
+static func keep(id: String, m: ArrayMesh) -> void:
+	if m != null and not _meshes.has(id):
+		_meshes[id] = m
+
+
+static func _merge(id: String, src: Mesh, hide: Array) -> ArrayMesh:
 	var table: Dictionary = Stage3D.info(id).get("materials", {})
 	var parts: Array = []
 	for i in src.get_surface_count():
@@ -215,5 +255,4 @@ static func merged(id: String, src: Mesh, hide: Array = []) -> ArrayMesh:
 	out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT
 			| Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM1_SHIFT)
 	out.surface_set_name(0, "pbr")
-	_meshes[key] = out
 	return out

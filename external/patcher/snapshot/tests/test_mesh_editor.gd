@@ -360,6 +360,10 @@ func test_menu_mouse_panels_outline() -> void:
 		if ed.mode == "edit":
 			break
 		await tree.process_frame
+	var em_none: PopupPanel = ed.menu(Vector2(10, 10))
+	check(em_none.find_child("Menu_Extrude", true, false) == null, "edit mode, nothing selected: no Extrude")
+	em_none.hide()
+	ed.select_all(true)
 	var em_menu: PopupPanel = ed.menu(Vector2(10, 10))
 	check(em_menu.find_child("Menu_Extrude", true, false) != null and em_menu.find_child("Menu_Subdivide", true, false) != null, "edit mode: its tools in the menu")
 	em_menu.hide()
@@ -1085,6 +1089,5 @@ func test_save_is_an_override_with_variants() -> void:
 	check(MO.variants(orig).is_empty() and not ed.has_override(), "reverted: every variant gone")
 	check_eq(count.call(), 1, "the game: the original again")
 	check(not DirAccess.dir_exists_absolute("user://test_overrides"), "nothing left behind")
-	MO.dir = MO.DIR
 	Stage3D._scenes.erase("pirate")
 	await _done(ed)

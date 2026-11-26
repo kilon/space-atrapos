@@ -116,6 +116,17 @@ static func scene(model_path: String) -> PackedScene:
 		return load(model_path)
 	if _scenes.has(p):
 		return _scenes[p]
+	var ps := build(model_path)
+	_scenes[p] = ps
+	return ps
+
+
+## The override's scene read from its file - nothing remembered (safe on a worker: Stage3D.warm reads
+## them there; remember() keeps it).
+static func build(model_path: String) -> PackedScene:
+	var p := read(model_path)
+	if p == model_path:
+		return load(model_path)
 	var ps: PackedScene = null
 	if p.get_extension().to_lower() in ["glb", "gltf"]:
 		var doc := GLTFDocument.new()
@@ -131,8 +142,14 @@ static func scene(model_path: String) -> PackedScene:
 		ps = load(p)   # (an exported game: the imported override)
 	if ps == null:
 		ps = load(model_path)
-	_scenes[p] = ps
 	return ps
+
+
+## A scene build() made (on a worker) kept as `model_path`'s override.
+static func remember(model_path: String, ps: PackedScene) -> void:
+	var p := read(model_path)
+	if p != model_path and ps != null:
+		_scenes[p] = ps
 
 
 ## `model_path`'s variants forgotten (saved again, added, erased): read anew next time.

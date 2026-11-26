@@ -114,6 +114,8 @@ func test_booleans() -> void:
 	ed.part = b
 	check_eq(ed.shape_tools.bool_pair(), [a, b], "the selected part and the one under the mouse")
 	ed.select_part(a)
+	ed._menu_prev = a
+	ed.part = b   # (right-clicked on b with a selected)
 	var m: PopupPanel = ed.menu(Vector2(5, 5))
 	check(m.find_child("Menu_Union", true, false) != null and m.find_child("Menu_Slice", true, false) != null, "the menu's Boolean group")
 	m.hide()
@@ -237,7 +239,9 @@ func test_browser() -> void:
 	var ed := await _editor()
 	ed.set_left_tab("shapes")
 	var br = ed.shape_tools.browser
-	check(br.visible and not ed._models_box.visible, "the Shapes tab")
+	check((ed.get_meta("prims") as Control).visible and not ed._models_box.visible, "the Primitives tab")
+	var pl: ItemList = (ed.get_meta("prims") as Node).find_child("Primitives", true, false)
+	check(pl != null and pl.item_count == 6, "the ECurve primitives (%d)" % (pl.item_count if pl else -1))
 	br.set_cat("")
 	check_eq(br.list.item_count, 120, "all 120 shapes")
 	check(br.list.get_item_tooltip(0) != "", "each with a tooltip")

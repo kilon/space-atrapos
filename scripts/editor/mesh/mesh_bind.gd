@@ -210,3 +210,98 @@ static func nearest_bind(rig: Dictionary, at: Vector3) -> int:
 			bd = d
 			best = k
 	return best
+
+
+## Mesh `m` (no bones) given the bone weights of mesh `src` (skinned, the same shape before it was made
+## again - an ECurve solid converted from it): each point the weights of `src`'s nearest point. null -
+## `src` has no weights.
+static func transfer_weights(m: Mesh, src: Mesh) -> ArrayMesh:
+	var ms := []
+	var mats := []
+	for si in m.get_surface_count():
+		ms.append(m.surface_get_arrays(si))
+		mats.append(m.surface_get_material(si))
+	var ss := []
+	for si in src.get_surface_count():
+		ss.append(src.surface_get_arrays(si))
+	var out := weighted_arrays(ms, ss)
+	return mesh_of(out, mats)
+
+
+## A mesh from surfaces' arrays (`out`: [[arrays, per (bones a point)]...]) and their materials.
+static func mesh_of(out: Array, mats: Array) -> ArrayMesh:
+	if out.is_empty():
+		return null
+	var m := ArrayMesh.new()
+	for i in out.size():
+		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, out[i][0], [], {}, Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS if int(out[i][1]) == 8 else 0)
+		m.surface_set_material(i, mats[i] if i < mats.size() else null)
+	return m
+
+
+## (safe on a worker: arrays only) Surfaces `ms` given the bone weights of surfaces `ss` - each point those
+## of the nearest point of `ss` (found in a grid of cells). [[arrays, per]...] ([] - `ss` has none).
+static func weighted_arrays(ms: Array, ss: Array) -> Array:
+	var sv := PackedVector3Array()
+	var sb := PackedInt32Array()
+	var sw := PackedFloat32Array()
+	var per := 4
+	for a in ss:
+		if a[Mesh.ARRAY_BONES] == null or a[Mesh.ARRAY_WEIGHTS] == null:
+			continue
+		var v: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+		var b: PackedInt32Array = a[Mesh.ARRAY_BONES]
+		var w: PackedFloat32Array = a[Mesh.ARRAY_WEIGHTS]
+		per = b.size() / maxi(v.size(), 1)
+		sv.append_array(v)
+		sb.append_array(b)
+		sw.append_array(w)
+	if sv.is_empty() or per <= 0:
+		return []
+	var box := AABB(sv[0], Vector3.ZERO)
+	for q in sv:
+		box = box.expand(q)
+	var cell := maxf(box.get_longest_axis_size() / 24.0, 1e-4)
+	var grid := {}
+	for i in sv.size():
+		var k := Vector3i((sv[i] / cell).floor())
+		if not grid.has(k):
+			grid[k] = PackedInt32Array()
+		grid[k].append(i)
+	var out := []
+	for a0 in ms:
+		var a: Array = (a0 as Array).duplicate()
+		var v: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+		var bones := PackedInt32Array()
+		var weights := PackedFloat32Array()
+		bones.resize(v.size() * per)
+		weights.resize(v.size() * per)
+		for i in v.size():
+			var k0 := Vector3i((v[i] / cell).floor())
+			var best := -1
+			var bd := INF
+			for r in 4:   # (rings of cells outwards till one has points)
+				for dx in range(-r, r + 1):
+					for dy in range(-r, r + 1):
+						for dz in range(-r, r + 1):
+							if maxi(absi(dx), maxi(absi(dy), absi(dz))) != r:
+								continue
+							var c = grid.get(k0 + Vector3i(dx, dy, dz))
+							if c == null:
+								continue
+							for j in (c as PackedInt32Array):
+								var d := sv[j].distance_squared_to(v[i])
+								if d < bd:
+									bd = d
+									best = j
+				if best >= 0:
+					break
+			if best < 0:
+				best = 0
+			for k in per:
+				bones[i * per + k] = sb[best * per + k]
+				weights[i * per + k] = sw[best * per + k]
+		a[Mesh.ARRAY_BONES] = bones
+		a[Mesh.ARRAY_WEIGHTS] = weights
+		out.append([a, per])
+	return out

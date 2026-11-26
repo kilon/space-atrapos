@@ -3,10 +3,11 @@
  "id": "0.32",
  "title": "Make it yours",
  "date": "2026-11-24",
- "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024).",
+ "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024). Then ECurves (patch 0025): every model an ECurve object, fast enough for a whole character.",
  "patches": [
   "0023",
-  "0024"
+  "0024",
+  "0025"
  ],
  "steps": [
   {
@@ -279,6 +280,106 @@
      "color": "gold",
      "size": 18,
      "pulse": true
+    }
+   ]
+  },
+  {
+   "patch": "0025",
+   "title": "Patch 0025 - ECurves",
+   "text": "The mesh editor becomes the ECurves editor: every model it opens - characters too - turns into an ECurve object, a collection of solids made of faces, edges and vertices you reshape directly. Clean quads, characters with their bones, picking that grows with each click, a knife, manual vertices, symmetry, right-click to call off a drag - and above 30 frames a second on a whole character.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "PATCH 0025 - ECURVES",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      60,
+      90,
+      260,
+      100
+     ],
+     "stroke": "cyan",
+     "label": "every model an\nECurve object",
+     "size": 16
+    },
+    {
+     "t": "box",
+     "rect": [
+      370,
+      90,
+      260,
+      100
+     ],
+     "stroke": "green",
+     "label": "characters keep\ntheir bones",
+     "size": 16
+    },
+    {
+     "t": "box",
+     "rect": [
+      680,
+      90,
+      260,
+      100
+     ],
+     "stroke": "purple",
+     "label": "click again:\na bigger pick",
+     "size": 16
+    },
+    {
+     "t": "box",
+     "rect": [
+      60,
+      240,
+      260,
+      100
+     ],
+     "stroke": "gold",
+     "label": "knife, manual\nvertices, mirror",
+     "size": 16
+    },
+    {
+     "t": "box",
+     "rect": [
+      370,
+      240,
+      260,
+      100
+     ],
+     "stroke": "green",
+     "label": "clean quads,\nno saw-tooth",
+     "size": 16
+    },
+    {
+     "t": "box",
+     "rect": [
+      680,
+      240,
+      260,
+      100
+     ],
+     "stroke": "cyan",
+     "label": "right-click\ncalls off a drag",
+     "size": 16
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      430
+     ],
+     "text": "above 30 FPS on a whole character",
+     "color": "green",
+     "size": 18
     }
    ]
   }

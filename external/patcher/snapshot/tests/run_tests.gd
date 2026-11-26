@@ -35,6 +35,9 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	# (the models' variants the tests make and read: their own folder in the throwaway user data - never
+	# the project's art/overrides, where the user's own edits of the game's models live)
+	(load("res://scripts/world/models/model_override.gd") as GDScript).set("dir", "user://test_overrides/")
 	var filter := ""
 	var args := OS.get_cmdline_user_args()
 	if not args.is_empty():

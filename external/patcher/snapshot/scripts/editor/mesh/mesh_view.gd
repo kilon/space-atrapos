@@ -89,6 +89,11 @@ func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	focus_mode = Control.FOCUS_CLICK
 	sv = SubViewport.new()
+	sv.gui_disable_input = true   # (nothing to click inside it: the view takes the input - and what's dragged in from the panels is dropped on the view, not lost inside)
+	# (over a view of a scene Godot leaves the cursor to the scene inside - which takes no input here, so a
+	# panel divider's resize arrows stayed on over the view after the mouse left the divider: the arrow put
+	# back as the mouse comes in and moves over it)
+	hook_cursor()
 	sv.own_world_3d = true
 	sv.world_3d = World3D.new()
 	sv.msaa_3d = Viewport.MSAA_4X
@@ -260,6 +265,25 @@ func set_off(off: bool) -> void:
 
 # --- the camera -----------------------------------------------------------------
 
+## The arrow put back over the view (see _init) - connected once; the editor calls it each frame, so a
+## view made before this was live-reloaded in gets it too.
+func hook_cursor() -> void:
+	if not mouse_entered.is_connected(_plain_cursor):
+		mouse_entered.connect(_plain_cursor)
+	if not gui_input.is_connected(_cursor_input):
+		gui_input.connect(_cursor_input)
+
+
+func _cursor_input(e: InputEvent) -> void:
+	if e is InputEventMouseMotion:
+		_plain_cursor()
+
+
+func _plain_cursor() -> void:
+	if DisplayServer.cursor_get_shape() != DisplayServer.CURSOR_ARROW:
+		DisplayServer.cursor_set_shape(DisplayServer.CURSOR_ARROW)
+
+
 func update_camera() -> void:
 	pitch = clampf(pitch, -1.55, 1.55)
 	dist = clampf(dist, 0.05, 300.0)
@@ -292,10 +316,23 @@ func orbit(rel: Vector2, pivot := Vector3.INF) -> void:
 	update_camera()
 
 
-func pan(rel: Vector2) -> void:
-	var s := dist * 0.0016 * (40.0 / maxf(10.0, cam.fov)) * (720.0 / maxf(200.0, size.y))
+## The view slid by a mouse move `rel` (right drag, Shift + middle drag): what was under the mouse when
+## the pan began (`depth`: how far ahead of the camera it is; < 0 - the view's target) follows the mouse
+## one to one - the same feel however far in or out the view is zoomed.
+func pan(rel: Vector2, depth := -1.0) -> void:
+	var d := depth if depth > 0.0 else dist
+	var s := (cam.size if cam.projection == Camera3D.PROJECTION_ORTHOGONAL else 2.0 * d * tan(deg_to_rad(cam.fov * 0.5))) / maxf(size.y, 1.0)
 	target += (-cam.global_basis.x * rel.x + cam.global_basis.y * rel.y) * s
 	update_camera()
+
+
+## How far ahead of the camera (along its view) the model is under `at` - what a pan from there holds
+## under the mouse; -1: nothing there.
+func depth_at(w: Vector3) -> float:
+	if w == Vector3.INF:
+		return -1.0
+	var d := (w - cam.global_position).dot(-cam.global_basis.z)
+	return d if d > 0.0 else -1.0
 
 
 ## Zoomed by `f` (under 1: in) - towards `at` (a point in the world: what's under the mouse), which

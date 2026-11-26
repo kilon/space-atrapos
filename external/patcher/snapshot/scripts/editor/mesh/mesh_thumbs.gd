@@ -206,7 +206,12 @@ func _process(_dt: float) -> void:
 	_wait -= 1
 	if _wait > 0:
 		return
-	var img := _vp.get_texture().get_image()
+	if _pending_dl:
+		return   # (the frame's picture still on its way from the GPU)
+	if _dl_img == null and _download():
+		return
+	var img: Image = _dl_img if _dl_img != null else _vp.get_texture().get_image()
+	_dl_img = null
 	if img and not img.is_empty():
 		img.convert(Image.FORMAT_RGBA8)
 		_strip.blit_rect(img, Rect2i(0, 0, SIZE, SIZE), Vector2i(_frame * SIZE, 0))
@@ -222,6 +227,38 @@ func _process(_dt: float) -> void:
 	_mem[key] = _cut(ImageTexture.create_from_image(_strip))
 	_strip = null
 	made.emit(key, _mem[key][0])
+
+
+var _pending_dl := false
+var _dl_img: Image = null
+
+
+## The drawn frame fetched from the GPU without waiting for it (the GPU hands it over a frame or two
+## later - a plain read stalled the editor's frame each time: dozens of previews, hundreds of stalls).
+## False when that can't be done here (then it's read the plain way).
+func _download() -> bool:
+	var rd := RenderingServer.get_rendering_device()
+	if rd == null:
+		return false
+	var rid := RenderingServer.texture_get_rd_texture(_vp.get_texture().get_rid())
+	if not rid.is_valid():
+		return false
+	var fmt := rd.texture_get_format(rid)
+	if fmt == null or not fmt.format in [RenderingDevice.DATA_FORMAT_R8G8B8A8_UNORM, RenderingDevice.DATA_FORMAT_R8G8B8A8_SRGB]:
+		return false
+	var w := fmt.width
+	var h := fmt.height
+	_pending_dl = true
+	var err := rd.texture_get_data_async(rid, 0, func(data: PackedByteArray):
+		_pending_dl = false
+		if data.size() >= w * h * 4:
+			_dl_img = Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, data)
+		else:
+			_dl_img = Image.create_empty(w, h, false, Image.FORMAT_RGBA8))
+	if err != OK:
+		_pending_dl = false
+		return false
+	return true
 
 
 ## The next frame: the thing turned on, drawn once.

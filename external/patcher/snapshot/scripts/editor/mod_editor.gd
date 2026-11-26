@@ -23,7 +23,7 @@ const MODELS := ["glb", "gltf"]
 const SOUNDS := ["ogg", "wav", "mp3"]
 ## The game's folders not shown (not part of the game, or Godot's own).
 const HIDDEN := [".godot", "external", "tests", "tools", "addons", ".git", "build", "export"]
-const TABS := ["FILES", "MESHES", "ANIMATION", "EFFECTS"]
+const TABS := ["FILES", "ECURVES", "ANIMATION", "EFFECTS"]
 ## The tools the tabs after FILES embed (TalosNav ids), in TABS order.
 const TOOL_TABS := ["mesh", "anim", "fx"]
 
@@ -99,7 +99,7 @@ func _build() -> void:
 	root.add_child(header)
 	_tab_bar = UI.tab_bar(TABS, show_tab, ACCENT, false, [
 		EditorIcons.tip("Files", "", "The game's files and your mod's: override one of the game's, add new ones, edit text, replace pictures,\nmodels and sounds."),
-		EditorIcons.tip("Meshes", "", "The mesh editor, saving into this mod: the game's models and your own."),
+		EditorIcons.tip("ECurves", "", "The ECurves editor, saving into this mod: the game's models and your own."),
 		EditorIcons.tip("Animation", "", "The animation editor, saving into this mod: the characters' clips."),
 		EditorIcons.tip("Effects", "", "The effects editor, saving into this mod: the game's particle effects.")])
 	root.add_child(_tab_bar)
@@ -111,7 +111,7 @@ func _build() -> void:
 	_add_page(stack, files)
 	for i in TOOL_TABS.size():
 		var holder := VBoxContainer.new()
-		holder.name = ["Meshes", "Animation", "Effects"][i]
+		holder.name = ["ECurves", "Animation", "Effects"][i]
 		_add_page(stack, holder)
 	_status = UI.label("", 14, UI.TEXT_DIM)
 	_status.name = "Status"

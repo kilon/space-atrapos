@@ -153,9 +153,7 @@ func _load(e: Dictionary) -> void:
 	var holder := [null]
 	var f: String = e["file"]
 	var id := WorkerThreadPool.add_task(func():
-		var img: Image = null
-		if FileAccess.file_exists(f):
-			img = Image.load_from_file(f)
+		var img: Image = _read_image(f)
 		if img and not img.is_empty():
 			if img.is_compressed():
 				img.decompress()
@@ -163,6 +161,31 @@ func _load(e: Dictionary) -> void:
 			holder[0] = img, false, "Reference image")
 	_tasks.append([id, holder, e])
 	set_process(true)
+
+
+## The picture at `f` (null: not there, gone meanwhile, or not a picture) - read as bytes first, so a
+## file removed while it's read is just missing, not an error.
+static func _read_image(f: String) -> Image:
+	var bytes := FileAccess.get_file_as_bytes(f) if FileAccess.file_exists(f) else PackedByteArray()
+	if bytes.is_empty():
+		return null
+	var img := Image.new()
+	var ext := f.get_extension().to_lower()
+	var err := ERR_FILE_UNRECOGNIZED
+	match ext:
+		"png":
+			err = img.load_png_from_buffer(bytes)
+		"jpg", "jpeg":
+			err = img.load_jpg_from_buffer(bytes)
+		"webp":
+			err = img.load_webp_from_buffer(bytes)
+		"bmp":
+			err = img.load_bmp_from_buffer(bytes)
+		"tga":
+			err = img.load_tga_from_buffer(bytes)
+		_:
+			return Image.load_from_file(f)
+	return img if err == OK else null
 
 
 func _process(_dt: float) -> void:

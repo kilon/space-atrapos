@@ -3,9 +3,11 @@ extends RefCounted
 ## the curve in gold, the solid it makes in amber, white points.
 
 const E := preload("res://scripts/editor/editor_icons.gd")
-const NAMES := ["m_cv_line", "m_cv_wire", "m_cv_spline", "m_cv_pt_smooth", "m_cv_pt_sharp", "m_cv_circle", "m_cv_arc", "m_cv_rect", "m_cv_polygon", "m_cv_radial",
+const NAMES := ["m_cv_line", "m_cv_wire", "m_cv_spline", "m_cv_pt_smooth", "m_cv_pt_sharp", "m_cv_pt_manual", "m_cv_circle", "m_cv_arc", "m_cv_rect", "m_cv_polygon", "m_cv_radial",
 	"m_cv_offset", "m_cv_fillet", "m_cv_join", "m_cv_bridge", "m_cv_reverse", "m_cv_close", "m_cv_extrude",
-	"m_cv_revolve", "m_cv_loft", "m_cv_sweep", "m_cv_pipe", "m_cv_fill", "m_cv_plane"]
+	"m_cv_revolve", "m_cv_loft", "m_cv_sweep", "m_cv_pipe", "m_cv_fill", "m_cv_plane", "m_cv_pt_separate", "m_cv_pt_merge",
+	"m_cv_pt_extrude", "m_cv_pt_subdivide", "m_cv_pt_connect", "m_cv_pt_delete", "m_cv_patch_finer", "m_cv_patch_coarser", "m_cv_merge",
+	"m_cv_ol_collection", "m_cv_ol_solid", "m_cv_ol_mesh", "m_cv_ol_edge", "m_cv_ol_step", "m_cv_ol_sel", "m_cv_ol_sel_off"]
 
 
 static func _pts(arr: PackedVector2Array) -> Array:
@@ -51,6 +53,55 @@ static func layers(name: String) -> Array:
 			return E._gl(_bez(Vector2(2.5, 15), Vector2(7, 3), Vector2(13, 3), Vector2(17.5, 15)), 1.6, G) + [_dot(2.5, 15), _dot(17.5, 15), _c_hi(10, 6.1)]
 		"m_cv_pt_sharp":   # a corner at a point: straight either side
 			return E._gl([[2.5, 16], [10, 4], [17.5, 16]], 1.6, G) + [_dot(2.5, 16), _dot(17.5, 16), _c_hi(10, 4)]
+		"m_cv_pt_manual":   # a bend shaped by hand at its point: a handle pulled out of it, the part near it glowing green
+			return E._gl(_bez(Vector2(2.5, 16), Vector2(5, 9), Vector2(8, 5), Vector2(10, 5)), 1.6, G) + E._gl(_bez(Vector2(10, 5), Vector2(13, 5), Vector2(15, 11), Vector2(17.5, 16)), 2.0, Color(0.35, 1.0, 0.45)) \
+				+ E._gl([[10, 5], [16, 2.5]], 1.0, B) + [_dot(2.5, 16), _dot(17.5, 16), _c_hi(10, 5), _dot(16, 2.5)]
+		# the overview's rows (as an outliner shows them): a collection, an ECurve solid, a plain mesh, an edge, a step
+		"m_cv_ol_collection":   # a crate: a box with its lid - what holds solids
+			var pale := Color(0.92, 0.9, 0.86)
+			return [E._f([[3, 8], [17, 8], [17, 17], [3, 17]], Color(pale, 0.16))] + E._gl([[3, 8], [17, 8], [17, 17], [3, 17]], 1.4, pale, true) \
+				+ E._gl([[2, 4.5], [18, 4.5], [18, 8], [2, 8]], 1.4, pale, true) + E._gl([[8, 11], [12, 11]], 1.4, pale)
+		"m_cv_ol_solid":   # a solid made of edges: an amber triangle, its corners its vertices
+			return [E._f([[3, 4], [17, 4], [10, 16.5]], Color(E.BLUE, 0.35))] + E._gl([[3, 4], [17, 4], [10, 16.5]], 1.5, E.BLUE, true) \
+				+ [_dot(3, 4), _dot(17, 4), _dot(10, 16.5)]
+		"m_cv_ol_mesh":   # a plain mesh: a green triangle, no vertices of its own to edit
+			var g := Color(0.45, 0.85, 0.45)
+			return [E._f([[3, 4], [17, 4], [10, 16.5]], Color(g, 0.3))] + E._gl([[3, 4], [17, 4], [10, 16.5]], 1.5, g, true)
+		"m_cv_ol_edge":   # an edge: a gold curve between its two vertices
+			return E._gl(_bez(Vector2(3, 15.5), Vector2(4, 5), Vector2(15, 15), Vector2(17, 4.5)), 1.6, E.GOLD) + [_dot(3, 15.5), _dot(17, 4.5)]
+		"m_cv_ol_step":   # a boolean step: two solids overlapping
+			return E._gring(Vector2(7.5, 10), 5.0, 1.4, E.BLUE) + E._gring(Vector2(12.5, 10), 5.0, 1.4, E.GOLD)
+		"m_cv_ol_sel":   # selectable: the pointer's arrow
+			var arrow := [[6, 3], [6, 16], [9, 13], [11.5, 18], [13.5, 17], [11, 12], [15, 12]]
+			return [E._f(arrow, Color(E.W, 0.85))] + E._gl(arrow, 1.0, E.W, true)
+		"m_cv_ol_sel_off":   # not selectable: the arrow dim, struck through
+			var arrow2 := [[6, 3], [6, 16], [9, 13], [11.5, 18], [13.5, 17], [11, 12], [15, 12]]
+			return E._gl(arrow2, 1.0, Color(E.W, 0.35), true) + E._gl([[3, 17], [17, 3]], 1.6, E.RED)
+		"m_cv_merge":   # two curves running into one point (a ring round it: the merge distance) - one curve
+			return E._gl(_bez(Vector2(2.5, 16), Vector2(4, 9), Vector2(7, 10), Vector2(10, 10)), 1.6, G) + E._gl(_bez(Vector2(10, 10), Vector2(13, 10), Vector2(16, 11), Vector2(17.5, 4)), 1.6, G) \
+				+ E._gring(Vector2(10, 10), 3.2, 1.0, B) + [_dot(2.5, 16), _dot(17.5, 4), _c_hi(10, 10)]
+		"m_cv_pt_separate":   # a curve broken in two at its picked points, the piece lifted off
+			return E._gl([[2.5, 16], [7, 12]], 1.6, G) + E._gl([[8.5, 8], [11.5, 5.5]], 1.6, B) + E._gl([[13, 12], [17.5, 16]], 1.6, G) \
+				+ [_dot(2.5, 16), _dot(17.5, 16), _c_hi(8.5, 8), _c_hi(11.5, 5.5)]
+		"m_cv_pt_merge":   # two curves' ends drawn together into one point
+			return E._gl([[2.5, 15], [9, 9]], 1.6, G) + E._gl([[11, 9], [17.5, 15]], 1.6, G) + E._gl([[7, 4], [9.5, 6.5]], 1.2, B) \
+				+ E._gl([[13, 4], [10.5, 6.5]], 1.2, B) + [_dot(2.5, 15), _dot(17.5, 15), _c_hi(10, 9)]
+		"m_cv_pt_extrude":   # a curve's end pulled out into a new point
+			return E._gl([[2.5, 16], [9, 10]], 1.6, G) + E._gl([[9, 10], [16, 4]], 1.4, B) + E._gl([[12.5, 4], [16, 4], [16, 7.5]], 1.2, B) \
+				+ [_dot(2.5, 16), _dot(9, 10), _c_hi(16, 4)]
+		"m_cv_pt_subdivide":   # a new point between two picked ones
+			return E._gl(_bez(Vector2(2.5, 14), Vector2(7, 4), Vector2(13, 4), Vector2(17.5, 14)), 1.6, G) + [_c_hi(2.5, 14), _c_hi(17.5, 14), _dot(10, 6.5)] \
+				+ E._gl([[10, 10.5], [10, 16]], 1.2, B) + E._gl([[7.5, 13.5], [12.5, 13.5]], 1.2, B)
+		"m_cv_pt_connect":   # a straight line between two points
+			return E._gl([[3, 15], [17, 5]], 1.6, B) + E._gl(_bez(Vector2(3, 15), Vector2(3, 9), Vector2(1, 6), Vector2(2, 3)), 1.2, G) \
+				+ E._gl(_bez(Vector2(17, 5), Vector2(17, 11), Vector2(19, 14), Vector2(18, 17)), 1.2, G) + [_c_hi(3, 15), _c_hi(17, 5)]
+		"m_cv_pt_delete":   # a point taken out: the curve runs on past it
+			return E._gl([[2.5, 15], [17.5, 15]], 1.6, G) + [_dot(2.5, 15), _dot(17.5, 15)] + E._gl([[7, 3], [13, 9]], 1.6, E.RED) + E._gl([[13, 3], [7, 9]], 1.6, E.RED)
+		"m_cv_patch_finer":   # a patch's grid made twice as fine
+			return E._gl([[3, 3], [17, 3], [17, 17], [3, 17]], 1.4, G, true) + E._gl([[10, 3], [10, 17]], 1.0, B) + E._gl([[3, 10], [17, 10]], 1.0, B) \
+				+ E._gl([[6.5, 3], [6.5, 17]], 0.7, B) + E._gl([[13.5, 3], [13.5, 17]], 0.7, B) + E._gl([[3, 6.5], [17, 6.5]], 0.7, B) + E._gl([[3, 13.5], [17, 13.5]], 0.7, B)
+		"m_cv_patch_coarser":   # a patch's grid made coarser again
+			return E._gl([[3, 3], [17, 3], [17, 17], [3, 17]], 1.4, G, true) + E._gl([[10, 3], [10, 17]], 1.2, B) + E._gl([[3, 10], [17, 10]], 1.2, B)
 		"m_cv_spline":   # a smooth curve through points
 			return E._gl(_bez(Vector2(2.5, 15), Vector2(6, 0), Vector2(13, 22), Vector2(17.5, 5)), 1.6, G) + [_dot(2.5, 15), _dot(10, 10), _dot(17.5, 5)]
 		"m_cv_circle":

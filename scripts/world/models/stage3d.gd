@@ -524,8 +524,22 @@ static func warm(tree: SceneTree) -> void:
 		if not has_model(id) or _scenes.has(id):
 			continue
 		var path := model_dir(id) + id + ".glb"
-		if preload("res://scripts/world/models/model_override.gd").has(path):
-			_scene(id)   # (an override: read from its own file)
+		var MO := preload("res://scripts/world/models/model_override.gd")
+		if MO.has(path):
+			# (an override - an ECurve object stored from the mesh editor: read from its own file, and its
+			# solids merged for the game, on a worker - a character of ninety solids was a 170 ms frame)
+			info(id)
+			var got := [null, null]
+			var tk := WorkerThreadPool.add_task(func():
+				got[0] = MO.build(path)
+				got[1] = CosmosModels.premerge(got[0], id), false, "Stage3D: a model's override")
+			while not WorkerThreadPool.is_task_completed(tk):
+				await tree.process_frame
+			WorkerThreadPool.wait_for_task_completion(tk)
+			MO.remember(path, got[0])
+			if not _scenes.has(id):
+				_scenes[id] = got[0]
+			CosmosModels.keep(id, got[1])
 			continue
 		if DisplayServer.get_name() == "headless":
 			_scenes[id] = load(path)

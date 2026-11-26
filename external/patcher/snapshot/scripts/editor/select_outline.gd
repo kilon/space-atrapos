@@ -10,11 +10,17 @@ static var _mats := {}   # colour -> ShaderMaterial
 static func material(col := Color(1.0, 0.42, 0.0), width := 3.5) -> ShaderMaterial:
 	var key := "%s|%s" % [col, width]
 	if not _mats.has(key):
+		# (two passes: the shape's own pixels marked, then the line round it where they aren't - no line
+		# over its folds, holes or what of it is hidden behind its front)
+		var mark := ShaderMaterial.new()
+		mark.shader = preload("res://shaders/outline_mark.gdshader")
 		var m := ShaderMaterial.new()
 		m.shader = preload("res://shaders/outline.gdshader")
 		m.set_shader_parameter("color", col)
 		m.set_shader_parameter("width", width)
-		_mats[key] = m
+		m.render_priority = 1
+		mark.next_pass = m
+		_mats[key] = mark
 	return _mats[key]
 
 

@@ -193,8 +193,30 @@ static func write(root: Node, file: String) -> int:
 	var err := doc.append_from_scene(root, st)
 	if err != OK:
 		return err
+	_keep_bone_names(root, st)
 	DirAccess.make_dir_recursive_absolute(file.get_base_dir())
 	return doc.write_to_filesystem(st, file)
+
+
+## The skeletons' bone names written as they are: the export makes them node names ("upper.L" ->
+## "upper_L"), and the game finds bones by name (the arms' aim: "hand.R") - a character saved from the
+## editor kept its bones. (Animations point at nodes by number: they follow.)
+static func _keep_bone_names(root: Node, st: GLTFState) -> void:
+	var real := {}   # the export's name -> the bone's own
+	for sk in root.find_children("*", "Skeleton3D", true, false) + ([root] if root is Skeleton3D else []):
+		for b in (sk as Skeleton3D).get_bone_count():
+			var n := (sk as Skeleton3D).get_bone_name(b)
+			var w := n.validate_node_name()
+			if w != n:
+				real[w] = n
+	if real.is_empty():
+		return
+	for gn: GLTFNode in st.get_nodes():
+		var n := str(gn.resource_name)
+		if real.has(n):
+			gn.resource_name = real[n]
+			if "original_name" in gn:
+				gn.original_name = real[n]
 
 
 ## A primitive as an editable mesh, about a metre across.

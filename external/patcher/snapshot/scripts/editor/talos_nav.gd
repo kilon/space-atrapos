@@ -22,7 +22,7 @@ const AT := Vector2(44, 44)
 
 ## [id, name, icon, keys, what it is]; "" separates the groups.
 const TOOLS := [
-	["mesh", "Meshes", "mesh", "F6", "The mesh editor: the game's models and your own - parts, primitives, vertices and faces,\nmaterials. Saves into the game (or, in the Mod Editor, into your mod)."],
+	["mesh", "ECurves", "mesh", "F6", "The ECurves editor: the game's models and your own as ECurve objects - collections of solids\nmade of faces, edges and vertices; primitives, materials, variants. Saves into the game (or, in the\nMod Editor, into your mod)."],
 	["anim", "Animation", "anim", "F7", "The animation editor: a character's clips on a timeline - pose its bones, key them,\nmake new clips. Saves into the game (or, in the Mod Editor, into your mod)."],
 	"",
 	["fx", "Effects", "effects", "F4", "The effects editor: the game's particle effects (explosions, dust, sparks, impacts) - their emitters,\ncolours over life, sizes, speeds - played as you change them. Saves into the game (or your mod)."],

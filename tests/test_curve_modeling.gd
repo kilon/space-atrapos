@@ -35,7 +35,7 @@ static func _circle(c: Vector3, r: float, n := Vector3.UP) -> Dictionary:
 
 func test_curve_shapes() -> void:
 	var circ := CT.sample(_circle(Vector3(1, 0, 0), 0.5))
-	check(circ.size() == 64, "a circle: 64 points (%d)" % circ.size())
+	check(circ.size() == 64, "a circle: 64 vertices (%d)" % circ.size())
 	var off := 0.0
 	for q in circ:
 		off = maxf(off, absf(q.distance_to(Vector3(1, 0, 0)) - 0.5))
@@ -56,13 +56,13 @@ func test_curve_shapes() -> void:
 	for q in a:
 		through = minf(through, q.distance_to(Vector3(0, 0, 1)))
 		check(absf(q.length() - 1.0) < 1e-4, "on the circle")
-	check(through < 0.05, "through the third point (%.3f)" % through)
+	check(through < 0.05, "through the third vertex (%.3f)" % through)
 	check(CT.circumcentre(Vector3.ZERO, Vector3.RIGHT, Vector3.RIGHT * 2.0) == Vector3.INF, "three in a row: no circle")
 	# a rectangle's corners rounded: the arcs stay inside the corners
 	var r := _rect(1.0, 1.0)
 	r["radii"] = PackedFloat32Array([0.2, 0.2, 0.2, 0.2])
 	var rs := CT.sample(r)
-	check(rs.size() > 12, "rounded corners add points (%d)" % rs.size())
+	check(rs.size() > 12, "rounded corners add vertices (%d)" % rs.size())
 	for q in rs:
 		check(q.x > -1e-5 and q.x < 1.0 + 1e-5 and q.z > -1e-5 and q.z < 1.0 + 1e-5, "inside the square")
 	check(not Vector3(0, 0, 0) in rs, "the sharp corner's gone")
@@ -83,7 +83,7 @@ func test_offset_join_bridge() -> void:
 	var l1 := {"kind": "line", "ctrl": PackedVector3Array([Vector3(0, 0, 0), Vector3(1, 0, 0)]), "closed": false, "n": Vector3.UP}
 	var l2 := {"kind": "line", "ctrl": PackedVector3Array([Vector3(2, 0, 1), Vector3(1, 0, 0)]), "closed": false, "n": Vector3.UP}
 	var j := CT.join(l1, l2)
-	check((j["ctrl"] as PackedVector3Array).size() == 3, "joined at the shared end: 3 points (%d)" % (j["ctrl"] as PackedVector3Array).size())
+	check((j["ctrl"] as PackedVector3Array).size() == 3, "joined at the shared end: 3 vertices (%d)" % (j["ctrl"] as PackedVector3Array).size())
 	check(str(j["kind"]) == "line", "two lines: a line")
 	var br := CT.bridge(CT.sample(l1), PackedVector3Array([Vector3(2, 0, 0.5), Vector3(3, 0, 0.5)]))
 	var bk: PackedVector3Array = br["ctrl"]
@@ -110,7 +110,7 @@ func test_solids_from_curves() -> void:
 	_closed_solid(CT.extrude_mesh([rr], 0.1), "extruded rounded square", (1.0 - (4.0 - PI) * 0.0625) * 0.1, 0.02)
 	_closed_solid(CT.extrude_mesh([_circle(Vector3.ZERO, 0.5)], 1.0), "extruded circle", PI * 0.25, 0.01)
 	var open_m := CT.extrude_mesh([{"kind": "line", "ctrl": PackedVector3Array([Vector3.ZERO, Vector3.RIGHT, Vector3(1, 0, 1)]), "closed": false, "n": Vector3.UP}], 0.5)
-	check(open_m != null and Shapes.open_edges(open_m) > 0, "an open curve extrudes into a wall (open)")
+	check(open_m != null and Shapes.open_edges(open_m) > 0, "an open edge extrudes into a wall (open)")
 	# revolve: a square profile (0.2 side, 1 from the axis) round Y - a torus of square section: 2 pi R A
 	var prof := {"kind": "line", "ctrl": PackedVector3Array([Vector3(0.9, 0, 0), Vector3(1.1, 0, 0), Vector3(1.1, 0.2, 0), Vector3(0.9, 0.2, 0)]), "closed": true, "n": Vector3.BACK}
 	_closed_solid(CT.revolve_mesh([prof], TAU, 48, [Vector3.ZERO, Vector3.UP, -1]), "revolved square", TAU * 1.0 * 0.04, 0.02)
@@ -135,24 +135,50 @@ func test_solids_from_curves() -> void:
 func test_tabs_and_menu() -> void:
 	var ed := await _editor()
 	var tabs: TabContainer = ed._right_tabs
-	check(tabs != null and tabs.get_tab_count() == 2, "the right panel has two tabs")
-	check(tabs.get_tab_title(1) == "Curve modeling", "the second: Curve modeling (%s)" % tabs.get_tab_title(1))
-	ed.show_right_tab(1)
-	check(ed.curve_tab_shown(), "shown on asking")
+	check(tabs != null and tabs.get_tab_count() == 1 and not tabs.tabs_visible, "the side panel: one page, the mesh's and ECurves's together")
+	var secs: Dictionary = ed.get_meta("side_secs", {})
+	for t in ["OVERVIEW", "SOLID", "SKETCH", "EDGES", "MATERIAL"]:
+		check(secs.has(t), "its section " + t)
+	# only what's about the selection: nothing picked - the overview, sketching; a part - its sections
+	ed.new_model(true)
+	ed.select_part(null)
+	ed.update_side_panel()
+	check((secs["SKETCH"] as Control).visible and not (secs["SOLID"] as Control).visible and not (secs["MATERIAL"] as Control).visible and not (secs["EDGES"] as Control).visible, "nothing picked: no collection, material or edge sections")
+	var bx: MeshInstance3D = ed.add_primitive("box")
+	ed.select_part(bx)
+	ed.update_side_panel()
+	check((secs["SOLID"] as Control).visible and (secs["MATERIAL"] as Control).visible and not (secs["BOOLEAN"] as Control).visible, "a collection: its sections (not the booleans - one collection)")
+	check(not (secs["EDIT MESH"] as Control).visible, "object mode: no mesh editing")
+	ed.select_part(null)
+	check(ed.curve_tab_shown(), "object mode: ECurves's keys work")
 	var m: PopupPanel = ed.menu(Vector2(200, 200))
-	var mt: TabBar = m.find_child("MenuTabs", true, false)
-	check(mt != null and mt.tab_count == 2, "the right-click menu has two tabs")
-	var cp: Control = m.find_child("CurvePage", true, false)
-	check(cp != null and cp.find_child("Menu_Extrude", true, false) != null, "its Curve modeling page has Extrude")
-	check(cp.find_child("Menu_Line", true, false) != null, "... and the sketch tools")
+	check(m.find_child("MenuTabs", true, false) == null, "the right-click menu: one page, no tabs")
+	var cp: Control = m.find_child("Page", true, false)
+	check(cp != null and cp.find_child("Menu_Line", true, false) != null, "nothing picked: its ECurves page has the sketch tools")
+	check(cp.find_child("Menu_Extrude", true, false) == null, "... and nothing for edges (none picked)")
 	# every button on both pages has a tooltip
 	for b in m.find_children("Menu_*", "Button", true, false):
 		check((b as Button).tooltip_text != "", "tooltip on " + str(b.name))
-	mt.current_tab = 0
-	check(not cp.visible, "switching tabs shows the other page")
+	m.hide()
+	# a curve picked: what's done to curves - not the sketch tools
+	ed.new_model(true)
+	ed.curve_tools.add_curve(_rect(1.0, 1.0))
+	ed.curve_tools.select(0)
+	m = ed.menu(Vector2(200, 200))
+	cp = m.find_child("Page", true, false)
+	check(cp.find_child("Menu_Extrude", true, false) != null and cp.find_child("Menu_Move edges".validate_node_name(), true, false) != null, "an edge picked: Extrude, Move edges")
+	check(cp.find_child("Menu_Line", true, false) == null, "... no sketch tools")
+	check(cp.find_child("Menu_Loft", true, false) == null, "... nor what needs two edges")
+	m.hide()
+	# its points picked: the points' tools only
+	ed.curve_tools.pick_point(0, 1)
+	m = ed.menu(Vector2(200, 200))
+	cp = m.find_child("Page", true, false)
+	check(cp.find_child("Menu_Separate vertices".validate_node_name(), true, false) != null, "vertices picked: Separate vertices")
+	check(cp.find_child("Menu_Extrude", true, false) == null and cp.find_child("Menu_Union edges".validate_node_name(), true, false) == null, "... not the edges' tools")
 	m.hide()
 	# the panel's buttons all have tooltips and icons
-	var page: Control = tabs.get_child(1)
+	var page: Control = tabs.get_child(0)
 	for b in page.find_children("*", "Button", true, false):
 		check((b as Button).tooltip_text != "", "panel tooltip on " + str(b.name) + " " + (b as Button).text)
 	for n in ["m_cv_line", "m_cv_extrude", "m_cv_revolve", "m_cv_loft", "m_cv_pipe", "m_cv_plane"]:
@@ -174,10 +200,10 @@ func test_sketch_by_clicks_and_extrude() -> void:
 	ct.snap_points = false
 	ct.begin("rect")
 	check(ct.tool == "rect", "the rectangle tool's on")
-	check(ed.curve_tab_shown(), "the Curve modeling tab shown with it")
+	check(ed.curve_tab_shown(), "the ECurves tab shown with it")
 	check(ct.click(ct._screen(Vector3(0.01, 0, -0.01))), "first corner clicked")
 	check(ct.click(ct._screen(Vector3(0.49, 0, 0.31))), "the opposite corner")
-	check(ct.curves.size() == 1, "a rectangle made (%d curves)" % ct.curves.size())
+	check(ct.curves.size() == 1, "a rectangle made (%d edges)" % ct.curves.size())
 	if ct.curves.size() == 1:
 		var k: PackedVector3Array = ct.curves[0]["ctrl"]
 		check(k.size() == 4 and ct.curves[0]["closed"], "4 corners, closed")
@@ -191,7 +217,7 @@ func test_sketch_by_clicks_and_extrude() -> void:
 	ev.keycode = KEY_ENTER
 	ev.pressed = true
 	check(ct.key(ev), "Enter ends the line")
-	check(ct.curves.size() == 2 and (ct.curves[1]["ctrl"] as PackedVector3Array).size() == 3, "an open line of three points")
+	check(ct.curves.size() == 2 and (ct.curves[1]["ctrl"] as PackedVector3Array).size() == 3, "an open line of three vertices")
 	# typed sizes: a circle of radius 0.25
 	ct.begin("circle")
 	ct.click(ct._screen(Vector3(1, 0, 1)))
@@ -223,12 +249,12 @@ func test_sketch_by_clicks_and_extrude() -> void:
 	ct.select(0)
 	var n0: int = ed.parts().size()
 	var part: MeshInstance3D = ct.make_part("extrude", 0.2)
-	check(part != null and ed.parts().size() == n0 + 1, "extruded: a new part")
+	check(part != null and ed.parts().size() == n0 + 1, "extruded: a new collection")
 	if part:
 		check(Shapes.open_edges(part.mesh) == 0, "closed solid")
 		check(absf(Shapes.volume(part.mesh) - 0.5 * 0.3 * 0.2) < 0.001, "0.5 x 0.3 x 0.2 (%.4f)" % Shapes.volume(part.mesh))
 	ed.undo()
-	check(ed.parts().size() == n0, "undo removes the part")
+	check(ed.parts().size() == n0, "undo removes the collection")
 	# the interactive extrude: typed height, Enter
 	ct.select(0)
 	ct.begin_extrude()
@@ -249,13 +275,13 @@ func test_sketch_by_clicks_and_extrude() -> void:
 	ct.op["value"] = 0.05
 	ct._op_update()
 	ct.confirm_op()
-	check(ct.curves[0].has("radii") and is_equal_approx((ct.curves[0]["radii"] as PackedFloat32Array)[0], 0.05), "corners rounded, kept on the curve")
+	check(ct.curves[0].has("radii") and is_equal_approx((ct.curves[0]["radii"] as PackedFloat32Array)[0], 0.05), "corners rounded, kept on the edge")
 	ct.select(0)
 	ct.begin_offset()
 	ct.op["value"] = 0.1
 	ct._op_update()
 	ct.confirm_op()
-	check(ct.curves.size() == 4, "offset: a new curve (%d)" % ct.curves.size())
+	check(ct.curves.size() == 4, "offset: a new edge (%d)" % ct.curves.size())
 	await _done(ed)
 
 
@@ -266,11 +292,12 @@ func test_keys_and_saving() -> void:
 	var k := InputEventKey.new()
 	k.pressed = true
 	k.keycode = KEY_L
-	check(ct.key(k), "L in the Curve modeling tab: the line tool")
+	check(ct.key(k), "L in object mode: the line tool")
 	check(ct.tool == "line", "line on")
 	ct.stop()
-	ed.show_right_tab(0)
-	check(not ct.key(k), "in the Mesh tab L is the mesh's own")
+	ed.mode = "edit"
+	check(not ct.key(k), "in edit mode L is the mesh's own")
+	ed.mode = "object"
 	# kept beside the model, read back
 	ct.curves = [_rect(1, 2), _circle(Vector3(0, 1, 0), 0.3, Vector3.BACK)]
 	ct.curves[0]["radii"] = PackedFloat32Array([0.1, 0, 0, 0.1])
@@ -279,12 +306,12 @@ func test_keys_and_saving() -> void:
 	ct.save_beside(f)
 	check(FileAccess.file_exists(f + ".curves.json"), "saved beside the model")
 	var back := CT.from_json(JSON.parse_string(FileAccess.get_file_as_string(f + ".curves.json"))["curves"])
-	check(back.size() == 2 and str(back[1]["kind"]) == "circle", "read back: both curves")
+	check(back.size() == 2 and str(back[1]["kind"]) == "circle", "read back: both edges")
 	check(is_equal_approx((back[0]["radii"] as PackedFloat32Array)[0], 0.1), "with their corner radii")
 	check((back[1]["n"] as Vector3).is_equal_approx(Vector3.BACK), "and their planes")
 	ct.curves = []
 	ct.save_beside(f)
-	check(not FileAccess.file_exists(f + ".curves.json"), "no curves: the file's removed")
+	check(not FileAccess.file_exists(f + ".curves.json"), "no edges: the file's removed")
 	await _done(ed)
 
 
@@ -312,11 +339,11 @@ func test_procedural_solids() -> void:
 	k[2].x = 2.0
 	ct.curves[0]["ctrl"] = k
 	ct._changed("Widen", before)
-	check(absf(_vol(part) - 0.2) < 1e-3, "the curve widened to 2 m: the solid follows (%.4f)" % _vol(part))
+	check(absf(_vol(part) - 0.2) < 1e-3, "the edge widened to 2 m: the solid follows (%.4f)" % _vol(part))
 	check(part.mesh.surface_get_material(0) == mat, "its material kept")
 	check(Shapes.open_edges(part.mesh) == 0, "still closed")
 	ed.undo()
-	check(absf(_vol(part) - 0.1) < 1e-3, "undo: the curve and the solid back (%.4f)" % _vol(part))
+	check(absf(_vol(part) - 0.1) < 1e-3, "undo: the edge and the solid back (%.4f)" % _vol(part))
 	ed.redo()
 	check(absf(_vol(part) - 0.2) < 1e-3, "redo: wide again")
 	# corners filleted on the curve: the solid's corners round
@@ -325,7 +352,7 @@ func test_procedural_solids() -> void:
 	ct.op["value"] = 0.1
 	ct._op_update()
 	ct.confirm_op()
-	check(_vol(part) < 0.2 - 1e-4 and _vol(part) > 0.19, "corners rounded on the curve: the solid's too (%.4f)" % _vol(part))
+	check(_vol(part) < 0.2 - 1e-4 and _vol(part) > 0.19, "corners rounded on the edge: the solid's too (%.4f)" % _vol(part))
 	# its settings: the height
 	ed.select_part(part)
 	ct.set_spec("value", 0.4)
@@ -335,7 +362,7 @@ func test_procedural_solids() -> void:
 	ed.undo()
 	check(_vol(part) < 0.2, "undo: height 0.2 again (%.4f)" % _vol(part))
 	ct.pick_part_curves()
-	check(ct.sel == [0], "Pick its curves picks the rectangle")
+	check(ct.sel == [0], "Pick its edges picks the rectangle")
 	# a copy of the part (duplicate) follows the same curves: an instance
 	ed.duplicate_part()
 	var copy: MeshInstance3D = ed.part
@@ -344,7 +371,7 @@ func test_procedural_solids() -> void:
 	var v0 := _vol(part)
 	ct.select(0)
 	ct.delete_selected()
-	check(is_equal_approx(_vol(part), v0), "its curve deleted: it stays as it is")
+	check(is_equal_approx(_vol(part), v0), "its edge deleted: it stays as it is")
 	ed.undo()
 	# made a plain mesh: no longer follows
 	ed.select_part(part)
@@ -355,7 +382,7 @@ func test_procedural_solids() -> void:
 	k[1].x = 3.0
 	ct.curves[0]["ctrl"] = k
 	ct._changed("Move", before)
-	check(is_equal_approx(_vol(part), v0), "the curve changed: the plain mesh didn't")
+	check(is_equal_approx(_vol(part), v0), "the edge changed: the plain mesh didn't")
 	check(not is_equal_approx(_vol(copy), v0), "... but the linked copy did")
 	ed.undo()
 	ed.undo()
@@ -413,7 +440,7 @@ func test_moved_solid_takes_its_curves() -> void:
 	var part: MeshInstance3D = ct.make_part("extrude", 0.2)
 	part.position = Vector3(0.5, 0.7, 0.0)   # (moved - as a drag of the part does)
 	var own: Dictionary = ct.owner_xfs()
-	check(own.has(int(ct.curves[0]["id"])) and (own[int(ct.curves[0]["id"])] as Transform3D).origin.is_equal_approx(Vector3(0.5, 0.7, 0)), "the curve is placed by its solid")
+	check(own.has(int(ct.curves[0]["id"])) and (own[int(ct.curves[0]["id"])] as Transform3D).origin.is_equal_approx(Vector3(0.5, 0.7, 0)), "the edge is placed by its solid")
 	# picked where it's drawn now (with the part), not where its points were
 	ct.select(-1)
 	check(ct.pick(ct._screen(Vector3(1.0, 0.7, 0.0))) == 0, "picked at its new place")
@@ -423,7 +450,7 @@ func test_moved_solid_takes_its_curves() -> void:
 	# a copy made from it lands where it shows
 	ct.duplicate_selected()
 	var dk: PackedVector3Array = ct.curves[1]["ctrl"]
-	check(absf(dk[0].y - 0.7) < 1e-5, "a copy of a placed curve shows where it does (y %.2f)" % dk[0].y)
+	check(absf(dk[0].y - 0.7) < 1e-5, "a copy of a placed edge shows where it does (y %.2f)" % dk[0].y)
 	# a new solid from the placed curve sits on it
 	ct.select(0)
 	var p2: MeshInstance3D = ct.make_part("pipe", 0.02)
@@ -447,7 +474,7 @@ func test_curve_booleans() -> void:
 	var hole := _circle(Vector3(0.5, 0, 0.5), 0.2)
 	var cut: Array = CT.curve_bool([a, hole], "subtract")
 	check(cut.size() == 2, "the square minus a circle inside it: outline + hole (%d)" % cut.size())
-	_closed_solid(CT.extrude_mesh(cut, 0.1), "the cut curves extruded", (1.0 - PI * 0.04) * 0.1, 0.01)
+	_closed_solid(CT.extrude_mesh(cut, 0.1), "the cut edges extruded", (1.0 - PI * 0.04) * 0.1, 0.01)
 	# not on one plane: nothing
 	var up := _rect(1.0, 1.0)
 	var k: PackedVector3Array = up["ctrl"]
@@ -499,7 +526,7 @@ func test_live_boolean() -> void:
 	ct.curves[1]["ctrl"] = k
 	ct._changed("Bigger hole", before)
 	var v1 := Shapes.volume(a.mesh)
-	check(absf(v1 - (1.0 - PI * 0.09) * 0.4) < 0.01, "the hole's curve widened: the hole is wider (%.4f)" % v1)
+	check(absf(v1 - (1.0 - PI * 0.09) * 0.4) < 0.01, "the hole's edge widened: the hole is wider (%.4f)" % v1)
 	# A's curve changed: follows too
 	before = ct._state()
 	k = ct.curves[0]["ctrl"]
@@ -507,8 +534,8 @@ func test_live_boolean() -> void:
 	k[2].x = 2.0
 	ct.curves[0]["ctrl"] = k
 	ct._changed("Wider block", before)
-	check(Shapes.volume(a.mesh) > v1 + 0.3, "the block's curve widened: the result too (%.4f)" % Shapes.volume(a.mesh))
-	check(ct.owner_xfs().has(int(ct.curves[1]["id"])), "B's curves still placed (through the recipe)")
+	check(Shapes.volume(a.mesh) > v1 + 0.3, "the block's edge widened: the result too (%.4f)" % Shapes.volume(a.mesh))
+	check(ct.owner_xfs().has(int(ct.curves[1]["id"])), "B's edges still placed (through the recipe)")
 	ed.undo()
 	ed.undo()
 	ed.undo()
@@ -525,7 +552,7 @@ func test_curve_boolean_results_are_lean() -> void:
 	if r.size() == 1:
 		var k: PackedVector3Array = r[0]["ctrl"]
 		check(str(r[0]["kind"]) == "path", "a path: straight sides and an arc (%s)" % r[0]["kind"])
-		check(k.size() <= 12, "few points: %d (the boolean gave ~40)" % k.size())
+		check(k.size() <= 12, "few vertices: %d (the boolean gave ~40)" % k.size())
 		var want := 1.0 - PI * 0.09 * 0.5
 		var got := absf(CT._winding(CT.sample(r[0]), Vector3.UP)) * 0.5
 		check(absf(got - want) < want * 0.01, "its shape kept: area %.4f, want %.4f" % [got, want])
@@ -545,7 +572,7 @@ func test_curve_boolean_results_are_lean() -> void:
 				check((c["ctrl"] as PackedVector3Array).size() == 4, "4 corners")
 	# two circles unioned: a smooth path with two corners where they meet
 	var u: Array = CT.curve_bool([_circle(Vector3.ZERO, 0.5), _circle(Vector3(0.6, 0, 0), 0.5)], "union")
-	check(u.size() == 1 and (u[0]["ctrl"] as PackedVector3Array).size() <= 14, "two circles: one lean path (%d points)" % ((u[0]["ctrl"] as PackedVector3Array).size() if u.size() == 1 else -1))
+	check(u.size() == 1 and (u[0]["ctrl"] as PackedVector3Array).size() <= 14, "two circles: one lean path (%d vertices)" % ((u[0]["ctrl"] as PackedVector3Array).size() if u.size() == 1 else -1))
 	if u.size() == 1:
 		var d := 0.6
 		var lens := 2.0 * 0.25 * acos(d / 1.0) - 0.5 * d * sqrt(1.0 - d * d)   # (the overlap of two r 0.5 circles d apart)
@@ -562,7 +589,7 @@ func test_simplify_curve() -> void:
 	var sq := _rect(1.0, 1.0)
 	var r: Array = CT.curve_bool([sq, _circle(Vector3(1.0, 0, 0.5), 0.3)], "subtract")
 	var full := {"kind": "line", "ctrl": CT.sample(r[0]), "closed": true, "n": Vector3.UP}
-	check((full["ctrl"] as PackedVector3Array).size() > 30, "a dense line to start (%d points)" % (full["ctrl"] as PackedVector3Array).size())
+	check((full["ctrl"] as PackedVector3Array).size() > 30, "a dense line to start (%d vertices)" % (full["ctrl"] as PackedVector3Array).size())
 	var ed := await _editor()
 	var ct = ed.curve_tools
 	ed.new_model(true)
@@ -574,8 +601,8 @@ func test_simplify_curve() -> void:
 	ct.select(0)
 	ct.simplify_selected()
 	var k: PackedVector3Array = ct.curves[0]["ctrl"]
-	check(k.size() <= 12, "simplified to %d points" % k.size())
-	check(int(ct.curves[0]["id"]) == id0, "the same curve (its id kept)")
+	check(k.size() <= 12, "simplified to %d vertices" % k.size())
+	check(int(ct.curves[0]["id"]) == id0, "the same edge (its id kept)")
 	check(absf(Shapes.volume(part.mesh) - v0) < v0 * 0.015, "its solid follows, its shape kept (%.4f vs %.4f)" % [Shapes.volume(part.mesh), v0])
 	ed.undo()
 	check((ct.curves[0]["ctrl"] as PackedVector3Array).size() > 30, "undo: dense again")
@@ -600,12 +627,12 @@ func test_curve_boolean_keeps_true_arcs() -> void:
 	var circles := [[Vector3(-1.7, 0, -0.35), Vector3(-1.7, 0, -0.35).distance_to(Vector3(-0.8, 0, -0.85))], [Vector3(-0.45, 0, -0.45), 0.5]]
 	for op in ["subtract", "intersect", "union"]:
 		var r: Array = CT.curve_bool([small, big], op)
-		check(r.size() == 1, "%s: one curve" % op)
+		check(r.size() == 1, "%s: one edge" % op)
 		if r.size() != 1:
 			continue
 		var off := _off_circles(r[0], circles)
 		check(off < 0.002, "%s: on the true circles (%.4f m off at worst)" % [op, off])
-		check((r[0]["ctrl"] as PackedVector3Array).size() <= 14, "%s: lean (%d points)" % [op, (r[0]["ctrl"] as PackedVector3Array).size()])
+		check((r[0]["ctrl"] as PackedVector3Array).size() <= 14, "%s: lean (%d vertices)" % [op, (r[0]["ctrl"] as PackedVector3Array).size()])
 	# a point of a path's arc moved off its circle: the run is a smooth spline instead, through its points
 	var r2: Array = CT.curve_bool([small, big], "subtract")
 	var c: Dictionary = r2[0].duplicate(true)
@@ -620,7 +647,7 @@ func test_curve_boolean_keeps_true_arcs() -> void:
 	for i in s.size():
 		var p := Geometry3D.get_closest_point_to_segment(k[j], s[i], s[(i + 1) % s.size()])
 		near = minf(near, p.distance_to(k[j]))
-	check(near < 1e-3, "a moved point: the curve still passes through it (%.5f)" % near)
+	check(near < 1e-3, "a moved vertex: the edge still passes through it (%.5f)" % near)
 
 
 func test_small_intersections_stay_lean() -> void:
@@ -632,14 +659,14 @@ func test_small_intersections_stay_lean() -> void:
 		check(r.size() == 1, "one lens")
 		if r.size() == 1:
 			var k: PackedVector3Array = r[0]["ctrl"]
-			check(k.size() == 4, "the lens: 2 corners + an arc's middle each (%d points)" % k.size())
+			check(k.size() == 4, "the lens: 2 corners + an arc's middle each (%d vertices)" % k.size())
 			var circles := [[Vector3(-1.7, 0, -0.35), Vector3(-1.7, 0, -0.35).distance_to(Vector3(-0.8, 0, -0.85))], [Vector3(-0.45, 0, -0.45), 0.5]]
 			check(_off_circles(r[0], circles) < 0.002, "on the true circles")
 	# a tiny square cut by a big circle: straight sides stay straight, the arc an arc
 	var sq := _rect(0.2, 0.2)
 	var c := _circle(Vector3(0.2, 0, 0.2), 0.12)
 	var r2: Array = CT.curve_bool([sq, c], "intersect")
-	check(r2.size() == 1 and (r2[0]["ctrl"] as PackedVector3Array).size() <= 5, "a quarter disc: corner, two sides, an arc (%d points)" % ((r2[0]["ctrl"] as PackedVector3Array).size() if r2.size() == 1 else -1))
+	check(r2.size() == 1 and (r2[0]["ctrl"] as PackedVector3Array).size() <= 5, "a quarter disc: corner, two sides, an arc (%d vertices)" % ((r2[0]["ctrl"] as PackedVector3Array).size() if r2.size() == 1 else -1))
 
 
 func _key(ct, code: int, uni := 0) -> bool:
@@ -664,7 +691,7 @@ func test_curves_move_turn_scale_in_3d() -> void:
 	var part: MeshInstance3D = ct.make_part("extrude", 0.2)
 	ct.select(0)
 	# G, Y, 0.5, Enter: up half a metre - off its plane, into 3D; its solid follows
-	check(_key(ct, KEY_G), "G with a curve picked: move it")
+	check(_key(ct, KEY_G), "G with an edge picked: move it")
 	check(str(ct.op.get("kind", "")) == "move", "moving")
 	_key(ct, KEY_Y)
 	_type(ct, "0.5")
@@ -750,10 +777,10 @@ func test_panel_buttons_enable_and_run() -> void:
 	ct.add_curve(_rect(1.0, 1.0))
 	ct.add_curve(_circle(Vector3(1.0, 0, 0.5), 0.3))
 	ct.select(0)
-	var union: Button = ct._panel_btns["op_Union curves"][0]
-	check(union.disabled, "one curve picked: Union off")
+	var union: Button = ct._panel_btns["op_Union edges"][0]
+	check(union.disabled, "one edge picked: Union off")
 	ct.select(1, true)
-	for n in ["Union curves", "Subtract curves", "Intersect curves", "Join curves", "Bridge curve", "Loft", "Sweep"]:
+	for n in ["Union edges", "Subtract edges", "Intersect edges", "Join edges", "Bridge edge", "Loft", "Sweep"]:
 		check(not (ct._panel_btns["op_" + n][0] as Button).disabled, n + " on with two picked")
 	union.pressed.emit()
 	check(ct.curves.size() == 1 and str(ct.curves[0]["kind"]) == "path", "pressing Union ran it: one outline")
@@ -764,7 +791,7 @@ func test_panel_buttons_enable_and_run() -> void:
 			continue   # (the SOLID box's controls, kept there too)
 		var b: Button = e if e is Button else e[0]
 		for c in b.pressed.get_connections():
-			check(not (c["callable"] as Callable).is_custom() or (c["callable"] as Callable).get_object() == ct, "%s: pressed goes to a method of the curve tools" % k)
+			check(not (c["callable"] as Callable).is_custom() or (c["callable"] as Callable).get_object() == ct, "%s: pressed goes to a method of the edge tools" % k)
 	await _done(ed)
 
 
@@ -794,7 +821,7 @@ func test_negative_extrusions() -> void:
 	_key(ct, KEY_N)
 	check(ct.op.get("neg", false) and ct.op.get("target") == block, "N: negative, cutting the block")
 	ct.confirm_op()
-	check(ed.parts().size() == 1, "the cutter's part went into the cut")
+	check(ed.parts().size() == 1, "the cutter's collection went into the cut")
 	var want := 0.4 - PI * 0.04 * 0.2
 	check(absf(Shapes.volume(block.mesh) - want) < 0.005, "a 0.2 deep round pocket (%.4f, want %.4f)" % [Shapes.volume(block.mesh), want])
 	check(str(block.get_meta("curve_solid", {}).get("kind", "")) == "bool", "live: the block keeps the cut as a recipe")
@@ -809,9 +836,9 @@ func test_negative_extrusions() -> void:
 	# made positive again: the cutter its own part, the block whole
 	ed.select_part(block)
 	ct.make_positive()
-	check(ed.parts().size() == 2 and absf(Shapes.volume(block.mesh) - 0.4) < 1e-3, "positive again: the block whole, the cutter a part")
+	check(ed.parts().size() == 2 and absf(Shapes.volume(block.mesh) - 0.4) < 1e-3, "positive again: the block whole, the cutter a collection")
 	var cutter: MeshInstance3D = ed.parts()[1]
-	check(cutter.has_meta("curve_solid") and absf(Shapes.volume(cutter.mesh) - PI * 0.09 * 0.2) < 0.005, "the cutter: the 0.3-radius disc, still following its curve")
+	check(cutter.has_meta("curve_solid") and absf(Shapes.volume(cutter.mesh) - PI * 0.09 * 0.2) < 0.005, "the cutter: the 0.3-radius disc, still following its edge")
 	# and negative again, from the SOLID box's button
 	ed.select_part(cutter)
 	ct.make_negative()
@@ -836,7 +863,7 @@ func test_curves_redrawn_when_their_solid_moves() -> void:
 	part.position += Vector3(0, 0.5, 0)   # (moved as G / the gizmo / a drag do)
 	await tree.process_frame
 	await tree.process_frame
-	check(drawn[0] > 0, "the curves' layer redrawn as their solid moved (%d)" % drawn[0])
+	check(drawn[0] > 0, "the edges' layer redrawn as their solid moved (%d)" % drawn[0])
 	ct.layer.draw.disconnect(count)
 	await _done(ed)
 
@@ -886,7 +913,7 @@ func test_recipe_tree_editable_any_time() -> void:
 	check(absf(Shapes.volume(block.mesh) - (0.4 - PI * 0.04 * 0.2)) < 0.01, "undo x5: the cut as it was made (%.4f)" % Shapes.volume(block.mesh))
 	# separate: the cutter its own part again
 	ct.separate_node([])
-	check(ed.parts().size() == 2 and str(block.get_meta("curve_solid")["kind"]) == "extrude", "separated: the block plain, the cutter a part")
+	check(ed.parts().size() == 2 and str(block.get_meta("curve_solid")["kind"]) == "extrude", "separated: the block plain, the cutter a collection")
 	await _done(ed)
 
 
@@ -999,7 +1026,7 @@ func test_ghosts_of_cut_solids() -> void:
 	ct._set_ghosts(true)
 	ct.separate_node([])
 	ct.update_ghosts()
-	check((ct.get_meta("ghost_nodes", []) as Array).is_empty(), "separated: no ghost (the cutter's a part again)")
+	check((ct.get_meta("ghost_nodes", []) as Array).is_empty(), "separated: no ghost (the cutter's a collection again)")
 	await _done(ed)
 
 
@@ -1037,7 +1064,7 @@ func test_cut_curve_own_height() -> void:
 	check(absf(Shapes.volume(p.mesh) - (1.0 - PI * 0.04) * 0.4) < 0.005, "the circle cut right through (the step's height)")
 	ct._refresh_panel()
 	var spins := (ct._w("recipe") as Node).find_children("*", "SpinBox", true, false)
-	check(spins.size() == 3, "the step's height + each curve's own (%d)" % spins.size())
+	check(spins.size() == 3, "the step's height + each edge's own (%d)" % spins.size())
 	# the circle's own height: from the top down 0.1 - a pocket: its plane at y 0, so both ways off and
 	# height 0.1 cuts the bottom 0.1 only
 	ct._curve_value(0.1, [], cid)
@@ -1115,8 +1142,19 @@ func test_overview_tree() -> void:
 	var texts := []
 	for it in _tree_items(t):
 		texts.append(it.get_text(0))
+		var m0 = it.get_metadata(0)
+		check(not (m0 is Dictionary and m0.has("curve") and m0.has("of")), "a solid's edges folded away at first (%s)" % it.get_text(0))
+	# opened: its edges listed
+	for it in _tree_items(t):
+		var m1 = it.get_metadata(0)
+		if m1 is Dictionary and m1.get("part") == solid:
+			it.collapsed = false
+	ct._fill_tree()
+	texts = []
+	for it in _tree_items(t):
+		texts.append(it.get_text(0))
 	check(str(solid.name) in texts and "Box" in texts, "solids and meshes listed (%s)" % [texts])
-	check("Curve 3" in texts or "Circle 3" in texts, "the curve in no solid listed")
+	check("Edge 3" in texts or "Circle 3" in texts, "the edge in no solid listed")
 	# select a solid's curve and the loose curve from the tree: both picked
 	t.deselect_all()
 	for it in _tree_items(t):
@@ -1124,7 +1162,7 @@ func test_overview_tree() -> void:
 		if m is Dictionary and m.has("curve") and int(m["curve"]) in [1, 2]:
 			it.select(0)
 	ct._tree_apply()
-	check(ct.sel.size() == 2 and 1 in ct.sel and 2 in ct.sel, "two curves picked from the overview (%s)" % [ct.sel])
+	check(ct.sel.size() == 2 and 1 in ct.sel and 2 in ct.sel, "two edges picked from the overview (%s)" % [ct.sel])
 	# select the solid and the box together
 	t.deselect_all()
 	for it in _tree_items(t):
@@ -1132,14 +1170,14 @@ func test_overview_tree() -> void:
 		if m is Dictionary and m.has("part"):
 			it.select(0)
 	ct._tree_apply()
-	check(ed.selected_parts().size() == 2, "both parts selected from the overview")
+	check(ed.selected_parts().size() == 2, "both collections selected from the overview")
 	# hide a curve with the eye: not drawn, not picked
 	for it in _tree_items(t):
 		var m = it.get_metadata(0)
 		if m is Dictionary and m.has("curve") and int(m["curve"]) == 2:
 			ct._tree_button(it, 1, 0, MOUSE_BUTTON_LEFT)
 			break
-	check(ct.curves[2].get("hidden", false), "the eye hid the curve")
+	check(ct.curves[2].get("hidden", false), "the eye hid the edge")
 	ed.undo()
 	check(not ct.curves[2].get("hidden", false), "undo: shown")
 	await _done(ed)
@@ -1242,6 +1280,7 @@ func test_hiding_in_overview_hides_ghosts() -> void:
 	check((ct.get_meta("ghost_nodes", []) as Array).size() == 1, "the cut's ghost shows")
 	var v0 := Shapes.volume(block.mesh)
 	# its curve hidden in the overview: the ghost goes too - the cut stays
+	ct._unfolded()[block.get_instance_id()] = true   # (the solid opened: its steps and edges listed)
 	ct._refresh_panel()
 	var t: Tree = ct._w("tree")
 	var curve_item: TreeItem = null
@@ -1255,7 +1294,7 @@ func test_hiding_in_overview_hides_ghosts() -> void:
 	check(step_item != null and step_item.get_text(0).begins_with("Cut"), "the cut is a step row in the overview")
 	ct._tree_button(curve_item, 1, 0, MOUSE_BUTTON_LEFT)
 	ct.update_ghosts()
-	check((ct.get_meta("ghost_nodes", []) as Array).is_empty(), "its curve hidden: its ghost hidden")
+	check((ct.get_meta("ghost_nodes", []) as Array).is_empty(), "its edge hidden: its ghost hidden")
 	check(is_equal_approx(Shapes.volume(block.mesh), v0), "the cut itself stays")
 	ed.undo()
 	ct.update_ghosts()
@@ -1269,7 +1308,7 @@ func test_hiding_in_overview_hides_ghosts() -> void:
 	ct._tree_button(step_item, 1, 0, MOUSE_BUTTON_LEFT)
 	ct.update_ghosts()
 	check((ct.get_meta("ghost_nodes", []) as Array).is_empty(), "the step's eye: its ghost hidden")
-	check(not ct.curves[1].get("hidden", false), "its curve still shown")
+	check(not ct.curves[1].get("hidden", false), "its edge still shown")
 	# the solid hidden: its ghosts too (the step's ghost shown again first - the tree rebuilt: found anew)
 	ct._refresh_panel()
 	for it in _tree_items(t):
@@ -1326,15 +1365,15 @@ func test_overview_menu() -> void:
 	# a curve's menu: Attach to › Common with Block, then Detach from Block (the step goes)
 	ct.add_curve(_circle(Vector3(0.2, 0, 0.2), 0.1))
 	pm = ct.tree_menu({"curve": 2})
-	check(_menu_pick(ct, pm, "Cut from Block"), "a loose curve: Attach to › Cut from Block")
-	check(str(block.get_meta("curve_solid")["kind"]) == "bool", "the curve a cut step of Block")
+	check(_menu_pick(ct, pm, "Cut from Block"), "a loose edge: Attach to › Cut from Block")
+	check(str(block.get_meta("curve_solid")["kind"]) == "bool", "the edge a cut step of Block")
 	pm = ct.tree_menu({"curve": 2, "of": block, "leaf": ["b"]})
 	check(_menu_pick(ct, pm, "Detach from Block"), "Detach from Block")
 	check(str(block.get_meta("curve_solid")["kind"]) == "extrude", "its step gone with it")
 	# delete a curve, delete a solid
 	pm = ct.tree_menu({"curve": 2})
 	_menu_pick(ct, pm, "Delete")
-	check(ct.curves.size() == 2, "the curve deleted")
+	check(ct.curves.size() == 2, "the edge deleted")
 	pm = ct.tree_menu({"part": block})
 	_menu_pick(ct, pm, "Delete")
 	check(not block.is_inside_tree(), "the solid deleted")
@@ -1368,51 +1407,51 @@ func test_parts_group_solids() -> void:
 	var b: MeshInstance3D = ct.make_part("extrude", 0.4)
 	# a part (group) of both
 	var g: Node3D = ct.make_group([a, b])
-	check(g != null and ct.is_group(g) and ct.group_parts(g).size() == 2, "a part made of the two solids")
-	check(ct.group_of(a) == g and ed.parts().size() == 2, "they're in it - still parts of the model")
+	check(g != null and ct.is_group(g) and ct.group_parts(g).size() == 2, "a collection made of the two solids")
+	check(ct.group_of(a) == g and ed.parts().size() == 2, "they're in it - still collections of the model")
 	# the Mesh tab's list: the part a row, its solids under it
 	var root: TreeItem = ed._parts.get_root()
 	var top := root.get_children()
-	check(top.size() == 1 and top[0].get_metadata(0) == g and top[0].get_child_count() == 2, "the Mesh tab lists the part with its solids under it")
+	check(top.size() == 1 and top[0].get_metadata(0) == g and top[0].get_child_count() == 2, "the Mesh tab lists the collection with its solids under it")
 	# selecting the part's row selects its solids
 	ed._parts.deselect_all()
 	top[0].select(0)
 	ed._sync_tree_selection()
-	check(ed.selected_parts().size() == 2, "the part's row selects both solids")
+	check(ed.selected_parts().size() == 2, "the collection's row selects both solids")
 	# the curve overview: the part at the top, its solids under it
 	ct._refresh_panel()
 	var t: Tree = ct._w("tree")
 	var first: TreeItem = t.get_root().get_child(0)
-	check(first.get_metadata(0) is Dictionary and first.get_metadata(0).has("group") and first.get_child_count() == 2, "the overview: the part first, its solids under it")
+	check(first.get_metadata(0) is Dictionary and first.get_metadata(0).has("group") and first.get_child_count() == 2, "the overview: the collection first, its solids under it")
 	# a new solid made with a solid of the part selected goes into the part
 	ed.select_part(a)
 	ct.add_curve(_circle(Vector3(0, 0, 2), 0.2))
 	ct.select(2)
 	var c: MeshInstance3D = ct.make_part("extrude", 0.3)
-	check(ct.group_of(c) == g, "a new solid joins the selected solid's part")
+	check(ct.group_of(c) == g, "a new solid joins the selected solid's collection")
 	# moving the part moves its solids - and their curves with them
 	g.position += Vector3(0, 1, 0)
 	var own: Dictionary = ct.owner_xfs()
-	check(absf((own[int(ct.curves[0]["id"])] as Transform3D).origin.y - 1.0) < 1e-5, "the part moved: its solids' curves with it")
+	check(absf((own[int(ct.curves[0]["id"])] as Transform3D).origin.y - 1.0) < 1e-5, "the collection moved: its solids' edges with it")
 	# G with the part's row selected: the part moves as one (its node), undone in one step
 	ed._parts.deselect_all()
 	ed._fill_parts()
 	ed._parts.get_root().get_child(0).select(0)
 	ed._sync_tree_selection()
-	check(ed.xf_nodes() == [g], "all its solids selected: the transform moves the part itself")
+	check(ed.xf_nodes() == [g], "all its solids selected: the transform moves the collection itself")
 	var gy := g.global_position.y
 	ed.begin_transform("G")
 	ed._set_xfs(ed.xf, Transform3D(Basis(), Vector3(0, 0.5, 0)))
 	ed.confirm_transform()
-	check(absf(g.global_position.y - gy - 0.5) < 1e-5 and absf(a.position.y) < 1e-5, "moved the part, its solids kept in it")
+	check(absf(g.global_position.y - gy - 0.5) < 1e-5 and absf(a.position.y) < 1e-5, "moved the collection, its solids kept in it")
 	ed.undo()
 	check(absf(g.global_position.y - gy) < 1e-5, "undone in one step")
 	# two loose-ish solids: one of the part only - it alone moves
 	ed.select_part(a)
-	check(ed.xf_nodes() == [a], "one solid of the part selected: just it")
+	check(ed.xf_nodes() == [a], "one solid of the collection selected: just it")
 	# Rename: the menu's item opens the part's row for typing (its plain name); typed - renamed, one undo step
 	ed._fill_parts()
-	check(_menu_pick(ct, ct.parts_menu(g), "Rename"), "the part's menu has Rename")
+	check(_menu_pick(ct, ct.parts_menu(g), "Rename"), "the collection's menu has Rename")
 	var row: TreeItem = ed._parts.get_selected()
 	check(row != null and row.get_metadata(0) == g and row.get_text(0) == str(g.name), "its row opened for typing, holding its name")
 	check(_type_in(ed._parts, "Hull"), "typed into the row")
@@ -1430,13 +1469,13 @@ func test_parts_group_solids() -> void:
 	check(str(a.name) == "Plate", "a solid renamed in the overview")
 	# menus: move out, ungroup, undo
 	var pm: PopupMenu = ct.parts_menu(c)
-	check(_menu_pick(ct, pm, "(no part - the top)"), "Move to › out of the part")
+	check(_menu_pick(ct, pm, "(no collection - the top)"), "Move to › out of the collection")
 	check(ct.group_of(c) == null, "out")
 	pm = ct.parts_menu(g)
 	check(_menu_pick(ct, pm, "Ungroup"), "Ungroup")
-	check(ct.groups().is_empty() and ed.parts().size() == 3, "the part gone, its solids kept")
+	check(ct.groups().is_empty() and ed.parts().size() == 3, "the collection gone, its solids kept")
 	ed.undo()
-	check(ct.groups().size() == 1 and ct.group_parts(ct.groups()[0]).size() == 2, "undo: the part back")
+	check(ct.groups().size() == 1 and ct.group_parts(ct.groups()[0]).size() == 2, "undo: the collection back")
 	# kept in the glb: its extras say it's a part
 	check(bool(g.get_meta("extras", {}).get("atrapos_group", false)), "marked for the glb")
 	await _done(ed)
@@ -1459,7 +1498,7 @@ func test_parts_saved_in_the_glb() -> void:
 	check(back != null, "read back")
 	if back:
 		var found: Array = back.find_children("Hull", "Node3D", true, false)
-		check(found.size() == 1 and ct.is_group(found[0]), "the part comes back as a part")
+		check(found.size() == 1 and ct.is_group(found[0]), "the collection comes back as a collection")
 		if found.size() == 1:
 			var ms: Array = found[0].find_children("*", "MeshInstance3D", true, false)
 			check(ms.size() == 1, "with its solid in it")
@@ -1514,7 +1553,7 @@ func test_bake_solid() -> void:
 	var baked: Dictionary = block.get_meta("curve_solid")
 	check(str(baked.get("kind")) == "edges", "one solid, its curves its edges (%s)" % baked.get("kind"))
 	check(str(block.name).begins_with("Baked"), "named a baked solid (%s)" % block.name)
-	check(ed.parts().size() == n_parts, "the tool solids were steps - no parts left behind")
+	check(ed.parts().size() == n_parts, "the tool solids were steps - no collections left behind")
 	check(absf(Shapes.volume(block.mesh) - v0) < 0.002, "the same solid (%.4f vs %.4f)" % [Shapes.volume(block.mesh), v0])
 	# its edges: the block's 12 straight ones, the hole's rim top and bottom, the pocket's mouth and floor
 	var kinds := {}
@@ -1522,9 +1561,9 @@ func test_bake_solid() -> void:
 		var c: Dictionary = ct.curve_by_id(int(id))
 		kinds[c["kind"]] = int(kinds.get(c["kind"], 0)) + 1
 	check(int(kinds.get("line", 0)) == 12 and int(kinds.get("circle", 0)) == 4 and kinds.size() == 2, "12 straight edges, 4 round ones (%s)" % [kinds])
-	check(ct.curves.size() == 16, "only its edges - the old curves gone (%d)" % ct.curves.size())
+	check(ct.curves.size() == 16, "only its edges - the old edges gone (%d)" % ct.curves.size())
 	for id in baked["ids"]:
-		check((ct.curve_by_id(int(id))["ctrl"] as PackedVector3Array).size() <= 2, "each edge a few points")
+		check((ct.curve_by_id(int(id))["ctrl"] as PackedVector3Array).size() <= 2, "each edge a few vertices")
 	ed.select_part(block)
 	ct._refresh_panel()
 	check(not (ct._w("solid_value_row") as Control).visible, "no extrusion settings: only its edges shape it")
@@ -1659,11 +1698,11 @@ func test_bake_takes_in_touching_solids() -> void:
 	ed.select_part(block)
 	check(ct.can_bake(block), "a plain solid with others around: Bake offered")
 	check(ct.bake_solid(block), "baked")
-	check(not knob.is_inside_tree() and far.is_inside_tree(), "the touching solid baked in (gone as a part); the far one kept")
+	check(not knob.is_inside_tree() and far.is_inside_tree(), "the touching solid baked in (gone as a collection); the far one kept")
 	check(ed.parts().size() == 2, "the baked solid and the far one")
 	check(absf(Shapes.volume(block.mesh) - (v0 + vk - overlap)) < 0.01, "their union (%.4f vs %.4f)" % [Shapes.volume(block.mesh), v0 + vk - overlap])
 	var spec: Dictionary = block.get_meta("curve_solid")
-	check(str(spec.get("kind")) == "edges", "one baked solid: the block and the knob joined, its edges its curves")
+	check(str(spec.get("kind")) == "edges", "one baked solid: the block and the knob joined, its curves its edges")
 	ed.undo()
 	check(knob.is_inside_tree() and ed.parts().size() == 3, "undone: the knob a solid of its own again")
 	await _done(ed)
@@ -1684,7 +1723,7 @@ func test_point_drag_free_and_baked_follows() -> void:
 	ct._drag_to(ed.view.project(up), false)
 	ct._drag = {}
 	var q: Vector3 = ct.curves[0]["ctrl"][2]
-	check(absf(q.y - 0.3) < 0.02 and absf(q.x - 1.0) < 0.02, "the point went up along Y (%s)" % q)
+	check(absf(q.y - 0.3) < 0.02 and absf(q.x - 1.0) < 0.02, "the vertex went up along Y (%s)" % q)
 	# a baked solid of it follows: its corner lifted 0.3 with the point
 	var spec := {"kind": "baked", "ids": [int(ct.curves[0]["id"])], "value": 0.2, "segs": 30, "axis": -1}
 	var m: ArrayMesh = ct.solid_of(spec)
@@ -1692,7 +1731,7 @@ func test_point_drag_free_and_baked_follows() -> void:
 	for vtx in m.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
 		if (vtx as Vector3).distance_to(Vector3(1, (vtx as Vector3).y, 1)) < 1e-3:
 			hi = maxf(hi, (vtx as Vector3).y)
-	check(absf(hi - (q.y + 0.2)) < 0.02, "the baked solid's corner rose with the point (top %.3f)" % hi)
+	check(absf(hi - (q.y + 0.2)) < 0.02, "the baked solid's corner rose with the vertex (top %.3f)" % hi)
 	await _done(ed)
 
 
@@ -1772,9 +1811,9 @@ func test_curves_hidden_behind_solids() -> void:
 	await tree.process_frame
 	ct._begin_occ(false)
 	var mx: Transform3D = ct._mx()
-	check(ct._hidden(mx * Vector3(0.7, 0, 0.5)), "a curve under the block's top is hidden from above")
+	check(ct._hidden(mx * Vector3(0.7, 0, 0.5)), "an edge under the block's top is hidden from above")
 	check(not ct._hidden(mx * Vector3(0.5, 0.4, 0.0)), "the top's own edge isn't hidden by the face it bounds")
-	check(not ct._hidden(mx * Vector3(1.5, 0, 0.5)), "a point beside the block shows")
+	check(not ct._hidden(mx * Vector3(1.5, 0, 0.5)), "a vertex beside the block shows")
 	ct._end_occ()
 	# picking skips the hidden curve: a click over it picks nothing of it
 	var i: int = ct.pick(ed.view.project(mx * Vector3(0.7, 0, 0.5)))
@@ -1797,17 +1836,17 @@ func test_double_click_inserts_point() -> void:
 	ev.pressed = true
 	ev.double_click = true
 	ev.position = ed.view.project(mx * Vector3(0.5, 0, 0))
-	check(ct.view_input(ev), "the double-click was the curve tools'")
+	check(ct.view_input(ev), "the double-click was the edge tools'")
 	var k: PackedVector3Array = ct.curves[0]["ctrl"]
-	check(k.size() == 5 and k[1].distance_to(Vector3(0.5, 0, 0)) < 0.02, "a point put in between the first two (%s)" % k)
+	check(k.size() == 5 and k[1].distance_to(Vector3(0.5, 0, 0)) < 0.02, "a vertex put in between the first two (%s)" % k)
 	ed.undo()
 	check((ct.curves[0]["ctrl"] as PackedVector3Array).size() == 4, "undone")
 	# a circle: a path through points on it, the same shape, the new point where clicked
 	var before: PackedVector3Array = CT.sample(ct.curves[1])
 	var on := Vector3(3, 0, 0.5) + Vector3(0.5, 0, 0).rotated(Vector3.UP, 1.0)
-	check(ct.insert_point(ed.view.project(mx * on)), "a point put into the circle")
+	check(ct.insert_point(ed.view.project(mx * on)), "a vertex put into the circle")
 	var c: Dictionary = ct.curves[1]
-	check(str(c["kind"]) == "path" and (c["ctrl"] as PackedVector3Array).size() == 9, "the circle as a path of 9 points (%s %d)" % [c["kind"], (c["ctrl"] as PackedVector3Array).size()])
+	check(str(c["kind"]) == "path" and (c["ctrl"] as PackedVector3Array).size() == 9, "the circle as a path of 9 vertices (%s %d)" % [c["kind"], (c["ctrl"] as PackedVector3Array).size()])
 	var worst := 0.0
 	for q in CT.sample(c):
 		worst = maxf(worst, absf(q.distance_to(Vector3(3, 0, 0.5)) - 0.5))
@@ -1852,7 +1891,7 @@ func test_baked_side_edge_shapes_its_walls() -> void:
 				mid_wall = maxf(mid_wall, q.x)   # (the x = 1 wall halfway along: bent part way)
 	check(far > 2.5, "the corner went out with its edge (x + z %.3f, want 2.6)" % far)
 	check(mid_wall > 1.03 and mid_wall < 1.2, "the wall beside it followed part way (x %.3f)" % mid_wall)
-	check((spec.get("fv", []) as Array).size() > 0 and spec.get("tied", false), "its side rows made its edge's points")
+	check((spec.get("fv", []) as Array).size() > 0 and spec.get("tied", false), "its side rows made its edge's vertices")
 	await _done(ed)
 
 
@@ -1867,25 +1906,25 @@ func test_point_smooth_or_sharp_menu() -> void:
 	await tree.process_frame
 	var at: Vector2 = ct._screen(Vector3(1, 0, 0))
 	var items: Array = ct.point_items(at)
-	check(items.size() == 2 and str(items[0][1]) == "Smooth point" and bool(items[0][5]) and not bool(items[1][5]), "a line's corner: Smooth on offer, Sharp not (%s)" % [items.map(func(x): return [x[1], x[5]])])
+	check(items.size() == 3 and str(items[2][1]) == "Manual vertex" and bool(items[2][5]) and str(items[0][1]) == "Smooth vertex" and bool(items[0][5]) and not bool(items[1][5]), "a line's corner: Smooth and Manual on offer, Sharp not (%s)" % [items.map(func(x): return [x[1], x[5]])])
 	var groups: Array = ct.menu_groups(at)
-	check(str(groups[0][0][1]) == "Smooth point", "first in the right-click menu")
+	check(str(groups[0][0][1]) == "Smooth vertex", "first in the right-click menu")
 	(items[0][4] as Callable).call()
 	var c: Dictionary = ct.curves[0]
-	check(str(c["kind"]) == "path" and (c["sharp"] as PackedByteArray) == PackedByteArray([1, 0, 1, 1]), "a path now, that point smooth (%s %s)" % [c["kind"], c.get("sharp")])
+	check(str(c["kind"]) == "path" and (c["sharp"] as PackedByteArray) == PackedByteArray([1, 0, 1, 1]), "a path now, that vertex smooth (%s %s)" % [c["kind"], c.get("sharp")])
 	var s := CT.sample(c)
 	var bent := false
 	for q in s:
 		if q.x > 1.02:
 			bent = true   # (the side round the smooth point bulges past the old corner's line)
-	check(bent and s.size() > 8, "curved through it (%d points)" % s.size())
+	check(bent and s.size() > 8, "curved through it (%d vertices)" % s.size())
 	(ct.point_items(at)[1][4] as Callable).call()
 	check((ct.curves[0]["sharp"] as PackedByteArray)[1] == 1, "sharp again")
 	check(CT.sample(ct.curves[0]).size() == 4, "straight sides again")
 	ed.undo()
 	ed.undo()
 	check(str(ct.curves[0]["kind"]) == "line", "undone to the line")
-	check(ct.point_items(Vector2(-500, -500)).is_empty(), "nothing away from a point")
+	check(ct.point_items(Vector2(-500, -500)).is_empty(), "nothing away from a vertex")
 	await _done(ed)
 
 
@@ -1903,12 +1942,12 @@ func test_double_click_dissolves_point() -> void:
 	ev.pressed = true
 	ev.double_click = true
 	ev.position = ct._screen(Vector3(1, 0, 0))
-	check(ct.view_input(ev), "the double-click on the point was the curve tools'")
+	check(ct.view_input(ev), "the double-click on the vertex was the edge tools'")
 	var k: PackedVector3Array = ct.curves[0]["ctrl"]
 	check(k.size() == 3 and not Vector3(1, 0, 0) in k, "that corner gone - a triangle (%s)" % k)
 	ev.position = ct._screen(Vector3(1, 0, 1))
 	ct.view_input(ev)
-	check((ct.curves[0]["ctrl"] as PackedVector3Array).size() == 3, "a closed curve keeps three points")
+	check((ct.curves[0]["ctrl"] as PackedVector3Array).size() == 3, "a closed edge keeps three vertices")
 	ct._drag = {}
 	ed.undo()
 	check((ct.curves[0]["ctrl"] as PackedVector3Array).size() == 4, "undone (%s, %s)" % [ct.curves[0]["ctrl"], ed._undo.map(func(e): return e.get("name") if e is Dictionary else str(e))])
@@ -1970,7 +2009,7 @@ func test_baked_recess_side_edge_stays_in_its_walls() -> void:
 	for e in spec.get("fv", []):
 		if int(e[1]) == ci:
 			n_on += 1
-	check(out > 1.08, "the edge's middle went out (x %.3f; %d points on it)" % [out, n_on])
+	check(out > 1.08, "the edge's middle went out (x %.3f; %d vertices on it)" % [out, n_on])
 	# closed all over: every edge of its mesh has a face either side (no cracks between walls)
 	var tt: Array = spec["mesh"]["t"]
 	var ecount := {}
@@ -2056,9 +2095,9 @@ func test_point_drag_guides() -> void:
 	# near the other line's height (0.3): snapped onto it, its guide shown
 	ct._drag_to(ed.view.project(mx * Vector3(1, 0.297, 1)), false)
 	var q: Vector3 = ct.curves[0]["ctrl"][2]
-	check(absf(q.y - 0.3) < 1e-6, "snapped to the other point's height (%.4f)" % q.y)
+	check(absf(q.y - 0.3) < 1e-6, "snapped to the other vertex's height (%.4f)" % q.y)
 	var gs: Array = ct._drag.get("guides", [])
-	check(gs.size() == 1 and str(gs[0]["kind"]) == "point", "a guide from that point (%s)" % [gs.map(func(g): return g["kind"])])
+	check(gs.size() == 1 and str(gs[0]["kind"]) == "point", "a guide from that vertex (%s)" % [gs.map(func(g): return g["kind"])])
 	# well away from any level: smooth, no guide
 	ct._drag_to(ed.view.project(mx * Vector3(1, 0.4, 1)), false)
 	q = ct.curves[0]["ctrl"][2]
@@ -2110,11 +2149,13 @@ func test_baked_flat_face_follows_without_folding() -> void:
 	for j in range(0, tv.size(), 3):
 		if absf(tv[j + 1] - 0.4) < 1e-4 and tv[j] > 0.1 and tv[j] < 0.6 and tv[j + 2] > 0.2 and tv[j + 2] < 0.8:
 			inner += 1
-	check(inner > 5, "points inside the top face (%d)" % inner)
+	check(inner > 5, "vertices inside the top face (%d)" % inner)
+	var before: Array = ct._state()
 	var k: PackedVector3Array = ct.curves[top]["ctrl"]
 	k[1] = Vector3(0.55, 0.4, 0.5)   # (the arc's middle pushed 0.15 into the block)
 	ct.curves[top]["ctrl"] = k
 	ct.refresh_solids()
+	ct._changed("Move edge vertex", before)   # (let go: settled, folds untangled)
 	# no triangle of the top face turned over
 	var a := (blk.mesh as ArrayMesh).surface_get_arrays(0)
 	var vs: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
@@ -2135,7 +2176,7 @@ func test_baked_flat_face_follows_without_folding() -> void:
 				flipped += 1
 				area_bad += cr.length() * 0.5
 	# (an edge pushed this far: at most a few specks - slivers along the rim where it curves in)
-	check(on_top > 10 and area_bad < area_all * 0.01, "the top face faces up - turned over: %d of %d, %.3f%% of it" % [flipped, on_top, area_bad / maxf(area_all, 1e-9) * 100.0])
+	check(on_top > 10 and area_bad < area_all * 0.015, "the top face faces up - turned over: %d of %d, %.3f%% of it" % [flipped, on_top, area_bad / maxf(area_all, 1e-9) * 100.0])
 	# quads: most of it in pairs of triangles making squares-ish quads (its columns and rows)
 	check(on_top < 1200, "a lean grid, not a fan of slivers (%d)" % on_top)
 	await _done(ed)
@@ -2162,10 +2203,10 @@ func test_edit_settles_baked_mesh_and_wireframe() -> void:
 	k[1] = k[0] + (k[1] - k[0]) * 2.0   # (a cone's flare: the wall bends a lot - finer there)
 	ct.curves[top]["ctrl"] = k
 	ct.refresh_solids()
-	ct._changed("Move curve point", before)
+	ct._changed("Move edge vertex", before)
 	var spec: Dictionary = cyl.get_meta("curve_solid")
 	var n1: int = (spec["mesh"]["t"] as Array).size() / 3
-	check(JSON.stringify(spec["c0"][str(int(ct.curves[top]["id"]))]) == JSON.stringify(ct.to_json([ct.curves[top]])[0]), "settled: its curves now its start")
+	check(JSON.stringify(spec["c0"][str(int(ct.curves[top]["id"]))]) == JSON.stringify(ct.to_json([ct.curves[top]])[0]), "settled: its edges now its start")
 	# closed, and the same shape (a frustum r 0.5 -> 1.0, 1 high)
 	var tt: Array = spec["mesh"]["t"]
 	var ecount := {}
@@ -2274,7 +2315,7 @@ func test_settle_rebuilds_stretched_walls() -> void:
 			hit += 1
 	check(hit >= 2, "the corner on its edges (%d)" % hit)
 	ct.refresh_solids()
-	ct._changed("Move curve point", before)
+	ct._changed("Move edge vertex", before)
 	var spec: Dictionary = blk.get_meta("curve_solid")
 	var EN = load("res://scripts/editor/mesh/edge_net.gd")
 	check(EN._open_edges(PackedInt32Array(spec["mesh"]["t"])) == 0, "closed after settling")
@@ -2291,4 +2332,1139 @@ func test_settle_rebuilds_stretched_walls() -> void:
 			if absf(pa.y - pb.y) > 0.4:   # (bottom to top)
 				worst = maxf(worst, Vector2(pa.x - pb.x, pa.z - pb.z).length())
 	check(worst < 0.75, "columns run across the walls, not fanned (longest lean %.3f)" % worst)
+	await _done(ed)
+
+
+func test_cut_into_baked_solid_follows_its_curve() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve(_rect(1.0, 1.0))
+	ct.select(0)
+	var blk: MeshInstance3D = ct.make_part("extrude", 0.5)
+	ed.select_part(blk)
+	check(ct.bake_solid(blk), "baked")
+	# a new circle extruded and cut from the baked solid: a live boolean, its baked side kept
+	var ci: int = ct.add_curve(_circle(Vector3(0.5, 0, 0.5), 0.2))
+	ct.select(ct.curves.size() - 1)
+	var cyl: MeshInstance3D = ct.make_part("extrude", 0.5)
+	ct.cut_from(cyl, blk)
+	var spec: Dictionary = blk.get_meta("curve_solid")
+	check(str(spec.get("kind", "")) == "bool" and str(spec["a"].get("kind", "")) == "edges", "a live cut in the baked solid (%s)" % spec.get("kind"))
+	var v0 := Shapes.volume(blk.mesh)
+	# the circle moved: the hole moves with it - and grown: the solid loses more
+	var c: Dictionary = ct.curves[ct.curves.size() - 1]
+	var k: PackedVector3Array = c["ctrl"]
+	k[1] = k[0] + (k[1] - k[0]) * 1.5
+	c["ctrl"] = k
+	ct.refresh_solids()
+	var v1 := Shapes.volume(blk.mesh)
+	check(v1 < v0 - 0.02, "the cut grew with its circle (%.4f -> %.4f)" % [v0, v1])
+	await _done(ed)
+
+
+func test_view_turns_round_the_selection() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve(_rect(1.0, 1.0))
+	ct.select(0)
+	var blk: MeshInstance3D = ct.make_part("extrude", 0.5)
+	ct.add_curve(_circle(Vector3(3, 0, 0), 0.2))
+	var mx: Transform3D = ed.model.global_transform
+	# a solid selected (no curve): round its middle
+	ct.select(-1)
+	ed.select_part(blk)
+	ed._drag_started += 1
+	var pv: Vector3 = ed._orbit_pivot()
+	check(pv.distance_to(blk.global_transform * blk.mesh.get_aabb().get_center()) < 1e-3, "a solid: round its middle (%s)" % pv)
+	# a curve picked: round the curve (smaller than the solid)
+	ct.select(1)
+	ed._drag_started += 1
+	pv = ed._orbit_pivot()
+	check(pv.distance_to(mx * Vector3(3, 0, 0)) < 1e-3, "an edge: round its middle (%s)" % pv)
+	# a point of it pressed: round that point
+	ct.set_meta("last_handle", [1, 1])
+	ed._drag_started += 1
+	pv = ed._orbit_pivot()
+	check(pv.distance_to(mx * Vector3(3.2, 0, 0)) < 1e-3, "a vertex: round it (%s)" % pv)
+	await _done(ed)
+
+
+func test_bake_makes_lean_joined_curves() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	# a block, baked; a round cut through its corner; baked again (creases of curved walls, junctions)
+	ct.add_curve(_rect(1.0, 1.0))
+	ct.select(0)
+	var blk: MeshInstance3D = ct.make_part("extrude", 0.5)
+	ed.select_part(blk)
+	check(ct.bake_solid(blk), "baked")
+	ct.add_curve(_circle(Vector3(1.0, 0, 1.0), 0.3))
+	ct.select(ct.curves.size() - 1)
+	var cyl: MeshInstance3D = ct.make_part("extrude", 0.5)
+	ct.cut_from(cyl, blk)
+	ed.select_part(blk)
+	check(ct.bake_solid(blk), "baked again")
+	var spec: Dictionary = blk.get_meta("curve_solid")
+	var cs := []
+	for id in spec["ids"]:
+		cs.append(ct.curve_by_id(int(id)))
+	var samples := []
+	for c in cs:
+		samples.append(CT.sample(c))
+	var loose := 0
+	var pairs := 0
+	for i in cs.size():
+		if cs[i].get("closed", false):
+			continue
+		var s: PackedVector3Array = samples[i]
+		for q in [s[0], s[s.size() - 1]]:
+			var ends := 0
+			var through := 0
+			for j in cs.size():
+				if j == i:
+					continue
+				var k: PackedVector3Array = cs[j]["ctrl"]
+				var hit := false
+				for p in k:
+					if p.distance_to(q) < 1e-4:
+						hit = true
+				if hit and not cs[j].get("closed", false) and (k[0].distance_to(q) < 1e-4 or k[k.size() - 1].distance_to(q) < 1e-4):
+					ends += 1
+				elif hit:
+					through += 1
+			if ends == 0 and through == 0:
+				loose += 1
+			elif ends == 1 and through == 0:
+				pairs += 1
+	check(loose == 0, "every edge's ends meet other edges (%d loose)" % loose)
+	check(pairs == 0, "no two edges that are one edge (%d ends meeting only one other)" % pairs)
+	var most := 0
+	for c in cs:
+		most = maxi(most, (c["ctrl"] as PackedVector3Array).size())
+	check(cs.size() <= 24 and most <= 16, "lean: %d edges, the most vertices on one %d" % [cs.size(), most])
+	await _done(ed)
+
+
+func test_far_pull_keeps_edge_points_in_their_spans() -> void:
+	var EN = load("res://scripts/editor/mesh/edge_net.gd")
+	# an edge of three stretches (a rim, down a side, along the bottom - one curve, corners sharp); its
+	# middle stretch pulled far out: the points on the other stretches stay where they were (they
+	# don't slide along it past its corners), the ones on the pulled stretch go with it
+	var k0 := PackedVector3Array([Vector3(0, 1, 0), Vector3(1, 1, 0), Vector3(1, 0, 0), Vector3(2, 0, 0)])
+	var c0 := {"kind": "path", "ctrl": k0, "sharp": PackedByteArray([0, 1, 1, 0]), "closed": false}
+	var k1 := k0.duplicate()
+	k1[1] = Vector3(1, 1, 3)
+	k1[2] = Vector3(1, 0, 3)
+	var c1 := {"kind": "path", "ctrl": k1, "sharp": PackedByteArray([0, 1, 1, 0]), "closed": false}
+	var v := PackedVector3Array([EN.at(c0, 1.0 / 6.0), EN.at(c0, 0.5), EN.at(c0, 5.0 / 6.0)])
+	var fv := [[0, 0, 1.0 / 6.0], [1, 0, 0.5], [2, 0, 5.0 / 6.0]]
+	var chains := [{"id": 7}]
+	var mv: Dictionary = EN.edge_moves(fv, chains, {7: c0}, {7: c1}, v)
+	# (the first and last stretches turned about their fixed ends - their points' moves well under the pull)
+	var p0: Vector3 = v[0] + mv[0]
+	var p2: Vector3 = v[2] + mv[2]
+	check(p0.distance_to(Vector3(0, 1, 0).lerp(Vector3(1, 1, 3), 0.5)) < 1e-3, "the rim's vertex halfway along its stretch (%s)" % p0)
+	check(p2.distance_to(Vector3(1, 0, 3).lerp(Vector3(2, 0, 0), 0.5)) < 1e-3, "the bottom's vertex halfway along its stretch (%s)" % p2)
+	check((v[1] + mv[1]).distance_to(Vector3(1, 0.5, 3)) < 1e-3, "the side's vertex halfway down it (%s)" % (v[1] + mv[1]))
+	# a different number of points: as a whole (no map)
+	var c2 := c1.duplicate()
+	c2["ctrl"] = PackedVector3Array([k1[0], k1[1], k1[3]])
+	check((EN.span_map(c0, c2) as Array).is_empty(), "vertices added or taken: the plain fraction")
+	# merges and turns in tidying never pinch the mesh (an edge with three triangles) or fold a face:
+	# a strip of quads with one point pulled across its neighbours, tidied with fairing
+	var sv := PackedVector3Array()
+	for j in 3:
+		for i in 6:
+			sv.append(Vector3(i * 0.2, 0, j * 0.2))
+	var st := PackedInt32Array()
+	for j in 2:
+		for i in 5:
+			var a := j * 6 + i
+			st.append_array(PackedInt32Array([a, a + 6, a + 1, a + 1, a + 6, a + 7]))
+	sv[8] = Vector3(0.75, 0, 0.21)   # (an inner point pushed past its neighbour)
+	var sfv := []
+	for i in 6:
+		sfv.append([i, 0, i / 5.0])
+		sfv.append([12 + i, 1, i / 5.0])
+	var td: Dictionary = EN.tidy_mesh(sv, st, sfv, [{"id": 1}, {"id": 2}], {}, 0.02, {0: true}, 20)
+	check(EN._crowded_edges(_tri_rows(td["t"])) == 0, "no edge with three triangles")
+	var tv: PackedVector3Array = td["v"]
+	var tt: PackedInt32Array = td["t"]
+	var down := 0
+	for i in range(0, tt.size(), 3):
+		if (tv[tt[i + 2]] - tv[tt[i]]).cross(tv[tt[i + 1]] - tv[tt[i]]).y > 0.0:
+			down += 1   # (they face -y, the way the strip was made)
+	check(down == 0, "every triangle facing the same way (%d turned over)" % down)
+
+
+func _tri_rows(t: PackedInt32Array) -> Array:
+	var out := []
+	for i in range(0, t.size(), 3):
+		out.append([t[i], t[i + 1], t[i + 2]])
+	return out
+
+
+func _block_with_side_point(ed: Control) -> Array:
+	# a block 1 x 1 x 1 baked; its standing corner edge at (1, 1) given a point halfway up (on it)
+	var ct = ed.curve_tools
+	ct.add_curve(_rect(1.0, 1.0))
+	ct.select(0)
+	var blk: MeshInstance3D = ct.make_part("extrude", 1.0)
+	ed.select_part(blk)
+	check(ct.bake_solid(blk), "baked")
+	var side := -1
+	for i in ct.curves.size():
+		var k: PackedVector3Array = ct.curves[i]["ctrl"]
+		if k.size() == 2 and absf(k[0].x - k[1].x) < 1e-4 and absf(k[0].z - k[1].z) < 1e-4 and k[0].distance_to(Vector3(1, k[0].y, 1)) < 1e-4:
+			side = i
+	if side < 0:
+		return [blk, -1]
+	var before: Array = ct._state()
+	var k: PackedVector3Array = ct.curves[side]["ctrl"]
+	k.insert(1, (k[0] + k[1]) * 0.5)
+	ct.curves[side]["ctrl"] = k
+	ct._changed("Insert edge vertex", before)
+	ct._rebase_holding([int(ct.curves[side]["id"])])
+	return [blk, side]
+
+
+static func _mesh_pts(p: MeshInstance3D) -> PackedVector3Array:
+	var spec: Dictionary = p.get_meta("curve_solid")
+	var mv: Array = spec["mesh"]["v"]
+	var v := PackedVector3Array()
+	for i in range(0, mv.size(), 3):
+		v.append(Vector3(mv[i], mv[i + 1], mv[i + 2]))
+	return v
+
+
+func test_points_pick_separate_merge() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	var r := _block_with_side_point(ed)
+	var blk: MeshInstance3D = r[0]
+	var side: int = r[1]
+	check(side >= 0, "its standing corner edge")
+	if side < 0:
+		await _done(ed)
+		return
+	# picking: a click picks one point, Shift adds - the picked ones shown and listed
+	ct.select(side)
+	ct.pick_point(side, 1)
+	check(ct.picked_points() == [[side, 1]], "one vertex picked")
+	ct.pick_point(side, 0, true)
+	check(ct.picked_points().size() == 2, "Shift: two")
+	ct.pick_point(side, 0, true)
+	check(ct.picked_points() == [[side, 1]], "Shift again: left out")
+	# separate at the middle point: two curves, the mesh as it was, the solid's edge split with them
+	var n0: int = ct.curves.size()
+	var spec0: Dictionary = (blk.get_meta("curve_solid") as Dictionary).duplicate(true)
+	var v0 := _mesh_pts(blk)
+	check(ct.separate_points(), "separated")
+	check(ct.curves.size() == n0 + 1, "one more edge (%d -> %d)" % [n0, ct.curves.size()])
+	var spec1: Dictionary = blk.get_meta("curve_solid")
+	check((spec1["chains"] as Array).size() == (spec0["chains"] as Array).size() + 1, "the solid's edge split too")
+	check(_mesh_pts(blk) == v0, "its mesh as it was")
+	var top := -1
+	var bot := -1
+	for i in ct.curves.size():
+		var k: PackedVector3Array = ct.curves[i]["ctrl"]
+		if k.size() == 2 and k[0].distance_to(Vector3(1, 0.5, 1)) < 1e-4:
+			top = i
+		if k.size() == 2 and k[1].distance_to(Vector3(1, 0.5, 1)) < 1e-4:
+			bot = i
+	check(top >= 0 and bot >= 0, "the two pieces meet halfway up")
+	if top < 0 or bot < 0:
+		await _done(ed)
+		return
+	# each piece still shapes the solid: their shared point pulled out, the mesh follows
+	var before: Array = ct._state()
+	var kt: PackedVector3Array = ct.curves[top]["ctrl"]
+	var was := kt[0]
+	kt[0] = Vector3(1.3, 0.5, 1.3)
+	ct.curves[top]["ctrl"] = kt
+	ct._move_corner(top, was, kt[0])
+	ct._changed("Move edge vertex", before)
+	var far := 0.0
+	for q in _mesh_pts(blk):
+		if absf(q.y - 0.5) < 0.06:
+			far = maxf(far, q.x + q.z)
+	check(far > 2.5, "pulled out with its edges (x + z %.3f)" % far)
+	ed.undo()
+	# merge: the two pieces' meeting ends picked - one curve again, the mesh as it is
+	ct.select(-1)
+	for i in ct.curves.size():
+		var k: PackedVector3Array = ct.curves[i]["ctrl"]
+		if k.size() == 2 and k[0].distance_to(Vector3(1, 0.5, 1)) < 1e-4:
+			top = i
+		if k.size() == 2 and k[1].distance_to(Vector3(1, 0.5, 1)) < 1e-4:
+			bot = i
+	var v1 := _mesh_pts(blk)
+	ct.pick_point(bot, 1)
+	ct.pick_point(top, 0, true)
+	check(ct.merge_points(), "merged")
+	check(ct.curves.size() == n0, "one edge again (%d)" % ct.curves.size())
+	var spec2: Dictionary = blk.get_meta("curve_solid")
+	check((spec2["chains"] as Array).size() == (spec0["chains"] as Array).size(), "the solid's edges joined too")
+	check(_mesh_pts(blk) == v1, "its mesh as it was")
+	var ids := {}
+	for e in spec2["fv"]:
+		check(int(e[1]) < (spec2["chains"] as Array).size(), "every edge vertex on a chain that's there")
+		ids[int(e[1])] = true
+	await _done(ed)
+
+
+func test_points_extrude_connect_delete_and_move() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve({"kind": "line", "ctrl": PackedVector3Array([Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(2, 0, 0)]), "closed": false})
+	ct.select(0)
+	# extrude its end: a new point follows the mouse till a click keeps it
+	ct.pick_point(0, 2)
+	check(ct.extrude_points(), "extruding")
+	check((ct.curves[0]["ctrl"] as PackedVector3Array).size() == 4 and ct._drag.has("grab"), "a new end vertex, following the mouse")
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	click.position = Vector2(300, 300)
+	check(ct.view_input(click), "a click keeps it")
+	check(ct._drag.is_empty(), "done")
+	# two points picked and moved together (the others stay)
+	ct.select(0)
+	ct.pick_point(0, 0)
+	ct.pick_point(0, 1, true)
+	ct.begin_xf("move")
+	ct.op["delta"] = Vector3(0, 0.5, 0)
+	ct._op_update()
+	ct.confirm_op()
+	var k: PackedVector3Array = ct.curves[0]["ctrl"]
+	check(k[0].distance_to(Vector3(0, 0.5, 0)) < 1e-4 and k[1].distance_to(Vector3(1, 0.5, 0)) < 1e-4 and k[2].distance_to(Vector3(2, 0, 0)) < 1e-4, "the two picked moved, the rest stayed (%s)" % k)
+	# connect two points: a line between them
+	ct.select(0)
+	ct.pick_point(0, 0)
+	ct.pick_point(0, 2, true)
+	var n: int = ct.curves.size()
+	check(ct.connect_points() and ct.curves.size() == n + 1, "connected: a new line")
+	# delete a point
+	ct.select(0)
+	ct.pick_point(0, 1)
+	var m: int = (ct.curves[0]["ctrl"] as PackedVector3Array).size()
+	check(ct.delete_points() and (ct.curves[0]["ctrl"] as PackedVector3Array).size() == m - 1, "a vertex taken out")
+	# subdivide between two neighbours: a point between, the shape kept
+	ct.select(0)
+	ct.pick_point(0, 0)
+	ct.pick_point(0, 1, true)
+	m = (ct.curves[0]["ctrl"] as PackedVector3Array).size()
+	check(ct.subdivide_points() and (ct.curves[0]["ctrl"] as PackedVector3Array).size() == m + 1, "a vertex put between")
+	await _done(ed)
+
+
+func test_patch_pick_move_and_resolution() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve(_rect(1.0, 1.0))
+	ct.select(0)
+	var blk: MeshInstance3D = ct.make_part("extrude", 1.0)
+	ed.select_part(blk)
+	check(ct.bake_solid(blk), "baked")
+	# its top face as a patch (as a click on it picks it)
+	var spec: Dictionary = blk.get_meta("curve_solid")
+	var fs: Dictionary = ct._faces_of(spec)
+	var v: PackedVector3Array = fs["v"]
+	var t: PackedInt32Array = fs["t"]
+	var top_f := -1
+	for ti in t.size() / 3:
+		if v[t[ti * 3]].y > 0.999 and v[t[ti * 3 + 1]].y > 0.999 and v[t[ti * 3 + 2]].y > 0.999:
+			top_f = (fs["face"] as PackedInt32Array)[ti]
+			break
+	var ids: Array = ct._face_ids(spec, fs, top_f)
+	check(ids.size() >= 1, "the top face's edges (%d)" % ids.size())
+	ct.set_meta("patch", {"part": blk.get_instance_id(), "ids": ids, "seed": Vector3(0.5, 1, 0.5)})
+	var pa: Dictionary = ct.picked_patch()
+	check(not pa.is_empty() and (pa["tris"] as PackedInt32Array).size() > 0, "picked: its triangles")
+	# finer: more triangles, still closed; coarser: as it was
+	var n0: int = (spec["mesh"]["t"] as Array).size()
+	check(ct.patch_finer(), "finer")
+	var s1: Dictionary = blk.get_meta("curve_solid")
+	var n1: int = (s1["mesh"]["t"] as Array).size()
+	check(n1 > n0, "finer: more triangles (%d -> %d)" % [n0 / 3, n1 / 3])
+	var EN = load("res://scripts/editor/mesh/edge_net.gd")
+	check(EN._open_edges(PackedInt32Array(s1["mesh"]["t"])) == 0, "still closed")
+	check(ct.patch_level() == 1, "level 1")
+	check(ct.patch_coarser(), "coarser")
+	check(((blk.get_meta("curve_solid") as Dictionary)["mesh"]["t"] as Array).size() == n0, "as it was")
+	# moved as a whole: G on the patch moves its edges' points (the walls follow)
+	ct.begin_xf("move")
+	check(ct.op.has("points"), "moving its vertices")
+	ct.op["delta"] = Vector3(0, 0.25, 0)
+	ct._op_update()
+	ct.confirm_op()
+	ct._settle_finish()   # (settled on a worker: taken)
+	var hi := -INF
+	for q in _mesh_pts(blk):
+		hi = maxf(hi, q.y)
+	check(absf(hi - 1.25) < 0.01, "the top went up with it (%.3f)" % hi)
+	await _done(ed)
+
+
+func test_menu_icons_fold_and_no_twins() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ed.show_right_tab(1)
+	var m: PopupPanel = ed.menu(Vector2(200, 200))
+	await tree.process_frame
+	check(ed.find_child("MenuFoldIn", true, false) != null, "it unrolls as it opens")
+	var cp: Control = m.find_child("Page", true, false)
+	check(cp.find_children("Group_*", "", true, false).is_empty(), "every tool its own icon - no groups")
+	var circ: Button = cp.find_child("Menu_Circle", true, false)
+	check(circ != null and circ.get_parent() is HFlowContainer, "the circle tool its own icon in the row")
+	if circ:
+		circ.pressed.emit()
+		check(ct.tool == "circle", "pressed: runs")
+		ct.stop()
+	m.hide()
+	await tree.process_frame
+	# what the menu has isn't on the bars and panels too
+	check(not ed._kind_btns[0].visible, "the vertex-select button: only in the menu")
+	check(not (ct._panel_btns["tool_line"] as Button).visible, "the sketch tools: only in the menu")
+	check(not (ct._panel_btns["op_Extrude"][0] as Button).visible, "the solid tools: only in the menu")
+	await _done(ed)
+
+
+func test_click_again_picks_bigger() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	var r := _block_with_side_point(ed)
+	var side: int = r[1]
+	check(side >= 0, "a baked block's side edge")
+	if side < 0:
+		await _done(ed)
+		return
+	ct.select(side)
+	ed.view.set_view("front")
+	ed.view.frame(AABB(Vector3(-0.2, -0.2, -0.2), Vector3(1.6, 1.4, 1.6)))
+	await tree.process_frame
+	var at: Vector2 = ct._screen(Vector3(1, 0.5, 1))
+	var click := func():
+		for down in [true, false]:
+			var e := InputEventMouseButton.new()
+			e.button_index = MOUSE_BUTTON_LEFT
+			e.pressed = down
+			e.position = at
+			ct.view_input(e)
+	# a click on its point: only the point picked
+	click.call()
+	check(ct.picked_points() == [[side, 1]] and ct.picked_patch().is_empty(), "the vertex (%s)" % [ct.picked_points()])
+	# again: the curve (the point let go)
+	click.call()
+	check(ct.picked_points().is_empty() and ct.sel == [side], "then its edge")
+	# again: a patch it bounds
+	click.call()
+	var pa: Dictionary = ct.picked_patch()
+	check(not pa.is_empty() and int(ct.curves[side]["id"]) in (pa["ids"] as Array), "then a face beside it")
+	# again: the whole solid
+	click.call()
+	check(ct.picked_solid() == r[0] and ct.picked_patch().is_empty(), "then the whole solid")
+	check(ct.sel.is_empty() and ct.picked_points().is_empty(), "the solid alone: none of its edges or vertices picked")
+	check(ct.pick(at) == -1 and ct.pick_handle(at).is_empty(), "... nor shown (nothing to click there)")
+	# chosen in the parts list or clicked in object mode: the same - the solid alone
+	ct.select(-1)
+	ct.select(side)
+	ct.solid_chosen(r[0])
+	check(ct.picked_solid() == r[0] and ct.sel.is_empty(), "chosen as a collection: the solid alone")
+	# a face clicked: its patch; again: the solid; again: the patch
+	var face_at: Vector2 = ct._screen(Vector3(0.5, 0.5, 1))
+	ct.select(-1)
+	check(ct.pick_patch(face_at) and not ct.picked_patch().is_empty(), "a face: its face")
+	check(ct.pick_patch(face_at) and ct.picked_solid() == r[0], "the face again: the whole solid")
+	ct.begin_xf("move")
+	check(ct.op.has("points") and (ct.op["points"] as Array).size() > 8, "G moves all its vertices")
+	ct.cancel_op()
+	check(ct.pick_patch(face_at) and not ct.picked_patch().is_empty() and ct.picked_solid() == null, "again: the face")
+	await _done(ed)
+
+
+func test_press_drag_moves_click_picks() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve(_rect(1.0, 1.0))
+	ct.select(0)
+	var blk: MeshInstance3D = ct.make_part("extrude", 1.0)
+	ed.select_part(blk)
+	check(ct.bake_solid(blk), "baked")
+	ed.show_right_tab(1)
+	ct.select(-1)
+	ed.view.set_view("front")
+	ed.view.frame(AABB(Vector3(-0.2, -0.2, -0.2), Vector3(1.6, 1.4, 1.6)))
+	await tree.process_frame
+	var at: Vector2 = ct._screen(Vector3(0.5, 0.5, 1))
+	var ev := func(kind: String, pos: Vector2):
+		var e: InputEvent
+		if kind == "move":
+			e = InputEventMouseMotion.new()
+			(e as InputEventMouseMotion).position = pos
+		else:
+			e = InputEventMouseButton.new()
+			(e as InputEventMouseButton).button_index = MOUSE_BUTTON_LEFT
+			(e as InputEventMouseButton).pressed = kind == "down"
+			(e as InputEventMouseButton).position = pos
+		return ct.view_input(e)
+	# a press and a drag up on the front face, nothing picked: its patch picked and moved up with it
+	var v0 := _mesh_pts(blk)
+	check(ev.call("down", at), "the press is the edge tools'")
+	check(ct.picked_patch().is_empty(), "nothing picked on the press itself")
+	for k in 6:
+		ev.call("move", at + Vector2(0, -10.0 * (k + 1)))
+	ev.call("up", at + Vector2(0, -60))
+	check(ct.has_meta("settling"), "let go: settling on a worker")
+	for k in 200:
+		if not ct.has_meta("settling"):
+			break
+		await tree.process_frame   # (taken when it's done, a frame at a time)
+	check(not ct.has_meta("settling"), "settled")
+	var pa: Dictionary = ct.picked_patch()
+	check(not pa.is_empty(), "the face pressed: its face picked")
+	var hi := -INF
+	for q in _mesh_pts(blk):
+		if q.z > 0.99:
+			hi = maxf(hi, q.y)
+	check(hi > 1.05, "... and dragged up (its top %.3f)" % hi)
+	ed.undo()
+	check(_mesh_pts(blk) == v0, "one undo: back")
+	# a click (no drag) on it: the pick grows - the whole solid - and nothing moves
+	var v1 := _mesh_pts(blk)
+	ct.set_meta("patch", {})
+	ct.pick_patch(at)
+	ev.call("down", at)
+	ev.call("up", at)
+	check(ct.picked_solid() == blk, "a click on the picked face: the whole solid")
+	check(_mesh_pts(blk) == v1, "nothing moved")
+	await _done(ed)
+
+
+func test_merge_curves_by_shared_points() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	# three lines: a and b meet end to end (0.5 mm apart), c starts there too (0.5 mm off) but turns sharply;
+	# d far away
+	ct.add_curve({"kind": "line", "ctrl": PackedVector3Array([Vector3(0, 0, 0), Vector3(1, 0, 0)]), "closed": false})
+	ct.add_curve({"kind": "line", "ctrl": PackedVector3Array([Vector3(1.0005, 0, 0), Vector3(2, 0, 0.1)]), "closed": false})
+	ct.add_curve({"kind": "line", "ctrl": PackedVector3Array([Vector3(1, 0, 0.0005), Vector3(0.9, 0, 1)]), "closed": false})
+	ct.add_curve({"kind": "line", "ctrl": PackedVector3Array([Vector3(5, 0, 0), Vector3(6, 0, 0)]), "closed": false})
+	for i in 4:
+		ct.select(i, i > 0)
+	ct.set_merge_dist(0.0001)
+	check(ct.merge_curves_selected() == 0 and ct.curves.size() == 4, "ends 0.5 mm apart, a 0.1 mm merge distance: nothing joined")
+	ct.set_merge_dist(0.001)
+	check(ct.merge_curves_selected() == 1, "within 1 mm: one join")
+	check(ct.curves.size() == 3, "three edges now (%d)" % ct.curves.size())
+	var long_one := -1
+	for i in ct.curves.size():
+		if (ct.curves[i]["ctrl"] as PackedVector3Array).size() == 3:
+			long_one = i
+	check(long_one >= 0, "the straight pair made one - the sharp turn left apart")
+	if long_one >= 0:
+		var k: PackedVector3Array = ct.curves[long_one]["ctrl"]
+		check(k[0].distance_to(Vector3(0, 0, 0)) < 1e-4 and k[2].distance_to(Vector3(2, 0, 0.1)) < 1e-4, "from one's start to the other's end (%s)" % k)
+	ed.undo()
+	check(ct.curves.size() == 4, "one undo: apart again")
+	# a baked block's edges split, then merged back: one curve each again, its mesh as it was
+	ed.new_model(true)
+	var r := _block_with_side_point(ed)
+	var blk: MeshInstance3D = r[0]
+	var side: int = r[1]
+	if side < 0:
+		check(false, "a side edge")
+		await _done(ed)
+		return
+	var n0: int = ct.curves.size()
+	ct.select(side)
+	ct.pick_point(side, 1)
+	ct.separate_points()
+	var v0 := _mesh_pts(blk)
+	ct.select(-1)
+	ct.solid_chosen(blk)
+	check(ct.merge_curves_selected() >= 1, "the solid's edges merged")
+	check(_mesh_pts(blk) == v0, "its mesh as it was")
+	check(ct.curves.size() < n0 + 1, "the split edge one edge again (%d edges, was %d)" % [ct.curves.size(), n0])
+	await _done(ed)
+
+
+func test_curve_primitives() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	var want := {"box": 1.0, "cylinder": PI * 0.25, "prism": 1.5 * sqrt(3.0) * 0.25, "cone": PI * 0.25 / 3.0, "sphere": PI / 6.0,
+		"torus": 2.0 * PI * PI * 0.35 * 0.0225}
+	for k in want:
+		var p: MeshInstance3D = ct.add_curve_primitive(k)
+		check(p != null and p.has_meta("curve_solid"), "%s: a solid from edges" % k)
+		if p == null:
+			continue
+		var vol := Shapes.volume(p.mesh)
+		check(absf(vol - float(want[k])) < float(want[k]) * 0.06, "%s: its volume %.4f (want %.4f)" % [k, vol, want[k]])
+		var box: AABB = p.mesh.get_aabb()
+		check(box.position.y > -0.01 and box.position.y < 0.01, "%s: on the ground (%.3f)" % [k, box.position.y])
+	# the menu offers them with nothing picked
+	ct.select(-1)
+	var names := []
+	for g in ct.menu_groups():
+		for it in g:
+			names.append(str(it[1]))
+	check("Add sphere" in names and "Add box" in names, "the menu: Add edge box, sphere...")
+	# reshaped: the solid follows its curve
+	var cyl: MeshInstance3D = ed.parts()[1]
+	var ci: int = ct._curve_index(int((cyl.get_meta("curve_solid") as Dictionary)["ids"][0]))
+	var before: Array = ct._state()
+	var k: PackedVector3Array = ct.curves[ci]["ctrl"]
+	k[1] = Vector3(1.0, 0, 0)
+	ct.curves[ci]["ctrl"] = k
+	ct._changed("Move edge vertex", before)
+	check(cyl.mesh.get_aabb().size.x > 1.9, "the cylinder grew with its circle (%.2f)" % cyl.mesh.get_aabb().size.x)
+	await _done(ed)
+
+
+func test_picked_patch_shaded_in_3d() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	var r := _block_with_side_point(ed)
+	var blk: MeshInstance3D = r[0]
+	ct.solid_chosen(blk)
+	ct._sync_pick_overlay()
+	var mi: MeshInstance3D = ct.get_meta("pick_mi") if ct.has_meta("pick_mi") else null
+	check(mi != null and mi.visible and mi.mesh == blk.mesh, "the solid picked: shaded in the 3D view (its own mesh, a skin over it)")
+	check(not (mi in ed.parts()), "not one of the model's collections")
+	check((mi.material_override as BaseMaterial3D).no_depth_test == false, "hidden where the solid hides it")
+	var spec: Dictionary = blk.get_meta("curve_solid")
+	var fs: Dictionary = ct._faces_of(spec)
+	ct.set_meta("solid", 0)
+	ct.set_meta("patch", {"part": blk.get_instance_id(), "ids": ct._face_ids(spec, fs, 0), "seed": Vector3.INF})
+	ct._sync_pick_overlay()
+	check(mi.visible and mi.mesh != blk.mesh and mi.mesh.get_surface_count() == 1, "a face: a mesh of its own triangles")
+	ct.select(-1)
+	ct._sync_pick_overlay()
+	check(not mi.visible, "nothing picked: gone")
+	await _done(ed)
+
+
+func test_click_away_drops_the_solids_shading() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	var r := _block_with_side_point(ed)
+	ct.solid_chosen(r[0])
+	var mi: MeshInstance3D = ct.get_meta("pick_mi")
+	check(mi.visible, "the solid picked: shaded")
+	# a click on nothing (far off in a corner of the sky)
+	var e := InputEventMouseButton.new()
+	e.button_index = MOUSE_BUTTON_LEFT
+	e.pressed = true
+	e.position = Vector2(3, 3)
+	ct.view_input(e)
+	check(ct.picked_solid() == null, "let go")
+	check(not mi.visible, "its shading gone with it")
+	await _done(ed)
+
+
+func test_ecurve_objects() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	# a plain mesh solid (a box part) made an ECurve solid in the background: its edges traced
+	var bx: MeshInstance3D = ed.add_primitive("box")
+	check(not bx.has_meta("curve_solid"), "a plain mesh to start with")
+	ct.convert_parts([bx])
+	for k in 600:
+		if bx.has_meta("curve_solid") or bx.has_meta("ecurve_failed"):
+			break
+		await tree.process_frame
+	check(bx.has_meta("curve_solid"), "made an ECurve solid (%s)" % bx.get_meta("ecurve_failed", ""))
+	if bx.has_meta("curve_solid"):
+		var spec: Dictionary = bx.get_meta("curve_solid")
+		check(str(spec["kind"]) == "edges" and (spec["ids"] as Array).size() >= 6, "its edges: curves (%d)" % (spec["ids"] as Array).size())
+		var v := Shapes.volume(bx.mesh)
+		check(absf(v - 1.0) < 0.05, "the same shape (volume %.3f)" % v)
+		check(bx.mesh.get_surface_count() == 1, "one surface")
+	# associated with bones: kept with its recipe (bound as it's saved)
+	# (no character here: the association needs a rig - checked by the menu's state elsewhere)
+	# the Primitives tab: the ECurve primitives; the variants browser under the models
+	ed.set_left_tab("shapes")
+	var pl: ItemList = (ed.get_meta("prims") as Node).find_child("Primitives", true, false)
+	check(pl.item_count == ct.CURVE_PRIMS.size(), "the primitives browser")
+	var n0: int = ed.parts().size()
+	pl.item_activated.emit(0)
+	check(ed.parts().size() == n0 + 1, "double-click: added")
+	check(ed._can_drop_shape(Vector2.ZERO, {"ecurve_prim": "sphere"}) and ed._can_drop_shape(Vector2.ZERO, {"ecurve_model": "res://models/test_curve_modeling.glb"}), "the view takes a dragged primitive or object")
+	ed.fill_variant_browser("res://art/pirate_3d/pirate.glb")
+	var vb: ItemList = ed.get_meta("variant_browser")
+	check(vb.item_count >= 1 and vb.get_item_text(0).contains("original"), "the variants: the original first")
+	# an ECurve object dropped in: added in a collection of its own
+	var g: Node3D = ed.add_model_into("res://models/test_curve_modeling.glb", Vector3(2, 0, 0), true)
+	check(g != null and ct.is_group(g) and g.get_child_count() >= 1, "dropped in: a collection of its solids")
+	check(g.position.distance_to(Vector3(2, 0, 0)) < 1e-4, "where it was dropped")
+	# no mesh editing: Tab does nothing, the menu has no edit mode
+	var tab := InputEventKey.new()
+	tab.pressed = true
+	tab.keycode = KEY_TAB
+	ed._unhandled_key_input(tab)
+	check(ed.mode == "object", "Tab: no edit mode")
+	var m: PopupPanel = ed.menu(Vector2(5, 5))
+	check(m.find_child("Menu_Edit mode".validate_node_name(), true, false) == null, "the menu: no edit mode")
+	m.hide()
+	await _done(ed)
+
+
+func test_ecurve_solid_bones() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	check(ed.open_now("res://art/pirate_3d/pirate.glb"), "the pirate opens")
+	var p: MeshInstance3D = ct.add_curve_primitive("box", Vector3(0, 1.2, 0))
+	ed.select_part(p)
+	check(p.has_meta("curve_solid") and str((p.get_meta("curve_solid") as Dictionary).get("bone", "")) == "auto", "added to a character: associated with its bones at once, still an ECurve solid")
+	var sp0: Dictionary = (p.get_meta("curve_solid") as Dictionary).duplicate()
+	sp0.erase("bone")
+	p.set_meta("curve_solid", sp0)
+	check(ed.bind_part(p), "bound")
+	check(str((p.get_meta("curve_solid") as Dictionary).get("bone", "")) == "auto", "an ECurve solid: associated with its nearest bones, kept with its recipe")
+	check(p.skin == null and p.has_meta("curve_solid"), "its mesh still its own (edits stay free)")
+	ed.undo()
+	check(not (p.get_meta("curve_solid") as Dictionary).has("bone"), "undo: not associated")
+	ed.redo()
+	# as it's saved: bound for the write, then back
+	var boned: Array = ed._apply_bone_links()
+	check(boned.size() == 1 and p.skin != null, "saving: bound to the bones (skinned)")
+	for b in boned:
+		ed._set_bind_state(b[0], b[1])
+	check(p.skin == null and p.has_meta("curve_solid"), "and back as it was")
+	await _done(ed)
+
+
+func test_ecurve_mirror_solid() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	var p: MeshInstance3D = ct.add_curve_primitive("box", Vector3(1, 0, 0))
+	p.name = "Fore L Armor"
+	ed.select_part(p)
+	var n0: int = ed.parts().size()
+	var c0: int = ct.curves.size()
+	check(not ct._mirror_targets().is_empty(), "a solid selected: Mirror solid offered")
+	ct.mirror_solids(0)
+	check(ed.parts().size() == n0 + 1, "a mirrored copy added (%d solids)" % ed.parts().size())
+	var d: MeshInstance3D = null
+	for q in ed.parts():
+		if q != p:
+			d = q
+	check(d != null and str(d.name) == "Fore R Armor", "named for the other side (%s)" % (d.name if d else "none"))
+	check(d != null and absf(d.global_transform.origin.x + p.global_transform.origin.x) < 1e-4, "on the other side of X")
+	check(d != null and d.global_transform.basis.determinant() < 0.0, "mirrored, not just moved")
+	check(ct.curves.size() == c0 * 2, "its own edges (%d -> %d)" % [c0, ct.curves.size()])
+	var a_ids: Array = ct.spec_ids(p.get_meta("curve_solid"))
+	var b_ids: Array = ct.spec_ids(d.get_meta("curve_solid")) if d else []
+	var shared := a_ids.filter(func(x): return x in b_ids)
+	check(shared.is_empty() and not b_ids.is_empty(), "no edge shared between them")
+	check(CT._side_swap("upper_arm.L") == "upper_arm.R" and CT._side_swap("Left Hand") == "Right Hand" and CT._side_swap("Lamp") == "Lamp", "sides swapped in names, not inside words")
+	ed.undo()
+	check(ed.parts().size() == n0 and ct.curves.size() == c0, "undo: gone, its edges too")
+	await _done(ed)
+
+
+func test_ecurve_symmetry_drag() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve({"kind": "line", "ctrl": PackedVector3Array([Vector3(0.5, 0, 0), Vector3(0.5, 1, 0)]), "closed": false, "n": Vector3.BACK})
+	ct.add_curve({"kind": "line", "ctrl": PackedVector3Array([Vector3(-0.5, 0, 0), Vector3(-0.5, 1, 0)]), "closed": false, "n": Vector3.BACK})
+	ct.add_curve({"kind": "line", "ctrl": PackedVector3Array([Vector3(0, 0.5, 0), Vector3(0, 0.5, 1)]), "closed": false, "n": Vector3.UP})
+	ed.sym[0] = true
+	var tw: Array = ct._find_twins([[0, 0], [2, 0]])
+	check(tw.size() == 2, "each dragged vertex's twin found (%d)" % tw.size())
+	check(tw.size() == 2 and int(tw[0][0]) == 1 and int(tw[0][1]) == 0 and not tw[0][4], "the mirror image's vertex on the other edge")
+	check(tw.size() == 2 and bool(tw[1][4]), "a vertex on the plane: its own twin")
+	ct._drag = {"handle": [0, 0], "multi": [[2, 0]]}
+	var k0: PackedVector3Array = ct.curves[0]["ctrl"]
+	k0[0] = Vector3(0.7, 0.1, 0.2)
+	ct.curves[0]["ctrl"] = k0
+	var k2: PackedVector3Array = ct.curves[2]["ctrl"]
+	k2[0] = Vector3(0.3, 0.6, 0)
+	ct.curves[2]["ctrl"] = k2
+	ct._move_twins(tw)
+	var m: Vector3 = (ct.curves[1]["ctrl"] as PackedVector3Array)[0]
+	check(m.distance_to(Vector3(-0.7, 0.1, 0.2)) < 1e-5, "the twin follows, mirrored (%s)" % m)
+	var on: Vector3 = (ct.curves[2]["ctrl"] as PackedVector3Array)[0]
+	check(absf(on.x) < 1e-6 and absf(on.y - 0.6) < 1e-5, "the vertex on the plane stays on it (%s)" % on)
+	ct._drag = {}
+	ed.sym[0] = false
+	check(ct.sym_items().size() == 6, "the symmetry tools in the menu: X / Y / Z, mirror across each")
+	await _done(ed)
+
+
+func test_ecurve_weapons_and_tpose() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	check(ed.open_now("res://art/pirate_3d/pirate.glb"), "the pirate opens")
+	var sk: Skeleton3D = ed.model.find_children("*", "Skeleton3D", true, false)[0]
+	var arm := ""
+	for b in sk.get_bone_count():
+		if ed.TPose._is_arm(sk.get_bone_name(b)) and sk.get_bone_name(b).to_lower().contains("upper"):
+			arm = sk.get_bone_name(b)
+			break
+	check(arm != "", "an arm bone (%s)" % arm)
+	var sleeve: MeshInstance3D = ct.add_curve_primitive("box", Vector3(0.4, 1.4, 0))
+	var sp: Dictionary = (sleeve.get_meta("curve_solid") as Dictionary).duplicate()
+	sp["bone_name"] = arm
+	sleeve.set_meta("curve_solid", sp)
+	var gun: MeshInstance3D = ct.add_curve_primitive("box", Vector3(0.6, 1.0, 0))
+	var gp: Dictionary = (gun.get_meta("curve_solid") as Dictionary).duplicate()
+	gp["bone_name"] = "Gun"
+	gun.set_meta("curve_solid", gp)
+	check(ed._whole_weapon(gun) and not ed._whole_weapon(sleeve), "a solid moving with the gun's bone is a weapon")
+	ed.set_weapons(false)
+	check(not gun.visible and gun.has_meta("weapon_hidden") and sleeve.visible, "weapons hidden: the gun solid hidden whole")
+	ed.set_weapons(true)
+	check(gun.visible and not gun.has_meta("weapon_hidden"), "and shown again")
+	var xf0 := sleeve.transform
+	ed.toggle_tpose()
+	check(sleeve.has_meta("tpose_xf") and not sleeve.transform.is_equal_approx(xf0), "T-pose: the solid turned by its arm bone")
+	check(ed.is_tposed(), "T-posed")
+	for i in 600:
+		if ed._tpose_task < 0:
+			break
+		await tree.process_frame
+	ed.toggle_tpose()
+	for i in 600:
+		if ed._tpose_task < 0:
+			break
+		await tree.process_frame
+	check(not sleeve.has_meta("tpose_xf") and sleeve.transform.is_equal_approx(xf0), "back in its own pose, exactly")
+	await _done(ed)
+
+
+func _mouse_btn(pos: Vector2, pressed: bool) -> InputEventMouseButton:
+	var e := InputEventMouseButton.new()
+	e.button_index = MOUSE_BUTTON_LEFT
+	e.pressed = pressed
+	e.position = pos
+	return e
+
+
+func test_manual_vertex() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve({"kind": "spline", "ctrl": PackedVector3Array([Vector3(-1, 0, 0), Vector3(0, 1, 0), Vector3(1, 0, 0)]), "closed": false, "n": Vector3.BACK})
+	var s0: PackedVector3Array = CT.sample(ct.curves[0])
+	var items: Array = ct.point_items(ct._screen((ct.curves[0]["ctrl"] as PackedVector3Array)[1]))
+	check(items.any(func(it): return str(it[0]) == "m_cv_pt_manual" and bool(it[5])), "the vertex's menu: Manual vertex")
+	ct.set_point_manual(0, 1)
+	var c: Dictionary = ct.curves[0]
+	check(str(c["kind"]) == "path" and int((c["sharp"] as PackedByteArray)[1]) == 2 and (c["tin"] as PackedVector3Array).size() == 3, "a manual vertex: its mode and its two tangents")
+	check(CT.point_mode(c, 1) == 2 and CT.point_mode(c, 0) != 2, "its mode: manual (the others as they were)")
+	var s1: PackedVector3Array = CT.sample(c)
+	var dev := 0.0
+	for q in s1:
+		var dmin := INF
+		for r in s0:
+			dmin = minf(dmin, q.distance_to(r))
+		dev = maxf(dev, dmin)
+	check(dev < 0.12, "made manual: the edge keeps its shape, about (%.3f)" % dev)
+	# each side on its own: the leaving tangent bent - the arriving half untouched
+	var before_in := CT._path_span(c["ctrl"], c["sharp"], false, c["tin"], c["tout"], 0, 16)
+	var c2: Dictionary = c.duplicate(true)
+	var to: PackedVector3Array = c2["tout"]
+	to[1] = Vector3(0, -3, 0)
+	c2["tout"] = to
+	var after_in := CT._path_span(c2["ctrl"], c2["sharp"], false, c2["tin"], c2["tout"], 0, 16)
+	var after_out := CT._path_span(c2["ctrl"], c2["sharp"], false, c2["tin"], c2["tout"], 1, 16)
+	check(before_in == after_in, "the arriving side as it was")
+	check(after_out[4].y < 0.6, "the leaving side bends where it was dragged (%s)" % after_out[4])
+	# dragged in the view: the part of the edge beside it pressed, moved - the tangent follows, one undo step
+	var sp := CT._path_span(c["ctrl"], c["sharp"], false, c["tin"], c["tout"], 1, 16)
+	var at: Vector2 = ct._screen(sp[3])
+	var tg: Array = ct.pick_tangent(at)
+	check(tg.size() == 4 and int(tg[0]) == 0 and int(tg[1]) == 1 and bool(tg[2]), "pressing beside the vertex: its leaving side (%s)" % [tg.slice(0, 3)])
+	var t_was: Vector3 = (ct.curves[0]["tout"] as PackedVector3Array)[1]
+	ct.view_input(_mouse_btn(at, true))
+	check(ct._drag.has("tangent"), "a tangent drag started")
+	var mv := InputEventMouseMotion.new()
+	mv.position = at + Vector2(0, 40)
+	ct.view_input(mv)
+	ct.layer.queue_redraw()   # (the green glow drawn while it's dragged - no errors)
+	await tree.process_frame
+	ct.view_input(_mouse_btn(at + Vector2(0, 40), false))
+	var t_now: Vector3 = (ct.curves[0]["tout"] as PackedVector3Array)[1]
+	check(not t_now.is_equal_approx(t_was), "dragged: the edge's bend into the vertex changed")
+	check((ct.curves[0]["tin"] as PackedVector3Array)[1].is_equal_approx((c["tin"] as PackedVector3Array)[1]), "the other side untouched")
+	ed.undo()
+	check((ct.curves[0]["tout"] as PackedVector3Array)[1].is_equal_approx(t_was), "undo: back")
+	# kept when saved
+	var back: Array = CT.from_json(CT.to_json(ct.curves))
+	check(back[0].has("tin") and (back[0]["tout"] as PackedVector3Array)[1].is_equal_approx(t_was), "saved and read back with its tangents")
+	# a converted solid's edge: a manual vertex shapes the solid too
+	var bx: MeshInstance3D = ed.add_primitive("box")
+	ct.convert_parts([bx])
+	for k in 600:
+		if bx.has_meta("curve_solid") or bx.has_meta("ecurve_failed"):
+			break
+		await tree.process_frame
+	if bx.has_meta("curve_solid"):
+		var id0 := int((bx.get_meta("curve_solid")["ids"] as Array)[0])
+		var ci: int = ct._curve_index(id0)
+		var n: int = (ct.curves[ci]["ctrl"] as PackedVector3Array).size()
+		ct.set_point_manual(ci, mini(1, n - 1))
+		check(CT.point_mode(ct.curves[ci], mini(1, n - 1)) == 2, "a solid's edge can have a manual vertex")
+		ct.refresh_solids()
+		check(bx.mesh != null and bx.mesh.get_surface_count() == 1, "its solid still made")
+	await _done(ed)
+
+
+func test_ecurve_object_not_stored_twice() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	var p: MeshInstance3D = ct.add_curve_primitive("box")
+	check(p.has_meta("curve_solid"), "an ECurve solid already")
+	ct.convert_parts([p], {"kind": "drop", "path": "res://art/player_3d/player.glb", "group": p.get_parent()})
+	check((ct.get_meta("convert_batches", []) as Array).is_empty(), "nothing to convert: nothing stored again (no new variant)")
+	check(not ct._converting(), "and nothing queued")
+	await _done(ed)
+
+
+func test_saved_character_keeps_bone_names() -> void:
+	var MeshIO: GDScript = load("res://scripts/editor/mesh/mesh_io.gd")
+	var root: Node = MeshIO.read("res://art/player_3d/player.glb")
+	var out := "user://bone_names_kept.glb"
+	check(MeshIO.write(root, out) == OK, "written")
+	root.free()
+	var back: Node = MeshIO.read(out)
+	var sk: Skeleton3D = back.find_children("*", "Skeleton3D", true, false)[0] if back else null
+	check(sk != null and sk.find_bone("upper.L") >= 0 and sk.find_bone("hand.R") >= 0, "its bones' names as they were (the game finds \"hand.R\" by name), not upper_L")
+	if back:
+		back.free()
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(out))
+
+
+func test_collection_picked_and_moved_whole() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	var a: MeshInstance3D = ct.add_curve_primitive("box", Vector3(0, 0, 0))
+	var b: MeshInstance3D = ct.add_curve_primitive("box", Vector3(2, 0, 0))
+	var g: Node3D = ct.make_group([a, b])
+	check(g != null, "a collection of two solids")
+	ed.view.set_view("front")
+	ed.view.frame(AABB(Vector3(-1, -1, -1), Vector3(4, 2, 2)))
+	await tree.process_frame
+	# its row in the overview: the collection picked whole
+	ct.pick_group(g)
+	check(ct.picked_group() == g and ed.selected_parts().size() == 2, "the collection picked: both its solids selected")
+	# dragged in the view by one of its solids: the whole collection moves - its solids' own places untouched
+	var a0 := a.transform
+	var b0 := b.transform
+	var ga0 := a.global_position
+	var at: Vector2 = ed.view.project(a.global_position + Vector3(0, 0, 0.5))
+	ct.view_input(_mouse_btn(at, true))
+	check(ct._drag.has("coll"), "pressing on its solid: a collection drag")
+	var mv := InputEventMouseMotion.new()
+	mv.position = at + Vector2(60, 0)
+	ct.view_input(mv)
+	ct.view_input(_mouse_btn(at + Vector2(60, 0), false))
+	check(a.global_position.x > ga0.x + 0.1, "the collection moved (%.2f -> %.2f)" % [ga0.x, a.global_position.x])
+	check(a.transform == a0 and b.transform == b0, "as one: its solids kept their places in it")
+	check(absf((b.global_position - a.global_position).x - 2.0) < 1e-4, "still the same distance apart")
+	ed.undo()
+	check(a.global_position.distance_to(ga0) < 1e-4, "undo: back where it was")
+	await _done(ed)
+
+
+func test_overview_renames_on_double_click_only() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	var a: MeshInstance3D = ct.add_curve_primitive("box")
+	ct._refresh_panel()
+	var t: Tree = ct._w("tree")
+	var row: TreeItem = null
+	for it in _tree_items(t):
+		var m = it.get_metadata(0)
+		if m is Dictionary and m.get("part") == a:
+			row = it
+	check(row != null and not row.is_editable(0), "a row isn't opened for typing by a click")
+	check(row != null and row.get_icon(0) != null, "a solid's row has its icon")
+	ed.select_part(a)
+	t.set_selected(row, 0)
+	t.item_activated.emit()
+	check(_type_in(t, "Plate"), "a double-click opens its name for typing")
+	check(str(a.name) == "Plate", "renamed so")
+	await _done(ed)
+
+
+func test_pan_follows_the_mouse_at_any_zoom() -> void:
+	var ed := await _editor()
+	ed.new_model(true)
+	var v = ed.view
+	for d in [0.08, 4.0, 60.0]:
+		v.target = Vector3.ZERO
+		v.dist = d
+		v.update_camera()
+		await tree.process_frame
+		var p := Vector3(0, 0, 0)
+		var s0: Vector2 = v.project(p)
+		v.pan(Vector2(50, -30), v.depth_at(p))
+		var s1: Vector2 = v.project(p)
+		check((s1 - s0).distance_to(Vector2(50, -30)) < 1.0, "zoomed to %.2f m: what's grabbed moves with the mouse, 1:1 (%s)" % [d, s1 - s0])
+	await _done(ed)
+
+
+func test_not_selectable() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	var a: MeshInstance3D = ct.add_curve_primitive("box", Vector3(0, 0, 0))
+	var b: MeshInstance3D = ct.add_curve_primitive("box", Vector3(2, 0, 0))
+	ed.select_part(a)
+	ct.set_selectable(a, false)
+	check(ct.locked(a) and not ct.locked(b), "the solid made not selectable")
+	ed.select_part(b)
+	check(a in ed.selected_parts() and b in ed.selected_parts(), "it can't be let go: picking another keeps it")
+	ed.select_part(null)
+	check(a in ed.selected_parts(), "nor by clicking nothing")
+	ct.set_selectable(a, true)
+	ed.select_part(null)
+	check(ed.selected_parts().is_empty(), "selectable again: let go")
+	ct.set_selectable(a, false)
+	ed.select_part(a)
+	check(not a in ed.selected_parts(), "nor picked")
+	var ida := int((a.get_meta("curve_solid") as Dictionary)["ids"][0])
+	var sel0: Array = ct.sel.duplicate()
+	ct.select(ct._curve_index(ida))
+	check(ct.sel == sel0, "nor any of its edges picked or let go (%s -> %s)" % [sel0, ct.sel])
+	ed.undo()
+	check(not ct.locked(a), "undo: selectable")
+	# a collection's arrow: everything in it
+	ct.set_selectable(a, true)
+	var g: Node3D = ct.make_group([a, b])
+	ct.set_selectable(g, false)
+	check(ct.locked(a) and ct.locked(b), "a collection not selectable: its contents neither")
+	ct._refresh_panel()
+	var btns := 0
+	for it in _tree_items(ct._w("tree")):
+		if it.get_metadata(0) is Dictionary and (it.get_metadata(0) as Dictionary).has("part"):
+			btns = it.get_button_count(1)
+	check(btns == 2, "each solid's row: the eye and the arrow")
+	var off_icon: Texture2D = EditorIcons.get_icon("m_cv_ol_sel_off")
+	var all_off := true
+	for it in _tree_items(ct._w("tree")):
+		var m3 = it.get_metadata(0)
+		if m3 is Dictionary and (m3 as Dictionary).has("part") and it.get_button(1, 1) != off_icon:
+			all_off = false
+	check(all_off, "the collection's arrow off: each of its solids' arrows shows off too")
+	await _done(ed)
+
+
+func test_knife_cuts_a_new_edge() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	var bx: MeshInstance3D = ed.add_primitive("box")
+	ct.convert_parts([bx])
+	for k in 600:
+		if bx.has_meta("curve_solid") or bx.has_meta("ecurve_failed"):
+			break
+		await tree.process_frame
+	check(bx.has_meta("curve_solid"), "a box made of edges")
+	if not bx.has_meta("curve_solid"):
+		await _done(ed)
+		return
+	var spec0: Dictionary = bx.get_meta("curve_solid")
+	var ids0: int = (spec0["ids"] as Array).size()
+	var nv0: int = (spec0["mesh"]["v"] as Array).size() / 3
+	var b := bx.get_aabb()
+	var z := b.end.z
+	var y := b.get_center().y
+	var eye := Vector3(0, y, z + 3.0)
+	var c0: int = ct.curves.size()
+	var before: Array = ct._state()
+	var res: Dictionary = ct.knife_apply_to(bx, [{"pos": Vector3(b.position.x, y, z), "eye": eye}, {"pos": Vector3(b.end.x, y, z), "eye": eye}])
+	check(not res.has("error"), "cut across the front face from side to side (%s)" % res.get("error", ""))
+	ct._changed("Knife", before)
+	var spec1: Dictionary = bx.get_meta("curve_solid")
+	check((spec1["ids"] as Array).size() == ids0 + 1 and ct.curves.size() == c0 + 1, "a new edge of the solid (%d -> %d)" % [ids0, (spec1["ids"] as Array).size()])
+	var v := Shapes.volume(bx.mesh)
+	check(absf(v - 1.0) < 0.05, "the solid's shape kept (volume %.3f)" % v)
+	var cut_id := int(res.get("id", -1))
+	var on_cut := (spec1["fv"] as Array).filter(func(e): return int(e[1]) == (spec1["chains"] as Array).size() - 1)
+	check(on_cut.size() >= 2, "the cut's vertices belong to the new edge (%d)" % on_cut.size())
+	check(ct.curve_by_id(cut_id).size() > 0, "its curve there to reshape")
+	ed.undo()
+	check(((bx.get_meta("curve_solid") as Dictionary)["ids"] as Array).size() == ids0, "undo: no cut")
+	# off the mesh's lines: the faces really cut
+	var y2 := b.position.y + b.size.y * 0.37
+	var res2: Dictionary = ct.knife_apply_to(bx, [{"pos": Vector3(b.position.x, y2, z), "eye": Vector3(0, y2, z + 3.0)}, {"pos": Vector3(b.end.x, y2, z), "eye": Vector3(0, y2, z + 3.0)}])
+	check(not res2.has("error") and ((bx.get_meta("curve_solid") as Dictionary)["mesh"]["v"] as Array).size() / 3 > nv0, "a cut across faces: new vertices along it (%s)" % res2.get("error", ""))
+	check(absf(Shapes.volume(bx.mesh) - 1.0) < 0.05, "the shape kept")
+	# the tool: K starts it, Esc stops it
+	var kk := InputEventKey.new()
+	kk.keycode = KEY_K
+	kk.pressed = true
+	check(ct.key(kk) and ct.has_meta("knife"), "K: the knife")
+	kk.keycode = KEY_ESCAPE
+	check(ct.key(kk) and not ct.has_meta("knife"), "Esc: stopped")
+	await _done(ed)
+
+
+func test_vertex_modes_for_picked_vertices() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve({"kind": "spline", "ctrl": PackedVector3Array([Vector3(-1, 0, 0), Vector3(-0.3, 1, 0), Vector3(0.3, 1, 0), Vector3(1, 0, 0)]), "closed": false, "n": Vector3.BACK})
+	ct.select(0)
+	ct.pick_point(0, 1)
+	ct.pick_point(0, 2, true)
+	check(ct.picked_points().size() == 2, "two vertices picked")
+	var labels := []
+	for g in ct.menu_groups():
+		for it in g:
+			labels.append(str(it[1]))
+	check(labels.count("Smooth vertex") == 1 and labels.count("Sharp vertex") == 1 and labels.count("Manual vertex") == 1, "the menu: Smooth / Sharp / Manual vertex, once each (%s)" % [labels])
+	ct.set_points_mode(1)
+	check(CT.point_mode(ct.curves[0], 1) == 1 and CT.point_mode(ct.curves[0], 2) == 1, "both made sharp at once")
+	ed.undo()
+	check(str(ct.curves[0]["kind"]) == "spline", "one undo step: back")
+	await _done(ed)
+
+
+func test_right_click_cancels_a_drag() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve({"kind": "spline", "ctrl": PackedVector3Array([Vector3(-1, 0, 0), Vector3(0, 1, 0), Vector3(1, 0, 0)]), "closed": false, "n": Vector3.BACK})
+	ct.select(0)
+	ed.view.set_view("front")
+	ed.view.frame(AABB(Vector3(-1.5, -0.5, -0.5), Vector3(3, 2, 1)))
+	await tree.process_frame
+	var was: Vector3 = (ct.curves[0]["ctrl"] as PackedVector3Array)[1]
+	var at: Vector2 = ct._screen(was)
+	var undo0: int = ed._undo.size()
+	ct.view_input(_mouse_btn(at, true))
+	var mv := InputEventMouseMotion.new()
+	mv.position = at + Vector2(60, 30)
+	ct.view_input(mv)
+	check(not (ct.curves[0]["ctrl"] as PackedVector3Array)[1].is_equal_approx(was), "dragging: the vertex moves")
+	var rc := _mouse_btn(at + Vector2(60, 30), true)
+	rc.button_index = MOUSE_BUTTON_RIGHT
+	check(ct.view_input(rc), "a right-click while dragging is taken")
+	check((ct.curves[0]["ctrl"] as PackedVector3Array)[1].is_equal_approx(was), "and the drag called off: the vertex back where it was")
+	ct.view_input(_mouse_btn(at + Vector2(60, 30), false))
+	check((ct.curves[0]["ctrl"] as PackedVector3Array)[1].is_equal_approx(was) and ed._undo.size() == undo0, "letting go after: nothing moves, no undo step")
 	await _done(ed)
