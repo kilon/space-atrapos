@@ -5443,55 +5443,52 @@ static func quadify(v_in: PackedVector3Array, t_in: PackedInt32Array, fv_in: Arr
 ## Triangles `t` as faces: two paired into a quad (sharing their longest side, lying nearly flat together,
 ## that side not one of the solid's edges), the rest left triangles. [[corners in order]...].
 static func _pair_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array) -> Array:
+	# (triangles side by side made quads - best first: across each side that isn't one of the solid's edges,
+	# the two triangles there scored by how square the quad they'd make is (convex, nearly flat), and the
+	# squarest pairs taken first, each triangle once)
 	var nt := t.size() / 3
-	var on := {}
+	# (the solid's edges as sides of the mesh: points next to each other along each one - a side between two
+	# points of one edge that aren't neighbours along it, a corner quad's diagonal, isn't one of them)
+	var edge_sides := {}
+	var by_c := {}
 	for e in fv:
-		if not on.has(int(e[0])):
-			on[int(e[0])] = {}
-		on[int(e[0])][int(e[1])] = true
-	var longest := PackedStringArray()
-	longest.resize(nt)
+		if not by_c.has(int(e[1])):
+			by_c[int(e[1])] = []
+		by_c[int(e[1])].append([float(e[2]), int(e[0])])
+	for ci in by_c:
+		var lst: Array = by_c[ci]
+		lst.sort_custom(func(x, y): return float(x[0]) < float(y[0]))
+		for m in lst.size():
+			var a0: int = lst[m][1]
+			var b0: int = lst[(m + 1) % lst.size()][1]
+			if a0 != b0:
+				edge_sides[_pk(a0, b0)] = true
 	var by_e := {}
 	var nrm := []
 	for i in nt:
-		var ll := -1.0
 		for j in 3:
-			var a := t[i * 3 + j]
-			var b := t[i * 3 + (j + 1) % 3]
-			var k := _pk(a, b)
+			var k := _pk(t[i * 3 + j], t[i * 3 + (j + 1) % 3])
 			if not by_e.has(k):
 				by_e[k] = []
 			by_e[k].append(i)
-			var l := v[a].distance_to(v[b])
-			if l > ll:
-				ll = l
-				longest[i] = k
 		var n := (v[t[i * 3 + 1]] - v[t[i * 3]]).cross(v[t[i * 3 + 2]] - v[t[i * 3]])
 		nrm.append(n.normalized() if n.length_squared() > 1e-24 else Vector3.ZERO)
-	var used := PackedByteArray()
-	used.resize(nt)
-	var faces := []
-	for i in nt:
-		if used[i] == 1:
+	var cands := []   # [score, i, partner, x, q, y, pp]
+	for k in by_e:
+		var tl: Array = by_e[k]
+		if tl.size() != 2:
 			continue
-		var k := longest[i]
-		var partner := -1
-		for o in by_e.get(k, []):
-			if o != i and used[o] == 0 and longest[o] == k and (nrm[i] as Vector3).dot(nrm[o]) > 0.85:
-				partner = o
+		var i: int = tl[0]
+		var o: int = tl[1]
+		if (nrm[i] as Vector3).dot(nrm[o]) < 0.85:
+			pair_why["bent"] = int(pair_why.get("bent", 0)) + 1
+			continue
 		var ab := _unpk(k)
-		var feature := false
-		if on.has(ab[0]) and on.has(ab[1]):
-			for ci in on[ab[0]]:
-				if (on[ab[1]] as Dictionary).has(ci):
-					feature = true   # (one of the solid's edges: not a quad's diagonal)
-		if partner < 0 or feature:
-			used[i] = 1
-			faces.append([t[i * 3], t[i * 3 + 1], t[i * 3 + 2]])
+		var feature := edge_sides.has(k)   # (one of the solid's edges: not a quad's diagonal)
+		if feature:
+			pair_why["edge"] = int(pair_why.get("edge", 0)) + 1
 			continue
-		used[i] = 1
-		used[partner] = 1
-		# (triangle x y p with the shared side x -> y, the other y x q: the quad x q y p)
+		# (triangle i: x -> y shared, pp its third point; the partner's third point q: the quad x q y pp)
 		var x := -1
 		var y := -1
 		var pp := -1
@@ -5504,10 +5501,49 @@ static func _pair_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array) -
 				pp = t[i * 3 + (j + 2) % 3]
 		var q := -1
 		for j in 3:
-			var c := t[partner * 3 + j]
+			var c := t[o * 3 + j]
 			if c != x and c != y:
 				q = c
-		faces.append([x, q, y, pp])
+		var quad := [x, q, y, pp]
+		var worst := 0.0
+		var convex := true
+		var qn: Vector3 = (nrm[i] as Vector3) + (nrm[o] as Vector3)
+		for m in 4:
+			var p0: Vector3 = v[quad[(m + 3) % 4]]
+			var p1: Vector3 = v[quad[m]]
+			var p2: Vector3 = v[quad[(m + 1) % 4]]
+			var d0 := p0 - p1
+			var d1 := p2 - p1
+			if d0.length_squared() < 1e-24 or d1.length_squared() < 1e-24:
+				convex = false
+				break
+			worst = maxf(worst, absf(rad_to_deg(d0.angle_to(d1)) - 90.0))
+			if d1.cross(d0).dot(qn) < 0.0:
+				convex = false
+		if not convex or worst > 80.0:
+			pair_why["dented" if not convex else "skewed"] = int(pair_why.get("dented" if not convex else "skewed", 0)) + 1
+			continue
+		# (the side shared the longest of both triangles - how a quad's own diagonal looks: those first)
+		var kl := v[ab[0]].distance_squared_to(v[ab[1]])
+		var diag := true
+		for tt in [i, o]:
+			for j in 3:
+				if v[t[tt * 3 + j]].distance_squared_to(v[t[tt * 3 + (j + 1) % 3]]) > kl * 1.0001:
+					diag = false
+		cands.append([worst - (1000.0 if diag else 0.0), i, o, x, q, y, pp])
+	cands.sort_custom(func(p, r): return float(p[0]) < float(r[0]))
+	var used := PackedByteArray()
+	used.resize(nt)
+	var faces := []
+	for c in cands:
+		if used[c[1]] == 1 or used[c[2]] == 1:
+			continue
+		used[c[1]] = 1
+		used[c[2]] = 1
+		faces.append([c[3], c[4], c[5], c[6]])
+	for i in nt:
+		if used[i] == 0:
+			faces.append([t[i * 3], t[i * 3 + 1], t[i * 3 + 2]])
 	return faces
 
 
@@ -5535,9 +5571,100 @@ static func _faces_to_tris(v: PackedVector3Array, faces: Array) -> PackedInt32Ar
 ## a corner count that won't balance, a grid that would fold): the mesh is left to other ways then.
 ## `L`: the quads' size.
 static var grid_why := ""   # (why grid_faces made nothing - for the tests and messages)
+static var grid_fail := -1   # (the face it stopped at)
+static var grid_log := []
+static var pair_why := {}
+static var grid_keep_counts := true
+static var kept_why := {}
+static var field_fill_on := true   # (faces the templates can't do: a field-aligned fill - field_remesh.gd)
+static var field_fill_all := false   # (experiment: every face field-filled)
+static var fill_compare := true   # (each face: the fill tried too, the better kept)
+static var fill_margin := 2.0
+static var fill_skip_above := 101.0   # (a face's grid scoring this or more: no fill tried)   # (score points the fill must win by)
+static var fill_won := 0
+static var small_why := ""
+static var progress := [0.0, ""]   # (the layout running: how far, 0..1, and what it's doing - read by the editor's bar)
+static var _pbase := 0.0
+static var _pspan := 1.0
+static var prof := {}   # (debug: ms by stage - fill, score, grid)
+static var fill_count := 0
+static var fill_out_v := PackedVector3Array()
+static var fill_out_t := PackedInt32Array()
+static var fill_fixed := {}   # (faces filled on their own rim points: their edges' points kept)
+static var fill_retry := []
+static var fill_cache := {}   # (a face's fill by its triangles and rim samples - the rounds of grid_faces_best)
+static var fill_log := []   # (debug: [triangles, filled?, why] a kept face)
+static var crease_on := true   # (tuning switches)
+static var uneven_limit := 10.0   # (a grid with a quad this many times the mean size: not used)
+static var big_face := 0.0   # (a face of more quads than this cut in two, again till none is: 0 - off)
+static var crease_min_len := 0.0   # (a crease line shorter than this many quads: a facet's nick)
+static var crease_both := true   # (grid_any: laid out with short and with only long crease lines - the better kept)
+static var crease_short := 4.0
+static var crease_long := 8.0
+static var crease_loop_min := 6.0   # (a closed crease line shorter than this many quads: dropped)
+static var crease_deg := 35.0   # (a bend sharper than this, not an edge, gets a row of mesh along it)
+static var fold_fallback_on := false   # (the plain average where cotangents fold: slightly worse on the player - off)
+static var paths_on := true
+static var ring_cut_on := false   # (cutting lopsided rings in two: worse on the player - off)
+static var split_closed_on := false   # (cutting closed edgeless shapes in two: fewer slivers, but more non-manifold sides - to fix first)
+static var no_chain_side := []   # (tuning: the last rim side on no edge)   # (tuning: why faces were kept as they were - counts)
+static var dome_as_grid := false   # (tuning: a round dome as one grid of four corners on its rim, not rings)
+static var phong_amount := 0.75   # (how far new points are pulled to the smooth surface - 0: flat facets; the rim needs the same before it helps: to do)
+static var last_quality := ""   # (the last face's quads: mean aspect, slivers - for tuning)   # (each edge's count from its length alone - see the balancing)   # (why triangle pairs weren't made quads - for tuning)   # (each face: [face, how it was laid out, its corners, why another way failed] - for tuning)
 
 
-static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, chains: Array, L: float) -> Dictionary:
+## grid_faces, face by face: a face that can't be a grid kept as it was (its rim's points kept, so its
+## neighbours' grids meet it with no gap) and the rest laid out again - tried till it works. {v, t, fv,
+## kept (how many faces were kept)} or {} (none could be).
+static func grid_faces_best(v: PackedVector3Array, t: PackedInt32Array, fv: Array, chains: Array, L: float, fill := true, only := {}) -> Dictionary:
+	var keep := {}
+	fill_count = 0
+	fill_log = []
+	fill_cache = {}
+	fill_won = 0
+	for attempt in 400:
+		var pt0 := Time.get_ticks_usec()
+		_prog(0.05 + 0.2 * (1.0 - 1.0 / (1.0 + attempt * 0.3)), "laying grids")
+		var r := grid_faces(v, t, fv, chains, L, keep, false, only)
+		prof["grid_pass"] = float(prof.get("grid_pass", 0.0)) + (Time.get_ticks_usec() - pt0) / 1000.0
+		prof["grid_passes"] = int(prof.get("grid_passes", 0)) + 1
+		if not r.is_empty():
+			r["kept"] = keep.size()
+			if fill and (not keep.is_empty() or field_fill_all or fill_compare) and field_fill_on:
+				# (the faces kept: laid out by the field-aligned fill, once the rest is settled - their rims sampled
+				# like the others'; one the fill can't do that way filled on its own points next round)
+				fill_fixed = {}
+				var keep2 := keep.duplicate()
+				for round in 60:
+					fill_retry = []
+					fill_count = 0
+					var pt1 := Time.get_ticks_usec()
+					var r2 := grid_faces(v, t, fv, chains, L, keep2, true, only)
+					prof["fill_pass"] = float(prof.get("fill_pass", 0.0)) + (Time.get_ticks_usec() - pt1) / 1000.0
+					prof["fill_passes"] = int(prof.get("fill_passes", 0)) + 1
+					if r2.is_empty():
+						# (a grid that fails with its neighbours' rims sampled: filled too)
+						if grid_fail < 0 or keep2.has(grid_fail):
+							break
+						keep2[grid_fail] = true
+						continue
+					if fill_retry.is_empty():
+						r2["kept"] = keep2.size()
+						r2["filled"] = fill_count
+						return r2
+					for f in fill_retry:
+						fill_fixed[f] = true
+			return r
+		if grid_fail < 0 or keep.has(grid_fail):
+			return {}
+		keep[grid_fail] = true
+		kept_why[grid_why.get_slice("(", 0).left(40)] = int(kept_why.get(grid_why.get_slice("(", 0).left(40), 0)) + 1
+	return {}
+
+
+static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, chains: Array, L: float, keep := {}, fill_kept := false, only := {}) -> Dictionary:
+	grid_fail = -1
+	grid_log = []
 	var nv0 := v.size()
 	var on := {}   # vertex -> {chain: place}
 	for e in fv:
@@ -5576,6 +5703,24 @@ static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, ch
 		if not ch_list[ci][1] and not (ch_list[ci][0] as Array).is_empty():
 			junction[ch_list[ci][0][0]] = true
 			junction[ch_list[ci][0].back()] = true
+	# (an edge's own sharp bends too: points of the mesh exactly - the samples of a stretch run between them,
+	# never cutting a corner)
+	for ci in ch_list:
+		var vs: Array = ch_list[ci][0]
+		var closed: bool = ch_list[ci][1]
+		var m := vs.size()
+		if m < 3:
+			continue
+		for i in m:
+			if not closed and (i == 0 or i == m - 1):
+				continue
+			var p0: Vector3 = v[vs[(i - 1 + m) % m]]
+			var p1: Vector3 = v[vs[i]]
+			var p2: Vector3 = v[vs[(i + 1) % m]]
+			if (p1 - p0).length_squared() < 1e-24 or (p2 - p1).length_squared() < 1e-24:
+				continue
+			if (p1 - p0).angle_to(p2 - p1) > deg_to_rad(50.0):
+				junction[vs[i]] = true
 	# segments: runs of a chain between junctions - [verts, chain, closed loop]
 	var segs := []
 	var edge_seg := {}   # "a_b" -> [segment, forward (a then b along it)]
@@ -5645,8 +5790,42 @@ static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, ch
 		f_tris.append([])
 	for ti in face.size():
 		(f_tris[face[ti]] as Array).append(ti)
+	# (only: the triangles to lay out - a face with none of them frozen: its triangles and its edges' points as
+	# they are, never filled)
+	var frozen := {}
+	if not only.is_empty():
+		for f in nf:
+			var any := false
+			for ti in f_tris[f]:
+				if only.has(ti):
+					any = true
+					break
+			if not any:
+				frozen[f] = true
+		keep = keep.duplicate()
+		keep.merge(frozen)
+	# (a face an edge runs into and stops in - a knife's cut ending inside it: the edge's sides inside the face,
+	# triangles of the face on both sides. Its rim's one loop can't follow that edge - laid out, the edge would
+	# be left floating, its points in no triangle: such a face kept as it was, the edge's points with it)
+	var slit := {}
+	for f in nf:
+		var cnt := {}
+		for ti in f_tris[f]:
+			for j in 3:
+				var k := _pk(t[ti * 3 + j], t[ti * 3 + (j + 1) % 3])
+				cnt[k] = int(cnt.get(k, 0)) + 1
+		for k in cnt:
+			if int(cnt[k]) == 2 and feat.has(k):
+				slit[f] = true
+				break
+	if not slit.is_empty():
+		keep = keep.duplicate()
+		keep.merge(slit)
+		frozen = frozen.duplicate()
+		frozen.merge(slit)
 	var f_loops := []   # each face: [[segment, forward]...] in loop order
 	var f_loops2 := []   # (a ring-shaped face: its second loop's - else null)
+	var kept_edges := []   # (the kept faces' rims: [a, b] - their segments keep their points)
 	for f in nf:
 		var cnt := {}
 		for ti in f_tris[f]:
@@ -5655,6 +5834,18 @@ static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, ch
 				var b := t[ti * 3 + (j + 1) % 3]
 				var k := _pk(a, b)
 				cnt[k] = int(cnt.get(k, 0)) + 1
+		if keep.has(f) or (fill_kept and field_fill_all):
+			for ti in f_tris[f]:
+				for j in 3:
+					var a := t[ti * 3 + j]
+					var b := t[ti * 3 + (j + 1) % 3]
+					if int(cnt[_pk(a, b)]) == 1 and (not fill_kept or fill_fixed.has(f) or frozen.has(f)):
+						kept_edges.append([a, b])
+					elif slit.has(f) and feat.has(_pk(a, b)):
+						kept_edges.append([a, b])   # (the edge inside it: its points as they are)
+			f_loops.append([])
+			f_loops2.append(null)
+			continue
 		var nxt := {}
 		for ti in f_tris[f]:
 			for j in 3:
@@ -5663,10 +5854,12 @@ static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, ch
 				if int(cnt[_pk(a, b)]) == 1:
 					if nxt.has(a):
 						grid_why = "a boundary touching itself"
+						grid_fail = f
 						return {}   # (a boundary touching itself)
 					nxt[a] = b
 		if nxt.is_empty():
 			grid_why = "a closed face with no edges round it"
+			grid_fail = f
 			return {}   # (a closed face with no edges round it)
 		# its boundary loops: one (a face), or two (a ring-shaped face - rows between them)
 		var loops := []
@@ -5683,15 +5876,18 @@ static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, ch
 				cur = nx2
 			if cur != st:
 				grid_why = "a boundary that doesn't close"
+				grid_fail = f
 				return {}
 			loops.append(loop)
 		if loops.size() > 2:
 			grid_why = "a face with more than one hole"
+			grid_fail = f
 			return {}
 		var walked := []
 		for loop in loops:
 			var runs := _walk_loop(loop, junction, edge_seg, segs)
 			if runs.is_empty():
+				grid_fail = f
 				return {}   # (grid_why says why)
 			walked.append(runs)
 		if walked.size() == 2:
@@ -5706,6 +5902,15 @@ static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, ch
 				walked.reverse()
 		f_loops.append(walked[0])
 		f_loops2.append(walked[1] if walked.size() == 2 else null)
+	# (the kept faces' segments: their points as they are - their counts fixed)
+	var fixed := {}
+	for e in kept_edges:   # (the fill pass: only the faces filled on their own points - fill_fixed; the others' sampled like any)
+		var es = edge_seg.get(str(e[0]) + "_" + str(e[1]))
+		if es != null:
+			fixed[int(es[0])] = true
+	for si in fixed:
+		var run: Array = segs[si][0]
+		seg_n[si] = run.size() if segs[si][2] else run.size() - 1
 	# balance: each face's loop count even, opposite sides equal at its sharp corners - segments' counts
 	# raised where needed, a few rounds
 	var turn_at := func(vi: int, prev: int, nxt2: int) -> float:
@@ -5715,10 +5920,12 @@ static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, ch
 	# (each face's sharp corners - where its runs meet at a turn over 50 degrees: the four sharpest its grid's
 	# corners, opposite sides given the same count - the shorter one's sparsest segment one more, rounds over)
 	var f_corners := []   # each face: the run indices its four corners start (or [])
+	var f_cc := []   # each face with 3, 5 or 6 corners: the run indices they start (or [])
+	var f_ncand := []   # (each face: how many sharp corners it has)
 	for f in nf:
 		var runs: Array = f_loops[f]
 		var cand := []
-		if runs.size() >= 4 and f_loops2[f] == null:
+		if runs.size() >= 3 and f_loops2[f] == null:
 			for ri in runs.size():
 				var pr: Array = runs[(ri - 1 + runs.size()) % runs.size()]
 				var cr: Array = runs[ri]
@@ -5730,14 +5937,25 @@ static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, ch
 				var ang: float = turn_at.call(here, pv_prev, nx)
 				if ang > deg_to_rad(50.0):
 					cand.append([ang, ri])
-		if cand.size() == 4:   # (exactly four corners: one grid; more or fewer - rings round a middle grid)
+		f_ncand.append(cand.size())
+		if cand.size() == 4:   # (exactly four corners: one grid; 3, 5 or 6 - that many grids round a pole; else rings)
 			cand.sort_custom(func(x, y): return float(x[0]) > float(y[0]))
 			var four := [int(cand[0][1]), int(cand[1][1]), int(cand[2][1]), int(cand[3][1])]
 			four.sort()
 			f_corners.append(four)
+			f_cc.append([])
 		else:
 			f_corners.append([])
+			if cand.size() in [3, 5, 6]:
+				var cc := cand.map(func(x): return int(x[1]))
+				cc.sort()
+				f_cc.append(cc)
+			else:
+				f_cc.append([])
 	var n_first := seg_n.duplicate()
+	# (counts kept true to each edge's length: a face whose sides don't balance gets a plan that takes them as
+	# they are - a pole, a corner moved - not its neighbours' edges made denser to suit it; only rings, whose
+	# two loops must match, are balanced)
 	for round_i in 30:
 		var changed := false
 		var over := false
@@ -5761,13 +5979,16 @@ static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, ch
 			var low: Array = f_loops[f] if ta < tb else f_loops2[f]
 			var pick := -1
 			for r in low:
+				if fixed.has(r[0]):
+					continue
 				if pick < 0 or float(seg_len[r[0]]) / seg_n[r[0]] > float(seg_len[pick]) / seg_n[pick]:
 					pick = r[0]
-			seg_n[pick] = int(seg_n[pick]) + absi(ta - tb)
-			changed = true
+			if pick >= 0:
+				seg_n[pick] = int(seg_n[pick]) + absi(ta - tb)
+				changed = true
 		for f in nf:
 			var four: Array = f_corners[f]
-			if four.is_empty():
+			if four.is_empty() or grid_keep_counts:
 				continue
 			var runs: Array = f_loops[f]
 			var sides := []
@@ -5792,10 +6013,66 @@ static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, ch
 				var low: Array = sides[pair[0]] if c0 < c1 else sides[pair[1]]
 				var pick := -1
 				for si in low:
-					if not segs[si][2] and (pick < 0 or float(seg_len[si]) / seg_n[si] > float(seg_len[pick]) / seg_n[pick]):
+					if not segs[si][2] and not fixed.has(si) and (pick < 0 or float(seg_len[si]) / seg_n[si] > float(seg_len[pick]) / seg_n[pick]):
 						pick = si
 				if pick >= 0:
 					seg_n[pick] = int(seg_n[pick]) + absi(c1 - c0)
+					changed = true
+		for f in nf:
+			var cc: Array = f_cc[f]
+			if cc.is_empty() or grid_keep_counts:
+				continue
+			# (an n-sided face: its sides' counts such that each spoke is a whole number, one or more - a
+			# spoke too short: the sides either side of it longer)
+			var runs: Array = f_loops[f]
+			var sides := []
+			var e := []
+			for k in cc.size():
+				var a: int = cc[k]
+				var b: int = cc[(k + 1) % cc.size()]
+				var ids := []
+				var r := a
+				while r != b:
+					ids.append(runs[r][0])
+					r = (r + 1) % runs.size()
+				sides.append(ids)
+				var c := 0
+				for si in ids:
+					c += int(seg_n[si])
+				e.append(c)
+			var sf := cc_spokes(e, true)
+			if sf.is_empty():
+				continue
+			var nn := cc.size()
+			var grow := {}
+			for i in nn:
+				if float(sf[i]) < 1.0 - 1e-6:
+					grow[(i - 1 + nn) % nn] = true
+					grow[(i + 1) % nn] = true
+			if grow.is_empty() and not cc_spokes(e).is_empty():
+				continue
+			if grow.is_empty():
+				# (whole numbers only - six sides: each group of every other side even in total; a side of each
+				# odd group a step longer)
+				if nn == 6:
+					for g0 in 2:
+						if (int(e[g0]) + int(e[g0 + 2]) + int(e[g0 + 4])) % 2 == 1:
+							var best_side := g0
+							for k2 in [g0, g0 + 2, g0 + 4]:
+								if int(e[k2]) < int(e[best_side]):
+									best_side = k2
+							grow[best_side] = true
+				if grow.is_empty():
+					continue
+			for side in grow:
+				var pick := -1
+				for si in sides[side]:
+					if segs[si][2] or fixed.has(si):
+						continue
+					if pick < 0 or float(seg_len[si]) / seg_n[si] > float(seg_len[pick]) / seg_n[pick]:
+						pick = si
+				if pick >= 0:
+					seg_n[pick] = int(seg_n[pick]) + 1
 					changed = true
 		if not changed:
 			break
@@ -5806,17 +6083,21 @@ static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, ch
 			var longest := -1
 			for r in f_loops[f]:
 				total += int(seg_n[r[0]])
-				if longest < 0 or float(seg_len[r[0]]) / seg_n[r[0]] > float(seg_len[longest]) / seg_n[longest]:
+				if not fixed.has(r[0]) and (longest < 0 or float(seg_len[r[0]]) / seg_n[r[0]] > float(seg_len[longest]) / seg_n[longest]):
 					longest = r[0]
-			if total % 2 == 1 and not segs[longest][2]:
+			if total % 2 == 1 and longest >= 0 and not segs[longest][2]:
 				seg_n[longest] = int(seg_n[longest]) + 1
 				changed = true
 		if not changed:
 			break
+	# (every point's normal, all its triangles - the rim's samples follow the surface's curve with it)
+	var vnrm := _face_normals(v, t, range(t.size() / 3)) if phong_amount > 0.0 else {}
 	# samples: shared vertices along each segment (junctions shared too)
 	var out_v := PackedVector3Array()
 	var new_of := {}   # old junction vertex -> new vertex
 	var seg_pts := []   # each segment: its samples' new vertex ids, in its own order (closed: no repeat)
+	var rim_split := {}   # (the fill pass: Vector2i(old a, old b) -> [[u, new id, point]...] - the samples on that side)
+	var rim_inner := {}   # (old points inside a resampled segment: not samples themselves)
 	var fv_out := []
 	var fv_seen := {}
 	var add_fv := func(nid: int, ci: int, tp: float):
@@ -5830,17 +6111,34 @@ static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, ch
 		var closed_seg: bool = segs[si][2]
 		var n: int = seg_n[si]
 		var pts := []
+		if fixed.has(si):
+			# (a kept face's segment: its own points)
+			for vi in run:
+				if not new_of.has(vi):
+					new_of[vi] = out_v.size()
+					out_v.append(v[vi])
+					for cj in on.get(vi, {}):
+						add_fv.call(new_of[vi], int(cj), float(on[vi][cj]))
+				pts.append(new_of[vi])
+			seg_pts.append(pts)
+			continue
 		var path := PackedVector3Array()
 		var tps := PackedFloat32Array()
+		var pn := PackedVector3Array()   # (its points' normals: the rim's samples bent round with the surface)
 		for vi in run:
 			path.append(v[vi])
 			tps.append(float(on[vi][ci]))
+			pn.append(vnrm.get(vi, Vector3.ZERO))
 		if closed_seg:
 			path.append(v[run[0]])
+			pn.append(vnrm.get(run[0], Vector3.ZERO))
 			tps.append(tps[0] + 1.0)
 		var lens := PackedFloat32Array([0.0])
 		for m in range(1, path.size()):
 			lens.append(lens[m - 1] + path[m - 1].distance_to(path[m]))
+		if fill_kept:
+			for m in range(0 if closed_seg else 1, run.size() if closed_seg else run.size() - 1):
+				rim_inner[run[m]] = true
 		var total := maxf(lens[lens.size() - 1], 1e-12)
 		var count := n if closed_seg else n + 1
 		for k in count:
@@ -5859,6 +6157,11 @@ static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, ch
 				m += 1
 			var u := clampf((d - lens[m - 1]) / maxf(lens[m] - lens[m - 1], 1e-12), 0.0, 1.0)
 			var q := path[m - 1].lerp(path[m], u)
+			if phong_amount > 0.0 and pn[m - 1] != Vector3.ZERO and pn[m] != Vector3.ZERO and pn[m - 1].dot(pn[m]) > cos(deg_to_rad(35.0)):
+				# (between its two points: pulled to the curve their normals describe - a round edge round, not chords)
+				var qa := q - (q - path[m - 1]).dot(pn[m - 1]) * pn[m - 1]
+				var qb := q - (q - path[m]).dot(pn[m]) * pn[m]
+				q = q.lerp(qa.lerp(qb, u), phong_amount)
 			var tp := lerpf(tps[m - 1], tps[m], u)
 			if tp >= 1.0:
 				tp -= 1.0
@@ -5866,22 +6169,74 @@ static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, ch
 			out_v.append(q)
 			add_fv.call(nid, ci, tp)
 			pts.append(nid)
+			if fill_kept:
+				var sk := Vector2i(run[m - 1], run[m % run.size()])
+				if not rim_split.has(sk):
+					rim_split[sk] = []
+				rim_split[sk].append([u, nid, q])
 		seg_pts.append(pts)
 	# the faces' grids
 	var out_t := PackedInt32Array()
+	var order := []   # (the fill pass: the faces filled last - after every grid's made, so a grid that fails costs no fill)
+	var later := []
 	for f in nf:
+		if fill_kept and (keep.has(f) or field_fill_all) and not frozen.has(f):
+			later.append(f)
+		else:
+			order.append(f)
+	var all_f := order + later
+	var tri_total := 0
+	for f in all_f:
+		tri_total += (f_tris[f] as Array).size()
+	var tri_done := 0
+	for fi in all_f.size():
+		var f: int = all_f[fi]
+		if fill_kept:
+			# (by triangles: the big faces are the slow ones)
+			_prog(0.25 + 0.75 * float(tri_done) / maxf(1.0, tri_total), "laying its faces along their flow")
+		tri_done += (f_tris[f] as Array).size()
+		if keep.has(f) or (fill_kept and field_fill_all):
+			# (a face the templates can't lay out: filled by a field-aligned layout on the points its rim kept
+			# (field_remesh) - else its triangles as they were)
+			var tried := fill_kept and not frozen.has(f)
+			if tried and _fill_kept_face(v, t, f_tris[f], on, new_of, add_fv, out_v, out_t, L, {} if fill_fixed.has(f) else rim_split, {} if fill_fixed.has(f) else rim_inner):
+				out_v = fill_out_v
+				out_t.append_array(fill_out_t)
+				continue
+			if tried:
+				out_v = fill_out_v   # (the rim points the failed fill kept - new_of points at them; a frozen face: none, and
+				# fill_out_v still an earlier face's - never taken)
+			if fill_kept and not fill_fixed.has(f) and not frozen.has(f):
+				fill_retry.append(f)   # (its rim resampled but no fill: again on its own points - grid_faces_best)
+			for ti in f_tris[f]:
+				for j in 3:
+					var vi := t[ti * 3 + j]
+					if not new_of.has(vi):
+						new_of[vi] = out_v.size()
+						out_v.append(v[vi])
+						for cj in on.get(vi, {}):
+							add_fv.call(new_of[vi], int(cj), float(on[vi][cj]))
+					out_t.append(new_of[vi])
+			continue
 		var bpts := _loop_pts(f_loops[f], seg_pts, segs)   # the loop's samples, in loop order (each once)
 		if f_loops2[f] != null:
 			# (a ring-shaped face: rows of quads from one loop to the other)
 			var ring := _face_annulus(v, t, f_tris[f], bpts, _loop_pts(f_loops2[f], seg_pts, segs), out_v, L)
+			grid_log.append([f, "annulus" if not ring.is_empty() else "annulus failed", bpts.size(), grid_why, "", last_quality, last_counts.duplicate()])
 			if ring.is_empty():
+				grid_fail = f
 				return {}   # (grid_why says why)
+			if fill_kept and fill_compare and _fill_wins(v, t, f_tris[f], on, new_of, add_fv, out_v, out_t, L, rim_split, rim_inner, ring, f, fv_out, fv_seen):
+				out_v = fill_out_v
+				out_t.append_array(fill_out_t)
+				continue
 			out_v = ring["v"]
 			out_t.append_array(ring["t"])
 			continue
 		var N := bpts.size()
 		if N < 4 or N % 2 == 1:
 			grid_why = "an odd count round a face"
+			grid_fail = f
 			return {}
 		# the corners: i0, i1, i0 + N/2, i1 + N/2 - as sharp as the boundary's corners allow
 		var sharp := PackedFloat32Array()
@@ -5916,15 +6271,139 @@ static func grid_faces(v: PackedVector3Array, t: PackedInt32Array, fv: Array, ch
 					best = sc
 					bc = [i0, a]
 		var grid := {}
-		if bc[0] >= 0:
+		# (the plan: its sharp corners, a virtual one or two added where the rim bends most when that makes
+		# fewer poles or squarer quads - a 4-corner plan one grid, 3, 5 or 6 that many round one pole; a
+		# round dome: rings)
+		var per0 := 0.0
+		for k2 in N:
+			per0 += out_v[bpts[k2]].distance_to(out_v[bpts[(k2 + 1) % N]])
+		var ar0 := 0.0
+		for ti in f_tris[f]:
+			ar0 += (v[t[ti * 3 + 1]] - v[t[ti * 3]]).cross(v[t[ti * 3 + 2]] - v[t[ti * 3]]).length() * 0.5
+		var bpos := PackedVector3Array()
+		for k2 in N:
+			bpos.append(out_v[bpts[k2]])
+		var plan := _plan_corners(sharp, N, per0 * per0 / (4.0 * PI * maxf(ar0, 1e-12)), bpos)
+		var plan_info := ""
+		if plan.size() >= 3:
+			var es := []
+			var ls := []
+			for pi in plan.size():
+				var a0: int = plan[pi]
+				var b0: int = plan[(pi + 1) % plan.size()]
+				es.append((b0 - a0 + N) % N)
+				var ln := 0.0
+				var kk := a0
+				while kk != b0:
+					ln += out_v[bpts[kk]].distance_to(out_v[bpts[(kk + 1) % N]])
+					kk = (kk + 1) % N
+				ls.append(snappedf(ln / L, 0.1))
+			plan_info = "counts %s, lengths/L %s, area/L2 %.0f" % [str(es), str(ls), ar0 / (L * L)]
+		if plan.size() == 4:
+			grid = _face_grid(v, t, f_tris[f], bpts, out_v, plan[0], plan[1] - plan[0], plan[2] - plan[1], L)
+			grid_log.append([f, "plan grid" if not grid.is_empty() else "plan grid failed", 4, grid_why, plan_info, last_quality, last_counts.duplicate()])
+		elif plan.size() >= 3:
+			grid = _face_cc(v, t, f_tris[f], bpts, out_v, plan, L)
+			grid_log.append([f, "plan cc" if not grid.is_empty() else "plan cc failed", plan.size(), grid_why, plan_info, last_quality, last_counts.duplicate()])
+		var cc: Array = f_cc[f] if f < f_cc.size() and grid.is_empty() else []
+		if not cc.is_empty():
+			# (3, 5 or 6 corners: that many grids round one pole - the corners' places in the loop)
+			var at_run := []
+			var k := 0
+			for ri in f_loops[f].size():
+				at_run.append(k)
+				k += (seg_pts[f_loops[f][ri][0]] as Array).size() - (0 if segs[f_loops[f][ri][0]][2] else 1)
+			grid = _face_cc(v, t, f_tris[f], bpts, out_v, cc.map(func(x): return at_run[x]), L)
+			grid_log.append([f, "cc" if not grid.is_empty() else "cc failed", cc.size(), grid_why])
+		if grid.is_empty() and bc[0] >= 0 and plan.size() != 4:
 			grid = _face_grid(v, t, f_tris[f], bpts, out_v, bc[0], bc[1], h - bc[1], L)
+			grid_log.append([f, "grid" if not grid.is_empty() else "grid failed", 4, grid_why])
+		if grid.is_empty():
+			var per := 0.0
+			for k2 in bpts.size():
+				per += out_v[bpts[k2]].distance_to(out_v[bpts[(k2 + 1) % bpts.size()]])
+			var ar := 0.0
+			for ti in f_tris[f]:
+				ar += (v[t[ti * 3 + 1]] - v[t[ti * 3]]).cross(v[t[ti * 3 + 2]] - v[t[ti * 3]]).length() * 0.5
+			grid_log.append([f, "rings", "%d corners, %d runs, %s, round %.1f" % [int(f_ncand[f]), (f_loops[f] as Array).size(), "ring" if f_loops2[f] != null else "disc", per * per / (4.0 * PI * maxf(ar, 1e-12))], grid_why])
+		if grid.is_empty() and per0 * per0 / (4.0 * PI * maxf(ar0, 1e-12)) > 1.6 and plan.size() >= 3:
+			# (rings only suit a round face - a long or many-cornered one whose plan failed is better kept as
+			# it was than wound round a circle)
+			grid_fail = f
+			return {}
 		if grid.is_empty():
 			grid = _face_rings(v, t, f_tris[f], bpts, out_v, L)   # (not four balanced corners - or not an even grid: rings)
+			if not grid.is_empty():
+				grid_log.append([f, "rings made", 0, "", "", last_quality, last_counts.duplicate()])
 		if grid.is_empty():
+			grid_fail = f
 			return {}   # (grid_why says why)
+		if fill_kept and fill_compare and _fill_wins(v, t, f_tris[f], on, new_of, add_fv, out_v, out_t, L, rim_split, rim_inner, grid, f, fv_out, fv_seen):
+			out_v = fill_out_v
+			out_t.append_array(fill_out_t)
+			continue
 		out_v = grid["v"]   # (its inner points added - a packed array comes back, not changed in place)
 		out_t.append_array(grid["t"])
 	return {"v": out_v, "t": out_t, "fv": fv_out}
+
+
+## (grid_faces, the fill pass) The field-aligned fill tried on a face the templates laid out (`grid`: {v, t}):
+## true - it scores better by fill_margin (fill_out_v / fill_out_t hold it); else everything as it was.
+static func _fill_wins(v: PackedVector3Array, t: PackedInt32Array, tris: Array, on: Dictionary, new_of: Dictionary, add_fv: Callable, out_v: PackedVector3Array, out_t: PackedInt32Array, L: float, rim_split: Dictionary, rim_inner: Dictionary, grid: Dictionary, f: int, fv_out: Array, fv_seen: Dictionary) -> bool:
+	var gs := _local_score(grid["v"], grid["t"])
+	if gs >= fill_skip_above:
+		return false   # (a grid already that clean: kept, no fill tried)
+	var had := new_of.duplicate()
+	var fv_had := fv_out.size()
+	if _fill_kept_face(v, t, tris, on, new_of, add_fv, out_v, out_t, L, rim_split, rim_inner):
+		var fs := _local_score(fill_out_v, fill_out_t)
+		grid_log.append([f, "fill vs grid", 0, "", "", "fill %.1f grid %.1f" % [fs, gs], [0, 0, 0]])
+		if fs > gs + fill_margin:
+			fill_won += 1
+			return true
+	if new_of.size() != had.size():
+		new_of.clear()   # (rim points the fill added: gone with it)
+		new_of.merge(had)
+	for i in range(fv_had, fv_out.size()):
+		fv_seen.erase(str(fv_out[i][0]) + "_" + str(fv_out[i][1]))   # (and their places on the edges - else they'd
+	fv_out.resize(fv_had)   # name points the grid gives other ids, or none)
+	return false
+
+
+## (grid_faces) A face's layout scored on its own (topo_score: its rim samples count as edge points): triangles
+## `tt` (vertex ids into vv).
+static func _local_score(vv: PackedVector3Array, tt: PackedInt32Array) -> float:
+	var loc := {}
+	var lv := PackedVector3Array()
+	var lt := PackedInt32Array()
+	for x in tt:
+		if not loc.has(x):
+			loc[x] = lv.size()
+			lv.append(vv[x])
+		lt.append(loc[x])
+	var fv := []
+	# (the rim's points: edge points)
+	var cnt := {}
+	for i in range(0, lt.size(), 3):
+		for j in 3:
+			var a := lt[i + j]
+			var b := lt[i + (j + 1) % 3]
+			var k := Vector2i(mini(a, b), maxi(a, b))
+			cnt[k] = int(cnt.get(k, 0)) + 1
+	var seen := {}
+	for e in fv:
+		seen[e[0]] = true
+	for k: Vector2i in cnt:
+		if int(cnt[k]) == 1:
+			for x in [k.x, k.y]:
+				if not seen.has(x):
+					seen[x] = true
+					fv.append([x, 0, 0.0])
+	var TS: GDScript = load("res://scripts/editor/mesh/topo_score.gd")
+	var pt0 := Time.get_ticks_usec()
+	var sc := float(TS.score(lv, lt, fv, [{"id": 0, "closed": true}])["score"])
+	prof["local_score"] = float(prof.get("local_score", 0.0)) + (Time.get_ticks_usec() - pt0) / 1000.0
+	return sc
 
 
 static func _rev(ps: Array, closed: bool) -> Array:
@@ -5946,7 +6425,7 @@ static func _face_grid(v: PackedVector3Array, t: PackedInt32Array, tris: Array, 
 	var area := 0.0
 	for ti in tris:
 		area += (v[t[ti * 3 + 1]] - v[t[ti * 3]]).cross(v[t[ti * 3 + 2]] - v[t[ti * 3]]).length() * 0.5
-	if float(na * nb) < 0.5 * area / (L * L):
+	if float(na * nb) < 0.5 * area / (L * L) and mini(na, nb) > 3:   # (a strip: its width is its width)
 		grid_why = "too coarse: %d x %d for %.0f" % [na, nb, area / (L * L)]
 		return {}
 	# the face's own vertices; its boundary loop (old vertices) by place along the samples
@@ -5974,104 +6453,45 @@ static func _face_grid(v: PackedVector3Array, t: PackedInt32Array, tris: Array, 
 				nbrs[b] = {}
 			nbrs[a][b] = true
 			nbrs[b][a] = true
-	# each sample's square place, by the corners: side 0 along u from (0, 0), side 1 up v, ...
+	# each sample's place on a rectangle shaped like the grid (na by nb - a unit square squeezes a long face
+	# and its points miss it): side 0 along u from (0, 0), side 1 up v, ...
+	var rx := float(na) / maxi(na, nb)
+	var ry := float(nb) / maxi(na, nb)
 	var sq := PackedVector2Array()
 	sq.resize(N)
 	for k in N:
 		var r := (k - i0 + N) % N
 		if r <= na:
-			sq[k] = Vector2(float(r) / na, 0.0)
+			sq[k] = Vector2(float(r) / na * rx, 0.0)
 		elif r <= na + nb:
-			sq[k] = Vector2(1.0, float(r - na) / nb)
+			sq[k] = Vector2(rx, float(r - na) / nb * ry)
 		elif r <= 2 * na + nb:
-			sq[k] = Vector2(1.0 - float(r - na - nb) / na, 1.0)
+			sq[k] = Vector2((1.0 - float(r - na - nb) / na) * rx, ry)
 		else:
-			sq[k] = Vector2(0.0, 1.0 - float(r - 2 * na - nb) / nb)
-	# the old boundary vertices placed between the samples nearest them along the loop (by position)
-	var bpos := PackedVector3Array()
-	for k in N:
-		bpos.append(out_v[bpts[k]])
+			sq[k] = Vector2(0.0, (1.0 - float(r - 2 * na - nb) / nb) * ry)
+	# the old rim's points placed along the new rim by how far along it they are
+	var rp := _rim_places(v, t, tris, bpts, out_v)
 	var uv := {}
 	for vi in bnd:
-		var q := v[vi]
-		var bestd := INF
-		var place := Vector2.ZERO
-		for k in N:
-			var a := bpos[k]
-			var b := bpos[(k + 1) % N]
-			var ab := b - a
-			var s := clampf((q - a).dot(ab) / maxf(ab.length_squared(), 1e-18), 0.0, 1.0)
-			var d := (a + ab * s).distance_squared_to(q)
-			if d < bestd:
-				bestd = d
-				var sa := sq[k]
-				var sb := sq[(k + 1) % N]
-				place = sa.lerp(sb, s)
-		uv[vi] = place
-	# the inside: each point the middle of its neighbours (a harmonic map, solved by conjugate gradients)
-	var inner := []
-	var idx := {}
-	for vi in verts:
-		if not bnd.has(vi):
-			idx[vi] = inner.size()
-			inner.append(vi)
-	var n_in := inner.size()
-	if n_in > 0:
-		for axis in 2:
-			var bvec := PackedFloat64Array()
-			bvec.resize(n_in)
-			for i in n_in:
-				var s := 0.0
-				for o in nbrs[inner[i]]:
-					if bnd.has(o):
-						s += (uv[o] as Vector2)[axis]
-				bvec[i] = s
-			var x := PackedFloat64Array()
-			x.resize(n_in)
-			x.fill(0.5)
-			var apply := func(p: PackedFloat64Array) -> PackedFloat64Array:
-				var o2 := PackedFloat64Array()
-				o2.resize(n_in)
-				for i in n_in:
-					var nb2: Dictionary = nbrs[inner[i]]
-					var s := float(nb2.size()) * p[i]
-					for o in nb2:
-						if idx.has(o):
-							s -= p[idx[o]]
-					o2[i] = s
-				return o2
-			var ax: PackedFloat64Array = apply.call(x)
-			var r := PackedFloat64Array()
-			r.resize(n_in)
-			for i in n_in:
-				r[i] = bvec[i] - ax[i]
-			var p := r.duplicate()
-			var rr := 0.0
-			for i in n_in:
-				rr += r[i] * r[i]
-			for it in 600:
-				if rr < 1e-14:
-					break
-				var ap: PackedFloat64Array = apply.call(p)
-				var pap := 0.0
-				for i in n_in:
-					pap += p[i] * ap[i]
-				if absf(pap) < 1e-30:
-					break
-				var al := rr / pap
-				var rr2 := 0.0
-				for i in n_in:
-					x[i] += al * p[i]
-					r[i] -= al * ap[i]
-					rr2 += r[i] * r[i]
-				var be := rr2 / rr
-				rr = rr2
-				for i in n_in:
-					p[i] = r[i] + be * p[i]
-			for i in n_in:
-				var cur: Vector2 = uv.get(inner[i], Vector2.ZERO)
-				cur[axis] = x[i]
-				uv[inner[i]] = cur
+		if rp.has(vi):
+			var kk := int(rp[vi].x)
+			uv[vi] = sq[kk].lerp(sq[(kk + 1) % N], rp[vi].y)
+		else:
+			var q := v[vi]
+			var bestd := INF
+			var place := Vector2.ZERO
+			for k in N:
+				var a := out_v[bpts[k]]
+				var b := out_v[bpts[(k + 1) % N]]
+				var ab := b - a
+				var s := clampf((q - a).dot(ab) / maxf(ab.length_squared(), 1e-18), 0.0, 1.0)
+				var d := (a + ab * s).distance_squared_to(q)
+				if d < bestd:
+					bestd = d
+					place = sq[k].lerp(sq[(k + 1) % N], s)
+			uv[vi] = place   # (a hole's rim: by nearness)
+	# the inside: by cotangent weights (a plain average warps an uneven triangulation)
+	_harmonic_cot(v, t, tris, bnd, uv)
 	# the face's triangles in the square, bucketed for finding the one under a grid point
 	var B := 24
 	var buckets := {}
@@ -6087,6 +6507,7 @@ static func _face_grid(v: PackedVector3Array, t: PackedInt32Array, tris: Array, 
 				if not buckets.has(key):
 					buckets[key] = []
 				buckets[key].append(ti)
+	var fnrm := _face_normals(v, t, tris)
 	var surf := func(p: Vector2) -> Vector3:
 		var key := clampi(int(p.x * B), 0, B - 1) * B + clampi(int(p.y * B), 0, B - 1)
 		var best_ti := -1
@@ -6111,7 +6532,7 @@ static func _face_grid(v: PackedVector3Array, t: PackedInt32Array, tris: Array, 
 			return Vector3.INF
 		var w := best_w.clamp(Vector3.ZERO, Vector3.ONE)
 		w /= maxf(w.x + w.y + w.z, 1e-12)
-		return v[t[best_ti * 3]] * w.x + v[t[best_ti * 3 + 1]] * w.y + v[t[best_ti * 3 + 2]] * w.z
+		return _on_surface(v, t, best_ti, w, fnrm)   # (on the smooth surface, not its facets)
 	# the grid's points: its border the samples, its inside mapped back
 	var gid := func(i: int, j: int) -> int:
 		if j == 0:
@@ -6126,9 +6547,14 @@ static func _face_grid(v: PackedVector3Array, t: PackedInt32Array, tris: Array, 
 	var inner_id := {}
 	for i in range(1, na):
 		for j in range(1, nb):
-			var q: Vector3 = surf.call(Vector2(float(i) / na, float(j) / nb))
+			var q: Vector3 = surf.call(Vector2(float(i) / na * rx, float(j) / nb * ry))
 			if q == Vector3.INF:
-				grid_why = "a grid point off the face"
+				var ulo := Vector2(INF, INF)
+				var uhi := -ulo
+				for vi in uv:
+					ulo = ulo.min(uv[vi])
+					uhi = uhi.max(uv[vi])
+				grid_why = "a grid point off the face (%d, %d of %d x %d; map %s..%s; %d tris, %d inner)" % [i, j, na, nb, str(ulo), str(uhi), tris.size(), uv.size() - bnd.size()]
 				return {}
 			inner_id[i * (nb + 1) + j] = out_v.size()
 			out_v.append(q)
@@ -6151,9 +6577,10 @@ static func _face_grid(v: PackedVector3Array, t: PackedInt32Array, tris: Array, 
 	var mean := area / maxf(quads.size(), 1)
 	for q4 in quads:
 		var qa: float = ((out_v[q4[1]] - out_v[q4[0]]).cross(out_v[q4[2]] - out_v[q4[0]]).length() + (out_v[q4[2]] - out_v[q4[0]]).cross(out_v[q4[3]] - out_v[q4[0]]).length()) * 0.5
-		if qa > mean * 4.0:
+		if qa > mean * uneven_limit and mini(na, nb) > 2:   # (a strip a quad or two wide: uneven as its width is - still far better than rings)
 			grid_why = "uneven: a quad %.1f x the mean, %d x %d grid, area %.3f, N %d" % [qa / mean, na, nb, area, N]
 			return {}
+	_note_quality(out_v, quads)
 	var out := PackedInt32Array()
 	for q4 in quads:
 		var a: int = q4[0]
@@ -6164,8 +6591,16 @@ static func _face_grid(v: PackedVector3Array, t: PackedInt32Array, tris: Array, 
 			var tmp := b
 			b = d
 			d = tmp
-		# (split along its longer diagonal - drawn as one quad)
-		if out_v[a].distance_squared_to(out_v[c]) >= out_v[b].distance_squared_to(out_v[d]):
+		# (split along a diagonal inside it, both triangles facing its way - the longer when both are)
+		var qn := (out_v[c] - out_v[a]).cross(out_v[b] - out_v[d])
+		var ac_ok := _tri_face(out_v, a, b, c).dot(qn) > 0.0 and _tri_face(out_v, a, c, d).dot(qn) > 0.0
+		var bd_ok := _tri_face(out_v, a, b, d).dot(qn) > 0.0 and _tri_face(out_v, b, c, d).dot(qn) > 0.0
+		var use_ac := out_v[a].distance_squared_to(out_v[c]) >= out_v[b].distance_squared_to(out_v[d])
+		if use_ac and not ac_ok and bd_ok:
+			use_ac = false
+		elif not use_ac and not bd_ok and ac_ok:
+			use_ac = true
+		if use_ac:
 			out.append_array(PackedInt32Array([a, b, c, a, c, d]))
 		else:
 			out.append_array(PackedInt32Array([a, b, d, b, c, d]))
@@ -6208,7 +6643,7 @@ static func _face_rings(v: PackedVector3Array, t: PackedInt32Array, tris: Array,
 				bestd = d
 				a = ang[k] + (TAU * (cum[k + 1] - cum[k]) / per) * s
 		uv[vi] = Vector2(cos(a), sin(a))
-	_harmonic(nbrs, bnd, uv)
+	_harmonic_cot(v, t, tris, bnd, uv)
 	# evened out by area: each point's radius r made sqrt(the share of the face's area nearer the middle)
 	var tr := []
 	var area := 0.0
@@ -6238,6 +6673,7 @@ static func _face_rings(v: PackedVector3Array, t: PackedInt32Array, tris: Array,
 		var f := lerpf(fs[j - 1], fs[j], w)
 		uv[vi] = p / r * sqrt(clampf(f, 0.0, 1.0))
 	var look := _uv_index(t, tris, uv, Vector2(-1.05, -1.05), Vector2(1.05, 1.05), 32)
+	look["nrm"] = _face_normals(v, t, tris)
 	# the layout: a middle grid m1 x m2 (its edge N points), R rings round it
 	var m1 := int(ceil(N / 4.0))
 	var m2 := N / 2 - m1
@@ -6511,7 +6947,54 @@ static func _uv_at(v: PackedVector3Array, t: PackedInt32Array, uv: Dictionary, l
 		return []
 	var w := best_w.clamp(Vector3.ZERO, Vector3.ONE)
 	w /= maxf(w.x + w.y + w.z, 1e-12)
-	return [v[t[best_ti * 3]] * w.x + v[t[best_ti * 3 + 1]] * w.y + v[t[best_ti * 3 + 2]] * w.z, best_ti]
+	return [_on_surface(v, t, best_ti, w, look.get("nrm", {})), best_ti]
+
+
+## A point of triangle `ti` (weights `w`) on the smooth surface its corners' normals describe (Phong
+## tessellation: the flat point pulled to each corner's tangent plane, blended) - a finer grid laid over a
+## coarse face isn't left on its flat facets, creased where they meet. `nrm`: {vertex: normal} ({} - flat).
+static func _on_surface(v: PackedVector3Array, t: PackedInt32Array, ti: int, w: Vector3, nrm: Dictionary) -> Vector3:
+	var a := t[ti * 3]
+	var b := t[ti * 3 + 1]
+	var c := t[ti * 3 + 2]
+	var p := v[a] * w.x + v[b] * w.y + v[c] * w.z
+	if nrm.is_empty() or not (nrm.has(a) and nrm.has(b) and nrm.has(c)):
+		return p
+	var na: Vector3 = nrm[a]
+	var nb: Vector3 = nrm[b]
+	var nc: Vector3 = nrm[c]
+	var lim := cos(deg_to_rad(35.0))
+	if na.dot(nb) < lim or nb.dot(nc) < lim or na.dot(nc) < lim:
+		return p   # (a sharp bend inside the face, not one of its edges: left as it is - rounding it would bulge)
+	var pa := p - (p - v[a]).dot(na) * na
+	var pb := p - (p - v[b]).dot(nb) * nb
+	var pc := p - (p - v[c]).dot(nc) * nc
+	var ph := pa * w.x + pb * w.y + pc * w.z
+	return p.lerp(ph, phong_amount)
+
+
+## A face's vertex normals, its own triangles only (smooth across the face, its edges left sharp): each the
+## triangles round it by their angle there. {vertex: normal}.
+static func _face_normals(v: PackedVector3Array, t: PackedInt32Array, tris: Array) -> Dictionary:
+	var out := {}
+	for ti in tris:
+		var ia := t[ti * 3]
+		var ib := t[ti * 3 + 1]
+		var ic := t[ti * 3 + 2]
+		var n := (v[ic] - v[ia]).cross(v[ib] - v[ia])
+		if n.length_squared() < 1e-30:
+			continue
+		n = n.normalized()
+		var ids := [ia, ib, ic]
+		for j in 3:
+			var p0 := v[ids[j]]
+			var e1 := v[ids[(j + 1) % 3]] - p0
+			var e2 := v[ids[(j + 2) % 3]] - p0
+			var ang := e1.angle_to(e2) if e1.length_squared() > 1e-30 and e2.length_squared() > 1e-30 else 0.0
+			out[ids[j]] = (out.get(ids[j], Vector3.ZERO) as Vector3) + n * ang
+	for k in out:
+		out[k] = (out[k] as Vector3).normalized()
+	return out
 
 
 ## (grid_faces) Quads [a, b, c, d] (round the same way in the map) as triangles facing as the surface under
@@ -6543,6 +7026,7 @@ static func _quads_out(v: PackedVector3Array, t: PackedInt32Array, _uv: Dictiona
 		else:
 			disagree += 1
 	var flip := disagree > agree
+	_note_quality(nv, quads)
 	if mini(agree, disagree) * 10 > agree + disagree:
 		grid_why = "a layout that folds (%d of %d quads turned over)" % [mini(agree, disagree), agree + disagree]
 		return {}
@@ -6556,11 +7040,26 @@ static func _quads_out(v: PackedVector3Array, t: PackedInt32Array, _uv: Dictiona
 			var tmp := b
 			b = d
 			d = tmp
-		if nv[a].distance_squared_to(nv[c]) >= nv[b].distance_squared_to(nv[d]):
+		# (split along a diagonal inside the quad - both triangles facing its way; of two such, the longer:
+		# a dented quad's longer diagonal runs outside it and turns one triangle over)
+		var qn := (nv[c] - nv[a]).cross(nv[b] - nv[d])
+		var ac_ok := _tri_face(nv, a, b, c).dot(qn) > 0.0 and _tri_face(nv, a, c, d).dot(qn) > 0.0
+		var bd_ok := _tri_face(nv, a, b, d).dot(qn) > 0.0 and _tri_face(nv, b, c, d).dot(qn) > 0.0
+		var use_ac := nv[a].distance_squared_to(nv[c]) >= nv[b].distance_squared_to(nv[d])
+		if use_ac and not ac_ok and bd_ok:
+			use_ac = false
+		elif not use_ac and not bd_ok and ac_ok:
+			use_ac = true
+		if use_ac:
 			out.append_array(PackedInt32Array([a, b, c, a, c, d]))
 		else:
 			out.append_array(PackedInt32Array([a, b, d, b, c, d]))
 	return {"t": out, "v": nv}
+
+
+## A triangle's facing (as the mesh draws it: Godot's front faces wind the other way round).
+static func _tri_face(nv: PackedVector3Array, a: int, b: int, c: int) -> Vector3:
+	return (nv[c] - nv[a]).cross(nv[b] - nv[a])
 
 
 
@@ -6587,6 +7086,7 @@ static func _walk_loop(loop: Array, junction: Dictionary, edge_seg: Dictionary, 
 		var es = edge_seg.get(str(a) + "_" + str(b))
 		if es == null:
 			grid_why = "a boundary edge on no chain"
+			no_chain_side = [a, b, junction.has(a), junction.has(b)]
 			return []
 		runs.append(es)
 		m += (segs[es[0]][0] as Array).size() - 1
@@ -6646,33 +7146,61 @@ static func _face_annulus(v: PackedVector3Array, t: PackedInt32Array, tris: Arra
 		var a := TAU * cum[k] / per
 		pa.append(Vector2(cos(a), sin(a)))
 		pb.append(Vector2(cos(a), sin(a)) * rho)
-	# the face's own boundary vertices: on whichever loop they lie nearest, between its samples
+	# the face's own rims: each old loop on the new loop it lies along (as a whole - point by point, a
+	# narrow band's points could land on the wrong one and fold the map), placed along it by length
 	var uv := {}
-	for vi in bnd:
-		var q := v[vi]
-		var bestd := INF
-		var place := Vector2.ZERO
-		for side in 2:
-			var ids: Array = ba if side == 0 else bpair
-			var pp: PackedVector2Array = pa if side == 0 else pb
+	var cnt := {}
+	for ti in tris:
+		for j in 3:
+			var k2 := _pk(t[ti * 3 + j], t[ti * 3 + (j + 1) % 3])
+			cnt[k2] = int(cnt.get(k2, 0)) + 1
+	var nxt := {}
+	for ti in tris:
+		for j in 3:
+			var a2 := t[ti * 3 + j]
+			var b2 := t[ti * 3 + (j + 1) % 3]
+			if int(cnt[_pk(a2, b2)]) == 1:
+				nxt[a2] = b2
+	var left := nxt.duplicate()
+	while not left.is_empty():
+		var st: int = left.keys()[0]
+		var loop := [st]
+		var cur: int = left[st]
+		left.erase(st)
+		while cur != st and left.has(cur):
+			loop.append(cur)
+			var nx: int = left[cur]
+			left.erase(cur)
+			cur = nx
+		# (which new loop: the nearer on average)
+		var da := 0.0
+		var db := 0.0
+		for vi in loop:
+			var ma := INF
+			var mb := INF
 			for k in N:
-				var p0 := out_v[ids[k]]
-				var p1 := out_v[ids[(k + 1) % N]]
-				var ab := p1 - p0
-				var s := clampf((q - p0).dot(ab) / maxf(ab.length_squared(), 1e-18), 0.0, 1.0)
-				var d := (p0 + ab * s).distance_squared_to(q)
-				if d < bestd:
-					bestd = d
-					var u0 := pp[k]
-					var u1 := pp[(k + 1) % N]
-					# (along the arc, not across it)
-					var a0 := atan2(u0.y, u0.x)
-					var a1 := a0 + wrapf(atan2(u1.y, u1.x) - a0, -PI, PI)
-					var r := u0.length()
-					var am := lerpf(a0, a1, s)
-					place = Vector2(cos(am), sin(am)) * r
-		uv[vi] = place
-	_harmonic(nbrs, bnd, uv)
+				ma = minf(ma, v[vi].distance_squared_to(out_v[ba[k]]))
+				mb = minf(mb, v[vi].distance_squared_to(out_v[bpair[k]]))
+			da += sqrt(ma)
+			db += sqrt(mb)
+		var on_a := da <= db
+		var ids: Array = ba if on_a else bpair
+		var pp: PackedVector2Array = pa if on_a else pb
+		var lp := _loop_places(v, loop, ids, out_v)
+		for vi in loop:
+			if not lp.has(vi):
+				continue
+			var k := int(lp[vi].x)
+			var u0 := pp[k]
+			var u1 := pp[(k + 1) % N]
+			# (along the arc, not across it)
+			var a0 := atan2(u0.y, u0.x)
+			var a1 := a0 + wrapf(atan2(u1.y, u1.x) - a0, -PI, PI)
+			uv[vi] = Vector2(cos(lerpf(a0, a1, lp[vi].y)), sin(lerpf(a0, a1, lp[vi].y))) * u0.length()
+	for vi in bnd:
+		if not uv.has(vi):
+			uv[vi] = Vector2.ZERO   # (shouldn't be: every rim point is on one of its two loops)
+	_harmonic_cot(v, t, tris, bnd, uv)
 	var look := _uv_index(t, tris, uv, Vector2(-1.05, -1.05), Vector2(1.05, 1.05), 32)
 	# the joins: each sampled along on the surface; the rows at equal lengths along them
 	var SS := 32
@@ -6720,3 +7248,1835 @@ static func _face_annulus(v: PackedVector3Array, t: PackedInt32Array, tris: Arra
 		for k in N:
 			quads.append([a[k], a[(k + 1) % N], b[(k + 1) % N], b[k]])
 	return _quads_out(v, t, uv, look, nv, quads, tris)
+
+
+# --- grids for any solid: facing made one way, faces with holes cut into pieces -----------------------------
+
+## A solid's mesh laid out again as grids of quads that follow its edges - any solid: its triangles turned
+## to face one way, each face with more than one hole cut into two pieces (a line from its rim through each
+## hole and out again - the cut's points let go of after, so no new edges), then every face a grid
+## (grid_faces_best: one that still can't be kept as it was, with no gap). {v, t, fv, kept, cuts} or {}.
+## full = false: the grid templates only (no field-aligned fill, one try at the crease lines) - quick (a tenth of
+## a second for a few thousand triangles), for a layout made on the main thread; the full one on a worker.
+## (the layout's progress) `f` of the way through the current run, doing `what` - never going back.
+static func _prog(f: float, what := "") -> void:
+	progress[0] = maxf(float(progress[0]), _pbase + _pspan * clampf(f, 0.0, 1.0))
+	if what != "":
+		progress[1] = what
+
+
+## only: the triangles to lay out (their faces) - the other faces kept exactly as they are; empty: all.
+static func grid_any(v: PackedVector3Array, t: PackedInt32Array, fv: Array, chains: Array, L: float, full := true, only := {}) -> Dictionary:
+	progress[0] = 0.0
+	progress[1] = "starting"
+	_pbase = 0.0
+	_pspan = 1.0
+	if not full or not crease_both or not crease_on:
+		var r0 := _grid_any(v, t, fv, chains, L, crease_min_len, full, only)
+		progress[0] = 1.0
+		return r0
+	# (the mesh's own sharp bends followed as lines - or not: on a clean shape they keep the shading crisp, on
+	# a messy one they're noise cutting little faces - both laid out, the better kept)
+	_pspan = 0.5
+	var a := _grid_any(v, t, fv, chains, L, crease_short, true, only)
+	_pbase = 0.5
+	var b := _grid_any(v, t, fv, chains, L, crease_long, true, only)
+	_pbase = 0.0
+	_pspan = 1.0
+	_prog(1.0, "choosing the cleaner")
+	if a.is_empty() or b.is_empty():
+		return b if a.is_empty() else a
+	var TS: GDScript = load("res://scripts/editor/mesh/topo_score.gd")
+	var sa := float(TS.score(a["v"], a["t"], a["fv"], chains)["score"])
+	var sb := float(TS.score(b["v"], b["t"], b["fv"], chains)["score"])
+	return a if sa >= sb else b
+
+
+static func _grid_any(v: PackedVector3Array, t: PackedInt32Array, fv: Array, chains: Array, L: float, min_len: float, full: bool, only := {}) -> Dictionary:
+	_prog(0.0, "following its edges")
+	var t2 := oriented(t)
+	fv = chain_paths(v, t2, fv, chains) if paths_on else clean_edge_points(t2, fv, chains)   # (each edge's points in the order its path runs through the mesh)
+	var creased := crease_chains(v, t2, fv, chains, L, min_len) if crease_on else {"fv": fv, "chains": chains}   # (sharp bends that aren't edges: rows of mesh along them)
+	var halves := split_closed(v, t2, creased["fv"], creased["chains"]) if split_closed_on else creased   # (a closed shape with no edges: cut across its middle)
+	var prep := cut_holes(v, t2, halves["fv"], halves["chains"])
+	if big_face > 0.0:
+		var sp := split_big(v, prep["t"], prep["fv"], prep["chains"], L)   # (a big face in pieces, each flattened with less distortion)
+		prep["fv"] = sp["fv"]
+		prep["chains"] = sp["chains"]   # (rim_chains - bare open borders as edges - made things worse: their open sides are mostly seams, to look at)
+	_prog(0.05, "laying grids")
+	var r := grid_faces_best(v, prep["t"], prep["fv"], prep["chains"], L, full, only)
+	_prog(1.0)
+	if r.is_empty():
+		return {}
+	var real := chains.size()
+	r["fv"] = (r["fv"] as Array).filter(func(e): return int(e[1]) < real)   # (the cuts' points: plain points again)
+	r["cuts"] = int(prep["cuts"])
+	return r
+
+
+## Triangles turned so neighbours agree (each side run opposite ways by the two triangles at it) - each
+## piece of the mesh kept the way most of its triangles already faced.
+static func oriented(t_in: PackedInt32Array) -> PackedInt32Array:
+	var t := t_in.duplicate()
+	var nt := t.size() / 3
+	var by_e := {}
+	for ti in nt:
+		for j in 3:
+			var k := _pk(t[ti * 3 + j], t[ti * 3 + (j + 1) % 3])
+			if not by_e.has(k):
+				by_e[k] = []
+			(by_e[k] as Array).append(ti)
+	var seen := PackedByteArray()
+	seen.resize(nt)
+	var flip := PackedByteArray()
+	flip.resize(nt)
+	var has_dir := func(ti: int, a: int, b: int) -> bool:
+		for j in 3:
+			if t[ti * 3 + j] == a and t[ti * 3 + (j + 1) % 3] == b:
+				return true
+		return false
+	for t0 in nt:
+		if seen[t0] == 1:
+			continue
+		var comp := []
+		seen[t0] = 1
+		var todo := [t0]
+		while not todo.is_empty():
+			var ti: int = todo.pop_back()
+			comp.append(ti)
+			for j in 3:
+				var a := t[ti * 3 + j]
+				var b := t[ti * 3 + (j + 1) % 3]
+				if flip[ti] == 1:
+					var tmp := a
+					a = b
+					b = tmp
+				var nb: Array = by_e[_pk(a, b)]
+				if nb.size() != 2:
+					continue   # (an open side or one three faces meet at: not followed)
+				var o: int = nb[0] if nb[1] == ti else nb[1]
+				if seen[o] == 1:
+					continue
+				seen[o] = 1
+				# (agreeing: the neighbour runs the side b -> a)
+				flip[o] = 0 if has_dir.call(o, b, a) else 1
+				todo.append(o)
+		var flipped := 0
+		for ti in comp:
+			flipped += flip[ti]
+		var undo := flipped * 2 > comp.size()   # (most of it faced the other way: that's its way)
+		for ti in comp:
+			if (flip[ti] == 1) != undo:
+				var x := t[ti * 3 + 1]
+				t[ti * 3 + 1] = t[ti * 3 + 2]
+				t[ti * 3 + 2] = x
+	return t
+
+
+## Each face with more than one hole cut into two pieces: a line along its mesh from its rim to the nearest
+## hole, from that hole's far side to the next, ... and from the last back to the rim - each a chain of its
+## own (appended after `chains`, for grid_faces to cut there). {t, fv, chains, cuts}.
+static func cut_holes(v: PackedVector3Array, t: PackedInt32Array, fv_in: Array, chains_in: Array) -> Dictionary:
+	var fv := fv_in.duplicate(true)
+	var chains := chains_in.duplicate(true)
+	var cuts := 0
+	# the faces as grid_faces sees them: split at the chains' sides
+	var feat := {}
+	var by_c := {}
+	for e in fv:
+		if not by_c.has(int(e[1])):
+			by_c[int(e[1])] = []
+		by_c[int(e[1])].append([float(e[2]), int(e[0])])
+	for ci in by_c:
+		var lst: Array = by_c[ci]
+		lst.sort_custom(func(x, y): return float(x[0]) < float(y[0]))
+		for m in range(1, lst.size()):
+			if int(lst[m - 1][1]) != int(lst[m][1]):
+				feat[_pk(int(lst[m - 1][1]), int(lst[m][1]))] = true
+		if ci < chains.size() and bool(chains[ci].get("closed", false)) and lst.size() > 2:
+			feat[_pk(int(lst.back()[1]), int(lst[0][1]))] = true
+	var face: PackedInt32Array = face_of(v, t, feat)
+	var nf := 0
+	for f in face:
+		nf = maxi(nf, f + 1)
+	var f_tris := []
+	for f in nf:
+		f_tris.append([])
+	for ti in face.size():
+		(f_tris[face[ti]] as Array).append(ti)
+	for f in nf:
+		var tris: Array = f_tris[f]
+		var cnt := {}
+		var adj := {}
+		for ti in tris:
+			for j in 3:
+				var a := t[ti * 3 + j]
+				var b := t[ti * 3 + (j + 1) % 3]
+				var k := _pk(a, b)
+				cnt[k] = int(cnt.get(k, 0)) + 1
+				if not adj.has(a):
+					adj[a] = {}
+				if not adj.has(b):
+					adj[b] = {}
+				adj[a][b] = true
+				adj[b][a] = true
+		# its rims: the boundary's pieces, each a loop
+		var bnd := {}
+		for k in cnt:
+			if int(cnt[k]) == 1:
+				var ab := _unpk(k)
+				for x in ab:
+					if not bnd.has(x):
+						bnd[x] = []
+				(bnd[ab[0]] as Array).append(ab[1])
+				(bnd[ab[1]] as Array).append(ab[0])
+		var comp_of := {}
+		var comps := []   # [vertices, length]
+		for s in bnd:
+			if comp_of.has(s):
+				continue
+			var cv := []
+			var ln := 0.0
+			var st := [s]
+			comp_of[s] = comps.size()
+			while not st.is_empty():
+				var x: int = st.pop_back()
+				cv.append(x)
+				for y in bnd[x]:
+					ln += v[x].distance_to(v[y]) * 0.5
+					if not comp_of.has(y):
+						comp_of[y] = comps.size()
+						st.append(y)
+			comps.append([cv, ln])
+		if comps.size() <= 1:
+			continue   # (a face: grid_faces lays it out as it is)
+		if comps.size() == 2 and not ring_cut_on:
+			continue
+		if comps.size() == 2:
+			var l0: float = comps[0][1]
+			var l1: float = comps[1][1]
+			if maxf(l0, l1) < minf(l0, l1) * 1.4:
+				continue   # (a ring with its two rims alike: rows from one to the other)
+			# (a ring with one rim much longer: cut in two - each piece a patch whose poles take up the
+			# difference; rows would have to squeeze)
+		var outer := 0
+		for ci in comps.size():
+			if float(comps[ci][1]) > float(comps[outer][1]):
+				outer = ci
+		# the cut: rim -> nearest hole -> its far side -> next hole ... -> rim
+		var used := {}
+		var left := {}
+		for ci in comps.size():
+			if ci != outer:
+				left[ci] = true
+		var from: Array = comps[outer][0]
+		var first_start := -1
+		var path_ok := true
+		var pieces := []
+		while true:
+			var targets := {}
+			var to_rim := left.is_empty()
+			if to_rim:
+				for x in comps[outer][0]:
+					if not used.has(x) and (first_start < 0 or v[x].distance_to(v[first_start]) > 1e-9):
+						targets[x] = true
+				# (back to the rim away from where the cut began: the face in two)
+				if first_start >= 0:
+					var far := {}
+					var dd := []
+					for x in targets:
+						dd.append([v[x].distance_to(v[first_start]), x])
+					dd.sort_custom(func(p, q): return p[0] > q[0])
+					for i in maxi(1, dd.size() / 2):
+						far[dd[i][1]] = true
+					targets = far
+			else:
+				for ci in left:
+					for x in comps[ci][0]:
+						targets[x] = true
+			var path := _shortest(v, adj, from, targets, used, bnd)
+			if path.is_empty():
+				path_ok = false
+				break
+			if first_start < 0:
+				first_start = path[0]
+			pieces.append(path)
+			for x in path:
+				used[x] = true
+			if to_rim:
+				break
+			var hole: int = comp_of[path.back()]
+			left.erase(hole)
+			# (out of this hole from its far side: the points of its rim farthest from where the cut came in)
+			var entry: int = path.back()
+			var hv: Array = comps[hole][0]
+			var dd := []
+			for x in hv:
+				dd.append([v[x].distance_to(v[entry]), x])
+			dd.sort_custom(func(p, q): return p[0] > q[0])
+			from = []
+			for i in maxi(1, dd.size() / 3):
+				from.append(dd[i][1])
+		if not path_ok:
+			continue   # (no way through: the face left to be kept as it is)
+		for path in pieces:
+			var ci := chains.size()
+			chains.append({"id": -1000 - ci, "closed": false})
+			var total := 0.0
+			for i in range(1, path.size()):
+				total += v[path[i - 1]].distance_to(v[path[i]])
+			var acc := 0.0
+			for i in path.size():
+				if i > 0:
+					acc += v[path[i - 1]].distance_to(v[path[i]])
+				fv.append([int(path[i]), ci, acc / maxf(total, 1e-12)])
+			cuts += 1
+	return {"t": t, "fv": fv, "chains": chains, "cuts": cuts}
+
+
+## The shortest way along the mesh's sides (`adj`) from any of `from` to any of `to` - not through `used`
+## points nor rim points (`bnd`) other than its two ends. [points...] or [].
+static func _shortest(v: PackedVector3Array, adj: Dictionary, from: Array, to: Dictionary, used: Dictionary, bnd: Dictionary) -> Array:
+	var dist := {}
+	var prev := {}
+	var open := []   # [distance, point] - kept sorted cheaply (a binary heap would be quicker on huge faces)
+	for s in from:
+		if used.has(s) and not bnd.has(s):
+			continue
+		dist[s] = 0.0
+		prev[s] = -1
+		open.append([0.0, s])
+	var src := {}
+	for s in from:
+		src[s] = true
+	while not open.is_empty():
+		var bi := 0
+		for i in open.size():
+			if float(open[i][0]) < float(open[bi][0]):
+				bi = i
+		var cur: Array = open[bi]
+		open[bi] = open.back()
+		open.pop_back()
+		var x: int = cur[1]
+		if float(cur[0]) > float(dist.get(x, INF)):
+			continue
+		if to.has(x) and not src.has(x):
+			var path := [x]
+			while int(prev[path.back()]) >= 0:
+				path.append(prev[path.back()])
+			path.reverse()
+			return path
+		for y in adj.get(x, {}):
+			if used.has(y) and not to.has(y):
+				continue
+			if bnd.has(y) and not to.has(y):
+				continue   # (along a rim: not a cut through the face)
+			var nd: float = float(cur[0]) + v[x].distance_to(v[y])
+			if nd < float(dist.get(y, INF)):
+				dist[y] = nd
+				prev[y] = x
+				open.append([nd, y])
+	return []
+
+
+# --- an n-sided face: n grids round one pole --------------------------------------------------------------
+
+## The spokes of an n-sided patch with side counts `e` (each side split where a spoke meets it: side i is
+## s[i-1] edges from its first corner, then s[i+1] - so e[i] = s[i-1] + s[i+1]), or [] when there's no
+## whole positive answer (Tarini, "Closed-form quadrangulation of n-sided patches"). n = 4: the middle of
+## each side.
+static func cc_spokes(e: Array, as_float := false) -> Array:
+	var n := e.size()
+	if n < 3:
+		return []
+	if n == 4 and not as_float:
+		if int(e[0]) != int(e[2]) or int(e[1]) != int(e[3]) or int(e[0]) < 2 or int(e[1]) < 2:
+			return []
+		return [int(e[1]) / 2, int(e[0]) / 2, int(e[1]) - int(e[1]) / 2, int(e[0]) - int(e[0]) / 2]
+	# (e[i] = s[i-1] + s[i+1]: solved exactly, n unknowns - n small)
+	var m := []
+	for i in n:
+		var row := []
+		row.resize(n + 1)
+		row.fill(0.0)
+		row[(i - 1 + n) % n] = 1.0
+		row[(i + 1) % n] = 1.0
+		row[n] = float(e[i])
+		m.append(row)
+	for c in n:
+		var piv := -1
+		var best := 1e-9
+		for r in range(c, n):
+			if absf(m[r][c]) > best:
+				best = absf(m[r][c])
+				piv = r
+		if piv < 0:
+			return []   # (n a multiple of 4 but 4: not solved here)
+		var tmp = m[c]
+		m[c] = m[piv]
+		m[piv] = tmp
+		for r in n:
+			if r != c and absf(m[r][c]) > 0.0:
+				var f: float = m[r][c] / m[c][c]
+				for k in range(c, n + 1):
+					m[r][k] -= f * m[c][k]
+	var s := []
+	for i in n:
+		s.append(m[i][n] / m[i][i])
+	if as_float:
+		return s
+	var si := []
+	for x in s:
+		if absf(float(x) - roundf(x)) > 1e-6 or roundf(x) < 1.0:
+			return []
+		si.append(int(roundf(x)))
+	return si
+
+
+## (grid_faces) An n-sided face (3 to 6 corners - `cut` their places in `bpts`, in order) laid out as n grids
+## meeting at one pole in its middle: mapped flat onto a regular n-gon (its rim on the n-gon's sides, its
+## inside by a harmonic map - a convex rim: no folds), the grids laid there and mapped back onto its surface.
+## {t, v} or {} (grid_why says why).
+static func _face_cc(v: PackedVector3Array, t: PackedInt32Array, tris: Array, bpts: Array, out_v: PackedVector3Array, cut: Array, L: float) -> Dictionary:
+	var N := bpts.size()
+	var n := cut.size()
+	var e := []
+	for i in n:
+		e.append((int(cut[(i + 1) % n]) - int(cut[i]) + N) % N)
+	var s := cc_spokes(e)
+	if s.is_empty():
+		grid_why = "cc: sides %s don't make %d grids" % [str(e), n]
+		return {}
+	var fl := _face_local(t, tris)
+	var bnd: Dictionary = fl["bnd"]
+	var nbrs: Dictionary = fl["nbrs"]
+	# the flat n-gon: the face's own shape - its sides as long as they are, its corners as sharp (a regular
+	# n-gon squashes a long thin face, and its grids come back as long thin quads); the rim's samples evenly
+	# along its sides
+	var C := _flat_polygon(v, t, tris, bpts, out_v, cut)
+	var O := Vector2.ZERO   # (the pole: the polygon's middle)
+	for q in C:
+		O += q
+	O /= maxf(C.size(), 1)
+	var flat := PackedVector2Array()
+	flat.resize(N)
+	for i in n:
+		for k in int(e[i]):
+			flat[(int(cut[i]) + k) % N] = (C[i] as Vector2).lerp(C[(i + 1) % n], float(k) / int(e[i]))
+	# the face's own rim points placed between the samples nearest them, the rest by the harmonic map
+	var uv := {}
+	var rp := _rim_places(v, t, tris, bpts, out_v)
+	for vi in bnd:
+		if rp.has(vi):
+			var kk := int(rp[vi].x)
+			uv[vi] = flat[kk].lerp(flat[(kk + 1) % N], rp[vi].y)
+			continue
+		var q := v[vi]
+		var bestd := INF
+		var place := Vector2.ZERO
+		for k in N:
+			var p0 := out_v[bpts[k]]
+			var p1 := out_v[bpts[(k + 1) % N]]
+			var ab := p1 - p0
+			var u := clampf((q - p0).dot(ab) / maxf(ab.length_squared(), 1e-18), 0.0, 1.0)
+			var d := (p0 + ab * u).distance_squared_to(q)
+			if d < bestd:
+				bestd = d
+				place = flat[k].lerp(flat[(k + 1) % N], u)
+		uv[vi] = place
+	_harmonic_cot(v, t, tris, bnd, uv)
+	var look := _uv_index(t, tris, uv, Vector2(-1.01, -1.01), Vector2(1.01, 1.01), 32)
+	look["nrm"] = _face_normals(v, t, tris)   # (new points on the smooth surface, not its facets)
+	var nv := out_v
+	var made := {}   # point key -> vertex
+	var at_flat := func(key: String, p: Vector2) -> int:
+		if made.has(key):
+			return made[key]
+		var hit: Array = _uv_at(v, t, uv, look, p)
+		if hit.is_empty():
+			return -1
+		made[key] = nv.size()
+		nv.append(hit[0])
+		return made[key]
+	# each side's split point (where its spoke meets it), the middle
+	var P := []
+	for i in n:
+		P.append((C[i] as Vector2).lerp(C[(i + 1) % n], float(s[(i - 1 + n) % n]) / int(e[i])))
+	var quads := []
+	for i in n:
+		# the grid at corner i: a along side i (from the corner), b along side i-1 (back from the corner)
+		var sa: int = s[(i - 1 + n) % n]
+		var sb: int = s[i]
+		var ip := (i - 1 + n) % n
+		var c0: Vector2 = C[i]
+		var p1: Vector2 = P[i]
+		var p3: Vector2 = P[ip]
+		var id := func(a: int, b: int) -> int:
+			if b == 0:
+				return bpts[(int(cut[i]) + a) % N]
+			if a == 0:
+				return bpts[(int(cut[i]) - b + N) % N]
+			if a == sa and b == sb:
+				return at_flat.call("o", O)
+			if a == sa:
+				return at_flat.call("s%d_%d" % [i, b], p1.lerp(O, float(b) / sb))
+			if b == sb:
+				return at_flat.call("s%d_%d" % [ip, a], p3.lerp(O, float(a) / sa))
+			var u := float(a) / sa
+			var w := float(b) / sb
+			var pt := c0 * (1.0 - u) * (1.0 - w) + p1 * u * (1.0 - w) + O * u * w + p3 * (1.0 - u) * w
+			return at_flat.call("r%d_%d_%d" % [i, a, b], pt)
+		for a in sa:
+			for b in sb:
+				var q4 := [id.call(a, b), id.call(a + 1, b), id.call(a + 1, b + 1), id.call(a, b + 1)]
+				if q4.has(-1):
+					grid_why = "cc: a point off the face"
+					return {}
+				quads.append(q4)
+	return _quads_out(v, t, uv, look, nv, quads, tris)
+
+
+## (grid_faces) A face's inner points placed by cotangent weights - each pulled to its neighbours by how its
+## triangles' angles lie, so a flat patch maps exactly flat and a curved one keeps its angles nearly (a plain
+## average of neighbours warps an uneven triangulation). Weights kept positive (an obtuse triangle's would go
+## negative and fold the map). `uv` holds the rim's places; solved by conjugate gradients, both axes.
+static func _harmonic_cot(v: PackedVector3Array, t: PackedInt32Array, tris: Array, bnd: Dictionary, uv: Dictionary) -> void:
+	var w := {}   # Vector2i(lo, hi) -> weight
+	var total := 0.0
+	for ti in tris:
+		for j in 3:
+			var a := t[ti * 3 + j]
+			var b := t[ti * 3 + (j + 1) % 3]
+			var c := t[ti * 3 + (j + 2) % 3]   # (the corner opposite side a-b)
+			var e1 := v[a] - v[c]
+			var e2 := v[b] - v[c]
+			var cr := e1.cross(e2).length()
+			var cot := e1.dot(e2) / maxf(cr, 1e-18)
+			var k := Vector2i(mini(a, b), maxi(a, b))
+			w[k] = float(w.get(k, 0.0)) + 0.5 * cot
+			total += absf(0.5 * cot)
+	var floor_w := maxf(total / maxf(w.size(), 1) * 0.02, 1e-9)
+	var nb := {}   # vertex -> {neighbour: weight}
+	for k in w:
+		var ww := maxf(float(w[k]), floor_w)
+		if not nb.has(k.x):
+			nb[k.x] = {}
+		if not nb.has(k.y):
+			nb[k.y] = {}
+		nb[k.x][k.y] = ww
+		nb[k.y][k.x] = ww
+	var inner := []
+	var idx := {}
+	for vi in nb:
+		if not bnd.has(vi):
+			idx[vi] = inner.size()
+			inner.append(vi)
+	var n_in := inner.size()
+	if n_in == 0:
+		return
+	var diag := PackedFloat64Array()
+	diag.resize(n_in)
+	for i in n_in:
+		var s := 0.0
+		for o in nb[inner[i]]:
+			s += float(nb[inner[i]][o])
+		diag[i] = s
+	for axis in 2:
+		var bvec := PackedFloat64Array()
+		bvec.resize(n_in)
+		for i in n_in:
+			var s := 0.0
+			for o in nb[inner[i]]:
+				if bnd.has(o):
+					s += float(nb[inner[i]][o]) * (uv[o] as Vector2)[axis]
+			bvec[i] = s
+		var x := PackedFloat64Array()
+		x.resize(n_in)
+		for i in n_in:
+			x[i] = bvec[i] / maxf(diag[i], 1e-18)   # (a first guess: its rim neighbours' pull)
+		var apply := func(p: PackedFloat64Array) -> PackedFloat64Array:
+			var o2 := PackedFloat64Array()
+			o2.resize(n_in)
+			for i in n_in:
+				var row: Dictionary = nb[inner[i]]
+				var s := diag[i] * p[i]
+				for o in row:
+					if idx.has(o):
+						s -= float(row[o]) * p[idx[o]]
+				o2[i] = s
+			return o2
+		var ax: PackedFloat64Array = apply.call(x)
+		var r := PackedFloat64Array()
+		r.resize(n_in)
+		var rr := 0.0
+		for i in n_in:
+			r[i] = bvec[i] - ax[i]
+			rr += r[i] * r[i]
+		var p := r.duplicate()
+		var tol := 1e-14 * maxf(rr, 1e-30)   # (relative: settled whatever the face's size)
+		for it in maxi(1500, n_in * 4):   # (a long thin face settles slowly - as many steps as it takes)
+			if rr < tol:
+				break
+			var ap: PackedFloat64Array = apply.call(p)
+			var pap := 0.0
+			for i in n_in:
+				pap += p[i] * ap[i]
+			if absf(pap) < 1e-30:
+				break
+			var al := rr / pap
+			var rr2 := 0.0
+			for i in n_in:
+				x[i] += al * p[i]
+				r[i] -= al * ap[i]
+				rr2 += r[i] * r[i]
+			var be := rr2 / rr
+			rr = rr2
+			for i in n_in:
+				p[i] = r[i] + be * p[i]
+		for i in n_in:
+			var cur: Vector2 = uv.get(inner[i], Vector2.ZERO)
+			cur[axis] = x[i]
+			uv[inner[i]] = cur
+
+
+## (grid_faces) A face's corners - places in its rim's samples (`turn`: each sample's turn), in order: its
+## sharp corners (over 50 degrees; the six sharpest if more), and if it makes a better layout one or two more
+## where the rim bends most - a 4-corner plan opposite sides equal (one grid), 3, 5 or 6 a whole answer for
+## that many grids round one pole. Scored: a pole costs, a corner on a straight stretch costs, uneven grids
+## cost. [] - a round dome with no corners to speak of: rings (`roundness`: its rim squared over 4 pi its area).
+	# (folded anywhere - a triangle turned over in the map: the plain average instead, which can't fold
+	# inside a convex rim - a little less true to the angles, but every point found where it belongs)
+	var pos_n := 0
+	var neg_n := 0
+	for ti in tris:
+		var pa: Vector2 = uv.get(t[ti * 3], Vector2.ZERO)
+		var pb: Vector2 = uv.get(t[ti * 3 + 1], Vector2.ZERO)
+		var pc: Vector2 = uv.get(t[ti * 3 + 2], Vector2.ZERO)
+		var ar := (pb - pa).cross(pc - pa)
+		if ar > 1e-14:
+			pos_n += 1
+		elif ar < -1e-14:
+			neg_n += 1
+	if mini(pos_n, neg_n) > 0 and fold_fallback_on:
+		var nbrs := {}
+		for ti in tris:
+			for j in 3:
+				var x := t[ti * 3 + j]
+				var y := t[ti * 3 + (j + 1) % 3]
+				if not nbrs.has(x):
+					nbrs[x] = {}
+				if not nbrs.has(y):
+					nbrs[y] = {}
+				nbrs[x][y] = true
+				nbrs[y][x] = true
+		_harmonic(nbrs, bnd, uv)
+
+
+static func _plan_corners(turn: PackedFloat32Array, N: int, roundness: float, pos := PackedVector3Array()) -> Array:
+	var sharp_min := deg_to_rad(50.0)
+	var base := []
+	for k in N:
+		if turn[k] > sharp_min:
+			base.append(k)
+	if base.size() > 6:
+		base.sort_custom(func(a, b): return turn[a] > turn[b])
+		base = base.slice(0, 6)
+	base.sort()
+	if base.size() < 2 and roundness < 1.6 and not dome_as_grid:
+		return []   # (a dome or a round cap: rings round a middle grid)
+	var res := {"best": [], "sc": INF}   # (a lambda keeps its own copies of plain variables: kept in here)
+	# (the rim's length up to each sample: a stretch's length in real units)
+	var cum := PackedFloat64Array([0.0])
+	for k in N:
+		cum.append(cum[k] + (pos[k].distance_to(pos[(k + 1) % N]) if pos.size() == N else 1.0))
+	var span := func(a: int, b: int) -> float:   # (from sample a on to sample b)
+		if b >= a:
+			return cum[b] - cum[a]
+		return cum[N] - cum[a] + cum[b]
+	var try_set := func(cs: Array, virt: Array) -> void:
+		var n := cs.size()
+		var dropped := 0.0
+		for k in base:
+			if not k in cs:
+				dropped += clampf(turn[k] / (PI * 0.5), 0.0, 1.5) * 0.9   # (a sharp corner left bending a side)
+		if n < 3 or n > 6:
+			return
+		var e := []
+		for i in n:
+			var g: int = (int(cs[(i + 1) % n]) - int(cs[i]) + N) % N
+			if g < 1:
+				return
+			e.append(g)
+		var sc := dropped
+		var ln := []
+		for i in n:
+			ln.append(maxf(float(span.call(int(cs[i]), int(cs[(i + 1) % n]))), 1e-9))
+		if n == 4:
+			if int(e[0]) != int(e[2]) or int(e[1]) != int(e[3]):
+				return
+			# (square quads: the spacing along one way like the other; opposite sides alike - not a wedge)
+			var da: float = (float(ln[0]) + float(ln[2])) * 0.5 / int(e[0])
+			var db: float = (float(ln[1]) + float(ln[3])) * 0.5 / int(e[1])
+			sc += absf(log(da / db)) * 1.5
+			sc += (absf(log(float(ln[0]) / float(ln[2]))) + absf(log(float(ln[1]) / float(ln[3])))) * 0.3
+		else:
+			var sp := cc_spokes(e)
+			if sp.is_empty():
+				return
+			sc += 1.0 if n != 6 else 1.4   # (a pole)
+			# (each grid square: its two rim stretches spaced alike - a thin face's far-off middle makes long quads)
+			var worst := 0.0
+			var mean := 0.0
+			for i in n:
+				var sa: int = sp[(i - 1 + n) % n]
+				var sb: int = sp[i]
+				var split_a: int = (int(cs[i]) + sa) % N
+				var split_b: int = (int(cs[i]) - sb + N) % N
+				var la: float = maxf(float(span.call(int(cs[i]), split_a)), 1e-9)
+				var lb: float = maxf(float(span.call(split_b, int(cs[i]))), 1e-9)
+				var an: float = absf(log((la / sa) / (lb / sb)))
+				worst = maxf(worst, an)
+				mean += an / n
+			sc += mean * 1.5 + worst * 0.5
+		for k in virt:
+			sc += (1.0 - clampf(turn[k] / (PI * 0.5), 0.0, 1.0)) * 0.8   # (a corner where the rim runs straight)
+		if sc < float(res["sc"]):
+			res["sc"] = sc
+			res["best"] = cs.duplicate()
+	try_set.call(base, [])
+	var step := maxi(1, N / 48)
+	var cand := []
+	for k in range(0, N, step):
+		if not k in base:
+			cand.append(k)
+	# (four corners, opposite ones half way round from each other - so opposite sides match: from each sharp
+	# corner or pair of them, the rest worked out; the other sharp corners left on the sides)
+	var h := N / 2
+	if N % 2 == 0 and h >= 2:
+		var anchors := []
+		for x in base:
+			anchors.append([x])
+		for i in base.size():
+			for j in range(i + 1, base.size()):
+				anchors.append([base[i], base[j]])
+		for an in anchors:
+			var firsts := []
+			if an.size() == 2:
+				var d: int = (int(an[1]) - int(an[0]) + N) % N
+				if d == h:
+					for p in range(0, N, maxi(1, N / 64)):
+						firsts.append([an[0], p])
+				else:
+					firsts.append([an[0], an[1]])
+			else:
+				for p in range(0, N, maxi(1, N / 64)):
+					firsts.append([an[0], p])
+			for fp in firsts:
+				var c0: int = fp[0]
+				var c1: int = fp[1]
+				var cs := [c0, c1, (c0 + h) % N, (c1 + h) % N]
+				var uniq := {}
+				for x in cs:
+					uniq[x] = true
+				if uniq.size() != 4:
+					continue
+				cs.sort()
+				var virt := cs.filter(func(x): return not x in base)
+				try_set.call(cs, virt)
+	if base.size() + 1 <= 6:
+		for k in cand:
+			var cs := base.duplicate()
+			cs.append(k)
+			cs.sort()
+			try_set.call(cs, [k])
+	if base.size() + 2 <= 6 and base.size() + 2 >= 3:
+		var step2 := maxi(1, N / 28)
+		var c2 := []
+		for k in range(0, N, step2):
+			if not k in base:
+				c2.append(k)
+		for i in c2.size():
+			for j in range(i + 1, c2.size()):
+				var cs := base.duplicate()
+				cs.append(c2[i])
+				cs.append(c2[j])
+				cs.sort()
+				try_set.call(cs, [c2[i], c2[j]])
+	var best: Array = res["best"]
+	if best.is_empty() and base.size() <= 2:
+		# (a long face with no corners to speak of: four, opposite sides equal, at its sharpest turns)
+		var bsc := -INF
+		for i0 in range(0, h, step):
+			for a in range(maxi(1, step), h, step):
+				var cs := [i0, i0 + a, i0 + h, (i0 + h + a) % N]
+				var sc := turn[cs[0]] + turn[cs[1]] + turn[cs[2]] + turn[cs[3]]
+				if sc > bsc:
+					bsc = sc
+					cs.sort()
+					best = cs
+	return best
+
+
+## (grid_faces) A face's corners laid flat with its real proportions: each side as long as its rim stretch,
+## each corner as wide as on the surface (the turns scaled to make one whole turn - a curved face's don't),
+## the small gap left at the end spread back along the sides; fitted inside the unit square. [Vector2...].
+static func _flat_polygon(v: PackedVector3Array, t: PackedInt32Array, tris: Array, bpts: Array, out_v: PackedVector3Array, cut: Array) -> Array:
+	var N := bpts.size()
+	var n := cut.size()
+	var fn := Vector3.ZERO
+	for ti in tris:
+		fn += (v[t[ti * 3 + 2]] - v[t[ti * 3]]).cross(v[t[ti * 3 + 1]] - v[t[ti * 3]])
+	fn = fn.normalized()
+	var lens := []
+	for i in n:
+		var a: int = cut[i]
+		var b: int = cut[(i + 1) % n]
+		var ln := 0.0
+		var k := a
+		while k != b:
+			ln += out_v[bpts[k]].distance_to(out_v[bpts[(k + 1) % N]])
+			k = (k + 1) % N
+		lens.append(maxf(ln, 1e-9))
+	# each corner's turn (signed by the face's facing), from a couple of samples either side
+	var turns := []
+	var tsum := 0.0
+	for i in n:
+		var k: int = cut[i]
+		var reach := mini(2, maxi(1, N / (4 * n)))
+		var din := (out_v[bpts[k]] - out_v[bpts[(k - reach + N) % N]]).normalized()
+		var dout := (out_v[bpts[(k + reach) % N]] - out_v[bpts[k]]).normalized()
+		var tr := atan2(din.cross(dout).dot(fn), din.dot(dout))
+		turns.append(tr)
+		tsum += tr
+	if absf(tsum) < 1e-6:
+		tsum = TAU
+	var scale := TAU / absf(tsum)
+	var sgn := 1.0 if tsum > 0.0 else -1.0
+	var P := [Vector2.ZERO]
+	var ang := 0.0
+	var total := 0.0
+	for i in n:
+		total += float(lens[i])
+	for i in n - 1:
+		P.append((P[i] as Vector2) + Vector2(cos(ang), sin(ang)) * float(lens[i]))
+		ang += float(turns[(i + 1) % n]) * scale * sgn
+	var end: Vector2 = (P[n - 1] as Vector2) + Vector2(cos(ang), sin(ang)) * float(lens[n - 1])
+	var gap: Vector2 = end - (P[0] as Vector2)
+	var acc := 0.0
+	for i in range(1, n):
+		acc += float(lens[i - 1])
+		P[i] = (P[i] as Vector2) - gap * (acc / total)
+	var lo: Vector2 = P[0]
+	var hi: Vector2 = P[0]
+	for q in P:
+		lo = lo.min(q)
+		hi = hi.max(q)
+	var mid := (lo + hi) * 0.5
+	var sz := maxf(hi.x - lo.x, hi.y - lo.y) * 0.5
+	var out := []
+	for q in P:
+		out.append(((q as Vector2) - mid) / maxf(sz, 1e-12))
+	return out
+
+
+
+## (grid_faces) Where each of a face's own rim points falls along its new rim (`bpts`, samples of out_v):
+## by how far along the rim it is - both rims walked from the same place the same way round, their lengths
+## matched (a nearest-stretch guess goes wrong on a coarse face: its far ends got no points at all).
+## {old rim vertex: Vector2(sample k, fraction on to k + 1)}; {} when its rim can't be followed.
+static func _rim_places(v: PackedVector3Array, t: PackedInt32Array, tris: Array, bpts: Array, out_v: PackedVector3Array) -> Dictionary:
+	var N := bpts.size()
+	var cnt := {}
+	for ti in tris:
+		for j in 3:
+			var k := _pk(t[ti * 3 + j], t[ti * 3 + (j + 1) % 3])
+			cnt[k] = int(cnt.get(k, 0)) + 1
+	var nxt := {}
+	for ti in tris:
+		for j in 3:
+			var a := t[ti * 3 + j]
+			var b := t[ti * 3 + (j + 1) % 3]
+			if int(cnt[_pk(a, b)]) == 1:
+				nxt[a] = b
+	if nxt.is_empty():
+		return {}
+	# its outer rim: the longest loop
+	var loops := []
+	var left := nxt.duplicate()
+	while not left.is_empty():
+		var st: int = left.keys()[0]
+		var loop := [st]
+		var cur: int = left[st]
+		left.erase(st)
+		while cur != st and left.has(cur):
+			loop.append(cur)
+			var nx: int = left[cur]
+			left.erase(cur)
+			cur = nx
+		loops.append(loop)
+	var rim: Array = loops[0]
+	var rim_len := 0.0
+	for lp in loops:
+		var ln := 0.0
+		for i in lp.size():
+			ln += v[lp[i]].distance_to(v[lp[(i + 1) % lp.size()]])
+		if ln > rim_len:
+			rim_len = ln
+			rim = lp
+	return _loop_places(v, rim, bpts, out_v)
+
+
+## (grid_faces) Where each point of the old loop `rim` (in order) falls along the new loop `bpts` (samples of
+## out_v): both walked from the same place the same way round, by length. {vertex: Vector2(k, fraction)}.
+static func _loop_places(v: PackedVector3Array, rim_in: Array, bpts: Array, out_v: PackedVector3Array) -> Dictionary:
+	var rim := rim_in.duplicate()
+	var N := bpts.size()
+	var M := rim.size()
+	if M < 3 or N < 3:
+		return {}
+	# where the new rim starts on the old: the old rim's nearest point to sample 0 (stretch m, fraction u)
+	var p0 := out_v[bpts[0]]
+	var best := INF
+	var m0 := 0
+	var u0 := 0.0
+	for m in M:
+		var a := v[rim[m]]
+		var b := v[rim[(m + 1) % M]]
+		var ab := b - a
+		var u := clampf((p0 - a).dot(ab) / maxf(ab.length_squared(), 1e-18), 0.0, 1.0)
+		var d := (a + ab * u).distance_squared_to(p0)
+		if d < best:
+			best = d
+			m0 = m
+			u0 = u
+	# which way round the samples run along it: where sample 1 lands - just ahead of the start, or behind
+	var p1 := out_v[bpts[1 % N]]
+	var best1 := INF
+	var m1 := 0
+	var u1 := 0.0
+	for m in M:
+		var a := v[rim[m]]
+		var b := v[rim[(m + 1) % M]]
+		var ab := b - a
+		var u := clampf((p1 - a).dot(ab) / maxf(ab.length_squared(), 1e-18), 0.0, 1.0)
+		var d := (a + ab * u).distance_squared_to(p1)
+		if d < best1:
+			best1 = d
+			m1 = m
+			u1 = u
+	var pos0 := float(m0) + u0
+	var pos1 := float(m1) + u1
+	var fwd := fposmod(pos1 - pos0, float(M)) <= float(M) * 0.5
+	if not fwd:
+		rim.reverse()
+		# (the same start, now on the reversed rim)
+		m0 = (M - 1 - m0 - 1 + M) % M
+		u0 = 1.0 - u0
+	# old rim: each vertex's distance along from the start
+	var start := v[rim[m0]].lerp(v[rim[(m0 + 1) % M]], u0)
+	var along := {}
+	var acc := start.distance_to(v[rim[(m0 + 1) % M]])
+	var old_total := 0.0
+	for i in M:
+		old_total += v[rim[i]].distance_to(v[rim[(i + 1) % M]])
+	for step in M:
+		var vi: int = rim[(m0 + 1 + step) % M]
+		along[vi] = acc
+		acc += v[vi].distance_to(v[rim[(m0 + 2 + step) % M]])
+	# new rim: each sample's distance along
+	var cum := PackedFloat64Array([0.0])
+	for k in N:
+		cum.append(cum[k] + out_v[bpts[k]].distance_to(out_v[bpts[(k + 1) % N]]))
+	var new_total := maxf(cum[N], 1e-18)
+	var out := {}
+	var k := 0
+	var order := along.keys()
+	order.sort_custom(func(x, y): return float(along[x]) < float(along[y]))
+	for vi in order:
+		var s := fposmod(float(along[vi]) / maxf(old_total, 1e-18), 1.0) * new_total
+		while k < N - 1 and cum[k + 1] < s:
+			k += 1
+		var seg := maxf(cum[k + 1] - cum[k], 1e-18)
+		out[vi] = Vector2(k, clampf((s - cum[k]) / seg, 0.0, 1.0))
+	return out
+
+
+## The mesh's open borders that none of its edges runs along, made edges for the layout (appended after
+## `chains`; let go of after, like the cuts) - a face with such a rim can be laid out like any other. Each
+## border a loop (closed) or, where an edge meets it, runs between those points. {fv, chains}.
+static func rim_chains(v: PackedVector3Array, t: PackedInt32Array, fv_in: Array, chains_in: Array) -> Dictionary:
+	var fv := fv_in.duplicate(true)
+	var chains := chains_in.duplicate(true)
+	var on := {}
+	var by_c := {}
+	for e in fv:
+		on[int(e[0])] = true
+		if not by_c.has(int(e[1])):
+			by_c[int(e[1])] = []
+		by_c[int(e[1])].append([float(e[2]), int(e[0])])
+	var edge_side := {}
+	for ci in by_c:
+		var lst: Array = by_c[ci]
+		lst.sort_custom(func(x, y): return float(x[0]) < float(y[0]))
+		for m in lst.size():
+			var a0: int = lst[m][1]
+			var b0: int = lst[(m + 1) % lst.size()][1]
+			if a0 != b0:
+				edge_side[_pk(a0, b0)] = true
+	var cnt := {}
+	for i in range(0, t.size(), 3):
+		for j in 3:
+			var k := _pk(t[i + j], t[i + (j + 1) % 3])
+			cnt[k] = int(cnt.get(k, 0)) + 1
+	var nxt := {}   # open sides no edge runs along, as the triangles run
+	for i in range(0, t.size(), 3):
+		for j in 3:
+			var a := t[i + j]
+			var b := t[i + (j + 1) % 3]
+			var k := _pk(a, b)
+			if int(cnt[k]) == 1 and not edge_side.has(k):
+				nxt[a] = b
+	if nxt.is_empty():
+		return {"fv": fv, "chains": chains}
+	var prv := {}
+	for a in nxt:
+		prv[nxt[a]] = a
+	var done := {}
+	for s0 in nxt.keys():
+		if done.has(s0):
+			continue
+		# (start where an edge meets the border, or anywhere on a loop with none)
+		var st: int = s0
+		var guard := 0
+		while prv.has(st) and not on.has(st) and prv[st] != s0 and guard < 100000:
+			st = prv[st]
+			guard += 1
+		var run := [st]
+		var cur := st
+		while nxt.has(cur) and not done.has(cur):
+			done[cur] = true
+			cur = nxt[cur]
+			run.append(cur)
+			if cur == st or on.has(cur):
+				break
+		var closed: bool = run.size() > 2 and run.back() == run[0]
+		if closed:
+			run.pop_back()
+		if run.size() < 2:
+			continue
+		var ci := chains.size()
+		chains.append({"id": -2000 - ci, "closed": closed})
+		var total := 0.0
+		for i in range(1, run.size()):
+			total += v[run[i - 1]].distance_to(v[run[i]])
+		if closed:
+			total += v[run.back()].distance_to(v[run[0]])
+		var acc := 0.0
+		for i in run.size():
+			if i > 0:
+				acc += v[run[i - 1]].distance_to(v[run[i]])
+			fv.append([int(run[i]), ci, acc / maxf(total, 1e-12)])
+	return {"fv": fv, "chains": chains}
+
+
+## (tuning) A layout's quads measured: last_quality / last_counts - how square, how many slivers.
+static var last_counts := [0, 0]
+static func _note_quality(nv: PackedVector3Array, quads: Array) -> void:
+	var asp_sum := 0.0
+	var slv := 0
+	for q4 in quads:
+		var ls := []
+		for m in 4:
+			ls.append(nv[q4[m]].distance_to(nv[q4[(m + 1) % 4]]))
+		var asp: float = float(ls.max()) / maxf(float(ls.min()), 1e-12)
+		asp_sum += asp
+		var bad := asp > 3.0
+		for m in 4:
+			var d0 := nv[q4[(m + 3) % 4]] - nv[q4[m]]
+			var d1 := nv[q4[(m + 1) % 4]] - nv[q4[m]]
+			if d0.length_squared() > 1e-30 and d1.length_squared() > 1e-30 and rad_to_deg(d0.angle_to(d1)) < 30.0:
+				bad = true
+		if bad:
+			slv += 1
+	# (folded: a quad's two halves turned more than 30 degrees from each other, either way it's split)
+	var folded := 0
+	for q4 in quads:
+		var n1 := (nv[q4[1]] - nv[q4[0]]).cross(nv[q4[2]] - nv[q4[0]])
+		var n2 := (nv[q4[2]] - nv[q4[0]]).cross(nv[q4[3]] - nv[q4[0]])
+		var n3 := (nv[q4[1]] - nv[q4[0]]).cross(nv[q4[3]] - nv[q4[0]])
+		var n4 := (nv[q4[2]] - nv[q4[1]]).cross(nv[q4[3]] - nv[q4[1]])
+		if n1.length_squared() > 1e-30 and n2.length_squared() > 1e-30 and n3.length_squared() > 1e-30 and n4.length_squared() > 1e-30:
+			if minf(rad_to_deg(n1.angle_to(n2)), rad_to_deg(n3.angle_to(n4))) > 30.0:
+				folded += 1
+	last_quality = "aspect %.2f, slivers %d of %d, folded %d" % [asp_sum / maxf(quads.size(), 1), slv, quads.size(), folded]
+	last_counts = [quads.size(), slv, folded]
+
+
+## An edge's listed points cleaned up (for the layout): points no triangle uses dropped, and a point that
+## breaks the edge's run - its neighbours along the edge are joined by a side of the mesh, it isn't - dropped
+## (left over by edits: the run went round it). The rest as they were. [[vertex, chain, place]...].
+static func clean_edge_points(t: PackedInt32Array, fv: Array, chains: Array) -> Array:
+	var used := {}
+	var side := {}
+	for i in range(0, t.size(), 3):
+		for j in 3:
+			used[t[i + j]] = true
+			side[_pk(t[i + j], t[i + (j + 1) % 3])] = true
+	var by_c := {}
+	for e in fv:
+		if not used.has(int(e[0])):
+			continue
+		if not by_c.has(int(e[1])):
+			by_c[int(e[1])] = []
+		by_c[int(e[1])].append(e)
+	var out := []
+	for ci in by_c:
+		var lst: Array = by_c[ci]
+		lst.sort_custom(func(x, y): return float(x[2]) < float(y[2]))
+		var closed: bool = ci < chains.size() and bool(chains[ci].get("closed", false))
+		var changed := false   # (dropping a run-breaking point broke more than it mended - unused points only, for now)
+		var guard := 0
+		while changed and guard < 50:
+			changed = false
+			guard += 1
+			var n := lst.size()
+			if n < 3:
+				break
+			for i in n:
+				if not closed and (i == 0 or i == n - 1):
+					continue
+				var a: int = lst[(i - 1 + n) % n][0]
+				var m: int = lst[i][0]
+				var b: int = lst[(i + 1) % n][0]
+				if a == m or m == b:
+					continue
+				if not side.has(_pk(a, m)) and side.has(_pk(a, b)):
+					lst.remove_at(i)
+					changed = true
+					break
+				if not side.has(_pk(m, b)) and side.has(_pk(a, b)):
+					lst.remove_at(i)
+					changed = true
+					break
+		out.append_array(lst)
+	return out
+
+
+## Each closed piece of the mesh with no edge on it (a blob, a capsule) cut across its middle - square to its
+## longest way, through its centre - by a loop of the mesh's sides: a chain of its own (appended, let go of
+## after), so it's two caps the layout can grid. {fv, chains}.
+static func split_closed(v: PackedVector3Array, t: PackedInt32Array, fv_in: Array, chains_in: Array) -> Dictionary:
+	var fv := fv_in.duplicate(true)
+	var chains := chains_in.duplicate(true)
+	var on := {}
+	for e in fv:
+		on[int(e[0])] = true
+	var nt := t.size() / 3
+	var by_e := {}
+	for ti in nt:
+		for j in 3:
+			var k := _pk(t[ti * 3 + j], t[ti * 3 + (j + 1) % 3])
+			if not by_e.has(k):
+				by_e[k] = []
+			(by_e[k] as Array).append(ti)
+	var comp := PackedInt32Array()
+	comp.resize(nt)
+	comp.fill(-1)
+	var nc := 0
+	for t0 in nt:
+		if comp[t0] >= 0:
+			continue
+		var members := [t0]
+		comp[t0] = nc
+		var todo := [t0]
+		while not todo.is_empty():
+			var ti: int = todo.pop_back()
+			for j in 3:
+				for o in by_e[_pk(t[ti * 3 + j], t[ti * 3 + (j + 1) % 3])]:
+					if comp[o] < 0:
+						comp[o] = nc
+						todo.append(o)
+						members.append(o)
+		nc += 1
+		# (closed - every side two triangles - and no edge on it)
+		var closed := true
+		var bare := true
+		var lo := Vector3.INF
+		var hi := -Vector3.INF
+		var ctr := Vector3.ZERO
+		for ti in members:
+			for j in 3:
+				var vi := t[ti * 3 + j]
+				if on.has(vi):
+					bare = false
+				if (by_e[_pk(vi, t[ti * 3 + (j + 1) % 3])] as Array).size() != 2:
+					closed = false
+				lo = lo.min(v[vi])
+				hi = hi.max(v[vi])
+				ctr += v[vi]
+		if not closed or not bare or members.size() < 8:
+			continue
+		ctr /= members.size() * 3
+		var ext := hi - lo
+		var axis := Vector3.RIGHT if ext.x >= ext.y and ext.x >= ext.z else (Vector3.UP if ext.y >= ext.z else Vector3.BACK)
+		# the triangles on the far side of the middle; the loop between them and the rest
+		var far := {}
+		for ti in members:
+			var c := (v[t[ti * 3]] + v[t[ti * 3 + 1]] + v[t[ti * 3 + 2]]) / 3.0
+			if (c - ctr).dot(axis) >= 0.0:
+				far[ti] = true
+		var nxt := {}
+		for ti in far:
+			for j in 3:
+				var a := t[ti * 3 + j]
+				var b := t[ti * 3 + (j + 1) % 3]
+				var other: Array = (by_e[_pk(a, b)] as Array).filter(func(x): return x != ti)
+				if not other.is_empty() and not far.has(other[0]):
+					nxt[a] = b
+		if nxt.size() < 3:
+			continue
+		var st: int = nxt.keys()[0]
+		var loop := [st]
+		var cur: int = nxt[st]
+		var guard := 0
+		while cur != st and nxt.has(cur) and guard < nxt.size() + 2:
+			loop.append(cur)
+			cur = nxt[cur]
+			guard += 1
+		if cur != st or loop.size() != nxt.size():
+			continue   # (not one clean loop round it: left as it is)
+		var ci := chains.size()
+		chains.append({"id": -3000 - ci, "closed": true})
+		var total := 0.0
+		for i in loop.size():
+			total += v[loop[i]].distance_to(v[loop[(i + 1) % loop.size()]])
+		var acc := 0.0
+		for i in loop.size():
+			if i > 0:
+				acc += v[loop[i - 1]].distance_to(v[loop[i]])
+			fv.append([int(loop[i]), ci, acc / maxf(total, 1e-12)])
+	return {"fv": fv, "chains": chains}
+
+
+## The mesh's sharp bends that none of its edges runs along (sides where its surface turns over 35 degrees,
+## in lines three sides long or more) made edges for the layout (appended, let go of after) - so rows of the
+## new mesh lie exactly on them: a bend falling inside quads makes lumps and folds. {fv, chains}.
+static func crease_chains(v: PackedVector3Array, t: PackedInt32Array, fv_in: Array, chains_in: Array, L := 0.0, min_len := -1.0) -> Dictionary:
+	if min_len < 0.0:
+		min_len = crease_min_len
+	var fv := fv_in.duplicate(true)
+	var chains := chains_in.duplicate(true)
+	var edge_side := {}
+	var by_c := {}
+	for e in fv:
+		if not by_c.has(int(e[1])):
+			by_c[int(e[1])] = []
+		by_c[int(e[1])].append([float(e[2]), int(e[0])])
+	for ci in by_c:
+		var lst: Array = by_c[ci]
+		lst.sort_custom(func(x, y): return float(x[0]) < float(y[0]))
+		for m in lst.size():
+			var a0: int = lst[m][1]
+			var b0: int = lst[(m + 1) % lst.size()][1]
+			if a0 != b0:
+				edge_side[_pk(a0, b0)] = true
+	var by_e := {}
+	var nt := t.size() / 3
+	var tn := []
+	for ti in nt:
+		var n := (v[t[ti * 3 + 2]] - v[t[ti * 3]]).cross(v[t[ti * 3 + 1]] - v[t[ti * 3]])
+		tn.append(n.normalized() if n.length_squared() > 1e-30 else Vector3.ZERO)
+		for j in 3:
+			var k := _pk(t[ti * 3 + j], t[ti * 3 + (j + 1) % 3])
+			if not by_e.has(k):
+				by_e[k] = []
+			(by_e[k] as Array).append(ti)
+	var lim := cos(deg_to_rad(crease_deg))
+	var adj := {}   # crease graph: vertex -> [vertex...]
+	for k in by_e:
+		var tl: Array = by_e[k]
+		if tl.size() != 2 or edge_side.has(k):
+			continue
+		var n0: Vector3 = tn[tl[0]]
+		var n1: Vector3 = tn[tl[1]]
+		if n0 == Vector3.ZERO or n1 == Vector3.ZERO or n0.dot(n1) > lim:
+			continue
+		var ab := _unpk(k)
+		for x in [0, 1]:
+			var a: int = ab[x]
+			var b: int = ab[1 - x]
+			if not adj.has(a):
+				adj[a] = []
+			(adj[a] as Array).append(b)
+	if adj.is_empty():
+		return {"fv": fv, "chains": chains}
+	# lines: walked from their ends (or anywhere on a loop), breaking where three or more meet
+	var used := {}
+	var starts := adj.keys().filter(func(x): return (adj[x] as Array).size() != 2)
+	starts.append_array(adj.keys())
+	for st in starts:
+		for nb in adj[st]:
+			if used.has(_pk(st, nb)):
+				continue
+			var line := [st]
+			var prev: int = st
+			var cur: int = nb
+			used[_pk(st, nb)] = true
+			while true:
+				line.append(cur)
+				if (adj[cur] as Array).size() != 2 or cur == st:
+					break
+				var nx: int = adj[cur][0] if adj[cur][0] != prev else adj[cur][1]
+				if used.has(_pk(cur, nx)):
+					break
+				used[_pk(cur, nx)] = true
+				prev = cur
+				cur = nx
+			var closed: bool = line.size() > 3 and line.back() == line[0]
+			if closed:
+				line.pop_back()
+			if line.size() < (3 if closed else 4):
+				continue   # (a short nick: noise, not a bend to follow)
+			var llen := 0.0
+			for i in range(1, line.size()):
+				llen += v[line[i - 1]].distance_to(v[line[i]])
+			if closed:
+				llen += v[line.back()].distance_to(v[line[0]])
+				if llen < crease_loop_min * L:
+					continue   # (a loop round a facet or two - a spike, not a fold: nothing lays its little face out)
+			if llen < min_len * L:
+				continue   # (shorter than three quads: a facet's nick, not a fold - it would cut slivers of faces)
+			var ci := chains.size()
+			chains.append({"id": -4000 - ci, "closed": closed})
+			var total := 0.0
+			for i in range(1, line.size()):
+				total += v[line[i - 1]].distance_to(v[line[i]])
+			if closed:
+				total += v[line.back()].distance_to(v[line[0]])
+			var acc := 0.0
+			for i in line.size():
+				if i > 0:
+					acc += v[line[i - 1]].distance_to(v[line[i]])
+				fv.append([int(line[i]), ci, acc / maxf(total, 1e-12)])
+	return {"fv": fv, "chains": chains}
+
+
+## Each edge's listed points put in the order its path really runs through the mesh: the sides of the mesh
+## joining its points walked from one end (a closed one: from its first place), at a fork the way its places
+## go on; its places along it worked out again by length; points the walk never reaches dropped (strays from
+## old edits - in place order they made sides that aren't there, and the edge didn't cut the surface).
+static func chain_paths(v: PackedVector3Array, t: PackedInt32Array, fv: Array, chains: Array) -> Array:
+	var side := {}   # side -> its triangles
+	for i in range(0, t.size(), 3):
+		for j in 3:
+			var k := _pk(t[i + j], t[i + (j + 1) % 3])
+			if not side.has(k):
+				side[k] = []
+			(side[k] as Array).append(i / 3)
+	var bent := func(k: String) -> float:   # (how sharply the surface turns over a side; an open side: 180)
+		var tl: Array = side[k]
+		if tl.size() != 2:
+			return 180.0
+		var n0 := (v[t[tl[0] * 3 + 2]] - v[t[tl[0] * 3]]).cross(v[t[tl[0] * 3 + 1]] - v[t[tl[0] * 3]])
+		var n1 := (v[t[tl[1] * 3 + 2]] - v[t[tl[1] * 3]]).cross(v[t[tl[1] * 3 + 1]] - v[t[tl[1] * 3]])
+		if n0.length_squared() < 1e-30 or n1.length_squared() < 1e-30:
+			return 0.0
+		return rad_to_deg(n0.angle_to(n1))
+	var by_c := {}
+	for e in fv:
+		if not by_c.has(int(e[1])):
+			by_c[int(e[1])] = {}
+		by_c[int(e[1])][int(e[0])] = float(e[2])   # (vertex -> its place)
+	var open_adj := {}   # (the mesh's open sides: vertex -> [vertex...])
+	for k in side:
+		if (side[k] as Array).size() == 1:
+			var ab := _unpk(k)
+			for x in [0, 1]:
+				if not open_adj.has(ab[x]):
+					open_adj[ab[x]] = []
+				(open_adj[ab[x]] as Array).append(ab[1 - x])
+	var out := []
+	for ci in by_c:
+		var place: Dictionary = by_c[ci]
+		# (an open rim the edge runs along, through a point or two it never listed: those points taken in,
+		# so the walk goes on round the rim)
+		for x in place.keys():
+			for y0 in open_adj.get(x, []):
+				if place.has(y0):
+					continue
+				var run := [y0]
+				var prev_v: int = x
+				var cur_v: int = y0
+				var reached := -1
+				for step in 8:
+					var nx := -1
+					for z in open_adj.get(cur_v, []):
+						if z != prev_v:
+							nx = z
+							break
+					if nx < 0:
+						break
+					if place.has(nx):
+						reached = nx
+						break
+					run.append(nx)
+					prev_v = cur_v
+					cur_v = nx
+				if reached >= 0 and reached != x:
+					for i in run.size():
+						place[run[i]] = lerpf(float(place[x]), float(place[reached]), float(i + 1) / (run.size() + 1))
+		var pts := place.keys()
+		var closed: bool = ci < chains.size() and bool(chains[ci].get("closed", false))
+		var adj := {}
+		for a in pts:
+			adj[a] = []
+		for i in pts.size():
+			for j in range(i + 1, pts.size()):
+				if side.has(_pk(pts[i], pts[j])):
+					(adj[pts[i]] as Array).append(pts[j])
+					(adj[pts[j]] as Array).append(pts[i])
+		# the start: a closed edge's lowest place; an open one's end (one neighbour), the lowest place of them
+		var start: int = pts[0]
+		var best := INF
+		for a in pts:
+			var ends_here: bool = closed or (adj[a] as Array).size() <= 1
+			if ends_here and float(place[a]) < best:
+				best = float(place[a])
+				start = a
+		var walk := [start]
+		var seen := {start: true}
+		var cur := start
+		while true:
+			var nxt := -1
+			var gap := INF
+			# (at a fork: the way an edge really runs - along an open rim, else along a sharp bend - before its
+			# places, which old edits can leave out of order)
+			var open_ones := []
+			var sharp_ones := []
+			for b in adj[cur]:
+				if seen.has(b):
+					continue
+				var bb: float = bent.call(_pk(cur, b))
+				if bb >= 179.0:
+					open_ones.append(b)
+				elif bb > 45.0:
+					sharp_ones.append(b)
+			var allowed: Array = open_ones if not open_ones.is_empty() else (sharp_ones if not sharp_ones.is_empty() else adj[cur])
+			for b in allowed:
+				if seen.has(b):
+					continue
+				# (the next place on: a fork resolved by the places, wrapping round a closed edge)
+				var d: float = float(place[b]) - float(place[cur])
+				if closed and d < 0.0:
+					d += 1.0
+				if d < 0.0:
+					d += 10.0   # (going back: only if nothing goes on)
+				if d < gap:
+					gap = d
+					nxt = b
+			if nxt < 0:
+				break
+			walk.append(nxt)
+			seen[nxt] = true
+			cur = nxt
+		if walk.size() < 2:
+			for a in pts:
+				out.append([a, ci, float(place[a])])   # (no path through the mesh at all: as it was)
+			continue
+		var total := 0.0
+		for i in range(1, walk.size()):
+			total += v[walk[i - 1]].distance_to(v[walk[i]])
+		if closed:
+			total += v[walk.back()].distance_to(v[walk[0]])
+		var acc := 0.0
+		for i in walk.size():
+			if i > 0:
+				acc += v[walk[i - 1]].distance_to(v[walk[i]])
+			out.append([int(walk[i]), ci, acc / maxf(total, 1e-12)])
+	return out
+
+
+## Faces bigger than big_face quads cut in two, again and again till none is: across each, the shortest path
+## through it between two points of its rim roughly opposite each other - short for the rim it divides - a
+## chain of its own (appended, let go of after). Flattened in one piece, a big curved face's grid comes back
+## uneven; its pieces flatten with far less distortion. {fv, chains}.
+static func split_big(v: PackedVector3Array, t: PackedInt32Array, fv_in: Array, chains_in: Array, L: float) -> Dictionary:
+	var fv := fv_in.duplicate(true)
+	var chains := chains_in.duplicate(true)
+	for round_i in 40:
+		var feat := {}
+		var by_c := {}
+		for e in fv:
+			if not by_c.has(int(e[1])):
+				by_c[int(e[1])] = []
+			by_c[int(e[1])].append([float(e[2]), int(e[0])])
+		for ci in by_c:
+			var lst: Array = by_c[ci]
+			lst.sort_custom(func(x, y): return float(x[0]) < float(y[0]))
+			for m in range(1, lst.size()):
+				if int(lst[m - 1][1]) != int(lst[m][1]):
+					feat[_pk(int(lst[m - 1][1]), int(lst[m][1]))] = true
+			if ci < chains.size() and bool(chains[ci].get("closed", false)) and lst.size() > 2:
+				feat[_pk(int(lst.back()[1]), int(lst[0][1]))] = true
+		var face: PackedInt32Array = face_of(v, t, feat)
+		var nf := 0
+		for f in face:
+			nf = maxi(nf, f + 1)
+		var f_tris := []
+		var f_area := PackedFloat64Array()
+		f_tris.resize(nf)
+		f_area.resize(nf)
+		for f in nf:
+			f_tris[f] = []
+		for ti in face.size():
+			(f_tris[face[ti]] as Array).append(ti)
+			f_area[face[ti]] += (v[t[ti * 3 + 1]] - v[t[ti * 3]]).cross(v[t[ti * 3 + 2]] - v[t[ti * 3]]).length() * 0.5
+		var biggest := -1
+		for f in nf:
+			if f_area[f] / (L * L) > big_face and (biggest < 0 or f_area[f] > f_area[biggest]):
+				biggest = f
+		if biggest < 0:
+			break
+		var tris: Array = f_tris[biggest]
+		var cnt := {}
+		var adj := {}
+		for ti in tris:
+			for j in 3:
+				var a := t[ti * 3 + j]
+				var b := t[ti * 3 + (j + 1) % 3]
+				var k := _pk(a, b)
+				cnt[k] = int(cnt.get(k, 0)) + 1
+				if not adj.has(a):
+					adj[a] = {}
+				if not adj.has(b):
+					adj[b] = {}
+				adj[a][b] = true
+				adj[b][a] = true
+		var nxt := {}
+		for ti in tris:
+			for j in 3:
+				var a := t[ti * 3 + j]
+				var b := t[ti * 3 + (j + 1) % 3]
+				if int(cnt[_pk(a, b)]) == 1:
+					nxt[a] = b
+		if nxt.is_empty():
+			break
+		# its outer rim, in order
+		var bnd := {}
+		for a in nxt:
+			bnd[a] = [nxt[a]]
+		var st: int = nxt.keys()[0]
+		var rim := [st]
+		var cur: int = nxt[st]
+		var guard := 0
+		while cur != st and nxt.has(cur) and guard < nxt.size() + 2:
+			rim.append(cur)
+			cur = nxt[cur]
+			guard += 1
+		var M := rim.size()
+		if M < 8:
+			break
+		var cum := PackedFloat64Array([0.0])
+		for i in M:
+			cum.append(cum[i] + v[rim[i]].distance_to(v[rim[(i + 1) % M]]))
+		var per := cum[M]
+		# candidate cuts: from a dozen points round the rim to the points about half way round from each
+		var best_path := []
+		var best_sc := INF
+		for c in 12:
+			var i0 := (c * M) / 12
+			var to := {}
+			for j in M:
+				var d := fposmod(cum[j] - cum[i0], per)
+				if d > per * 0.35 and d < per * 0.65:
+					to[rim[j]] = true
+			var path := _shortest(v, adj, [rim[i0]], to, {}, bnd)
+			if path.size() < 3:
+				continue
+			var plen := 0.0
+			for q in range(1, path.size()):
+				plen += v[path[q - 1]].distance_to(v[path[q]])
+			var sc := plen / per
+			if sc < best_sc:
+				best_sc = sc
+				best_path = path
+		if best_path.is_empty():
+			break
+		var ci := chains.size()
+		chains.append({"id": -5000 - ci, "closed": false})
+		var total := 0.0
+		for q in range(1, best_path.size()):
+			total += v[best_path[q - 1]].distance_to(v[best_path[q]])
+		var acc := 0.0
+		for q in best_path.size():
+			if q > 0:
+				acc += v[best_path[q - 1]].distance_to(v[best_path[q]])
+			fv.append([int(best_path[q]), ci, acc / maxf(total, 1e-12)])
+	return {"fv": fv, "chains": chains}
+
+
+## (grid_faces) A kept face filled by field_remesh.fill_face, its rim the points it already has (`new_of`: old
+## vertex -> new; each rim point added if it isn't yet): the fill's quads split along an inside diagonal, its
+## new points added (fill_out_v, fill_out_t - packed arrays come back, not changed in place). False - it couldn't.
+static func _fill_kept_face(v: PackedVector3Array, t: PackedInt32Array, tris: Array, on: Dictionary, new_of: Dictionary, add_fv: Callable, out_v: PackedVector3Array, out_t: PackedInt32Array, L: float, rim_split := {}, rim_inner := {}) -> bool:
+	fill_out_t = PackedInt32Array()
+	# its rim's samples: the old points kept (junctions, open sides' points - new_of), the resampled edges' new ones
+	var keep_pts := {}
+	var scnt := {}
+	for ti in tris:
+		for j in 3:
+			var k := _pk(t[ti * 3 + j], t[ti * 3 + (j + 1) % 3])
+			scnt[k] = int(scnt.get(k, 0)) + 1
+	for ti in tris:
+		for j in 3:
+			var x := t[ti * 3 + j]
+			if int(scnt[_pk(x, t[ti * 3 + (j + 1) % 3])]) != 1:
+				continue   # (rim points only)
+			if not rim_inner.has(x) and not keep_pts.has(x):
+				if not new_of.has(x):
+					new_of[x] = out_v.size()
+					out_v.append(v[x])
+					for cj in on.get(x, {}):
+						add_fv.call(new_of[x], int(cj), float(on[x][cj]))
+				keep_pts[x] = new_of[x]
+	# (the same face with the same rim samples filled before - an earlier round: that fill again)
+	var slist := []
+	var sig := PackedStringArray([str(tris.size()), str(tris[0]), str(tris.back())])
+	for ti in tris:
+		for j in 3:
+			var x := t[ti * 3 + j]
+			var y := t[ti * 3 + (j + 1) % 3]
+			if keep_pts.has(x):
+				slist.append(keep_pts[x])
+			for sk in [Vector2i(x, y), Vector2i(y, x)]:
+				for e in rim_split.get(sk, []):
+					slist.append(int(e[1]))
+	for id in slist:
+		sig.append(str(out_v[id]))
+	var key := "|".join(sig).hash()
+	var FR: GDScript = load("res://scripts/editor/mesh/field_remesh.gd")
+	var res: Dictionary
+	var was_cached := fill_cache.has(key)
+	if was_cached:
+		var c: Dictionary = fill_cache[key]
+		res = {"pts": c["pts"], "faces": []}
+		for f in c["faces"]:
+			res["faces"].append((f as Array).map(func(x): return -1 - int(slist[-1 - int(x)]) if int(x) < 0 else int(x)))
+	else:
+		var pt0 := Time.get_ticks_usec()
+		res = FR.fill_face(v, t, tris, [], L, true, {"keep": keep_pts, "split": rim_split})
+		prof["fill"] = float(prof.get("fill", 0.0)) + (Time.get_ticks_usec() - pt0) / 1000.0
+		if not res.is_empty():
+			var at := {}
+			for i in slist.size():
+				if not at.has(slist[i]):
+					at[slist[i]] = i
+			var faces := []
+			for f in res["faces"]:
+				faces.append((f as Array).map(func(x): return -1 - int(at[-1 - int(x)]) if int(x) < 0 else int(x)))
+			fill_cache[key] = {"pts": res["pts"], "faces": faces}
+	var nq := 0
+	for f in res.get("faces", []):
+		nq += 1 if (f as Array).size() == 4 else 0
+	fill_log.append([tris.size(), not res.is_empty(), str(FR.get("why")), nq, res.get("faces", []).size() - nq, "cached" if was_cached else int(FR.get("stats").get("ms", 0))])
+	if res.is_empty() and tris.size() <= 64:
+		# (a small face the fill can't do: its rim's samples cut into triangles across it, flat)
+		var st := _small_fill(v, t, tris, keep_pts, rim_split, out_v)
+		fill_log.append(["small", small_why if st.is_empty() else "ok"])
+		if not st.is_empty():
+			fill_out_t = st
+			fill_out_v = out_v
+			fill_count += 1
+			return true
+	if res.is_empty():
+		fill_out_v = out_v
+		return false
+	var base := out_v.size()
+	for q in (res["pts"] as PackedVector3Array):
+		out_v.append(q)
+	var idx := func(x: int) -> int:
+		return -1 - x if x < 0 else base + x
+	for f in res["faces"]:
+		var c := (f as Array).map(func(x): return idx.call(int(x)))
+		if c.size() == 3:
+			fill_out_t.append_array(PackedInt32Array(c))
+		else:
+			var a: int = c[0]
+			var b: int = c[1]
+			var cc: int = c[2]
+			var d: int = c[3]
+			var qn := (out_v[cc] - out_v[a]).cross(out_v[b] - out_v[d])
+			var ac_ok := _tri_face(out_v, a, b, cc).dot(qn) > 0.0 and _tri_face(out_v, a, cc, d).dot(qn) > 0.0
+			var bd_ok := _tri_face(out_v, a, b, d).dot(qn) > 0.0 and _tri_face(out_v, b, cc, d).dot(qn) > 0.0
+			var use_ac := out_v[a].distance_squared_to(out_v[cc]) >= out_v[b].distance_squared_to(out_v[d])
+			if use_ac and not ac_ok and bd_ok:
+				use_ac = false
+			elif not use_ac and not bd_ok and ac_ok:
+				use_ac = true
+			if use_ac:
+				fill_out_t.append_array(PackedInt32Array([a, b, cc, a, cc, d]))
+			else:
+				fill_out_t.append_array(PackedInt32Array([a, b, d, b, cc, d]))
+	fill_count += 1
+	fill_out_v = out_v
+	return true
+
+
+## (_fill_kept_face) A small face's rim samples - its kept points and the samples on its sides, in order round
+## it - cut into triangles (ear by ear, in the plane it faces), wound as its triangles are. Empty: it couldn't
+## (more than one rim loop, a rim touching itself).
+static func _small_fill(v: PackedVector3Array, t: PackedInt32Array, tris: Array, keep_pts: Dictionary, rim_split: Dictionary, out_v: PackedVector3Array) -> PackedInt32Array:
+	var cnt := {}
+	var n := Vector3.ZERO
+	for ti in tris:
+		n += _tri_face(v, t[ti * 3], t[ti * 3 + 1], t[ti * 3 + 2])
+		for j in 3:
+			var k := _pk(t[ti * 3 + j], t[ti * 3 + (j + 1) % 3])
+			cnt[k] = int(cnt.get(k, 0)) + 1
+	if n.length_squared() < 1e-30:
+		small_why = "no normal"
+		return PackedInt32Array()
+	n = n.normalized()
+	var nxt := {}
+	for ti in tris:
+		for j in 3:
+			var a := t[ti * 3 + j]
+			var b := t[ti * 3 + (j + 1) % 3]
+			if int(cnt[_pk(a, b)]) == 1:
+				if nxt.has(a):
+					small_why = "rim touches itself"
+					return PackedInt32Array()
+				nxt[a] = b
+	if nxt.is_empty():
+		small_why = "no rim"
+		return PackedInt32Array()
+	# its rim loops as sample ids
+	var loops := []
+	var left_s := nxt.duplicate()
+	while not left_s.is_empty():
+		var st: int = left_s.keys()[0]
+		var lp := []
+		var cur := st
+		while true:
+			if not left_s.has(cur):
+				small_why = "rim breaks"
+				return PackedInt32Array()
+			var b2: int = left_s[cur]
+			left_s.erase(cur)
+			if keep_pts.has(cur):
+				lp.append(int(keep_pts[cur]))
+			var lst := []
+			for e in rim_split.get(Vector2i(cur, b2), []):
+				lst.append([float(e[0]), int(e[1])])
+			for e in rim_split.get(Vector2i(b2, cur), []):
+				lst.append([1.0 - float(e[0]), int(e[1])])
+			lst.sort_custom(func(x, y): return float(x[0]) < float(y[0]))
+			for e in lst:
+				lp.append(int(e[1]))
+			cur = b2
+			if cur == st:
+				break
+		if lp.size() < 2:
+			small_why = "a loop of too few samples"
+			return PackedInt32Array()
+		loops.append(lp)
+	# ears, in the plane: e1, e2 with the face's normal
+	var e1 := n.cross(Vector3.UP if absf(n.y) < 0.9 else Vector3.RIGHT).normalized()
+	var e2 := n.cross(e1)
+	var p2 := {}
+	for lp in loops:
+		for id in lp:
+			p2[id] = Vector2(out_v[id].dot(e1), out_v[id].dot(e2))
+	# (holes bridged into the outer loop - the biggest - at their nearest points: one polygon)
+	var areas := []
+	for lp in loops:
+		var ar := 0.0
+		for k in lp.size():
+			ar += (p2[lp[k]] as Vector2).cross(p2[lp[(k + 1) % lp.size()]])
+		areas.append(absf(ar))
+	var oi := 0
+	for k in loops.size():
+		if float(areas[k]) > float(areas[oi]):
+			oi = k
+	var poly: Array = loops[oi]
+	for k in loops.size():
+		if k == oi:
+			continue
+		var hole: Array = loops[k]
+		var bi := 0
+		var bj := 0
+		var bd := INF
+		for i2 in poly.size():
+			for j2 in hole.size():
+				var d := (p2[poly[i2]] as Vector2).distance_squared_to(p2[hole[j2]])
+				if d < bd:
+					bd = d
+					bi = i2
+					bj = j2
+		var spliced := poly.slice(0, bi + 1)
+		spliced.append_array(hole.slice(bj))
+		spliced.append_array(hole.slice(0, bj + 1))
+		spliced.append_array(poly.slice(bi))
+		poly = spliced
+	if poly.size() < 3:
+		small_why = "too few samples"
+		return PackedInt32Array()
+	var area := 0.0
+	for i in poly.size():
+		var a: Vector2 = p2[poly[i]]
+		var b: Vector2 = p2[poly[(i + 1) % poly.size()]]
+		area += a.cross(b)
+	var ccw := area > 0.0
+	var left := poly.duplicate()
+	var out := PackedInt32Array()
+	var guard := 0
+	while left.size() > 3 and guard < 4000:
+		guard += 1
+		var best := -1
+		var best_q := -INF
+		for i in left.size():
+			var a: Vector2 = p2[left[(i - 1 + left.size()) % left.size()]]
+			var b: Vector2 = p2[left[i]]
+			var c: Vector2 = p2[left[(i + 1) % left.size()]]
+			var cr := (b - a).cross(c - b)
+			if (cr > 0.0) != ccw or absf(cr) < 1e-20:
+				continue
+			var inside := false
+			for q in left:
+				var pq: Vector2 = p2[q]
+				if q == left[i] or q == left[(i - 1 + left.size()) % left.size()] or q == left[(i + 1) % left.size()]:
+					continue
+				var d1 := (b - a).cross(pq - a)
+				var d2 := (c - b).cross(pq - b)
+				var d3 := (a - c).cross(pq - c)
+				if (d1 > 0.0) == ccw and (d2 > 0.0) == ccw and (d3 > 0.0) == ccw:
+					inside = true
+					break
+			if inside:
+				continue
+			# (the roundest ear first)
+			var la := a.distance_to(b)
+			var lb := b.distance_to(c)
+			var lc := c.distance_to(a)
+			var q := absf(cr) / maxf(la * la + lb * lb + lc * lc, 1e-30)
+			if q > best_q:
+				best_q = q
+				best = i
+		if best < 0:
+			small_why = "no ear"
+			return PackedInt32Array()
+		var ia: int = left[(best - 1 + left.size()) % left.size()]
+		var ib: int = left[best]
+		var ic: int = left[(best + 1) % left.size()]
+		out.append_array(PackedInt32Array([ia, ib, ic]))
+		left.remove_at(best)
+	if left.size() == 3:
+		out.append_array(PackedInt32Array([left[0], left[1], left[2]]))
+	# (wound as the face's triangles: facing n)
+	if out.size() >= 3 and _tri_face(out_v, out[0], out[1], out[2]).dot(n) < 0.0:
+		for i in range(0, out.size(), 3):
+			var x := out[i + 1]
+			out[i + 1] = out[i + 2]
+			out[i + 2] = x
+	return out
+

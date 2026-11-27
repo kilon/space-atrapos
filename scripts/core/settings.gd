@@ -434,6 +434,7 @@ func _resize_window() -> void:
 	var screen_size := DisplayServer.screen_get_size(screen)
 	var at := window_at_arg()
 	var pos := at if at != Vector2i(-1, -1) else origin + (screen_size - size) / 2
+	pos = on_screen(pos, size, DisplayServer.screen_get_usable_rect(screen))
 	if is_inside_tree():
 		var win := get_tree().root
 		# (only what's not so already: out of fullscreen the window comes back at its size and place by itself -
@@ -446,6 +447,16 @@ func _resize_window() -> void:
 	else:
 		DisplayServer.window_set_size(size)
 		DisplayServer.window_set_position(pos)
+
+
+## Where a window of `size` at `pos` goes so as much of it as can is on the screen's usable part (`usable`:
+## the screen less its panels) - a window the size of the resolution picked, asked for at the bottom-left,
+## moved up instead of left hanging off the screen.
+static func on_screen(pos: Vector2i, size: Vector2i, usable: Rect2i) -> Vector2i:
+	if usable.size.x <= 0 or usable.size.y <= 0:
+		return pos
+	var hi := usable.end - size
+	return Vector2i(clampi(pos.x, usable.position.x, maxi(usable.position.x, hi.x)), clampi(pos.y, usable.position.y, maxi(usable.position.y, hi.y)))
 
 
 ## `-- --window-at=X,Y` on the command line (playtests): the window goes there

@@ -2663,6 +2663,217 @@ func test_points_extrude_connect_delete_and_move() -> void:
 	await _done(ed)
 
 
+## Extrude face: a baked block's top face pulled up 0.5 m - the block taller, still closed (no holes), walls
+## of quads, the top's edges copied up and a side edge up each corner; pushed in it's shorter; one undo.
+func test_extrude_face() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve(_rect(1.0, 1.0))
+	ct.select(0)
+	var blk: MeshInstance3D = ct.make_part("extrude", 1.0)
+	ed.select_part(blk)
+	check(ct.bake_solid(blk), "baked")
+	for i in 60:
+		if not ct.has_meta("join_job"):
+			break
+		await tree.process_frame
+	var spec: Dictionary = blk.get_meta("curve_solid")
+	var fs: Dictionary = ct._faces_of(spec)
+	var v: PackedVector3Array = fs["v"]
+	var t: PackedInt32Array = fs["t"]
+	var top_f := -1
+	for ti in t.size() / 3:
+		if v[t[ti * 3]].y > 0.999 and v[t[ti * 3 + 1]].y > 0.999 and v[t[ti * 3 + 2]].y > 0.999:
+			top_f = (fs["face"] as PackedInt32Array)[ti]
+			break
+	var ids: Array = ct._face_ids(spec, fs, top_f)
+	ct.set_meta("patch", {"part": blk.get_instance_id(), "ids": ids, "seed": Vector3(0.5, 1, 0.5)})
+	var n_ids: int = (spec["ids"] as Array).size()
+	ct.begin_face_extrude()
+	check(ct.op.get("kind", "") == "face_extrude", "the operation starts")
+	check(((ct.op["n_local"] as Vector3) - Vector3.UP).length() < 1e-3, "along the face's normal (up)")
+	ct.op["value"] = 0.5
+	ct._op_update()
+	ct.confirm_op()
+	var s1: Dictionary = blk.get_meta("curve_solid")
+	var EN = load("res://scripts/editor/mesh/edge_net.gd")
+	var t1 := PackedInt32Array(s1["mesh"]["t"])
+	check_eq(EN._open_edges(t1), 0, "still closed - no holes")
+	var mv: Array = s1["mesh"]["v"]
+	var top := -INF
+	for i in range(1, mv.size(), 3):
+		top = maxf(top, float(mv[i]))
+	check(absf(top - 1.5) < 1e-4, "the top now at 1.5 m (%.3f)" % top)
+	var added: int = (s1["ids"] as Array).size() - n_ids
+	check(added >= 5, "its edges copied up and a side edge at each corner (%d new)" % added)
+	await tree.process_frame
+	ct.refresh_solids()
+	check(Shapes.volume(blk.mesh) > 1.4, "the block 1.5 m tall (volume %.3f)" % Shapes.volume(blk.mesh))
+	var v2 := PackedVector3Array()
+	for i in range(0, mv.size(), 3):
+		v2.append(Vector3(mv[i], mv[i + 1], mv[i + 2]))
+	var faces: Array = EN._pair_faces(v2, t1, s1["fv"])
+	var quads := faces.filter(func(f): return (f as Array).size() == 4).size()
+	check(quads >= faces.size() * 0.8, "quads (%d of %d)" % [quads, faces.size()])
+	ed.undo()
+	check_eq(((blk.get_meta("curve_solid") as Dictionary)["ids"] as Array).size(), n_ids, "undo: as it was")
+	await _done(ed)
+
+
+## The knife snaps (Blender's way): a click near a vertex of the solid's edges lands on it, near an edge on
+## it; Ctrl: free.
+func test_knife_snaps_to_vertices_and_edges() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve(_rect(1.0, 1.0))
+	ct.select(0)
+	var blk: MeshInstance3D = ct.make_part("extrude", 1.0)
+	ed.select_part(blk)
+	check(ct.bake_solid(blk), "baked")
+	for i in 60:
+		if not ct.has_meta("join_job"):
+			break
+		await tree.process_frame
+	ed.view.frame(blk.global_transform * blk.get_aabb())
+	await tree.process_frame
+	# (a top corner in sight)
+	var cam: Vector3 = ed.view.cam.global_position
+	var corner := Vector3.ZERO
+	var best := INF
+	for q in [Vector3(0, 1, 0), Vector3(1, 1, 0), Vector3(0, 1, 1), Vector3(1, 1, 1)]:
+		var w: Vector3 = blk.global_transform * q
+		if w.distance_to(cam) < best:
+			best = w.distance_to(cam)
+			corner = w
+	var sc: Vector2 = ed.view.cam.unproject_position(corner)
+	ct.begin_knife()
+	var sn: Dictionary = ct._knife_snap(sc + Vector2(5, 4), null)
+	check(not sn.is_empty() and str(sn["kind"]) == "vertex" and (sn["world"] as Vector3).distance_to(corner) < 1e-3, "near a corner: snapped onto it (%s)" % str(sn.get("kind", "none")))
+	# an edge: between that corner and the next one along the top
+	var other: Vector3 = blk.global_transform * Vector3(0.5, 1, 0.5)
+	var mid := corner.lerp(corner + Vector3((other - corner).x * 2.0, 0, 0), 0.5)
+	var sm: Vector2 = ed.view.cam.unproject_position(mid)
+	var se: Dictionary = ct._knife_snap(sm + Vector2(0, 6), null)
+	check(not se.is_empty() and str(se["kind"]) == "edge" and absf((se["world"] as Vector3).y - corner.y) < 1e-3, "near an edge: snapped onto it (%s)" % str(se.get("kind", "none")))
+	# a click there places the knife's point exactly on the vertex
+	var mb := InputEventMouseButton.new()
+	mb.button_index = MOUSE_BUTTON_LEFT
+	mb.pressed = true
+	mb.position = sc + Vector2(5, 4)
+	ct._knife_input(mb)
+	var kn: Dictionary = ct.get_meta("knife")
+	check((kn["clicks"] as Array).size() == 1 and (blk.global_transform * (kn["clicks"][0]["pos"] as Vector3)).distance_to(corner) < 1e-3, "the click: on the vertex")
+	mb.ctrl_pressed = true
+	ct._knife_input(mb)
+	check((blk.global_transform * (kn["clicks"][1]["pos"] as Vector3)).distance_to(corner) > 1e-3, "Ctrl: where the mouse is, not snapped")
+	ct.knife_stop()
+	await _done(ed)
+
+
+## Remesh: a baked solid laid out again by the topology rules, in the background - still closed, mostly
+## quads, its edges as they were; one undo step.
+func test_remesh_solid() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve(_rect(1.0, 1.0))
+	ct.select(0)
+	var blk: MeshInstance3D = ct.make_part("extrude", 1.0)
+	ed.select_part(blk)
+	check(ct.bake_solid(blk), "baked")
+	for i in 60:
+		if not ct.has_meta("join_job"):
+			break
+		await tree.process_frame
+	var s0: Dictionary = blk.get_meta("curve_solid")
+	var ids0: Array = (s0["ids"] as Array).duplicate()
+	ct.remesh_solid(blk)
+	var t_end := Time.get_ticks_msec() + 60000
+	var bar_seen := false
+	while ct.has_meta("remesh_job") and Time.get_ticks_msec() < t_end:
+		await tree.process_frame
+		if ct.has_meta("remesh_bar") and is_instance_valid(ct.get_meta("remesh_bar")):
+			var bx: Control = ct.get_meta("remesh_bar")
+			bar_seen = bar_seen or (bx.get_parent() == ed.view and bx.position.x < ed.view.size.x * 0.5 and bx.position.y > ed.view.size.y * 0.5)
+	check(bar_seen, "a progress bar in the view's lower left corner while it works")
+	check(not ct.has_meta("remesh_bar"), "the bar gone when it's done")
+	var s1: Dictionary = blk.get_meta("curve_solid")
+	check(s1 != s0 and s1["mesh"]["t"] != s0["mesh"]["t"], "laid out again")
+	var EN = load("res://scripts/editor/mesh/edge_net.gd")
+	check_eq(EN._open_edges(PackedInt32Array(s1["mesh"]["t"])), 0, "still closed")
+	check_eq(s1["ids"], ids0, "its edges as they were")
+	var mv: Array = s1["mesh"]["v"]
+	var v := PackedVector3Array()
+	for i in range(0, mv.size(), 3):
+		v.append(Vector3(mv[i], mv[i + 1], mv[i + 2]))
+	var fs: Array = EN._pair_faces(v, PackedInt32Array(s1["mesh"]["t"]), s1["fv"])
+	var q := fs.filter(func(f): return (f as Array).size() == 4).size()
+	check(q >= fs.size() * 0.9, "mostly quads (%d of %d)" % [q, fs.size()])
+	ed.undo()
+	check((blk.get_meta("curve_solid") as Dictionary)["mesh"]["t"] == s0["mesh"]["t"], "undo: as it was")
+	await _done(ed)
+
+
+## Remesh in the right-click menu whatever's picked on a solid: a face of it, the whole solid, or nothing.
+func test_remesh_in_every_solid_menu() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve(_rect(1.0, 1.0))
+	ct.select(0)
+	var blk: MeshInstance3D = ct.make_part("extrude", 1.0)
+	ed.select_part(blk)
+	check(ct.bake_solid(blk), "baked")
+	var has_remesh := func() -> bool:
+		for g in ct.menu_groups():
+			for it in g:
+				if str(it[1]) == "Remesh" and bool(it[5]):
+					return true
+		return false
+	ct.sel = []
+	check(has_remesh.call(), "the solid selected: Remesh")
+	var spec: Dictionary = blk.get_meta("curve_solid")
+	var fs: Dictionary = ct._faces_of(spec)
+	ct.set_meta("patch", {"part": blk.get_instance_id(), "ids": ct._face_ids(spec, fs, 0), "seed": Vector3(0.5, 1, 0.5)})
+	check(not ct.picked_patch().is_empty() and has_remesh.call(), "a face picked: Remesh too")
+	ct.remove_meta("patch")
+	ct.set_meta("solid", blk.get_instance_id())
+	check(ct.picked_solid() != null and has_remesh.call(), "the whole solid picked: Remesh too")
+	await _done(ed)
+
+
+## A bake lays its solid out quickly (grids), then fully in the background (the field-aligned fill where it's
+## cleaner) - its own undo step; the solid stays closed.
+func test_bake_lays_out_in_background() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	# (a revolved sphere with a smaller one cut out of its side - the even-mesh path, laid out as grids)
+	ct.add_curve({"kind": "arc", "ctrl": PackedVector3Array([Vector3(0, 0, 0), Vector3(0.69, 0.68, 0), Vector3(0, 1.36, 0)]), "closed": false, "n": Vector3.BACK})
+	ct.select(0)
+	var blk: MeshInstance3D = ct.make_part("revolve", 360.0)
+	ct.add_curve({"kind": "arc", "ctrl": PackedVector3Array([Vector3(0, 0.5, 0), Vector3(0.5, 1.0, 0), Vector3(0, 1.5, 0)]), "closed": false, "n": Vector3.BACK})
+	ct.select(1)
+	var small: MeshInstance3D = ct.make_part("revolve", 360.0)
+	small.position = Vector3(0.6, 0, 0)
+	check(ct.cut_from(small, blk), "cut")
+	ed.select_part(blk)
+	var t0 := Time.get_ticks_msec()
+	check(ct.bake_solid(blk), "baked")
+	check(Time.get_ticks_msec() - t0 < 3000, "the bake itself quick (%d ms)" % (Time.get_ticks_msec() - t0))
+	check(ct.has_meta("remesh_after") or ct.has_meta("remesh_job"), "the full layout queued")
+	var t_end := Time.get_ticks_msec() + 60000
+	while (ct.has_meta("remesh_after") or ct.has_meta("remesh_job") or ct.has_meta("join_job")) and Time.get_ticks_msec() < t_end:
+		await tree.process_frame
+	check(not ct.has_meta("remesh_job") and not ct.has_meta("remesh_after"), "laid out within a minute")
+	var s1: Dictionary = blk.get_meta("curve_solid")
+	var EN = load("res://scripts/editor/mesh/edge_net.gd")
+	check_eq(EN._open_edges(PackedInt32Array(s1["mesh"]["t"])), 0, "still closed")
+	await _done(ed)
+
+
 func test_patch_pick_move_and_resolution() -> void:
 	var ed := await _editor()
 	var ct = ed.curve_tools
@@ -2709,6 +2920,51 @@ func test_patch_pick_move_and_resolution() -> void:
 	for q in _mesh_pts(blk):
 		hi = maxf(hi, q.y)
 	check(absf(hi - 1.25) < 0.01, "the top went up with it (%.3f)" % hi)
+	await _done(ed)
+
+
+## An edit let go: it settles, no remesh (the user's call - a vertex move only moves); one undo step, the
+## solid closed, the edit's shape kept.
+func test_settle_does_not_remesh() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	ct.add_curve(_rect(1.0, 1.0))
+	ct.select(0)
+	var blk: MeshInstance3D = ct.make_part("extrude", 1.0)
+	ed.select_part(blk)
+	check(ct.bake_solid(blk), "baked")
+	var t_end := Time.get_ticks_msec() + 60000
+	while (ct.has_meta("remesh_after") or ct.has_meta("remesh_job") or ct.has_meta("join_job")) and Time.get_ticks_msec() < t_end:
+		await tree.process_frame
+	var spec: Dictionary = blk.get_meta("curve_solid")
+	var fs: Dictionary = ct._faces_of(spec)
+	var v: PackedVector3Array = fs["v"]
+	var t: PackedInt32Array = fs["t"]
+	var top_f := -1
+	for ti in t.size() / 3:
+		if v[t[ti * 3]].y > 0.999 and v[t[ti * 3 + 1]].y > 0.999 and v[t[ti * 3 + 2]].y > 0.999:
+			top_f = (fs["face"] as PackedInt32Array)[ti]
+			break
+	ct.set_meta("patch", {"part": blk.get_instance_id(), "ids": ct._face_ids(spec, fs, top_f), "seed": Vector3(0.5, 1, 0.5)})
+	ct.begin_xf("move")
+	ct.op["delta"] = Vector3(0, 0.25, 0)
+	ct._op_update()
+	ct.confirm_op()
+	ct._settle_finish()
+	var steps: int = ed._eundo.size() if ed.mode == "edit" else ed._undo.size()
+	check(not ct.has_meta("remesh_after") and not ct.has_meta("remesh_job"), "no remesh after the edit")
+	t_end = Time.get_ticks_msec() + 60000
+	while (ct.has_meta("remesh_after") or ct.has_meta("remesh_job")) and Time.get_ticks_msec() < t_end:
+		await tree.process_frame
+	check_eq(ed._eundo.size() if ed.mode == "edit" else ed._undo.size(), steps, "no undo step of its own")
+	var s1: Dictionary = blk.get_meta("curve_solid")
+	var EN = load("res://scripts/editor/mesh/edge_net.gd")
+	check_eq(EN._open_edges(PackedInt32Array(s1["mesh"]["t"])), 0, "still closed")
+	var hi := -INF
+	for q in _mesh_pts(blk):
+		hi = maxf(hi, q.y)
+	check(absf(hi - 1.25) < 0.01, "the edit kept (top %.3f)" % hi)
 	await _done(ed)
 
 
@@ -3321,6 +3577,26 @@ func test_ecurve_weapons_and_tpose() -> void:
 	await _done(ed)
 
 
+
+## Solids that name their bones but no rig in the model (a collection brought in from a file saved without
+## one): T-pose borrows the game characters' rig - never into the model - and puts them back exactly.
+func test_tpose_without_a_rig_in_the_model() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	var sleeve: MeshInstance3D = ct.add_curve_primitive("box", Vector3(0.4, 1.4, 0))
+	var sp: Dictionary = (sleeve.get_meta("curve_solid") as Dictionary).duplicate()
+	sp["bone_name"] = "upper.L"
+	sleeve.set_meta("curve_solid", sp)
+	check(ed.model.find_children("*", "Skeleton3D", true, false).is_empty(), "no rig in the model")
+	var xf0 := sleeve.transform
+	ed.toggle_tpose()
+	check(sleeve.has_meta("tpose_xf") and not sleeve.transform.is_equal_approx(xf0), "T-pose: the solid turned by its arm bone")
+	check(ed.model.find_children("*", "Skeleton3D", true, false).is_empty(), "the borrowed rig not put in the model")
+	ed.toggle_tpose()
+	check(not sleeve.has_meta("tpose_xf") and sleeve.transform.is_equal_approx(xf0), "back in its own pose, exactly")
+	await _done(ed)
+
 func _mouse_btn(pos: Vector2, pressed: bool) -> InputEventMouseButton:
 	var e := InputEventMouseButton.new()
 	e.button_index = MOUSE_BUTTON_LEFT
@@ -3591,6 +3867,50 @@ func test_knife_cuts_a_new_edge() -> void:
 	check(ct.key(kk) and ct.has_meta("knife"), "K: the knife")
 	kk.keycode = KEY_ESCAPE
 	check(ct.key(kk) and not ct.has_meta("knife"), "Esc: stopped")
+	await _done(ed)
+
+
+## After a knife cut the faces either side of it are laid out again (only those): quads, closed, the shape
+## and the new edge kept.
+func test_knife_faces_laid_out_again() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	var bx: MeshInstance3D = ed.add_primitive("box")
+	ct.convert_parts([bx])
+	for k in 600:
+		if bx.has_meta("curve_solid") or bx.has_meta("ecurve_failed"):
+			break
+		await tree.process_frame
+	if not bx.has_meta("curve_solid"):
+		check(false, "a box made of edges")
+		await _done(ed)
+		return
+	var b := bx.get_aabb()
+	var z := b.end.z
+	var y2 := b.position.y + b.size.y * 0.37
+	var eye := Vector3(0, y2, z + 3.0)
+	var res: Dictionary = ct.knife_apply_to(bx, [{"pos": Vector3(b.position.x, y2, z), "eye": eye}, {"pos": Vector3(b.end.x, y2, z), "eye": eye}])
+	check(not res.has("error") and not (res.get("chains", []) as Array).is_empty(), "cut (%s)" % res.get("error", ""))
+	var s0: Dictionary = (bx.get_meta("curve_solid") as Dictionary).duplicate(true)
+	ct.remesh_solid(bx, "Lay out (the knife's faces)", res.get("chains", []))
+	var t_end := Time.get_ticks_msec() + 60000
+	while ct.has_meta("remesh_job") and Time.get_ticks_msec() < t_end:
+		await tree.process_frame
+	var s1: Dictionary = bx.get_meta("curve_solid")
+	check(s1["mesh"]["t"] != s0["mesh"]["t"], "the faces along the cut laid out again")
+	var EN = load("res://scripts/editor/mesh/edge_net.gd")
+	check_eq(EN._open_edges(PackedInt32Array(s1["mesh"]["t"])), 0, "still closed")
+	check(absf(Shapes.volume(bx.mesh) - 1.0) < 0.05, "the shape kept (volume %.3f)" % Shapes.volume(bx.mesh))
+	var last := (s1["chains"] as Array).size() - 1
+	check((s1["fv"] as Array).filter(func(e): return int(e[1]) == last).size() >= 2, "the cut still an edge of it")
+	var mv: Array = s1["mesh"]["v"]
+	var v := PackedVector3Array()
+	for i in range(0, mv.size(), 3):
+		v.append(Vector3(mv[i], mv[i + 1], mv[i + 2]))
+	var fs: Array = EN._pair_faces(v, PackedInt32Array(s1["mesh"]["t"]), s1["fv"])
+	var q := fs.filter(func(f): return (f as Array).size() == 4).size()
+	check(q >= fs.size() * 0.85, "quads (%d of %d)" % [q, fs.size()])
 	await _done(ed)
 
 
@@ -3877,4 +4197,63 @@ func test_baked_tunnel_rows_run_between_its_rims() -> void:
 	var st := _quad_stats(big)
 	check(st[3] == 3 and st[2] == 0, "made as grids of quads, closed (dense %d, open %d - %s)" % [st[3], st[2], load("res://scripts/editor/mesh/edge_net.gd").grid_why])
 	check(st[1] * 100 < st[0] * 15, "quads: %d of %d faces are triangles" % [st[1], st[0]])
+	await _done(ed)
+
+
+## A knife cut that stops inside a face (not across it from side to side) stays an edge of the mesh after
+## the faces are laid out again - its points in triangles, joined by the mesh's own sides; a whole Remesh too.
+func test_knife_cut_ending_inside_a_face_stays_in_the_mesh() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	var bx: MeshInstance3D = ed.add_primitive("box")
+	ct.convert_parts([bx])
+	for k in 600:
+		if bx.has_meta("curve_solid") or bx.has_meta("ecurve_failed"):
+			break
+		await tree.process_frame
+	if not bx.has_meta("curve_solid"):
+		check(false, "a box made of edges")
+		await _done(ed)
+		return
+	var b := bx.get_aabb()
+	var z := b.end.z
+	var y2 := b.position.y + b.size.y * 0.37
+	var eye := Vector3(0, y2, z + 3.0)
+	var res: Dictionary = ct.knife_apply_to(bx, [{"pos": Vector3(b.position.x, y2, z), "eye": eye}, {"pos": Vector3(b.position.x + b.size.x * 0.55, y2 + b.size.y * 0.2, z), "eye": eye}])
+	check(not res.has("error") and not (res.get("chains", []) as Array).is_empty(), "cut (%s)" % res.get("error", ""))
+	var cut_ci := ((bx.get_meta("curve_solid") as Dictionary)["chains"] as Array).size() - 1
+	var on_mesh := func(label: String) -> void:
+		var s: Dictionary = bx.get_meta("curve_solid")
+		var t: Array = s["mesh"]["t"]
+		var used := {}
+		var sides := {}
+		for i in range(0, t.size(), 3):
+			for j in 3:
+				used[int(t[i + j])] = true
+				var a := int(t[i + j])
+				var c := int(t[i + (j + 1) % 3])
+				sides[Vector2i(mini(a, c), maxi(a, c))] = true
+		var pts := (s["fv"] as Array).filter(func(e): return int(e[1]) == cut_ci)
+		pts.sort_custom(func(x, y): return float(x[2]) < float(y[2]))
+		check(pts.size() >= 2, "%s: the cut still an edge (%d points)" % [label, pts.size()])
+		var loose := pts.filter(func(e): return not used.has(int(e[0]))).size()
+		check_eq(loose, 0, "%s: every point of the cut in the mesh" % label)
+		var gaps := 0
+		for i in pts.size() - 1:
+			var a := int(pts[i][0])
+			var c := int(pts[i + 1][0])
+			gaps += 0 if sides.has(Vector2i(mini(a, c), maxi(a, c))) else 1
+		check_eq(gaps, 0, "%s: the cut's points joined by the mesh's sides" % label)
+	on_mesh.call("cut")
+	ct.remesh_solid(bx, "Lay out (the knife's faces)", res.get("chains", []))
+	var t_end := Time.get_ticks_msec() + 60000
+	while ct.has_meta("remesh_job") and Time.get_ticks_msec() < t_end:
+		await tree.process_frame
+	on_mesh.call("its faces laid out")
+	ct.remesh_solid(bx)
+	t_end = Time.get_ticks_msec() + 60000
+	while ct.has_meta("remesh_job") and Time.get_ticks_msec() < t_end:
+		await tree.process_frame
+	on_mesh.call("remeshed")
 	await _done(ed)

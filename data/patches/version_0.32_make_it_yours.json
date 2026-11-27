@@ -1,615 +1,780 @@
 {
- "kind": "version",
- "id": "0.32",
- "title": "Make it yours",
- "date": "2026-11-24",
- "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024). Then ECurves (patch 0025): every model an ECurve object, fast enough for a whole character. Then quads along the edges (patch 0026): bakes in quads that follow their edges, and settings that fit. Then joined solids (patch 0027).",
- "patches": [
-  "0023",
-  "0024",
-  "0025",
-  "0026",
-  "0027"
- ],
- "steps": [
-  {
-   "patch": "0023",
-   "title": "Patch 0023 - Mods, meshes and the Live Editor",
-   "text": "Mods that change any file of the game and a Mod Editor to make them; a mesh editor, an animation editor and an effects editor in Talos; the Live Editor (F10) for anything in the running world, its edits kept for every thing of that kind. Also: Patch Notes on the title screen, a tooltip on every control (about 215 were missing), smooth turns and mended clips, the slung rifle, and the browser build in 6-7 s instead of up to 140.",
-   "diagram": [
-    {
-     "t": "text",
-     "at": [
-      500,
-      45
-     ],
-     "text": "PATCH 0023 - MODS, MESHES AND THE LIVE EDITOR",
-     "size": 22,
-     "color": "gold",
-     "align": "center"
-    },
-    {
-     "t": "box",
-     "rect": [
-      30,
-      90,
-      300,
-      110
-     ],
-     "label": "mods: replace or\nmerge any file",
-     "size": 16,
-     "stroke": "green"
-    },
-    {
-     "t": "box",
-     "rect": [
-      350,
-      90,
-      300,
-      110
-     ],
-     "label": "the Mod Editor",
-     "size": 16,
-     "stroke": "green"
-    },
-    {
-     "t": "box",
-     "rect": [
-      670,
-      90,
-      300,
-      110
-     ],
-     "label": "Patch Notes on\nthe title screen",
-     "size": 16,
-     "stroke": "cyan"
-    },
-    {
-     "t": "box",
-     "rect": [
-      30,
-      225,
-      300,
-      110
-     ],
-     "label": "mesh editor:\n120 shapes, booleans,\nknife, loop cut",
-     "size": 16,
-     "stroke": "purple",
-     "pulse": true
-    },
-    {
-     "t": "box",
-     "rect": [
-      350,
-      225,
-      300,
-      110
-     ],
-     "label": "animation editor,\neffects editor",
-     "size": 16,
-     "stroke": "purple"
-    },
-    {
-     "t": "box",
-     "rect": [
-      670,
-      225,
-      300,
-      110
-     ],
-     "label": "the Live Editor  F10:\nedit the running world",
-     "size": 16,
-     "stroke": "gold",
-     "pulse": true
-    },
-    {
-     "t": "box",
-     "rect": [
-      30,
-      360,
-      300,
-      110
-     ],
-     "label": "a tooltip on\nevery control",
-     "size": 16,
-     "stroke": "cyan"
-    },
-    {
-     "t": "box",
-     "rect": [
-      350,
-      360,
-      300,
-      110
-     ],
-     "label": "smooth turns,\nthe slung rifle",
-     "size": 16,
-     "stroke": "cyan"
-    },
-    {
-     "t": "box",
-     "rect": [
-      670,
-      360,
-      300,
-      110
-     ],
-     "label": "the browser:\n6-7 s to play",
-     "size": 16,
-     "stroke": "green"
-    },
-    {
-     "t": "badge",
-     "at": [
-      260,
-      515
-     ],
-     "text": "14 steps",
-     "color": "gold",
-     "size": 16
-    },
-    {
-     "t": "badge",
-     "at": [
-      740,
-      515
-     ],
-     "text": "176 files",
-     "color": "cyan",
-     "size": 16
-    }
-   ]
-  },
-  {
-   "patch": "0024",
-   "title": "Patch 0024 - Curve modeling",
-   "text": "Patch 0024 brings curve modelling to the mesh editor: curves sketched on any surface become solids that stay tied to them, every step editable; a solid can be baked into one clean mesh of quads whose curves are its edges - drag any point and the faces follow, settling into a tidy grid when you let go - with smart dragging and guides, a wireframe view and a preview in the running game.",
-   "diagram": [
-    {
-     "t": "text",
-     "at": [
-      500,
-      45
-     ],
-     "text": "PATCH 0024 - CURVE MODELING",
-     "size": 22,
-     "color": "gold",
-     "align": "center"
-    },
-    {
-     "t": "box",
-     "rect": [
-      40,
-      110,
-      260,
-      120
-     ],
-     "stroke": "gold",
-     "label": "sketch curves\non any surface",
-     "size": 18
-    },
-    {
-     "t": "arrow",
-     "from": [
-      310,
-      170
-     ],
-     "to": [
-      370,
-      170
-     ],
-     "color": "gold"
-    },
-    {
-     "t": "box",
-     "rect": [
-      380,
-      110,
-      260,
-      120
-     ],
-     "stroke": "cyan",
-     "label": "solids that\nfollow them",
-     "size": 18
-    },
-    {
-     "t": "arrow",
-     "from": [
-      650,
-      170
-     ],
-     "to": [
-      710,
-      170
-     ],
-     "color": "cyan"
-    },
-    {
-     "t": "box",
-     "rect": [
-      720,
-      110,
-      240,
-      120
-     ],
-     "stroke": "green",
-     "label": "bake: one mesh,\nits curves its edges",
-     "size": 18
-    },
-    {
-     "t": "box",
-     "rect": [
-      40,
-      280,
-      280,
-      100
-     ],
-     "stroke": "purple",
-     "label": "drag: axis from\nyour drag, guides",
-     "size": 16
-    },
-    {
-     "t": "box",
-     "rect": [
-      360,
-      280,
-      280,
-      100
-     ],
-     "stroke": "green",
-     "label": "let go: it settles\ninto quads",
-     "size": 16
-    },
-    {
-     "t": "box",
-     "rect": [
-      680,
-      280,
-      280,
-      100
-     ],
-     "stroke": "cyan",
-     "label": "wireframe,\npreview in game",
-     "size": 16
-    },
-    {
-     "t": "badge",
-     "at": [
-      500,
-      470
-     ],
-     "text": "a CAD-style way to model, in Talos",
-     "color": "gold",
-     "size": 18,
-     "pulse": true
-    }
-   ]
-  },
-  {
-   "patch": "0025",
-   "title": "Patch 0025 - ECurves",
-   "text": "The mesh editor becomes the ECurves editor: every model it opens - characters too - turns into an ECurve object, a collection of solids made of faces, edges and vertices you reshape directly. Clean quads, characters with their bones, picking that grows with each click, a knife, manual vertices, symmetry, right-click to call off a drag - and above 30 frames a second on a whole character.",
-   "diagram": [
-    {
-     "t": "text",
-     "at": [
-      500,
-      45
-     ],
-     "text": "PATCH 0025 - ECURVES",
-     "size": 22,
-     "color": "gold",
-     "align": "center"
-    },
-    {
-     "t": "box",
-     "rect": [
-      60,
-      90,
-      260,
-      100
-     ],
-     "stroke": "cyan",
-     "label": "every model an\nECurve object",
-     "size": 16
-    },
-    {
-     "t": "box",
-     "rect": [
-      370,
-      90,
-      260,
-      100
-     ],
-     "stroke": "green",
-     "label": "characters keep\ntheir bones",
-     "size": 16
-    },
-    {
-     "t": "box",
-     "rect": [
-      680,
-      90,
-      260,
-      100
-     ],
-     "stroke": "purple",
-     "label": "click again:\na bigger pick",
-     "size": 16
-    },
-    {
-     "t": "box",
-     "rect": [
-      60,
-      240,
-      260,
-      100
-     ],
-     "stroke": "gold",
-     "label": "knife, manual\nvertices, mirror",
-     "size": 16
-    },
-    {
-     "t": "box",
-     "rect": [
-      370,
-      240,
-      260,
-      100
-     ],
-     "stroke": "green",
-     "label": "clean quads,\nno saw-tooth",
-     "size": 16
-    },
-    {
-     "t": "box",
-     "rect": [
-      680,
-      240,
-      260,
-      100
-     ],
-     "stroke": "cyan",
-     "label": "right-click\ncalls off a drag",
-     "size": 16
-    },
-    {
-     "t": "badge",
-     "at": [
-      500,
-      430
-     ],
-     "text": "above 30 FPS on a whole character",
-     "color": "green",
-     "size": 18
-    }
-   ]
-  },
-  {
-   "patch": "0026",
-   "title": "Patch 0026 - Quads along the edges",
-   "text": "Bakes laid out as quads that follow their edges - grids, rings round a middle grid, rows between two rims - cuts picked from their ghosts and moved whole, Simplify in 3D; a settings dialog that fits, the resolution applied everywhere, fullscreen left at once, and a middle click to reset the zoom.",
-   "diagram": [
-    {
-     "t": "text",
-     "at": [
-      500,
-      45
-     ],
-     "text": "PATCH 0026 - QUADS ALONG THE EDGES",
-     "size": 22,
-     "color": "gold",
-     "align": "center"
-    },
-    {
-     "t": "box",
-     "rect": [
-      60,
-      90,
-      260,
-      100
-     ],
-     "stroke": "green",
-     "label": "bakes in quads\nalong the edges",
-     "size": 16
-    },
-    {
-     "t": "box",
-     "rect": [
-      370,
-      90,
-      260,
-      100
-     ],
-     "stroke": "cyan",
-     "label": "cuts picked\nand moved",
-     "size": 16
-    },
-    {
-     "t": "box",
-     "rect": [
-      680,
-      90,
-      260,
-      100
-     ],
-     "stroke": "purple",
-     "label": "Simplify\nin 3D",
-     "size": 16
-    },
-    {
-     "t": "box",
-     "rect": [
-      60,
-      240,
-      260,
-      100
-     ],
-     "stroke": "gold",
-     "label": "settings that\nfit the window",
-     "size": 16
-    },
-    {
-     "t": "box",
-     "rect": [
-      370,
-      240,
-      260,
-      100
-     ],
-     "stroke": "cyan",
-     "label": "your resolution\neverywhere",
-     "size": 16
-    },
-    {
-     "t": "box",
-     "rect": [
-      680,
-      240,
-      260,
-      100
-     ],
-     "stroke": "green",
-     "label": "middle click:\nzoom back",
-     "size": 16
-    }
-   ]
-  },
-  {
-   "patch": "0027",
-   "title": "Patch 0027 - Joined solids",
-   "text": "Solids that meet along an edge become one by themselves - after a conversion, after a bake, or from the menu - welded with no gap, quads kept, each part's material and bone weights its own. A dragged model shows where it will land, Merge by distance makes close vertices one, tooltips show the item itself turning, the models browser has categories, and no text is under 14 px.",
-   "diagram": [
-    {
-     "t": "box",
-     "rect": [
-      200,
-      30,
-      600,
-      80
-     ],
-     "label": "PATCH 0027\nJoined solids",
-     "size": 18,
-     "stroke": "gold"
-    },
-    {
-     "t": "box",
-     "rect": [
-      60,
-      150,
-      250,
-      110
-     ],
-     "label": "two solids,\none shared edge",
-     "size": 17,
-     "stroke": "cyan",
-     "delay": 0.3
-    },
-    {
-     "t": "arrow",
-     "from": [
-      314,
-      205
-     ],
-     "to": [
-      366,
-      205
-     ],
-     "color": "cyan",
-     "delay": 0.6
-    },
-    {
-     "t": "box",
-     "rect": [
-      370,
-      150,
-      260,
-      110
-     ],
-     "label": "one solid,\nwelded, no gap",
-     "size": 17,
-     "stroke": "gold",
-     "delay": 0.8,
-     "pulse": true
-    },
-    {
-     "t": "arrow",
-     "from": [
-      634,
-      205
-     ],
-     "to": [
-      686,
-      205
-     ],
-     "color": "gold",
-     "delay": 1.0
-    },
-    {
-     "t": "box",
-     "rect": [
-      690,
-      150,
-      250,
-      110
-     ],
-     "label": "materials and\nweights kept",
-     "size": 17,
-     "stroke": "green",
-     "delay": 1.2
-    },
-    {
-     "t": "box",
-     "rect": [
-      60,
-      320,
-      270,
-      100
-     ],
-     "label": "drop marker,\nmerge by distance",
-     "size": 17,
-     "stroke": "purple",
-     "delay": 1.5
-    },
-    {
-     "t": "box",
-     "rect": [
-      365,
-      320,
-      270,
-      100
-     ],
-     "label": "tooltips: the\nitem, turning",
-     "size": 17,
-     "stroke": "cyan",
-     "delay": 1.7
-    },
-    {
-     "t": "box",
-     "rect": [
-      670,
-      320,
-      270,
-      100
-     ],
-     "label": "text never\nunder 14 px",
-     "size": 17,
-     "stroke": "gold",
-     "delay": 1.9
-    },
-    {
-     "t": "badge",
-     "at": [
-      500,
-      480
-     ],
-     "text": "91 solids -> 72 on the player's character",
-     "color": "cyan",
-     "size": 18,
-     "delay": 2.2
-    }
-   ]
-  }
- ],
- "open": true
+	"kind": "version",
+	"id": "0.32",
+	"title": "Make it yours",
+	"date": "2026-11-24",
+	"summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024). Then ECurves (patch 0025): every model an ECurve object, fast enough for a whole character. Then quads along the edges (patch 0026): bakes in quads that follow their edges, and settings that fit. Then joined solids (patch 0027). Then clean topology (patch 0028).",
+	"patches": [
+		"0023",
+		"0024",
+		"0025",
+		"0026",
+		"0027",
+		"0028"
+	],
+	"steps": [
+		{
+			"patch": "0023",
+			"title": "Patch 0023 - Mods, meshes and the Live Editor",
+			"text": "Mods that change any file of the game and a Mod Editor to make them; a mesh editor, an animation editor and an effects editor in Talos; the Live Editor (F10) for anything in the running world, its edits kept for every thing of that kind. Also: Patch Notes on the title screen, a tooltip on every control (about 215 were missing), smooth turns and mended clips, the slung rifle, and the browser build in 6-7 s instead of up to 140.",
+			"diagram": [
+				{
+					"t": "text",
+					"at": [
+						500,
+						45
+					],
+					"text": "PATCH 0023 - MODS, MESHES AND THE LIVE EDITOR",
+					"size": 22,
+					"color": "gold",
+					"align": "center"
+				},
+				{
+					"t": "box",
+					"rect": [
+						30,
+						90,
+						300,
+						110
+					],
+					"label": "mods: replace or\nmerge any file",
+					"size": 16,
+					"stroke": "green"
+				},
+				{
+					"t": "box",
+					"rect": [
+						350,
+						90,
+						300,
+						110
+					],
+					"label": "the Mod Editor",
+					"size": 16,
+					"stroke": "green"
+				},
+				{
+					"t": "box",
+					"rect": [
+						670,
+						90,
+						300,
+						110
+					],
+					"label": "Patch Notes on\nthe title screen",
+					"size": 16,
+					"stroke": "cyan"
+				},
+				{
+					"t": "box",
+					"rect": [
+						30,
+						225,
+						300,
+						110
+					],
+					"label": "mesh editor:\n120 shapes, booleans,\nknife, loop cut",
+					"size": 16,
+					"stroke": "purple",
+					"pulse": true
+				},
+				{
+					"t": "box",
+					"rect": [
+						350,
+						225,
+						300,
+						110
+					],
+					"label": "animation editor,\neffects editor",
+					"size": 16,
+					"stroke": "purple"
+				},
+				{
+					"t": "box",
+					"rect": [
+						670,
+						225,
+						300,
+						110
+					],
+					"label": "the Live Editor  F10:\nedit the running world",
+					"size": 16,
+					"stroke": "gold",
+					"pulse": true
+				},
+				{
+					"t": "box",
+					"rect": [
+						30,
+						360,
+						300,
+						110
+					],
+					"label": "a tooltip on\nevery control",
+					"size": 16,
+					"stroke": "cyan"
+				},
+				{
+					"t": "box",
+					"rect": [
+						350,
+						360,
+						300,
+						110
+					],
+					"label": "smooth turns,\nthe slung rifle",
+					"size": 16,
+					"stroke": "cyan"
+				},
+				{
+					"t": "box",
+					"rect": [
+						670,
+						360,
+						300,
+						110
+					],
+					"label": "the browser:\n6-7 s to play",
+					"size": 16,
+					"stroke": "green"
+				},
+				{
+					"t": "badge",
+					"at": [
+						260,
+						515
+					],
+					"text": "14 steps",
+					"color": "gold",
+					"size": 16
+				},
+				{
+					"t": "badge",
+					"at": [
+						740,
+						515
+					],
+					"text": "176 files",
+					"color": "cyan",
+					"size": 16
+				}
+			]
+		},
+		{
+			"patch": "0024",
+			"title": "Patch 0024 - Curve modeling",
+			"text": "Patch 0024 brings curve modelling to the mesh editor: curves sketched on any surface become solids that stay tied to them, every step editable; a solid can be baked into one clean mesh of quads whose curves are its edges - drag any point and the faces follow, settling into a tidy grid when you let go - with smart dragging and guides, a wireframe view and a preview in the running game.",
+			"diagram": [
+				{
+					"t": "text",
+					"at": [
+						500,
+						45
+					],
+					"text": "PATCH 0024 - CURVE MODELING",
+					"size": 22,
+					"color": "gold",
+					"align": "center"
+				},
+				{
+					"t": "box",
+					"rect": [
+						40,
+						110,
+						260,
+						120
+					],
+					"stroke": "gold",
+					"label": "sketch curves\non any surface",
+					"size": 18
+				},
+				{
+					"t": "arrow",
+					"from": [
+						310,
+						170
+					],
+					"to": [
+						370,
+						170
+					],
+					"color": "gold"
+				},
+				{
+					"t": "box",
+					"rect": [
+						380,
+						110,
+						260,
+						120
+					],
+					"stroke": "cyan",
+					"label": "solids that\nfollow them",
+					"size": 18
+				},
+				{
+					"t": "arrow",
+					"from": [
+						650,
+						170
+					],
+					"to": [
+						710,
+						170
+					],
+					"color": "cyan"
+				},
+				{
+					"t": "box",
+					"rect": [
+						720,
+						110,
+						240,
+						120
+					],
+					"stroke": "green",
+					"label": "bake: one mesh,\nits curves its edges",
+					"size": 18
+				},
+				{
+					"t": "box",
+					"rect": [
+						40,
+						280,
+						280,
+						100
+					],
+					"stroke": "purple",
+					"label": "drag: axis from\nyour drag, guides",
+					"size": 16
+				},
+				{
+					"t": "box",
+					"rect": [
+						360,
+						280,
+						280,
+						100
+					],
+					"stroke": "green",
+					"label": "let go: it settles\ninto quads",
+					"size": 16
+				},
+				{
+					"t": "box",
+					"rect": [
+						680,
+						280,
+						280,
+						100
+					],
+					"stroke": "cyan",
+					"label": "wireframe,\npreview in game",
+					"size": 16
+				},
+				{
+					"t": "badge",
+					"at": [
+						500,
+						470
+					],
+					"text": "a CAD-style way to model, in Talos",
+					"color": "gold",
+					"size": 18,
+					"pulse": true
+				}
+			]
+		},
+		{
+			"patch": "0025",
+			"title": "Patch 0025 - ECurves",
+			"text": "The mesh editor becomes the ECurves editor: every model it opens - characters too - turns into an ECurve object, a collection of solids made of faces, edges and vertices you reshape directly. Clean quads, characters with their bones, picking that grows with each click, a knife, manual vertices, symmetry, right-click to call off a drag - and above 30 frames a second on a whole character.",
+			"diagram": [
+				{
+					"t": "text",
+					"at": [
+						500,
+						45
+					],
+					"text": "PATCH 0025 - ECURVES",
+					"size": 22,
+					"color": "gold",
+					"align": "center"
+				},
+				{
+					"t": "box",
+					"rect": [
+						60,
+						90,
+						260,
+						100
+					],
+					"stroke": "cyan",
+					"label": "every model an\nECurve object",
+					"size": 16
+				},
+				{
+					"t": "box",
+					"rect": [
+						370,
+						90,
+						260,
+						100
+					],
+					"stroke": "green",
+					"label": "characters keep\ntheir bones",
+					"size": 16
+				},
+				{
+					"t": "box",
+					"rect": [
+						680,
+						90,
+						260,
+						100
+					],
+					"stroke": "purple",
+					"label": "click again:\na bigger pick",
+					"size": 16
+				},
+				{
+					"t": "box",
+					"rect": [
+						60,
+						240,
+						260,
+						100
+					],
+					"stroke": "gold",
+					"label": "knife, manual\nvertices, mirror",
+					"size": 16
+				},
+				{
+					"t": "box",
+					"rect": [
+						370,
+						240,
+						260,
+						100
+					],
+					"stroke": "green",
+					"label": "clean quads,\nno saw-tooth",
+					"size": 16
+				},
+				{
+					"t": "box",
+					"rect": [
+						680,
+						240,
+						260,
+						100
+					],
+					"stroke": "cyan",
+					"label": "right-click\ncalls off a drag",
+					"size": 16
+				},
+				{
+					"t": "badge",
+					"at": [
+						500,
+						430
+					],
+					"text": "above 30 FPS on a whole character",
+					"color": "green",
+					"size": 18
+				}
+			]
+		},
+		{
+			"patch": "0026",
+			"title": "Patch 0026 - Quads along the edges",
+			"text": "Bakes laid out as quads that follow their edges - grids, rings round a middle grid, rows between two rims - cuts picked from their ghosts and moved whole, Simplify in 3D; a settings dialog that fits, the resolution applied everywhere, fullscreen left at once, and a middle click to reset the zoom.",
+			"diagram": [
+				{
+					"t": "text",
+					"at": [
+						500,
+						45
+					],
+					"text": "PATCH 0026 - QUADS ALONG THE EDGES",
+					"size": 22,
+					"color": "gold",
+					"align": "center"
+				},
+				{
+					"t": "box",
+					"rect": [
+						60,
+						90,
+						260,
+						100
+					],
+					"stroke": "green",
+					"label": "bakes in quads\nalong the edges",
+					"size": 16
+				},
+				{
+					"t": "box",
+					"rect": [
+						370,
+						90,
+						260,
+						100
+					],
+					"stroke": "cyan",
+					"label": "cuts picked\nand moved",
+					"size": 16
+				},
+				{
+					"t": "box",
+					"rect": [
+						680,
+						90,
+						260,
+						100
+					],
+					"stroke": "purple",
+					"label": "Simplify\nin 3D",
+					"size": 16
+				},
+				{
+					"t": "box",
+					"rect": [
+						60,
+						240,
+						260,
+						100
+					],
+					"stroke": "gold",
+					"label": "settings that\nfit the window",
+					"size": 16
+				},
+				{
+					"t": "box",
+					"rect": [
+						370,
+						240,
+						260,
+						100
+					],
+					"stroke": "cyan",
+					"label": "your resolution\neverywhere",
+					"size": 16
+				},
+				{
+					"t": "box",
+					"rect": [
+						680,
+						240,
+						260,
+						100
+					],
+					"stroke": "green",
+					"label": "middle click:\nzoom back",
+					"size": 16
+				}
+			]
+		},
+		{
+			"patch": "0027",
+			"title": "Patch 0027 - Joined solids",
+			"text": "Solids that meet along an edge become one by themselves - after a conversion, after a bake, or from the menu - welded with no gap, quads kept, each part's material and bone weights its own. A dragged model shows where it will land, Merge by distance makes close vertices one, tooltips show the item itself turning, the models browser has categories, and no text is under 14 px.",
+			"diagram": [
+				{
+					"t": "box",
+					"rect": [
+						200,
+						30,
+						600,
+						80
+					],
+					"label": "PATCH 0027\nJoined solids",
+					"size": 18,
+					"stroke": "gold"
+				},
+				{
+					"t": "box",
+					"rect": [
+						60,
+						150,
+						250,
+						110
+					],
+					"label": "two solids,\none shared edge",
+					"size": 17,
+					"stroke": "cyan",
+					"delay": 0.3
+				},
+				{
+					"t": "arrow",
+					"from": [
+						314,
+						205
+					],
+					"to": [
+						366,
+						205
+					],
+					"color": "cyan",
+					"delay": 0.6
+				},
+				{
+					"t": "box",
+					"rect": [
+						370,
+						150,
+						260,
+						110
+					],
+					"label": "one solid,\nwelded, no gap",
+					"size": 17,
+					"stroke": "gold",
+					"delay": 0.8,
+					"pulse": true
+				},
+				{
+					"t": "arrow",
+					"from": [
+						634,
+						205
+					],
+					"to": [
+						686,
+						205
+					],
+					"color": "gold",
+					"delay": 1.0
+				},
+				{
+					"t": "box",
+					"rect": [
+						690,
+						150,
+						250,
+						110
+					],
+					"label": "materials and\nweights kept",
+					"size": 17,
+					"stroke": "green",
+					"delay": 1.2
+				},
+				{
+					"t": "box",
+					"rect": [
+						60,
+						320,
+						270,
+						100
+					],
+					"label": "drop marker,\nmerge by distance",
+					"size": 17,
+					"stroke": "purple",
+					"delay": 1.5
+				},
+				{
+					"t": "box",
+					"rect": [
+						365,
+						320,
+						270,
+						100
+					],
+					"label": "tooltips: the\nitem, turning",
+					"size": 17,
+					"stroke": "cyan",
+					"delay": 1.7
+				},
+				{
+					"t": "box",
+					"rect": [
+						670,
+						320,
+						270,
+						100
+					],
+					"label": "text never\nunder 14 px",
+					"size": 17,
+					"stroke": "gold",
+					"delay": 1.9
+				},
+				{
+					"t": "badge",
+					"at": [
+						500,
+						480
+					],
+					"text": "91 solids -> 72 on the player's character",
+					"color": "cyan",
+					"size": 18,
+					"delay": 2.2
+				}
+			]
+		},
+		{
+			"patch": "0028",
+			"title": "Clean topology",
+			"text": "ECurves lays its meshes out the way a modeller would: each face gridded along its edges' flow - grids, grids round one pole, rings, a field-aligned fill for big organic faces - the better kept by a topology score (the player's meshes 34 -> 76). Remesh in the background with a progress bar, Extrude face, a snapping knife, and Save / Save As with a full file browser.",
+			"diagram": [
+				{
+					"t": "text",
+					"at": [
+						500,
+						45
+					],
+					"text": "CLEAN TOPOLOGY",
+					"size": 22,
+					"color": "gold",
+					"align": "center"
+				},
+				{
+					"t": "box",
+					"rect": [
+						40,
+						100,
+						280,
+						100
+					],
+					"stroke": "cyan",
+					"label": "faces gridded\nalong their flow",
+					"size": 18,
+					"delay": 0.2
+				},
+				{
+					"t": "box",
+					"rect": [
+						40,
+						230,
+						280,
+						100
+					],
+					"stroke": "purple",
+					"label": "field-aligned fill\nfor the rest",
+					"size": 18,
+					"delay": 0.4
+				},
+				{
+					"t": "arrow",
+					"from": [
+						330,
+						150
+					],
+					"to": [
+						410,
+						200
+					],
+					"color": "cyan",
+					"delay": 0.6
+				},
+				{
+					"t": "arrow",
+					"from": [
+						330,
+						280
+					],
+					"to": [
+						410,
+						235
+					],
+					"color": "purple",
+					"delay": 0.6
+				},
+				{
+					"t": "box",
+					"rect": [
+						420,
+						160,
+						200,
+						110
+					],
+					"stroke": "gold",
+					"label": "the better\nscore kept",
+					"size": 18,
+					"delay": 0.8,
+					"pulse": true
+				},
+				{
+					"t": "bar",
+					"rect": [
+						660,
+						150,
+						300,
+						34
+					],
+					"value": 0.343,
+					"label": "stored 34.3",
+					"color": "purple",
+					"delay": 1.0,
+					"size": 17
+				},
+				{
+					"t": "bar",
+					"rect": [
+						660,
+						220,
+						300,
+						34
+					],
+					"value": 0.757,
+					"label": "laid out 75.7",
+					"color": "green",
+					"delay": 1.2,
+					"size": 17
+				},
+				{
+					"t": "box",
+					"rect": [
+						40,
+						380,
+						220,
+						80
+					],
+					"stroke": "green",
+					"label": "Remesh + bar",
+					"size": 17,
+					"delay": 1.4
+				},
+				{
+					"t": "box",
+					"rect": [
+						280,
+						380,
+						200,
+						80
+					],
+					"stroke": "green",
+					"label": "Extrude face",
+					"size": 17,
+					"delay": 1.5
+				},
+				{
+					"t": "box",
+					"rect": [
+						500,
+						380,
+						200,
+						80
+					],
+					"stroke": "green",
+					"label": "knife snaps",
+					"size": 17,
+					"delay": 1.6
+				},
+				{
+					"t": "box",
+					"rect": [
+						720,
+						380,
+						240,
+						80
+					],
+					"stroke": "green",
+					"label": "Save / Save As",
+					"size": 17,
+					"delay": 1.7
+				}
+			]
+		}
+	],
+	"open": true
 }

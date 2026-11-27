@@ -112,7 +112,7 @@ static func saved_at(model_path: String, n: int) -> int:
 ## `model_path` as a scene: its active variant (read as glTF at run time), else the game's own.
 static func scene(model_path: String) -> PackedScene:
 	var p := read(model_path)
-	if p == model_path:
+	if p == model_path and not stale(model_path):
 		return load(model_path)
 	if _scenes.has(p):
 		return _scenes[p]
@@ -125,7 +125,7 @@ static func scene(model_path: String) -> PackedScene:
 ## them there; remember() keeps it).
 static func build(model_path: String) -> PackedScene:
 	var p := read(model_path)
-	if p == model_path:
+	if p == model_path and not stale(model_path):
 		return load(model_path)
 	var ps: PackedScene = null
 	if p.get_extension().to_lower() in ["glb", "gltf"]:
@@ -156,8 +156,24 @@ static func remember(model_path: String, ps: PackedScene) -> void:
 static func forget(model_path: String) -> void:
 	var root := root_of(model_path)
 	for k in _scenes.keys():
-		if str(k).begins_with(root):
+		if str(k).begins_with(root) or str(k) == model_path:
 			_scenes.erase(k)
+
+
+## The model's own file saved over (the editor's Save) since the game imported it: read as glTF at run time
+## till it's imported again - a save shows at once. (An exported game: never - its files can't change.)
+static func stale(model_path: String) -> bool:
+	if not model_path.get_extension().to_lower() in ["glb", "gltf"] or not FileAccess.file_exists(model_path + ".import"):
+		return false
+	var cf := ConfigFile.new()
+	if cf.load(model_path + ".import") != OK:
+		return false
+	var imp := str(cf.get_value("remap", "path", ""))
+	if imp == "":
+		return false
+	if not FileAccess.file_exists(imp):
+		return true
+	return FileAccess.get_modified_time(model_path) > FileAccess.get_modified_time(imp) + 1
 
 
 static func _own(n: Node, root: Node) -> void:

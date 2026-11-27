@@ -1042,6 +1042,76 @@ func test_spherize() -> void:
 
 ## Saving makes an override (a variant of it): the original kept, the game takes the latest variant;
 ## variants added, duplicated and erased; Revert brings the original back.
+## Save writes over the file the model was opened from (no variant made); Save as to another file makes that
+## the model's file - its name taken over by later saves. (A scratch file outside the game: never its own.)
+func test_save_overwrites_the_opened_file() -> void:
+	var ed := await _editor()
+	EditTarget.mod_id = ""
+	var dir := ProjectSettings.globalize_path("user://test_save_over")
+	DirAccess.make_dir_recursive_absolute(dir)
+	ed.new_model(true)
+	ed.add_primitive("box")
+	var f := dir.path_join("thing.glb")
+	ed.save_to_path(f)
+	check(FileAccess.file_exists(f), "saved as a file outside the game")
+	check_eq(ed.path, f, "that file the model's now")
+	check_eq(ed.variant, 0, "no variant")
+	var t0 := FileAccess.get_md5(f)
+	ed.add_primitive("box")
+	ed.set("dirty", true)
+	ed.save()
+	check(FileAccess.get_md5(f) != t0, "Save: written over the same file")
+	check(not DirAccess.dir_exists_absolute(dir.path_join("thing.glb.variants")), "no variant beside it")
+	var g := dir.path_join("other.glb")
+	ed.save_to_path(g)
+	check(FileAccess.file_exists(g) and ed.path == g, "Save as: another file, the model's from then on")
+	for x in DirAccess.get_files_at(dir):
+		DirAccess.remove_absolute(dir.path_join(x))
+	DirAccess.remove_absolute(dir)
+	await _done(ed)
+
+
+## The Save as browser: opens on the model's folder with its name, a name that's there shown as
+## overwritten, -/+ step the name's number, a folder made, Esc closes it.
+func test_save_as_browser() -> void:
+	var ed := await _editor()
+	ed.new_model(true)
+	var dir := ProjectSettings.globalize_path("user://test_browser")
+	DirAccess.make_dir_recursive_absolute(dir)
+	FileAccess.open(dir.path_join("chair.glb"), FileAccess.WRITE).store_string("x")
+	var FB: GDScript = load("res://scripts/ui/file_browser.gd")
+	var got := [""]
+	var fb: Control = FB.open(ed, {"dir": dir, "file": "chair.glb", "done": func(p): got[0] = p})
+	await tree.process_frame
+	check_eq(fb.dir, dir, "opens on the folder given")
+	check(fb._entries.any(func(e): return str(e["name"]) == "chair.glb"), "its files listed")
+	check(fb._status.text.contains("overwrites"), "a name that's there: overwritten, said so")
+	fb._bump(1)
+	check_eq(fb._name_le.text, "chair1.glb", "+: a number added")
+	fb._bump(1)
+	check_eq(fb._name_le.text, "chair2.glb", "+: one more")
+	fb._bump(-1)
+	check_eq(fb._name_le.text, "chair1.glb", "-: one less")
+	check(not fb._status.text.contains("overwrites"), "a new name: nothing overwritten")
+	fb._new_folder()
+	(fb._new_box.get_node("NewName") as LineEdit).text = "parts"
+	fb._make_folder()
+	check(DirAccess.dir_exists_absolute(dir.path_join("parts")) and fb.dir == dir.path_join("parts"), "a new folder made and entered")
+	fb._go_up()
+	check_eq(fb.dir, dir, "parent folder")
+	fb._go_back()
+	check_eq(fb.dir, dir.path_join("parts"), "back")
+	fb._go_up()
+	fb._confirm()
+	check_eq(got[0], dir.path_join("chair1.glb"), "Save As: the folder and the name handed on")
+	await tree.process_frame
+	check(not is_instance_valid(fb) or fb.is_queued_for_deletion(), "closed")
+	DirAccess.remove_absolute(dir.path_join("parts"))
+	DirAccess.remove_absolute(dir.path_join("chair.glb"))
+	DirAccess.remove_absolute(dir)
+	await _done(ed)
+
+
 func test_save_is_an_override_with_variants() -> void:
 	var ed := await _editor()
 	var orig := "res://art/pirate_3d/pirate.glb"
@@ -1053,11 +1123,14 @@ func test_save_is_an_override_with_variants() -> void:
 		MO.erase(orig, n)
 	check(ed.open_now(orig), "the pirate opens")
 	check_eq(ed.variant, 0, "the original open")
+	# (saving writes over the file it was opened from - never the game's original here: a variant first)
+	ed.add_variant()
+	check_eq(ed.variant, 1, "a variant made and open")
 	ed.add_primitive("box")
 	ed.set("dirty", true)
 	check_eq(ed.write_to(orig), OK, "saved")
-	check_eq(FileAccess.get_md5(orig), before, "the original file untouched")
-	check_eq(MO.variants(orig), [1], "saved as variant 1")
+	check_eq(FileAccess.get_md5(orig), before, "the original file untouched (the variant open)")
+	check_eq(MO.variants(orig), [1], "saved into variant 1")
 	check(FileAccess.file_exists(MO.file_of(orig, 1)), "its file in art/overrides/")
 	check(ed.has_override(), "the editor knows it has one")
 	var count := func() -> int:

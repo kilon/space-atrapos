@@ -222,8 +222,20 @@ func _process(_dt: float) -> void:
 			set_meta("warm_idle_at", Time.get_ticks_msec() + 200)
 		if not has_meta("pick_mi") and _drag.is_empty() and ed.model.get_parent():
 			_pick_mi()
+	if has_meta("remesh_job"):
+		_remesh_step()
 	if has_meta("join_job"):
 		_join_step()
+	elif has_meta("remesh_after") and not has_meta("remesh_job") and not has_meta("join_after") and not _converting():
+		# (a bake done - and its joining: the full layout, field-aligned fill and all, worked out in the background)
+		var ra = get_meta("remesh_after")
+		remove_meta("remesh_after")
+		var only_ch: Array = get_meta("remesh_after_only", [])
+		remove_meta("remesh_after_only")
+		var merge: bool = get_meta("remesh_after_merge", false)
+		remove_meta("remesh_after_merge")
+		if is_instance_valid(ra) and (ra as Node).is_inside_tree():
+			remesh_solid(ra, "Lay out (the edit's faces)" if merge else ("Lay out (the knife's faces)" if not only_ch.is_empty() else "Lay out (the bake's topology)"), only_ch, merge)
 	elif has_meta("join_after") and not _converting():
 		# (a conversion done: the solids it made that meet along an edge joined)
 		var ja: Array = get_meta("join_after")
@@ -294,6 +306,8 @@ func _process(_dt: float) -> void:
 
 
 func _exit_tree() -> void:
+	if has_meta("remesh_job"):
+		WorkerThreadPool.wait_for_task_completion(int(get_meta("remesh_job")[0]))   # (a remesh being worked out: never left running)
 	for id in get_meta("orphans", []):
 		WorkerThreadPool.wait_for_task_completion(int(id))
 	for j in get_meta("convert_running", []):
@@ -2346,8 +2360,10 @@ static func _remeshed(EN: GDScript, src: RefCounted, a0: Array, net_chains: Arra
 	var target := clampf(sx.size() / 3.0, 24.0, 6000.0)
 	var L := clampf(sqrt(area / (target * 0.5)), 0.0005, 1.0)
 	var rm: Dictionary = EN.quad_mesh(src, net_chains, L * 0.6)
+	var to_quads := false
 	if rm.is_empty() or EN._open_edges(rm["t"]) > 0:
 		rm = EN.remesh(src, net_chains, L)
+		to_quads = true
 	if rm.is_empty():
 		return {}
 	var vv: PackedVector3Array = rm["v"]
@@ -2364,7 +2380,16 @@ static func _remeshed(EN: GDScript, src: RefCounted, a0: Array, net_chains: Arra
 		var ts: PackedFloat32Array = EN.params(pts, cs[ci])
 		for j in vis.size():
 			fv.append([vis[j], ci, ts[j]])
-	return _prepare_edges(EN, vv, rm["t"], fv, chains, old, rm.get("axis", [0, 0, 0]), mat, false, a0)
+	var tt: PackedInt32Array = rm["t"]
+	if to_quads:
+		# (the topology rules: each face between its edges laid out as grids or along its flow - the full layout,
+		# on this worker; editor.md "mesh-curves-topology")
+		var gq: Dictionary = EN.grid_any(vv, tt, fv, chains, L * 0.55)
+		if not gq.is_empty() and EN._open_edges(gq["t"]) <= EN._open_edges(tt):
+			vv = gq["v"]
+			tt = gq["t"]
+			fv = gq["fv"]
+	return _prepare_edges(EN, vv, tt, fv, chains, old, rm.get("axis", [0, 0, 0]), mat, false, a0)
 
 
 ## (safe on a worker) How good converted solid `r` ({v, t, shaded}) is against the surface it was made from
@@ -4516,7 +4541,7 @@ func patch_level() -> int:
 func patch_finer() -> bool:
 	var pa := picked_patch()
 	if pa.is_empty():
-		ed._say("Finer: click on a baked solid's face first (a face).")
+		ed._say("Subdivide face: click on a baked solid's face first.")
 		return false
 	var EN: GDScript = load("res://scripts/editor/mesh/edge_net.gd")
 	var p: MeshInstance3D = pa["part"]
@@ -4544,7 +4569,7 @@ func patch_finer() -> bool:
 			now[int(id)] = cv
 	var chains: Array = spec["chains"]
 	if not EN._split_bent(v, t, fv, chains, now, EN._feat_now(v, t, fv, chains, now), 180.0, 0.0, seeds):
-		ed._say("Finer: nothing to cut there.")
+		ed._say("Subdivide face: nothing to cut there.")
 		return false
 	var vp := PackedVector3Array()
 	for q in v:
@@ -4557,7 +4582,7 @@ func patch_finer() -> bool:
 		tp = cs["t"]
 		fv = cs["fv"]
 	if EN._open_edges(tp) > 0:
-		ed._say("Finer: that would leave holes - kept as it was.")
+		ed._say("Subdivide face: that would leave holes - kept as it was.")
 		return false
 	var st: Array = (spec.get("res_stack", []) as Array).duplicate(true)
 	st.append({"ids": (pa["ids"] as Array).duplicate(), "mesh": (spec["mesh"] as Dictionary).duplicate(true), "fv": (spec["fv"] as Array).duplicate(true),
@@ -4571,7 +4596,7 @@ func patch_finer() -> bool:
 	spec.erase("oriented")
 	spec.erase("paired")
 	_set_edges_spec(p, spec)
-	_changed("Face finer", before)
+	_changed("Subdivide face", before)
 	return true
 
 
@@ -4589,11 +4614,11 @@ func patch_coarser() -> bool:
 		if (st[i]["ids"] as Array) == pa["ids"]:
 			at = i
 	if at < 0:
-		ed._say("Coarser: this face is as it was baked.")
+		ed._say("Unsubdivide face: this face isn't subdivided.")
 		return false
 	var e: Dictionary = st[at]
 	if JSON.stringify((e["chains"] as Array).map(func(ch): return int(ch["id"]))) != JSON.stringify((spec["chains"] as Array).map(func(ch): return int(ch["id"]))):
-		ed._say("Coarser: its edges have been split or joined since - kept as it is.")
+		ed._say("Unsubdivide face: its edges have been split or joined since - kept as it is.")
 		return false
 	var before := _state()
 	st.remove_at(at)
@@ -4604,7 +4629,7 @@ func patch_coarser() -> bool:
 	spec.erase("orig")
 	spec.erase("oriented")
 	_set_edges_spec(p, spec)
-	_changed("Face coarser", before)   # (settled to the curves as they are now)
+	_changed("Unsubdivide face", before)   # (settled to the curves as they are now)
 	return true
 
 
@@ -4623,8 +4648,9 @@ func set_patch_level(lv: float) -> void:
 func patch_items() -> Array:
 	var on := not picked_patch().is_empty()
 	return [
-		["m_cv_patch_finer", "Face finer", "", "The picked face's quads each cut in four - the cuts run on as loops through the quads\nbeyond (quads kept everywhere). Coarser takes it back.", patch_finer, on],
-		["m_cv_patch_coarser", "Face coarser", "", "The picked face as it was before it was last made finer.", patch_coarser, on and patch_level() > 0],
+		["m_cv_patch_finer", "Subdivide face", "", "The picked face subdivided: each of its quads cut in four - the cuts run on as loops\nthrough the quads beyond (quads kept everywhere), the new points on the surface. More points\nto shape detail with; the layout itself isn't changed (Remesh does that). Unsubdivide face\ntakes it back.", patch_finer, on],
+		["m_extrude", "Extrude face", "E", "The picked face pulled out along its normal - the mouse sets how far (or type it; minus:\npushed in) - walls of quads from its old rim to its new one; its edges copied at the new rim and\na straight edge up each corner, so the solid stays made of its edges. Click or Enter: done.", begin_face_extrude, on],
+		["m_cv_patch_coarser", "Unsubdivide face", "", "The picked face as it was before it was last subdivided.", patch_coarser, on and patch_level() > 0],
 	]
 
 
@@ -5952,8 +5978,14 @@ func _draw_tangent_glow() -> void:
 const EditMeshK := preload("res://scripts/editor/mesh/edit_mesh.gd")
 
 
+## After an edit lets go: the faces at the edges it moved laid out again by the topology rules (in the background).
+const SETTLE_RELAYOUT := false   # (the user: no remesh after a vertex move - an edit only settles)
+## After a cut: the faces either side of it laid out again by the topology rules (in the background).
+const KNIFE_RELAYOUT := true
+
+
 func knife_item() -> Array:
-	return ["m_knife", "Knife", "K", "Cuts a new edge across a solid's surface: click points along it (the cut follows the surface\nbetween them), Enter or right-click to cut, Backspace to take a point back, Esc to stop. The new\nedge splits the faces it crosses, and shapes the solid like any of its edges.", begin_knife, true]
+	return ["m_knife", "Knife", "K", "Cuts a new edge across a solid's surface: click points along it (the cut follows the surface\nbetween them; near a vertex or an edge a point snaps onto it - Ctrl: free),\nEnter or right-click to cut, Backspace to take a point back, Esc to stop. The new edge splits the faces it crosses, and shapes the solid like any of its edges.", begin_knife, true]
 
 
 ## The knife started: clicks on a solid now place the cut's points.
@@ -5987,6 +6019,7 @@ func _knife_input(e: InputEvent) -> bool:
 	var mm := e as InputEventMouseMotion
 	if mm:
 		kn["mouse"] = mm.position
+		kn["snap"] = _knife_snap(mm.position, kn["part"]) if not mm.ctrl_pressed else {}
 		layer.queue_redraw()
 		return false   # (the view still turns with the middle button)
 	var mb := e as InputEventMouseButton
@@ -5998,6 +6031,9 @@ func _knife_input(e: InputEvent) -> bool:
 	if mb.button_index != MOUSE_BUTTON_LEFT or mb.alt_pressed:
 		return false
 	var hit := _baked_hit(mb.position)
+	var sn: Dictionary = _knife_snap(mb.position, kn["part"]) if not mb.ctrl_pressed else {}
+	if not sn.is_empty():
+		hit = {"part": sn["part"], "world": sn["world"]}   # (on a vertex or an edge: exactly there)
 	if hit.is_empty():
 		ed._say("Knife: click on a solid's surface.")
 		return true
@@ -6014,6 +6050,75 @@ func _knife_input(e: InputEvent) -> bool:
 	return true
 
 
+## Where the knife snaps near `at` (Blender's way): a vertex of the solid's edges within SNAP_PX first, else
+## the nearest point of one of its edges within SNAP_PX - only ones in sight (not behind the surface).
+## {part, world, screen, kind ("vertex" / "edge")} or {} - free. `part`: the knife's solid (null: the one
+## under the mouse).
+func _knife_snap(at: Vector2, part) -> Dictionary:
+	var p = part
+	if not (p is MeshInstance3D) or not is_instance_valid(p):
+		var h := _baked_hit(at)
+		p = h.get("part")
+	if not (p is MeshInstance3D) or not is_instance_valid(p):
+		return {}
+	var mx := _mx()
+	var own := owner_xfs()
+	var best_v := SNAP_PX
+	var best_e := SNAP_PX
+	var got_v := {}
+	var got_e := {}
+	for id in spec_ids((p as Node).get_meta("curve_solid", {})):
+		var c := curve_by_id(int(id))
+		if c.is_empty() or c.get("hidden", false):
+			continue
+		var x := mx * cx(c, own)
+		if str(c.get("kind", "")) in ["line", "spline", "path"]:
+			for q in (c["ctrl"] as PackedVector3Array):
+				var w: Vector3 = x * q
+				if ed.view.cam.is_position_behind(w):
+					continue
+				var sp: Vector2 = ed.view.cam.unproject_position(w)
+				var d := sp.distance_to(at)
+				if d < best_v:
+					best_v = d
+					got_v = {"part": p, "world": w, "screen": sp, "kind": "vertex"}
+		var smp := sample(c)
+		if bool(c.get("closed", false)) and smp.size() > 1:
+			smp.append(smp[0])
+		for i in range(1, smp.size()):
+			var a: Vector3 = x * smp[i - 1]
+			var b: Vector3 = x * smp[i]
+			if ed.view.cam.is_position_behind(a) or ed.view.cam.is_position_behind(b):
+				continue
+			var sa: Vector2 = ed.view.cam.unproject_position(a)
+			var sb: Vector2 = ed.view.cam.unproject_position(b)
+			var cp := Geometry2D.get_closest_point_to_segment(at, sa, sb)
+			var d := cp.distance_to(at)
+			if d < best_e:
+				# (the point of the edge nearest the mouse's line of sight - in 3D: a blend made on the screen
+				# is off in perspective)
+				var ro: Vector3 = ed.view.cam.project_ray_origin(cp)
+				var rd: Vector3 = ed.view.cam.project_ray_normal(cp)
+				var cl := Geometry3D.get_closest_points_between_segments(ro, ro + rd * 1e5, a, b)
+				best_e = d
+				got_e = {"part": p, "world": cl[1], "screen": ed.view.cam.unproject_position(cl[1]), "kind": "edge"}
+	for g in [got_v, got_e]:
+		if g.is_empty():
+			continue
+		# (in sight: nothing of the solids nearer the camera along its line)
+		var hit := _baked_hit(g["screen"])
+		var cam: Vector3 = ed.view.cam.global_position
+		if hit.is_empty() or (hit["world"] as Vector3).distance_to(cam) >= (g["world"] as Vector3).distance_to(cam) - _snap_slack(g["world"]):
+			return g
+	return {}
+
+
+## How far behind the surface a point on it may seem (the mesh between its points is flat - a curved
+## edge's point lies a little under or over it): a hundredth of the way to the camera.
+func _snap_slack(w: Vector3) -> float:
+	return maxf(w.distance_to(ed.view.cam.global_position) * 0.01, 1e-4)
+
+
 ## The cut's path drawn: its points, the lines between them, and on to the mouse.
 func _draw_knife() -> void:
 	if not has_meta("knife"):
@@ -6025,9 +6130,19 @@ func _draw_knife() -> void:
 		var m := _mx().affine_inverse() * (p as MeshInstance3D).global_transform
 		for c in kn["clicks"]:
 			pts.append(_screen(m * (c["pos"] as Vector3)))
+	var sn: Dictionary = kn.get("snap", {})
 	if kn.has("mouse"):
-		pts.append(kn["mouse"])
+		pts.append(sn["screen"] if not sn.is_empty() else kn["mouse"])
 	var col := Color(1.0, 0.85, 0.3)
+	if not sn.is_empty():
+		# (snapped: a square on a vertex, a ring on an edge - as Blender's knife shows it)
+		var sp: Vector2 = sn["screen"]
+		if str(sn["kind"]) == "vertex":
+			layer.draw_rect(Rect2(sp - Vector2(7, 7), Vector2(14, 14)), Color(0, 0, 0, 0.6), false, 4.0)
+			layer.draw_rect(Rect2(sp - Vector2(7, 7), Vector2(14, 14)), PICKED_PT_COL, false, 2.0)
+		else:
+			layer.draw_arc(sp, 8.0, 0.0, TAU, 24, Color(0, 0, 0, 0.6), 4.0, true)
+			layer.draw_arc(sp, 8.0, 0.0, TAU, 24, PICKED_PT_COL, 2.0, true)
 	if pts.size() >= 2:
 		layer.draw_polyline(pts, Color(0, 0, 0, 0.6), 4.0, true)
 		layer.draw_polyline(pts, col, 2.0, true)
@@ -6054,7 +6169,7 @@ func knife_cut() -> void:
 	remove_meta("knife")
 	# (the cut made this frame; the solid drawn anew the next (its look on a worker), the undo step the
 	# frame after - all in one frame was ~90 ms. Anything done meanwhile finishes it first)
-	set_meta("knife_due", {"before": before, "stage": 0, "at": Engine.get_process_frames()})
+	set_meta("knife_due", {"before": before, "stage": 0, "at": Engine.get_process_frames(), "part": p, "edges": res.get("chains", [])})
 	ed._say("Knife: a new edge across %s (%d vertices)." % [(p as Node).name, int(res["n"])])
 
 
@@ -6077,6 +6192,11 @@ func _knife_step(all := false) -> void:
 	set_meta("panel_hold", true)   # (the overview filled the frame after)
 	_changed("Knife", kd["before"])
 	remove_meta("panel_hold")
+	# (the faces either side of the cut laid out again by the topology rules - only those, the rest as it was -
+	# in the background, its own undo step)
+	if KNIFE_RELAYOUT and kd.has("part") and is_instance_valid(kd["part"]) and not (kd["edges"] as Array).is_empty():
+		set_meta("remesh_after", kd["part"])
+		set_meta("remesh_after_only", kd["edges"])
 
 
 ## Solid `p` (a baked solid) cut along `clicks` ([{pos, eye}] in its own space): its spec made again -
@@ -6288,7 +6408,10 @@ func knife_apply_to(p: MeshInstance3D, clicks: Array, redraw := true) -> Diction
 	p.remove_meta("hit_tm")
 	if redraw:
 		refresh_solids()
-	return {"n": n_pts, "id": int(made[0]["id"]), "edges": made.size()}
+	var new_ci := []
+	for k in made.size():
+		new_ci.append((sp["chains"] as Array).size() - made.size() + k)
+	return {"n": n_pts, "id": int(made[0]["id"]), "edges": made.size(), "chains": new_ci}
 
 
 ## The drag going on called off (a right-click while dragging, as Esc does in a transform): what it moved
@@ -6737,6 +6860,8 @@ func key(k: InputEventKey) -> bool:
 			if k.shift_pressed:
 				begin("rect"); return true
 		KEY_E:
+			if not picked_patch().is_empty() and picked_points().is_empty() and not k.shift_pressed:
+				begin_face_extrude(); return true
 			if not picked_points().is_empty() and not k.shift_pressed:
 				extrude_points(); return true
 			if not sel.is_empty() and not k.shift_pressed:
@@ -7977,7 +8102,7 @@ func _op_hint() -> void:
 		ed.view.hint = "Extrude: %.3f m%s   (mouse / type a number · click or Enter: done · Esc: cancel)%s" % [op["value"], cut, ("   typed: " + typed) if typed != "" else ""]
 		ed.view.queue_redraw()
 		return
-	var names := {"extrude": "Extrude: %.3f m", "offset": "Offset: %.3f m", "fillet": "Fillet corners: radius %.3f m", "revolve": "Revolve: %.0f°", "pipe": "Pipe: radius %.3f m"}
+	var names := {"face_extrude": "Extrude face: %.3f m (minus: pushed in)", "extrude": "Extrude: %.3f m", "offset": "Offset: %.3f m", "fillet": "Fillet corners: radius %.3f m", "revolve": "Revolve: %.0f°", "pipe": "Pipe: radius %.3f m"}
 	ed.view.hint = (names[op["kind"]] % op["value"]) + "   (mouse / type a number · click or Enter: done · Esc: cancel)" + (("   typed: " + typed) if typed != "" else "")
 	ed.view.queue_redraw()
 
@@ -7994,7 +8119,7 @@ func _op_motion(at: Vector2) -> void:
 	var a: Vector2 = ed.view.project(c)
 	var m0: Vector2 = op["m0"]
 	match kind:
-		"extrude":
+		"extrude", "face_extrude":
 			# (along the curve's normal: how far the mouse went along the normal's line on screen)
 			var hit: Vector3 = ed.view.on_line(at, c, (mx.basis * (op["n"] as Vector3)).normalized())
 			op["value"] = snappedf((hit - c).dot((mx.basis * (op["n"] as Vector3)).normalized()), grid_step if snap_grid and not Input.is_key_pressed(KEY_CTRL) else 0.0)
@@ -8024,6 +8149,10 @@ func _op_update() -> void:
 		layer.queue_redraw()
 		return
 	match kind:
+		"face_extrude":
+			_face_extrude_preview(v)
+			layer.queue_redraw()
+			return
 		"offset":
 			var made := []
 			var nid := _nid()
@@ -8060,6 +8189,8 @@ func confirm_op() -> void:
 	var kind: String = op["kind"]
 	var v: float = op["value"]
 	var before: Array = op["before"]
+	if kind == "face_extrude":
+		set_meta("face_op", op)   # (what it pulls out, for the apply - op is cleared first)
 	_clear_preview()
 	op = {}
 	ed.view.hint = ""
@@ -8072,6 +8203,9 @@ func confirm_op() -> void:
 			_changed("Offset edge", before)
 		"fillet":
 			_changed("Fillet corners", before)
+		"face_extrude":
+			_face_extrude_apply(v, before)
+			remove_meta("face_op")
 		_:
 			curves = before[0].duplicate(true)
 			if kind == "pipe":
@@ -10302,6 +10436,7 @@ func parts_menu(target: Node) -> PopupMenu:
 		add.call(pm, "Delete", _act_part.bind(p, "delete"))
 		add.call(pm, "Bake (its tools into its edges)", _act_part.bind(p, "bake"), can_bake(p))
 		add.call(pm, "Auto join (%s)" % ("the selected" if sel_ps.size() >= 2 else "with what meets it"), func(): auto_join(sel_ps if sel_ps.size() >= 2 else [], false, [] if sel_ps.size() >= 2 else [p]))
+		add.call(pm, "Remesh (quads along its edges)", func(): remesh_solid(p), str((p.get_meta("curve_solid", {}) as Dictionary).get("kind", "")) == "edges")
 		pm.add_separator()
 		add.call(pm, "New collection from the selected (%d)" % sel_ps.size(), make_group.bind(sel_ps))
 		var sub := PopupMenu.new()
@@ -10681,7 +10816,7 @@ func bake_edges(p: MeshInstance3D = null) -> bool:
 	if to_quads:
 		# (the rules for any topology: quads, laid out evenly, following the edges - each face a grid between
 		# its edges, mapped onto its surface)
-		var gq: Dictionary = EN.grid_faces(vv, tt, fv, chains, L * 0.55)
+		var gq: Dictionary = EN.grid_any(vv, tt, fv, chains, L * 0.55, false)   # (the quick layout: its facing, folds, holes, grids - the full one follows on a worker, remesh_after)
 		if not gq.is_empty():
 			vv = gq["v"]
 			tt = gq["t"]
@@ -10722,6 +10857,8 @@ func bake_edges(p: MeshInstance3D = null) -> bool:
 	_bake_set(p, after, core, new_name, out, true)
 	ed._push("Bake solid", _bake_set.bind(p, before, spec, old_name, out, false), _bake_set.bind(p, after, core, new_name, out, true))
 	auto_join([], true, [p])   # (other solids meeting it along an edge: joined to it - a step of its own)
+	if gridded:
+		set_meta("remesh_after", p)
 	ed._say("Baked: one solid, %d edges%s." % [ids.size(), (" - %d solid%s touching it joined in" % [merged.size(), "" if merged.size() == 1 else "s"]) if not merged.is_empty() else ""])
 	return true
 
@@ -11639,6 +11776,24 @@ func _settle_finish(wait := true) -> bool:
 		_settle_apply(h[2], h[1][0])
 	refresh_solids()
 	_record(str(st["name"]), st["before"])
+	# (the faces at the edges it moved laid out again by the topology rules - the full layout, in the background,
+	# put into this same undo step when it's done)
+	if SETTLE_RELAYOUT:
+		for h in st["jobs"]:
+			var job: Dictionary = h[2]
+			var p = job["p"]
+			if not is_instance_valid(p) or int((job["spec"] as Dictionary).get("dense", 0)) >= 1 or (job.get("moved", {}) as Dictionary).is_empty():
+				continue
+			var chs: Array = ((p as Node).get_meta("curve_solid", {}) as Dictionary).get("chains", [])
+			var idx := []
+			for ci in chs.size():
+				if (job["moved"] as Dictionary).has(int(chs[ci]["id"])):
+					idx.append(ci)
+			if not idx.is_empty():
+				set_meta("remesh_after", p)
+				set_meta("remesh_after_only", idx)
+				set_meta("remesh_after_merge", true)
+				break
 	return true
 
 
@@ -13095,17 +13250,18 @@ func menu_groups(at := Vector2(-1e6, -1e6)) -> Array:
 			return [it[0], it[1], it[2], it[3], func(): pick_point(int(one[0]), int(one[1])); (it[4] as Callable).call(), true]))
 		return out
 	if not picked_patch().is_empty():
-		out.append(patch_items() + [knife_item()])
+		out.append(patch_items() + [knife_item(), _remesh_of(_patch_part())])
 		out.append(xf)
 		return out
 	if picked_solid() != null:
 		out.append(xf.map(func(it): return [it[0], str(it[1]).replace("patch", "solid"), it[2], it[3], it[4], true]))
 		out.append([merge_dist_item(), ["m_cv_merge", "Merge edges", "Ctrl+J", "The solid's edges joined wherever their ends meet (a shared vertex, or within the merge\ndistance): the straightest pairs made one edge - its mesh as it is.", merge_curves_selected, true]])
-		out.append(sym_items() + [knife_item()])
+		out.append(sym_items() + [knife_item(), _remesh_of(picked_solid())])
 		return out
 	var p: MeshInstance3D = ed.part
 	var bake := [["bake", "Bake solid", "", "The selected solid's tools and edges worked out into new edges on its surfaces: one Baked\nsolid, shaped by them only. Tools not touching it stay live.", _bake_btn, p != null and can_bake(p)]]
 	bake.append(join_item())
+	bake.append(remesh_item())
 	bake.append(merge_dist_item())
 	if not sel.is_empty():
 		for g in [edit_items(), solid_items()]:
@@ -13140,7 +13296,7 @@ func every_menu_item() -> Array:
 		out.append([TOOLS[t][1], TOOLS[t][0], "", "", Callable(), true])
 	for ic in ["m_cv_plane", "m_cv_pt_smooth", "m_cv_pt_sharp", "bake"]:
 		out.append([ic, ic, "", "", Callable(), true])
-	return out + _all_items() + points_items() + patch_items() + prim_items() + sym_items() + [knife_item(), join_item(), merge_dist_item()]
+	return out + _all_items() + points_items() + patch_items() + prim_items() + sym_items() + [knife_item(), join_item(), merge_dist_item(), remesh_item()]
 
 
 const PLANES := [["auto", "Plane: Auto"], ["ground", "Plane: Ground"], ["front", "Plane: Front"], ["side", "Plane: Side"],
@@ -13202,8 +13358,8 @@ func _patch_row() -> Control:
 	var row := HBoxContainer.new()
 	row.name = "PatchRow"
 	row.add_theme_constant_override("separation", 6)
-	var l := UI.label("Face resolution", 14, UI.TEXT_DIM)
-	l.tooltip_text = EditorIcons.tip("Face resolution", "", "How many times the picked face's quads have been cut in four (0: as baked) - each cut a loop\nrunning on through the quads beyond, so the surface stays quads. Lower: back as it was.")
+	var l := UI.label("Face subdivisions", 14, UI.TEXT_DIM)
+	l.tooltip_text = EditorIcons.tip("Face subdivisions", "", "How many times the picked face has been subdivided - its quads cut in four (0: as baked),\neach cut a loop running on through the quads beyond, so the surface stays quads. Lower: back\nas it was.")
 	l.mouse_filter = Control.MOUSE_FILTER_STOP
 	row.add_child(l)
 	var sp := SpinBox.new()
@@ -14576,3 +14732,375 @@ func merge_by_distance() -> int:
 ## The menu's Merge by distance.
 func merge_dist_item() -> Array:
 	return ["m_cv_pt_merge", "Merge by distance", "Alt+M", "Vertices within the merge distance (the Mirror box's Merge) of each other made one: next to\neach other on one edge - one dissolved; on different edges - moved together to their middle,\nso the edges meet there. The picked vertices, else the picked edges' or solid's, else all.", func(): merge_by_distance(), not curves.is_empty()]
+
+
+# --- extrude face ------------------------------------------------------------------------------------------
+
+## Extrude face (the picked face's menu, E): the face pulled out along its normal - the mouse sets how far
+## (or a typed number; minus: pushed in) - walls of quads from its old rim to its new one, rows about as tall
+## as its quads are wide; a copy of each of its edges at the new rim and a straight edge up each corner, so
+## the solid stays made of its edges. One undo step.
+func begin_face_extrude() -> void:
+	var pa := picked_patch()
+	if pa.is_empty():
+		ed._say("Extrude face: click on a baked solid's face first.")
+		return
+	stop()
+	var p: MeshInstance3D = pa["part"]
+	var spec := _rebase_part(p)
+	var fs := _faces_of(spec)
+	var vv: PackedVector3Array = fs["v"]
+	var tt: PackedInt32Array = fs["t"]
+	var n := Vector3.ZERO
+	var ctr := Vector3.ZERO
+	var area := 0.0
+	for ti in pa["tris"]:
+		var a := vv[tt[ti * 3]]
+		var b := vv[tt[ti * 3 + 1]]
+		var c := vv[tt[ti * 3 + 2]]
+		var cr := (c - a).cross(b - a)   # (Godot's front faces wind the other way round: outwards)
+		n += cr
+		ctr += (a + b + c) / 3.0 * cr.length()
+		area += cr.length()
+	if n.length() < 1e-12 or area <= 0.0:
+		ed._say("Extrude face: that face has no area.")
+		return
+	n = n.normalized()
+	ctr /= area
+	var px := _mx().affine_inverse() * p.global_transform
+	op = {"kind": "face_extrude", "value": 0.0, "start": 0.0, "before": _state(), "centre": px * ctr, "x": xf_arr(px),
+		"n": (px.basis * n).normalized(), "n_local": n, "m0": ed._mouse, "orig": curves.duplicate(true),
+		"part": p, "spec": spec, "v": vv, "t": tt, "tris": pa["tris"], "ids": (pa["ids"] as Array).duplicate()}
+	typed = ""
+	_op_update()
+	_op_hint()
+
+
+## The picked face pulled out by `d` (part space): {v, t, fv, new: [[old chain index, new chain index]...],
+## corners: [[bottom point, top point]...], rows} - the face's points moved (its rim's copied), walls of
+## `rows` quads high from the old rim to the new.
+static func face_extruded(v0: PackedVector3Array, t0: PackedInt32Array, fv0: Array, chains: Array, tris: PackedInt32Array, ids: Array, n: Vector3, d: float) -> Dictionary:
+	var in_f := {}
+	for ti in tris:
+		in_f[ti] = true
+	var dir_e := {}   # "a_b" (as the face's triangles run) -> true
+	var fverts := {}
+	for ti in tris:
+		for j in 3:
+			var a := t0[ti * 3 + j]
+			var b := t0[ti * 3 + (j + 1) % 3]
+			dir_e[Vector2i(a, b)] = true
+			fverts[a] = true
+	var rim := []   # the face's rim, as its triangles run: [a, b]
+	var rim_v := {}
+	for e in dir_e:
+		if not dir_e.has(Vector2i(e.y, e.x)):
+			rim.append([e.x, e.y])
+			rim_v[e.x] = true
+			rim_v[e.y] = true
+	if rim.is_empty():
+		return {}
+	var L := 0.0
+	for e in rim:
+		L += v0[e[0]].distance_to(v0[e[1]])
+	L /= rim.size()
+	var rows := clampi(roundi(absf(d) / maxf(L, 1e-6)), 1, 64)
+	var v := v0.duplicate()
+	var off := n * d
+	# (inside the face: its points moved; on its rim: copied, a copy a row)
+	var top := {}
+	var layer := []   # each row's copy of the rim, rows 1 .. rows - 1
+	for k in range(1, rows):
+		var lk := {}
+		for vi in rim_v:
+			lk[vi] = v.size()
+			v.append(v0[vi] + off * float(k) / rows)
+		layer.append(lk)
+	for vi in fverts:
+		if rim_v.has(vi):
+			top[vi] = v.size()
+			v.append(v0[vi] + off)
+		else:
+			v[vi] = v0[vi] + off
+			top[vi] = vi
+	var t := t0.duplicate()
+	for ti in tris:
+		for j in 3:
+			t[ti * 3 + j] = top[t0[ti * 3 + j]]
+	var at := func(vi: int, k: int) -> int:   # (rim point vi at row k: 0 the old rim, rows the new)
+		if k == 0:
+			return vi
+		if k == rows:
+			return top[vi]
+		return layer[k - 1][vi]
+	for e in rim:
+		for k in rows:
+			var a0: int = at.call(e[0], k)
+			var b0: int = at.call(e[1], k)
+			var a1: int = at.call(e[0], k + 1)
+			var b1: int = at.call(e[1], k + 1)
+			t.append_array(PackedInt32Array([a0, b0, b1, a0, b1, a1]))
+	# its edges: each of the face's edges again at the new rim; a straight edge up each corner
+	var fv := fv0.duplicate(true)
+	var face_ci := {}
+	for ci in chains.size():
+		if int(chains[ci]["id"]) in ids:
+			face_ci[ci] = chains.size() + face_ci.size()
+	var on := {}
+	for e in fv0:
+		if rim_v.has(int(e[0])) and face_ci.has(int(e[1])):
+			fv.append([top[int(e[0])], face_ci[int(e[1])], float(e[2])])
+			if not on.has(int(e[0])):
+				on[int(e[0])] = {}
+			on[int(e[0])][int(e[1])] = true
+	var corners := []
+	var nci := chains.size() + face_ci.size()
+	for vi in on:
+		if (on[vi] as Dictionary).size() < 2:
+			continue
+		fv.append([vi, nci, 0.0])
+		for k in range(1, rows):
+			fv.append([layer[k - 1][vi], nci, float(k) / rows])
+		fv.append([top[vi], nci, 1.0])
+		corners.append([v0[vi], v0[vi] + off])
+		nci += 1
+	var made := []
+	for ci in face_ci:
+		made.append([ci, face_ci[ci]])
+	made.sort_custom(func(x, y): return int(x[1]) < int(y[1]))
+	return {"v": v, "t": t, "fv": fv, "new": made, "corners": corners, "rows": rows}
+
+
+## (the operation) The extruded face shown over its solid.
+func _face_extrude_preview(d: float) -> void:
+	var r := face_extruded(op["v"], op["t"], (op["spec"] as Dictionary).get("fv", []), (op["spec"] as Dictionary).get("chains", []), op["tris"], op["ids"], op["n_local"], d)
+	if r.is_empty() or absf(d) < 1e-6:
+		_clear_preview()
+		return
+	var EN: GDScript = load("res://scripts/editor/mesh/edge_net.gd")
+	_show_preview(EN.shaded(r["v"], r["t"], PackedInt32Array(), null))
+
+
+## (the operation, let go) The face extruded into its solid: its mesh, its new edges. One undo step.
+func _face_extrude_apply(d: float, before: Array) -> void:
+	var p = op.get("part") if not op.is_empty() else null
+	var o: Dictionary = get_meta("face_op", {})
+	if absf(d) < 1e-6 or o.is_empty():
+		return
+	p = o["part"]
+	var spec: Dictionary = o["spec"]
+	var chains: Array = (spec.get("chains", []) as Array).duplicate(true)
+	var r := face_extruded(o["v"], o["t"], spec.get("fv", []), chains, o["tris"], o["ids"], o["n_local"], d)
+	if r.is_empty() or not is_instance_valid(p):
+		ed._say("Extrude face: nothing to pull out there.")
+		return
+	var off: Vector3 = (o["n_local"] as Vector3) * d
+	var ids: Array = (spec.get("ids", []) as Array).duplicate()
+	var c0: Dictionary = (spec.get("c0", {}) as Dictionary).duplicate()
+	for pr in r["new"]:
+		var src := curve_by_id(int(chains[int(pr[0])]["id"]))
+		if src.is_empty():
+			continue
+		var nc := _fresh(baked(src, Transform3D(Basis(), off)))
+		nc["name"] = "%s %s" % [str(src.get("name", "Edge")), "pulled out"]
+		curves.append(nc)
+		ids.append(int(nc["id"]))
+		chains.append({"id": int(nc["id"]), "closed": bool(src.get("closed", false))})
+		c0[str(int(nc["id"]))] = to_json([nc])[0]
+	var nf: Vector3 = o["n_local"]
+	for cn in r["corners"]:
+		var a: Vector3 = cn[0]
+		var b: Vector3 = cn[1]
+		var side := nf.cross(Vector3.UP if absf(nf.dot(Vector3.UP)) < 0.9 else Vector3.RIGHT).normalized()
+		var lc := _fresh({"kind": "line", "ctrl": PackedVector3Array([a, b]), "closed": false, "n": side})
+		lc["name"] = "%s side edge" % str(p.name)
+		curves.append(lc)
+		ids.append(int(lc["id"]))
+		chains.append({"id": int(lc["id"]), "closed": false})
+		c0[str(int(lc["id"]))] = to_json([lc])[0]
+	var flat := []
+	for q in (r["v"] as PackedVector3Array):
+		flat.append_array([q.x, q.y, q.z])
+	spec = spec.duplicate()
+	spec["mesh"] = {"v": flat, "t": Array(r["t"])}
+	spec["fv"] = r["fv"]
+	spec["chains"] = chains
+	spec["ids"] = ids
+	spec["c0"] = c0
+	spec.erase("oriented")
+	spec.erase("paired")
+	spec.erase("res_stack")
+	_set_edges_spec(p, spec)
+	set_meta("patch", {})
+	_changed("Extrude face", before)
+	ed._say("Extruded: %.3f m, %d row%s of quads, %d new edges." % [d, int(r["rows"]), "" if int(r["rows"]) == 1 else "s", (r["new"] as Array).size() + (r["corners"] as Array).size()])
+
+
+# --- remesh: a solid laid out again by the topology rules ---------------------------------------------------
+
+## The menu's Remesh.
+func remesh_item() -> Array:
+	return ["m_cv_patch_finer", "Remesh", "", "The selected solid's mesh laid out again by the topology rules (the editor manual's \"How\nECurves lays out its quads\"): each face between its edges quads in grids that follow them,\nfew poles, even and square; sharp folds followed by rows. Its edges stay as they are. Worked\nout in the background; one undo step.", func(): remesh_solid(ed.part), ed.part != null and str((ed.part.get_meta("curve_solid", {}) as Dictionary).get("kind", "")) == "edges"]
+
+
+## Remesh for solid `p` (the picked face's or the picked solid's) - else the selected one.
+func _remesh_of(p) -> Array:
+	var it := remesh_item()
+	if p is MeshInstance3D and is_instance_valid(p):
+		it[4] = func(): remesh_solid(p)
+		it[5] = str(((p as Node).get_meta("curve_solid", {}) as Dictionary).get("kind", "")) == "edges"
+	return it
+
+
+## The part the picked face is on (or null).
+func _patch_part():
+	var pa: Dictionary = get_meta("patch", {})
+	if pa.is_empty():
+		return null
+	var o = instance_from_id(int(pa.get("part", 0)))
+	return o if o is MeshInstance3D else null
+
+
+## Solid `p` (made of edges) laid out again by EdgeNet.grid_any - on a worker; put in when done, one undo step.
+## only_chains: only the faces along those edges (chain indices) laid out - the rest kept exactly.
+## merge: put into the undo step on top now (the edit it follows) rather than one of its own.
+func remesh_solid(p, label := "Remesh", only_chains := [], merge := false) -> void:
+	if not (p is MeshInstance3D) or not is_instance_valid(p) or str(((p as Node).get_meta("curve_solid", {}) as Dictionary).get("kind", "")) != "edges":
+		ed._say("Remesh: select a solid made of edges.")
+		return
+	if has_meta("remesh_job"):
+		ed._say("Remesh: one is still being worked out.")
+		return
+	var spec := _rebase_part(p)
+	var fs := _faces_of(spec)
+	var v: PackedVector3Array = fs["v"]
+	var t: PackedInt32Array = fs["t"]
+	var fv: Array = (spec.get("fv", []) as Array).map(func(e): return [int(e[0]), int(e[1]), float(e[2])])
+	var chains: Array = spec.get("chains", [])
+	var area := 0.0
+	for i in range(0, t.size(), 3):
+		area += (v[t[i + 1]] - v[t[i]]).cross(v[t[i + 2]] - v[t[i]]).length() * 0.5
+	var L := clampf(sqrt(area / 380.0), 0.003, 1.0) * 0.55
+	var EN: GDScript = load("res://scripts/editor/mesh/edge_net.gd")
+	var only := {}
+	if not only_chains.is_empty():
+		var on_cut := {}
+		for e in fv:
+			if only_chains.has(int(e[1])):
+				on_cut[int(e[0])] = true
+		for i in range(0, t.size(), 3):
+			if on_cut.has(t[i]) or on_cut.has(t[i + 1]) or on_cut.has(t[i + 2]):
+				only[i / 3] = true
+		if only.is_empty():
+			return
+	var h := [null]
+	var id := WorkerThreadPool.add_task(func(): h[0] = EN.grid_any(v, t, fv, chains, L, true, only), false, "ECurves: remesh")
+	var top = null
+	if merge:
+		var stack: Array = ed._eundo if ed.mode == "edit" else ed._undo
+		top = stack.back() if not stack.is_empty() else null
+	set_meta("remesh_job", [id, h, p, spec, _state(), label, str((p as Node).get_meta("curve_solid", {})).hash(), top])
+	if not merge:
+		ed._say("%s: laying %s out..." % [label, (p as Node).name])
+
+
+## The remesh going on (`j`: its job; empty: none - the bar taken away) shown in the view's lower left corner:
+## the solid, what the layout's doing and a bar of how far it's got (EdgeNet.progress).
+func _remesh_bar(j: Array) -> void:
+	var box: Control = get_meta("remesh_bar") if has_meta("remesh_bar") and is_instance_valid(get_meta("remesh_bar")) else null
+	if j.is_empty() or ed == null or ed.view == null:
+		if box:
+			box.queue_free()
+			remove_meta("remesh_bar")
+		return
+	if box == null:
+		box = PanelContainer.new()
+		box.name = "RemeshProgress"
+		box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.06, 0.035, 0.015, 0.85)
+		sb.border_color = Color(1.0, 0.55, 0.15, 0.7)
+		sb.set_border_width_all(1)
+		sb.set_corner_radius_all(4)
+		sb.content_margin_left = 10
+		sb.content_margin_right = 10
+		sb.content_margin_top = 6
+		sb.content_margin_bottom = 8
+		box.add_theme_stylebox_override("panel", sb)
+		var vb := VBoxContainer.new()
+		vb.add_theme_constant_override("separation", 4)
+		vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(vb)
+		var l := UI.label("", 14)
+		l.name = "What"
+		vb.add_child(l)
+		var l2 := UI.label("", 14, UI.TEXT_DIM)
+		l2.name = "Stage"
+		vb.add_child(l2)
+		var bar := ProgressBar.new()
+		bar.name = "Bar"
+		bar.min_value = 0.0
+		bar.max_value = 1.0
+		bar.show_percentage = false
+		bar.custom_minimum_size = Vector2(280, 12)
+		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vb.add_child(bar)
+		ed.view.add_child(box)
+		set_meta("remesh_bar", box)
+	var EN: GDScript = load("res://scripts/editor/mesh/edge_net.gd")
+	var pr: Array = EN.get("progress")
+	var p = j[2]
+	var lab: Label = box.find_child("What", true, false)
+	var lab2: Label = box.find_child("Stage", true, false)
+	var bar: ProgressBar = box.find_child("Bar", true, false)
+	var label := str(j[5]) if j.size() > 5 else "Remesh"
+	lab.text = "%s: %s  %d%%" % [label, (p as Node).name if is_instance_valid(p) else "", roundi(float(pr[0]) * 100.0)]
+	var st := str(pr[1])
+	lab2.text = (st.left(1).to_upper() + st.substr(1)) if st != "" else ""
+	bar.value = float(pr[0])
+	# (the view's lower left corner, a margin in)
+	box.reset_size()
+	box.position = Vector2(12.0, ed.view.size.y - box.size.y - 12.0)
+
+
+## (each frame) A remesh worked out: put in.
+func _remesh_step() -> void:
+	var j: Array = get_meta("remesh_job")
+	if not WorkerThreadPool.is_task_completed(int(j[0])):
+		_remesh_bar(j)
+		return
+	WorkerThreadPool.wait_for_task_completion(int(j[0]))
+	remove_meta("remesh_job")
+	_remesh_bar([])
+	var g = j[1][0]
+	var p = j[2]
+	if not is_instance_valid(p) or not (p as Node).is_inside_tree():
+		return
+	if not (g is Dictionary) or (g as Dictionary).is_empty():
+		ed._say("Remesh: %s couldn't be laid out again - kept as it was." % (p as Node).name)
+		return
+	if j.size() > 6 and str((p as Node).get_meta("curve_solid", {})).hash() != int(j[6]):
+		ed._say("Remesh: %s was changed meanwhile - kept as you left it (Remesh it again)." % (p as Node).name)
+		return
+	var spec: Dictionary = j[3]
+	var flat := []
+	for q in (g["v"] as PackedVector3Array):
+		flat.append_array([q.x, q.y, q.z])
+	spec["mesh"] = {"v": flat, "t": Array(g["t"])}
+	spec["fv"] = g["fv"]
+	for k in ["oriented", "paired", "res_stack", "orig"]:
+		spec.erase(k)
+	_set_edges_spec(p, spec)
+	refresh_solids()
+	var top = j[7] if j.size() > 7 else null
+	var stack: Array = ed._eundo if ed.mode == "edit" else ed._undo
+	if top != null and not stack.is_empty() and is_same(stack.back(), top):
+		# (the edit it follows still the last step: its redo now ends with this layout - one step)
+		(top as Dictionary)["redo"] = _set_state.bind(_state())
+		refresh_solids()
+		_refresh_panel()
+		layer.queue_redraw()
+		return
+	_record(str(j[5]) if j.size() > 5 else "Remesh", j[4])
+	ed._say("Remeshed %s: %d triangles%s." % [(p as Node).name, (g["t"] as PackedInt32Array).size() / 3, (", %d faces kept as they were" % int(g.get("kept", 0))) if int(g.get("kept", 0)) > 0 else ""])
+

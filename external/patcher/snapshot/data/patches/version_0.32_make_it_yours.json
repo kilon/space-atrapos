@@ -3,13 +3,14 @@
  "id": "0.32",
  "title": "Make it yours",
  "date": "2026-11-24",
- "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024). Then ECurves (patch 0025): every model an ECurve object, fast enough for a whole character. Then quads along the edges (patch 0026): bakes in quads that follow their edges, and settings that fit. Then joined solids (patch 0027).",
+ "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024). Then ECurves (patch 0025): every model an ECurve object, fast enough for a whole character. Then quads along the edges (patch 0026): bakes in quads that follow their edges, and settings that fit. Then joined solids (patch 0027). Then clean topology (patch 0028).",
  "patches": [
   "0023",
   "0024",
   "0025",
   "0026",
-  "0027"
+  "0027",
+  "0028"
  ],
  "steps": [
   {
@@ -478,7 +479,142 @@
   {
    "patch": "0027",
    "title": "Patch 0027 - Joined solids",
-   "text": "ECurves joins what belongs together: solids that meet along an edge - a plate against its trim, a joint against its glow - become one solid by themselves after a conversion or a bake (or from the menu), one of each shared edge kept and the meshes welded along it with no gap, quads kept, each part's material and bone weights still its own and no seam in the shading. A dragged model shows where it will land before you drop it, Merge by distance makes close vertices one, and Undo, Redo, Save and Save as sit on the header.",
+   "text": "Solids that meet along an edge become one by themselves - after a conversion, after a bake, or from the menu - welded with no gap, quads kept, each part's material and bone weights its own. A dragged model shows where it will land, Merge by distance makes close vertices one, tooltips show the item itself turning, the models browser has categories, and no text is under 14 px.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      200,
+      30,
+      600,
+      80
+     ],
+     "label": "PATCH 0027\nJoined solids",
+     "size": 18,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      60,
+      150,
+      250,
+      110
+     ],
+     "label": "two solids,\none shared edge",
+     "size": 17,
+     "stroke": "cyan",
+     "delay": 0.3
+    },
+    {
+     "t": "arrow",
+     "from": [
+      314,
+      205
+     ],
+     "to": [
+      366,
+      205
+     ],
+     "color": "cyan",
+     "delay": 0.6
+    },
+    {
+     "t": "box",
+     "rect": [
+      370,
+      150,
+      260,
+      110
+     ],
+     "label": "one solid,\nwelded, no gap",
+     "size": 17,
+     "stroke": "gold",
+     "delay": 0.8,
+     "pulse": true
+    },
+    {
+     "t": "arrow",
+     "from": [
+      634,
+      205
+     ],
+     "to": [
+      686,
+      205
+     ],
+     "color": "gold",
+     "delay": 1.0
+    },
+    {
+     "t": "box",
+     "rect": [
+      690,
+      150,
+      250,
+      110
+     ],
+     "label": "materials and\nweights kept",
+     "size": 17,
+     "stroke": "green",
+     "delay": 1.2
+    },
+    {
+     "t": "box",
+     "rect": [
+      60,
+      320,
+      270,
+      100
+     ],
+     "label": "drop marker,\nmerge by distance",
+     "size": 17,
+     "stroke": "purple",
+     "delay": 1.5
+    },
+    {
+     "t": "box",
+     "rect": [
+      365,
+      320,
+      270,
+      100
+     ],
+     "label": "tooltips: the\nitem, turning",
+     "size": 17,
+     "stroke": "cyan",
+     "delay": 1.7
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      320,
+      270,
+      100
+     ],
+     "label": "text never\nunder 14 px",
+     "size": 17,
+     "stroke": "gold",
+     "delay": 1.9
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      480
+     ],
+     "text": "91 solids -> 72 on the player's character",
+     "color": "cyan",
+     "size": 18,
+     "delay": 2.2
+    }
+   ]
+  },
+  {
+   "patch": "0028",
+   "title": "Patch 0028 - Clean topology",
+   "text": "ECurves lays its meshes out the way a modeller would: written topology rules for every mesh it makes, a scorer to measure them, and a layout that grids each face along its edges' flow - grids, grids round one pole, rings, and a field-aligned fill for big organic faces, the better of two kept per face - the player character's meshes from a score of 34 to 76 (91% quads, a quarter of the slivers). Remesh runs in the background with a progress bar; bakes and knife cuts are laid out the same way, while moving vertices only settles.",
    "diagram": [
     {
      "t": "box",
@@ -488,7 +624,7 @@
       600,
       80
      ],
-     "label": "PATCH 0027\nJoined solids",
+     "label": "PATCH 0028\nClean topology",
      "size": 18,
      "stroke": "gold"
     },
@@ -498,7 +634,7 @@
       210,
       200
      ],
-     "text": "Auto join: solids that meet become",
+     "text": "Rules for a clean mesh, and a scor",
      "color": "cyan",
      "size": 15,
      "delay": 0.3
@@ -509,7 +645,7 @@
       500,
       200
      ],
-     "text": "Welded with no gap, quads kept",
+     "text": "Faces laid out along their flow",
      "color": "green",
      "size": 15,
      "delay": 0.44999999999999996
@@ -520,7 +656,7 @@
       790,
       200
      ],
-     "text": "Materials, weights and shading kep",
+     "text": "Remesh, in the background, with a ",
      "color": "purple",
      "size": 15,
      "delay": 0.6
@@ -531,7 +667,7 @@
       210,
       290
      ],
-     "text": "Drop marker, merge by distance, a ",
+     "text": "Extrude face, and a knife that sna",
      "color": "gold",
      "size": 15,
      "delay": 0.75
@@ -542,7 +678,7 @@
       500,
       290
      ],
-     "text": "Tooltips show the item itself, tur",
+     "text": "Save and Save As, the way a modell",
      "color": "red",
      "size": 15,
      "delay": 0.8999999999999999
@@ -553,7 +689,7 @@
       790,
       290
      ],
-     "text": "Text never under 14 px",
+     "text": "Fixes: a remesh crash, a floating ",
      "color": "blue",
      "size": 15,
      "delay": 1.05

@@ -12,6 +12,7 @@ extends Control
 ## Embedded (the Mod Editor: `embedded = true` before it enters the tree):
 ## no Talos rail, and Esc doesn't leave.
 
+const FileBrowser := preload("res://scripts/ui/file_browser.gd")
 const EditMesh := preload("res://scripts/editor/mesh/edit_mesh.gd")
 const MeshView := preload("res://scripts/editor/mesh/mesh_view.gd")
 const MeshIO := preload("res://scripts/editor/mesh/mesh_io.gd")
@@ -212,8 +213,8 @@ func _build() -> void:
 	header.add_child(_btn("Import from disk", "open", "Ctrl+O", "Opens a .glb, .gltf or .obj file from anywhere on this computer (save it into the game or your mod with Save as).", _import))
 	_save_btn = _btn("Save", "save", "Ctrl+S", "Saves the model as glb where it was opened from (into your mod, in the Mod Editor).\nMirror modifiers are applied into the saved meshes; skeleton, skin and animations are kept.", func(): save())
 	header.add_child(_save_btn)
-	header.add_child(_btn("Save as", "export", "Ctrl+Shift+S", "Saves the model under another res:// path (as glb).", save_as))
-	_revert_btn = _btn("Revert to original", "m_revert", "", "Deletes your saved changes to this model (its override) and opens the original again.\nSaving never writes over the original: it's kept, and the game uses your version until you revert.", func(): revert_to_original())
+	header.add_child(_btn("Save as", "export", "Ctrl+Shift+S", "Saves the model as another file (glb), picked in a file browser - any folder; a name that's\nthere is overwritten. That file is the model's from then on.", save_as))
+	_revert_btn = _btn("Revert to original", "m_revert", "", "Deletes this model's variants and opens the original again - the game uses the original\nagain at once.", func(): revert_to_original())
 	header.add_child(_revert_btn)
 	_variant_opt = OptionButton.new()
 	_variant_opt.focus_mode = Control.FOCUS_NONE
@@ -3618,7 +3619,7 @@ func menu(at: Vector2) -> PopupPanel:
 		page_groups = groups.slice(0, groups.size() - 1)
 		for g in ct.menu_groups(at):
 			for it in g:
-				if str(it[1]) in ["Bake solid", "Auto join", "Merge by distance"]:
+				if str(it[1]) in ["Bake solid", "Auto join", "Merge by distance", "Remesh"]:
 					page_groups.append([it])
 	page_groups.append(general)
 	var page := VBoxContainer.new()
@@ -4314,7 +4315,49 @@ func _rig_of(p: MeshInstance3D) -> Skeleton3D:
 				return c
 		n = n.get_parent()
 	var all := model.find_children("*", "Skeleton3D", true, false)
-	return all[0] if not all.is_empty() else null
+	if not all.is_empty():
+		return all[0]
+	return _borrowed_rig(str((p.get_meta("curve_solid", {}) as Dictionary).get("bone_name", "")))
+
+
+## (_rig_of) No skeleton in the model - solids that name their bones, brought in from a file saved without
+## its rig: the game's characters' own rig (they all share the automaton's bones), the first with that bone.
+## Kept beside the editor, never in the model (nothing saved with it); T-pose only.
+const RIG_SOURCES := ["res://art/player_3d/player.glb", "res://art/minoan_3d/minoan.glb", "res://art/pirate_3d/pirate.glb"]
+
+func _borrowed_rig(bone: String) -> Skeleton3D:
+	if bone == "":
+		return null
+	var have: Array = get_meta("tpose_rigs", [])
+	for sk in have:
+		if is_instance_valid(sk) and (sk as Skeleton3D).find_bone(bone) >= 0:
+			return sk
+	for f in RIG_SOURCES:
+		if have.any(func(sk): return is_instance_valid(sk) and (sk as Node).get_meta("rig_of", "") == f):
+			continue
+		var ps := load(f) as PackedScene
+		if ps == null:
+			continue
+		var inst := ps.instantiate()
+		var sks := inst.find_children("*", "Skeleton3D", true, false)
+		if sks.is_empty():
+			inst.free()
+			continue
+		var sk: Skeleton3D = sks[0]
+		sk.get_parent().remove_child(sk)
+		for c in sk.get_children():
+			c.free()   # (the bones only - no meshes)
+		inst.free()
+		sk.name = "BorrowedRig"
+		sk.set_meta("rig_of", f)
+		sk.visible = false
+		add_child(sk)
+		have = have.filter(func(x): return is_instance_valid(x))
+		have.append(sk)
+		set_meta("tpose_rigs", have)
+		if sk.find_bone(bone) >= 0:
+			return sk
+	return null
 
 
 ## The model's weapons shown or hidden: hidden, each part's weapon surfaces (by their
@@ -4708,7 +4751,7 @@ func _write_material_table(res_path: String) -> void:
 	_say("Saved - and %d material%s into %s (the game's look of it)." % [n, "" if n == 1 else "s", json_path.get_file()])
 
 
-# --- overrides: saving never writes over the original ----------------------------------
+# --- saving: over the file the model was opened from (its variant, or its own) --------------
 
 const ModelOverride := preload("res://scripts/world/models/model_override.gd")
 
@@ -4717,15 +4760,18 @@ const ModelOverride := preload("res://scripts/world/models/model_override.gd")
 ## (it overrides the game's); in the game, the open variant of its override (art/overrides/; a new
 ## variant if the original is open) - the original kept as it was. A model new to the game is
 ## written where it's saved (there's nothing to override).
+## Saving writes over the file the model was opened from (as a 3D suite does): the open variant's, else
+## the model's own file; a file outside the game's folder as it is. (In a mod: the mod's copy.)
 func _write_target(model_path: String, name := "") -> String:
 	var file := model_path.get_base_dir().path_join(name) if name != "" else model_path
-	if EditTarget.is_mod():
+	if EditTarget.is_mod() and model_path.begins_with("res://"):
 		return EditTarget.write_path(file)
-	if name == "" and not FileAccess.file_exists(model_path) and not ResourceLoader.exists(model_path):
-		return model_path
-	if variant <= 0 or not variant in ModelOverride.variants(model_path):
-		variant = ModelOverride.add(model_path)
-	return ModelOverride.file_of(model_path, variant, name)
+	if not model_path.begins_with("res://"):
+		return file
+	if variant > 0 and variant in ModelOverride.variants(model_path):
+		return ModelOverride.file_of(model_path, variant, name)
+	variant = 0
+	return file
 
 
 ## What `model_path`'s file `name` reads as: the mod's copy, else the open variant's, else the original.
@@ -5075,51 +5121,58 @@ func write_to(res_path: String) -> int:
 	dirty = false
 	_refresh_variants()
 	_update_ui()
-	_say("Saved %s to %s%s." % [res_path, EditTarget.label(), "" if EditTarget.is_mod() or variant <= 0 else " as variant %d%s" % [variant, " (active: the game uses it)" if variant == _variants.back() else " (not the latest: the game uses variant %d)" % _variants.back()]])
+	var note := ""
+	if not EditTarget.is_mod() and res_path.begins_with("res://"):
+		if variant > 0:
+			note = " (variant %d%s)" % [variant, ", active: the game uses it" if variant == _variants.back() else " - not the latest: the game uses variant %d" % _variants.back()]
+		elif ModelOverride.has(res_path):
+			note = " - the game uses its variant %d (the latest); Revert to original to use this" % ModelOverride.active(res_path)
+	_say("Saved %s%s." % [file if not res_path.begins_with("res://") or EditTarget.is_mod() else res_path, note])
 	_start_scan()
 	return OK
 
 
-## Asks for a res:// path to save under.
+## Save as: a file browser (scripts/ui/file_browser.gd) - the folder and name it's saved under now; a name
+## that's there is overwritten (shown red). Saved there, and that file is the model's from then on.
 func save_as(then := Callable()) -> void:
 	if model == null:
 		return
-	var layer := CanvasLayer.new()
-	layer.layer = 50
-	add_child(layer)
-	var root := Control.new()
-	root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	layer.add_child(root)
-	var box := UI.modal(root, ACCENT, Vector2(620, 0))
-	box.add_child(UI.label("Save as", 24, NeonTheme.HEAD))
-	box.add_child(UI.note("A res:// path ending in .glb - saved into %s." % EditTarget.label(), 15, 560))
-	var le := LineEdit.new()
-	le.text = path if path.get_extension() in ["glb", "gltf"] else ("res://models/%s.glb" % str(model.name).to_snake_case() if path == "" else path.get_basename() + ".glb")
-	le.add_theme_font_size_override("font_size", 16)
-	box.add_child(le)
-	var err_l := UI.label("", 14, Color(1.0, 0.45, 0.4))
-	box.add_child(err_l)
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_END
-	row.add_theme_constant_override("separation", 12)
-	box.add_child(row)
-	var go := func():
-		var p := le.text.strip_edges()
-		if not p.begins_with("res://"):
-			p = "res://" + p.trim_prefix("/")
-		if not p.get_extension().to_lower() in ["glb", "gltf"]:
-			p += ".glb"
-		if p.begins_with("res://.godot") or p.begins_with("res://external") or p.contains(".."):
-			err_l.text = "Not there: pick a folder of the game (art/, models/...)."
-			return
-		layer.queue_free()
-		path = p
-		save(then)
-	le.text_submitted.connect(func(_t): go.call())
-	row.add_child(UI.button("Cancel", layer.queue_free, 16))
-	row.add_child(UI.button("Save", go, 16))
-	le.grab_focus.call_deferred()
-	le.caret_column = le.text.length()
+	var nm := str(model.name).to_snake_case()
+	if nm == "" or nm.begins_with("@") or nm.begins_with("node"):
+		nm = "untitled"   # (a new model: no name of its own yet)
+	var start := path if path != "" else "res://models/%s.glb" % nm
+	if not start.get_extension().to_lower() in ["glb", "gltf"]:
+		start = start.get_basename() + ".glb"
+	var d := start.get_base_dir()
+	if not DirAccess.dir_exists_absolute(d):
+		d = "res://models" if DirAccess.dir_exists_absolute("res://models") else "res://"
+	FileBrowser.open(self, {"title": "Save As", "action": "Save As", "dir": d, "file": start.get_file(),
+		"filters": ["glb", "gltf"],
+		"thumb": func(f: String):
+			var tex: Texture2D = _thumbs.get_thumb(f, f)
+			if tex == null:
+				_thumbs.ask(f, f)
+			return tex,
+		"done": func(f: String):
+			save_to_path(f, then)})
+
+
+## Saves the model as file `f` (res:// - the game's - or anywhere on disk), the model's file from then on.
+func save_to_path(f: String, then := Callable()) -> void:
+	if model == null:
+		return
+	var loc := ProjectSettings.localize_path(f)
+	if loc.begins_with("res://"):
+		f = loc
+	if not f.get_extension().to_lower() in ["glb", "gltf"]:
+		f += ".glb"
+	if f.begins_with("res://.godot"):
+		_say("Not there: that folder is the engine's.")
+		return
+	if f != path:
+		variant = 0   # (another file: written as it is, no variant)
+	path = f
+	save(then)
 
 
 func _import() -> void:
