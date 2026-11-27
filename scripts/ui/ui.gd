@@ -21,7 +21,7 @@ static func panel_style(_border: Color) -> NeonBox:
 static func label(text: String, size := 16, color := Color.WHITE) -> Label:
 	var l := Label.new()
 	l.text = text
-	size = maxi(Settings.MIN_FONT, size)   # (text is never under 12 px)
+	size = maxi(Settings.MIN_FONT, size)   # (text is never under 14 px)
 	l.add_theme_font_size_override("font_size", size)
 	l.add_theme_color_override("font_color", color)
 	if size >= 24:   # titles: the heavy neon heading font
@@ -409,7 +409,7 @@ static func context_menu(owner: Node, at: Vector2, items: Array, title := "COMMA
 	m.theme = NeonTheme.build()
 	m.add_theme_font_size_override("font_size", Settings.fs("menu", 16))
 	m.add_theme_font_override("font_separator", NeonTheme.heavy_font())
-	m.add_theme_font_size_override("font_separator_size", Settings.fs("menu", 13))
+	m.add_theme_font_size_override("font_separator_size", Settings.fs("menu", 14))
 	m.add_theme_color_override("font_separator_color", NeonTheme.PINK.lightened(0.25))
 	if title != "":
 		m.add_separator(title)

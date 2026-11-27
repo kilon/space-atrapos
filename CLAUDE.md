@@ -37,7 +37,7 @@ data/docs/*.md (F1).
 - Standing directions: photoreal, cinematic (no cel shading/outlines); everything a 3D model, modular -
   pieces swapped, colours/textures as shader parameters; the empires' looks kept; one theme everywhere
   (the game's HUD and menus - NeonTheme) and one typeface (Atrapos Sans, made by tools/make_font.py); text
-  never under 12 px (Settings.MIN_FONT - the helpers clamp; tests/test_fonts.gd); no helper text (the tutorial's icon); walk in and out of ships
+  never under 14 px (Settings.MIN_FONT - the helpers clamp; tests/test_fonts.gd); no helper text (the tutorial's icon); walk in and out of ships
   through doors, no teleporting; the camera never clips.
 
 ## Frame rate: aim for 600 FPS, nothing loads in the foreground

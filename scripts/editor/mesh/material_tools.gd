@@ -133,7 +133,7 @@ func build_right(box: VBoxContainer) -> void:
 	_name_l.mouse_filter = Control.MOUSE_FILTER_STOP
 	_name_l.tooltip_text = EditorIcons.tip("Material being edited", "", "The material being edited: the selected surface's, or the one picked in the Materials tab.")
 	col.add_child(_name_l)
-	_info_l = UI.label("", 13, UI.TEXT_DIM)
+	_info_l = UI.label("", 14, UI.TEXT_DIM)
 	_info_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info_l.custom_minimum_size.x = 100
 	_info_l.mouse_filter = Control.MOUSE_FILTER_STOP

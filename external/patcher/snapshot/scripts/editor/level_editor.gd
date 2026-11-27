@@ -172,11 +172,11 @@ func _build() -> void:
 	lrow.add_child(EditorIcons.docs_button(self, "level-editor"))
 	lrow.add_child(EditorIcons.dress(UI.button("Exit level editor", close, 15), "exit",
 		EditorIcons.tip("Exit the level editor", "F10 / Esc", "Back to the game (unsaved edits stay until you leave this map).")))
-	_status = UI.label("", 13, UI.TEXT_DIM)
+	_status = UI.label("", 14, UI.TEXT_DIM)
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status.custom_minimum_size.x = 300
 	v.add_child(_status)
-	v.add_child(UI.label("Left click: use tool  ·  1-9: pick tool  ·  Wheel: zoom\nWASD / arrows / middle-drag: pan  ·  [ ]: brush\nCtrl+S: save  ·  F1: docs  ·  F10 / Esc: exit  ·  Right-click: editor menu", 13, UI.TEXT_DIM))
+	v.add_child(UI.label("Left click: use tool  ·  1-9: pick tool  ·  Wheel: zoom\nWASD / arrows / middle-drag: pan  ·  [ ]: brush\nCtrl+S: save  ·  F1: docs  ·  F10 / Esc: exit  ·  Right-click: editor menu", 14, UI.TEXT_DIM))
 	UI.scale_fonts(_panel, "menu", 1.3)
 	PinTips.install(self, "level-editor")
 

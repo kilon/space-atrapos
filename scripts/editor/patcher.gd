@@ -382,7 +382,7 @@ func _build_review() -> void:
 	_review.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_review.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_review.add_theme_font_override("mono_font", _mono)
-	_review.add_theme_font_size_override("mono_font_size", 13)
+	_review.add_theme_font_size_override("mono_font_size", 14)
 	_review.add_theme_constant_override("line_separation", 4)   # (each diff line's background mustn't hide the underscores above)
 	_review.add_theme_font_size_override("normal_font_size", 15)
 	_review.add_theme_font_size_override("bold_font_size", 17)
@@ -678,7 +678,7 @@ func _show_gallery(files: Array) -> void:
 			_review.add_image(tex, int(sz.x), int(sz.y))
 		else:
 			_review.append_text("[color=#ff9a8a](missing)[/color]")
-		_review.append_text("\n[font_size=12][color=#cfd6e4]%s[/color][/font_size]\n " % _esc(str(f["path"]).get_file()))
+		_review.append_text("\n[font_size=14][color=#cfd6e4]%s[/color][/font_size]\n " % _esc(str(f["path"]).get_file()))
 		_review.pop()
 	_review.pop()
 	for f in others:
@@ -859,8 +859,8 @@ class PatchView extends Control:
 	const W := 1000.0
 	const H := 560.0
 	## The smallest text in a diagram (its units): shown at 86% at 1920 x 1080
-	## (the Versions page), that's 14 px - never under Settings.MIN_FONT.
-	const MIN_TEXT := 16
+	## (the Versions page), that's 14.6 px - never under Settings.MIN_FONT.
+	const MIN_TEXT := 17
 	const COLORS := {"cyan": Color(0.35, 0.85, 1.0), "gold": Color(1.0, 0.78, 0.3), "green": Color(0.45, 0.9, 0.45),
 		"red": Color(0.95, 0.35, 0.3), "blue": Color(0.35, 0.55, 1.0), "purple": Color(0.7, 0.5, 1.0),
 		"white": Color(0.95, 0.95, 0.97), "dim": Color(0.55, 0.6, 0.7), "dark": Color(0.08, 0.1, 0.16),

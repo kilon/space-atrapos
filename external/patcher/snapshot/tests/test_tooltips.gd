@@ -44,6 +44,8 @@ static func _own_tip(c: Control) -> bool:
 		return true
 	if c.has_meta("tip") and str(c.get_meta("tip")) != "":
 		return true
+	if c.has_meta("tip_on_tab"):
+		return true   # (a browser's list: its own tooltip on its tab, each item its own)
 	if c is ItemList:
 		var il := c as ItemList
 		if il.item_count == 0:

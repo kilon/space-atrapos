@@ -158,7 +158,7 @@ func _build_view() -> Control:
 	sc.value_changed.connect(func(v): preview_scale = v; replay())
 	row.add_child(sc)
 	row.add_child(_btn("Frame", "fit_all", "F", "Zooms to fit the effect.", frame))
-	var hint := UI.label("drag: orbit - wheel: zoom", 13, UI.TEXT_DIM)
+	var hint := UI.label("drag: orbit - wheel: zoom", 14, UI.TEXT_DIM)
 	hint.clip_text = true
 	hint.size_flags_horizontal = SIZE_EXPAND_FILL
 	row.add_child(hint)

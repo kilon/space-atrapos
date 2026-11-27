@@ -3,12 +3,13 @@
  "id": "0.32",
  "title": "Make it yours",
  "date": "2026-11-24",
- "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024). Then ECurves (patch 0025): every model an ECurve object, fast enough for a whole character. Then quads along the edges (patch 0026): bakes in quads that follow their edges, and settings that fit.",
+ "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024). Then ECurves (patch 0025): every model an ECurve object, fast enough for a whole character. Then quads along the edges (patch 0026): bakes in quads that follow their edges, and settings that fit. Then joined solids (patch 0027).",
  "patches": [
   "0023",
   "0024",
   "0025",
-  "0026"
+  "0026",
+  "0027"
  ],
  "steps": [
   {
@@ -471,6 +472,141 @@
      "stroke": "green",
      "label": "middle click:\nzoom back",
      "size": 16
+    }
+   ]
+  },
+  {
+   "patch": "0027",
+   "title": "Patch 0027 - Joined solids",
+   "text": "Solids that meet along an edge become one by themselves - after a conversion, after a bake, or from the menu - welded with no gap, quads kept, each part's material and bone weights its own. A dragged model shows where it will land, Merge by distance makes close vertices one, tooltips show the item itself turning, the models browser has categories, and no text is under 14 px.",
+   "diagram": [
+    {
+     "t": "box",
+     "rect": [
+      200,
+      30,
+      600,
+      80
+     ],
+     "label": "PATCH 0027\nJoined solids",
+     "size": 18,
+     "stroke": "gold"
+    },
+    {
+     "t": "box",
+     "rect": [
+      60,
+      150,
+      250,
+      110
+     ],
+     "label": "two solids,\none shared edge",
+     "size": 17,
+     "stroke": "cyan",
+     "delay": 0.3
+    },
+    {
+     "t": "arrow",
+     "from": [
+      314,
+      205
+     ],
+     "to": [
+      366,
+      205
+     ],
+     "color": "cyan",
+     "delay": 0.6
+    },
+    {
+     "t": "box",
+     "rect": [
+      370,
+      150,
+      260,
+      110
+     ],
+     "label": "one solid,\nwelded, no gap",
+     "size": 17,
+     "stroke": "gold",
+     "delay": 0.8,
+     "pulse": true
+    },
+    {
+     "t": "arrow",
+     "from": [
+      634,
+      205
+     ],
+     "to": [
+      686,
+      205
+     ],
+     "color": "gold",
+     "delay": 1.0
+    },
+    {
+     "t": "box",
+     "rect": [
+      690,
+      150,
+      250,
+      110
+     ],
+     "label": "materials and\nweights kept",
+     "size": 17,
+     "stroke": "green",
+     "delay": 1.2
+    },
+    {
+     "t": "box",
+     "rect": [
+      60,
+      320,
+      270,
+      100
+     ],
+     "label": "drop marker,\nmerge by distance",
+     "size": 17,
+     "stroke": "purple",
+     "delay": 1.5
+    },
+    {
+     "t": "box",
+     "rect": [
+      365,
+      320,
+      270,
+      100
+     ],
+     "label": "tooltips: the\nitem, turning",
+     "size": 17,
+     "stroke": "cyan",
+     "delay": 1.7
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      320,
+      270,
+      100
+     ],
+     "label": "text never\nunder 14 px",
+     "size": 17,
+     "stroke": "gold",
+     "delay": 1.9
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      480
+     ],
+     "text": "91 solids -> 72 on the player's character",
+     "color": "cyan",
+     "size": 18,
+     "delay": 2.2
     }
    ]
   }

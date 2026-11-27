@@ -12,7 +12,7 @@ extends RefCounted
 static func row(label: String, value: Variant, on_change: Callable, hint := "", about := "") -> Control:
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 6)
-	var l := UI.label(label, 13, UI.TEXT_DIM)
+	var l := UI.label(label, 14, UI.TEXT_DIM)
 	l.custom_minimum_size.x = 130
 	l.clip_text = true
 	l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -96,7 +96,7 @@ static func widget(value: Variant, on_change: Callable, hint := "") -> Control:
 			cp.focus_mode = Control.FOCUS_NONE
 			cp.color_changed.connect(func(c): on_change.call(c))
 			return cp
-	var lab := UI.label(_brief(value), 13, UI.TEXT_DIM)
+	var lab := UI.label(_brief(value), 14, UI.TEXT_DIM)
 	lab.clip_text = true
 	return lab
 
@@ -126,7 +126,7 @@ static func _slider(v: float, lo: float, hi: float, step: float, whole: bool, on
 	sl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	sl.focus_mode = Control.FOCUS_NONE
 	h.add_child(sl)
-	var n := UI.label(_num(v, whole), 13)
+	var n := UI.label(_num(v, whole), 14)
 	n.custom_minimum_size.x = 48
 	h.add_child(n)
 	sl.value_changed.connect(func(x):

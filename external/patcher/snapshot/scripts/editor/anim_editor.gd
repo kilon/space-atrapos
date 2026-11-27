@@ -217,7 +217,7 @@ func _build_view() -> Control:
 	row.add_child(_btn("Front view", "eye", "Numpad 1", "Looks at the character from the front.", func(): view("front")))
 	row.add_child(_btn("Side view", "eye", "Numpad 3", "From its left side.", func(): view("side")))
 	row.add_child(_btn("Top view", "eye", "Numpad 7", "From above.", func(): view("top")))
-	var hint := UI.label("", 13, UI.TEXT_DIM)
+	var hint := UI.label("", 14, UI.TEXT_DIM)
 	hint.text = "click a bone - R turn, G move (X/Y/Z axis) - right-drag orbit, middle-drag pan, wheel zoom"
 	hint.clip_text = true
 	hint.size_flags_horizontal = SIZE_EXPAND_FILL

@@ -179,7 +179,7 @@ func set_rules(rules: Dictionary, options: Dictionary) -> void:
 	_rule_opts = options
 	for c in _rules_box.get_children():
 		c.queue_free()
-	var head := UI.label("WHERE AND WHEN THE GAME USES THIS LOOK (saved with the preset)", 13, ACCENT)
+	var head := UI.label("WHERE AND WHEN THE GAME USES THIS LOOK (saved with the preset)", 14, ACCENT)
 	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_rules_box.add_child(head)
 	var en := CheckBox.new()

@@ -130,7 +130,7 @@ func _field(spec: Array) -> void:
 	var key: String = spec[0]
 	var whole := float(spec[4]) >= 1.0 and float(spec[2]) == floorf(float(spec[2]))
 	var head := HBoxContainer.new()
-	var l := UI.label(spec[1], 13, UI.TEXT_DIM)
+	var l := UI.label(spec[1], 14, UI.TEXT_DIM)
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	l.clip_text = true
 	head.add_child(l)
@@ -143,8 +143,8 @@ func _field(spec: Array) -> void:
 	sb.allow_lesser = false
 	sb.rounded = whole
 	sb.custom_minimum_size.x = 84
-	sb.add_theme_font_size_override("font_size", 13)
-	sb.get_line_edit().add_theme_font_size_override("font_size", 13)
+	sb.add_theme_font_size_override("font_size", 14)
+	sb.get_line_edit().add_theme_font_size_override("font_size", 14)
 	sb.set_value_no_signal(float(params.get(key, spec[5])))
 	sb.tooltip_text = EditorIcons.tip(spec[1], "", "The shape's %s (%s to %s)." % [str(spec[1]).to_lower(), str(spec[2]), str(spec[3])])
 	head.add_child(sb)

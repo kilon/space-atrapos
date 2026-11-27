@@ -558,7 +558,7 @@ class CurveEdit extends Control:
 			draw_line(Vector2(x, 6), Vector2(x, size.y - 6), Color(1, 1, 1, 0.07), 1.0)
 		if points.size() < 2:
 			draw_line(Vector2(6, one), Vector2(size.x - 6, one), Color(1, 0.75, 0.4, 0.7), 2.0)
-			draw_string(get_theme_default_font(), Vector2(10, size.y - 10), "none - double-click to start", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1, 1, 1, 0.5))
+			draw_string(get_theme_default_font(), Vector2(10, size.y - 10), "none - double-click to start", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1, 1, 1, 0.5))
 			return
 		var s := points.duplicate()
 		s.sort_custom(func(a, b): return float(a[0]) < float(b[0]))

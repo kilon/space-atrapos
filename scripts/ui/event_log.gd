@@ -162,7 +162,7 @@ func _ready() -> void:
 		head.add_child(b)
 		_tabs[t[0]] = b
 	_title = Label.new()
-	_title.add_theme_font_size_override("font_size", 12)
+	_title.add_theme_font_size_override("font_size", 14)
 	_title.add_theme_color_override("font_color", Color(NeonTheme.HEAD, 0.8))
 	_title.mouse_filter = MOUSE_FILTER_IGNORE
 	_title.size_flags_vertical = SIZE_SHRINK_CENTER
@@ -174,7 +174,7 @@ func _ready() -> void:
 	_text.size_flags_vertical = SIZE_EXPAND_FILL
 	_text.mouse_filter = MOUSE_FILTER_STOP  # mouse wheel / dragging scrolls the log
 	_style_scrollbar(_text.get_v_scroll_bar())
-	_text.add_theme_font_size_override("normal_font_size", 13)
+	_text.add_theme_font_size_override("normal_font_size", 14)
 	_text.add_theme_constant_override("line_separation", 1)
 	v.add_child(_text)
 	# The loading console: the other tab's page (LoadBar).
@@ -388,7 +388,7 @@ class LoadBar extends VBoxContainer:
 
 	## Its text's size: the event log's (13 at the HUD's text size - Settings).
 	static func fs() -> int:
-		return Settings.fs("hud", 13)
+		return Settings.fs("hud", 14)
 
 	var _fs_was := 0
 

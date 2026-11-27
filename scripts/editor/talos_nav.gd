@@ -94,7 +94,7 @@ static func _item(id: String, name: String, icon: String, tip: String, go: Calla
 	b.custom_minimum_size = Vector2(WIDTH, ITEM_H)
 	b.clip_text = true   # (a long name can't widen the rail)
 	b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	b.add_theme_font_size_override("font_size", 13)
+	b.add_theme_font_size_override("font_size", 14)
 	b.tooltip_text = tip
 	b.set_meta("talos_nav", id)
 	b.pressed.connect(func():

@@ -222,6 +222,14 @@ func _process(_dt: float) -> void:
 			set_meta("warm_idle_at", Time.get_ticks_msec() + 200)
 		if not has_meta("pick_mi") and _drag.is_empty() and ed.model.get_parent():
 			_pick_mi()
+	if has_meta("join_job"):
+		_join_step()
+	elif has_meta("join_after") and not _converting():
+		# (a conversion done: the solids it made that meet along an edge joined)
+		var ja: Array = get_meta("join_after")
+		remove_meta("join_after")
+		auto_join(ja.filter(func(x): return is_instance_valid(x)), true)
+	_mats_step()
 	if _converting():
 		_convert_step()
 	else:
@@ -1685,8 +1693,8 @@ func _batch_swap(p: Node, pieces: Array) -> void:
 ## stored as an ECurve object (MeshEditor.store_converted), so it isn't converted again.
 func _batches_step() -> void:
 	var bs: Array = get_meta("convert_batches", [])
-	if bs.is_empty() or _converting():
-		return
+	if bs.is_empty() or _converting() or has_meta("join_after") or has_meta("join_job"):
+		return   # (its solids joined first, then stored)
 	set_meta("convert_batches", [])
 	for b in bs:
 		ed.store_converted(b)
@@ -2926,6 +2934,9 @@ func _convert_apply(p: MeshInstance3D, r: Dictionary) -> void:
 	p.mesh = m
 	p.set_meta("curve_solid", spec)
 	p.set_meta("curve_solid_key", _solid_key(spec))
+	var ja: Array = get_meta("join_after", [])
+	ja.append(p)
+	set_meta("join_after", ja)   # (once all are made: those meeting along an edge joined)
 	layer.queue_redraw()
 	ed.view.request()
 	# (the lists made again once all are done - not after each of hundreds of pieces)
@@ -6731,6 +6742,8 @@ func key(k: InputEventKey) -> bool:
 			if not sel.is_empty() and not k.shift_pressed:
 				begin_extrude(); return true
 		KEY_M:
+			if k.alt_pressed and not k.shift_pressed and not curves.is_empty():
+				merge_by_distance(); return true
 			if picked_points().size() >= 2 and not k.shift_pressed:
 				merge_points(); return true
 		KEY_Y:
@@ -9933,7 +9946,8 @@ func build_overview(box: VBoxContainer) -> void:
 	t.custom_minimum_size.y = 84
 	t.add_theme_font_size_override("font_size", 14)
 	t.tooltip_text = ""   # (each row its own tooltip - none for the list as a whole)
-	t.set_meta("tip_fn", t.get_tooltip)   # (PinTips: the row's under the mouse)
+	t.auto_tooltip = false   # (nor Godot's own - a row's name as its tooltip, over PinTips' one)
+	t.set_meta("tip_fn", func(at: Vector2) -> String: return ed.tree_tip(t, at))   # (PinTips: the row's under the mouse - rows keep theirs for it alone)
 	t.multi_selected.connect(_tree_selected)
 	t.item_collapsed.connect(_tree_folded)
 	t.item_edited.connect(_tree_edited.bind(t))
@@ -10000,8 +10014,8 @@ func _fill_tree() -> void:
 	for g in [["solids", "Solids"], ["meshes", "Meshes"], ["curves", "Edges (not in a solid)"]]:
 		var gi := tree.create_item(root)
 		gi.set_text(0, g[1])
-		gi.set_tooltip_text(0, {"solids": "The solids in no collection: each with the edges it's made from under it.", "meshes": "The plain meshes in no collection (made by hand, not from edges).",
-			"curves": "Edges no solid is made from yet."}[g[0]])
+		gi.set_meta("tip_0", {"solids": "The solids in no collection: each with the edges it's made from under it.", "meshes": "The plain meshes in no collection (made by hand, not from edges).",
+			"curves": "Edges no solid is made from yet."}[g[0]])   # (PinTips only - never Godot's own beside it)
 		gi.set_selectable(0, false)
 		gi.set_selectable(1, false)
 		gi.set_custom_color(0, UI.TEXT_DIM)
@@ -10016,9 +10030,11 @@ func _fill_tree() -> void:
 		gi.set_meta("renamable", true)   # (renamed on a double-click only - a click picks)
 		gi.set_metadata(0, {"group": g})
 		gi.set_icon(0, EditorIcons.get_icon("m_cv_ol_collection"))
-		gi.set_tooltip_text(0, "A collection: a group of solids (a collection of the model - as in the Mesh tab). Click: select its solids.\nRight-click: more.")
-		gi.add_button(1, eye_on if g.visible else eye_off, 0, false, "Hide / show this collection.")
-		gi.add_button(1, EditorIcons.get_icon("m_cv_ol_sel_off" if locked(g) else "m_cv_ol_sel"), 1, false, "Selectable or not: off - nothing in this collection (its solids, their faces, edges, vertices)\ncan be picked or let go.")
+		gi.set_meta("tip_0", EditorIcons.tip(str(g.name), "", "A collection: a group of solids (a collection of the model - as in the Mesh tab). Click: select its solids.\nRight-click: more."))   # (PinTips only - never Godot's own beside it)
+		gi.add_button(1, eye_on if g.visible else eye_off, 0, false, "")
+		gi.set_meta("btip_%d" % (0), "Hide / show this collection.")
+		gi.add_button(1, EditorIcons.get_icon("m_cv_ol_sel_off" if locked(g) else "m_cv_ol_sel"), 1, false, "")
+		gi.set_meta("btip_%d" % (1), "Selectable or not: off - nothing in this collection (its solids, their faces, edges, vertices)\ncan be picked or let go.")
 		gitem[g] = gi
 	for p: MeshInstance3D in ed.parts():
 		var spec: Dictionary = p.get_meta("curve_solid", {})
@@ -10028,9 +10044,12 @@ func _fill_tree() -> void:
 		it.set_meta("renamable", true)   # (renamed on a double-click only - a click picks)
 		it.set_metadata(0, {"part": p})
 		it.set_icon(0, EditorIcons.get_icon("m_cv_ol_solid" if not spec.is_empty() else "m_cv_ol_mesh"))
-		it.set_tooltip_text(0, "%s - %s. Click: select; double-click: rename." % [p.name, _spec_words(spec) if not spec.is_empty() else "a mesh"])
-		it.add_button(1, eye_on if p.visible else eye_off, 0, false, "Hide / show this solid.")
-		it.add_button(1, EditorIcons.get_icon("m_cv_ol_sel_off" if locked(p) else "m_cv_ol_sel"), 1, false, "Selectable or not: off - neither this solid nor its faces, edges or vertices can be picked\nor let go.")
+		var words := _spec_words(spec) if not spec.is_empty() else "a mesh"
+		it.set_meta("tip_0", EditorIcons.tip(str(p.name), "", words.left(1).to_upper() + words.substr(1) + ".\nClick: select; double-click: rename."))   # (PinTips only - never Godot's own beside it)
+		it.add_button(1, eye_on if p.visible else eye_off, 0, false, "")
+		it.set_meta("btip_%d" % (0), "Hide / show this solid.")
+		it.add_button(1, EditorIcons.get_icon("m_cv_ol_sel_off" if locked(p) else "m_cv_ol_sel"), 1, false, "")
+		it.set_meta("btip_%d" % (1), "Selectable or not: off - neither this solid nor its faces, edges or vertices can be picked\nor let go.")
 		if locked(p):
 			it.set_custom_color(0, UI.TEXT_DIM)
 		if p in selp:
@@ -10062,8 +10081,9 @@ func _fill_tree() -> void:
 		ci.set_meta("renamable", true)   # (renamed on a double-click only - a click picks)
 		ci.set_metadata(0, {"curve": i})
 		ci.set_icon(0, EditorIcons.get_icon("m_cv_ol_edge"))
-		ci.set_tooltip_text(0, "A %s. Click: pick it (Ctrl / Shift: more)." % str(curves[i]["kind"]))
-		ci.add_button(1, eye_off if curves[i].get("hidden", false) else eye_on, 0, false, "Hide / show this edge.")
+		ci.set_meta("tip_0", "A %s. Click: pick it (Ctrl / Shift: more)." % str(curves[i]["kind"]))   # (PinTips only - never Godot's own beside it)
+		ci.add_button(1, eye_off if curves[i].get("hidden", false) else eye_on, 0, false, "")
+		ci.set_meta("btip_%d" % (0), "Hide / show this edge.")
 		if i in sel:
 			ci.select(0)
 	# (as tall as its rows, no taller - 3 to 9 rows)
@@ -10269,6 +10289,7 @@ func parts_menu(target: Node) -> PopupMenu:
 		add.call(pm, "Select its solids", select_group.bind(g))
 		add.call(pm, "Rename", start_rename.bind(g))
 		add.call(pm, "Show" if not g.visible else "Hide", _act_toggle_node.bind(g))
+		add.call(pm, "Auto join its solids", func(): auto_join(g.find_children("*", "MeshInstance3D", true, false)))
 		add.call(pm, "Duplicate", duplicate_group.bind(g))
 		add.call(pm, "Ungroup", ungroup.bind(g))
 		add.call(pm, "Delete (with its solids)", delete_group.bind(g))
@@ -10280,6 +10301,7 @@ func parts_menu(target: Node) -> PopupMenu:
 		add.call(pm, "Duplicate", _act_part.bind(p, "duplicate"))
 		add.call(pm, "Delete", _act_part.bind(p, "delete"))
 		add.call(pm, "Bake (its tools into its edges)", _act_part.bind(p, "bake"), can_bake(p))
+		add.call(pm, "Auto join (%s)" % ("the selected" if sel_ps.size() >= 2 else "with what meets it"), func(): auto_join(sel_ps if sel_ps.size() >= 2 else [], false, [] if sel_ps.size() >= 2 else [p]))
 		pm.add_separator()
 		add.call(pm, "New collection from the selected (%d)" % sel_ps.size(), make_group.bind(sel_ps))
 		var sub := PopupMenu.new()
@@ -10699,6 +10721,7 @@ func bake_edges(p: MeshInstance3D = null) -> bool:
 		out.append([q, q.get_parent(), q.get_index()])
 	_bake_set(p, after, core, new_name, out, true)
 	ed._push("Bake solid", _bake_set.bind(p, before, spec, old_name, out, false), _bake_set.bind(p, after, core, new_name, out, true))
+	auto_join([], true, [p])   # (other solids meeting it along an edge: joined to it - a step of its own)
 	ed._say("Baked: one solid, %d edges%s." % [ids.size(), (" - %d solid%s touching it joined in" % [merged.size(), "" if merged.size() == 1 else "s"]) if not merged.is_empty() else ""])
 	return true
 
@@ -12407,8 +12430,9 @@ func _tree_step_rows(tree: Tree, parent: TreeItem, p: MeshInstance3D, node: Dict
 	si.set_text(0, "%s: %s" % [{"union": "Join", "difference": "Cut", "intersection": "Common"}.get(str(node.get("op", "")), "Tool"), _spec_words(b)])
 	si.set_metadata(0, {"step": path + ["b"], "of": p})
 	si.set_icon(0, EditorIcons.get_icon("m_cv_ol_step"))
-	si.set_tooltip_text(0, "A tool step of %s. Click: select the solid and pick this step's edges. The eye hides its ghost." % p.name)
-	si.add_button(1, eye_off if bool(b.get("ghost_hidden", false)) else eye_on, 0, false, "Hide / show this step's ghost.")
+	si.set_meta("tip_0", "A tool step of %s. Click: select the solid and pick this step's edges. The eye hides its ghost." % p.name)   # (PinTips only - never Godot's own beside it)
+	si.add_button(1, eye_off if bool(b.get("ghost_hidden", false)) else eye_on, 0, false, "")
+	si.set_meta("btip_%d" % (0), "Hide / show this step's ghost.")
 	_tree_steps(tree, si, p, b, path + ["b"])
 	si.collapsed = true
 
@@ -12425,8 +12449,9 @@ func _tree_steps(tree: Tree, parent: TreeItem, p: MeshInstance3D, node: Dictiona
 		si.set_text(0, "%s: %s" % [{"union": "Join", "difference": "Cut", "intersection": "Common"}.get(str(node.get("op", "")), "Tool"), _spec_words(b)])
 		si.set_metadata(0, {"step": path + ["b"], "of": p})
 		si.set_icon(0, EditorIcons.get_icon("m_cv_ol_step"))
-		si.set_tooltip_text(0, "A tool step of %s. Click: select the solid and pick this step's edges. The eye hides its ghost." % p.name)
-		si.add_button(1, eye_off if bool(b.get("ghost_hidden", false)) else eye_on, 0, false, "Hide / show this step's ghost.")
+		si.set_meta("tip_0", "A tool step of %s. Click: select the solid and pick this step's edges. The eye hides its ghost." % p.name)   # (PinTips only - never Godot's own beside it)
+		si.add_button(1, eye_off if bool(b.get("ghost_hidden", false)) else eye_on, 0, false, "")
+		si.set_meta("btip_%d" % (0), "Hide / show this step's ghost.")
 		_tree_steps(tree, si, p, b, path + ["b"])
 		return
 	var roles: Dictionary = node.get("roles", {}) if node.get("roles") is Dictionary else {}
@@ -12440,8 +12465,9 @@ func _tree_steps(tree: Tree, parent: TreeItem, p: MeshInstance3D, node: Dictiona
 		ci.set_meta("renamable", true)   # (renamed on a double-click only - a click picks)
 		ci.set_metadata(0, {"curve": i, "of": p, "leaf": path})
 		ci.set_icon(0, EditorIcons.get_icon("m_cv_ol_edge"))
-		ci.set_tooltip_text(0, ("An edge on %s's surface: one of the edges that shape it. Click: pick it (Ctrl / Shift: more) and\nreshape it - the solid follows. Right-click: more." if baked else "An edge %s is made from. Click: pick it (Ctrl / Shift: more). The eye hides it (and its ghost).\nRight-click: more.") % p.name)
-		ci.add_button(1, eye_off if curves[i].get("hidden", false) else eye_on, 0, false, "Hide / show this edge (and its ghost).")
+		ci.set_meta("tip_0", ("An edge on %s's surface: one of the edges that shape it. Click: pick it (Ctrl / Shift: more) and\nreshape it - the solid follows. Right-click: more." if baked else "An edge %s is made from. Click: pick it (Ctrl / Shift: more). The eye hides it (and its ghost).\nRight-click: more.") % p.name)   # (PinTips only - never Godot's own beside it)
+		ci.add_button(1, eye_off if curves[i].get("hidden", false) else eye_on, 0, false, "")
+		ci.set_meta("btip_%d" % (0), "Hide / show this edge (and its ghost).")
 		if i in sel:
 			ci.select(0)
 
@@ -13057,7 +13083,7 @@ func menu_groups(at := Vector2(-1e6, -1e6)) -> Array:
 	if not pts.is_empty() and picked_points().is_empty():
 		out.append(pts)   # (picked vertices: their own list has the modes - not twice)
 	if not picked_points().is_empty():
-		out.append(points_items())
+		out.append(points_items() + [merge_dist_item()])
 		out.append(xf)
 		out.append(sym_items())
 		return out
@@ -13074,11 +13100,13 @@ func menu_groups(at := Vector2(-1e6, -1e6)) -> Array:
 		return out
 	if picked_solid() != null:
 		out.append(xf.map(func(it): return [it[0], str(it[1]).replace("patch", "solid"), it[2], it[3], it[4], true]))
-		out.append([["m_cv_merge", "Merge edges", "Ctrl+J", "The solid's edges joined wherever their ends meet (a shared vertex, or within the merge\ndistance): the straightest pairs made one edge - its mesh as it is.", merge_curves_selected, true]])
+		out.append([merge_dist_item(), ["m_cv_merge", "Merge edges", "Ctrl+J", "The solid's edges joined wherever their ends meet (a shared vertex, or within the merge\ndistance): the straightest pairs made one edge - its mesh as it is.", merge_curves_selected, true]])
 		out.append(sym_items() + [knife_item()])
 		return out
 	var p: MeshInstance3D = ed.part
 	var bake := [["bake", "Bake solid", "", "The selected solid's tools and edges worked out into new edges on its surfaces: one Baked\nsolid, shaped by them only. Tools not touching it stay live.", _bake_btn, p != null and can_bake(p)]]
+	bake.append(join_item())
+	bake.append(merge_dist_item())
 	if not sel.is_empty():
 		for g in [edit_items(), solid_items()]:
 			var grp := []
@@ -13100,6 +13128,11 @@ func menu_groups(at := Vector2(-1e6, -1e6)) -> Array:
 	return out
 
 
+## The menu's Auto join.
+func join_item() -> Array:
+	return ["m_cv_merge", "Auto join", "", "Solids that meet along an edge (an edge of each in the same place, the same shape, the surface\nstopping there on both sides) made one solid: one of the two edges kept, the meshes welded\nalong it - no gap, quads kept, each part its own material and bone weights still. Only solids\non the same bone join. The selected solids (two or more), else all. Done by itself after a\nconversion and a bake too.", func(): auto_join(), ed.model != null]
+
+
 ## Every tool the right-click menu's Curve modeling page can show, whatever's picked (one group).
 func every_menu_item() -> Array:
 	var out := []
@@ -13107,7 +13140,7 @@ func every_menu_item() -> Array:
 		out.append([TOOLS[t][1], TOOLS[t][0], "", "", Callable(), true])
 	for ic in ["m_cv_plane", "m_cv_pt_smooth", "m_cv_pt_sharp", "bake"]:
 		out.append([ic, ic, "", "", Callable(), true])
-	return out + _all_items() + points_items() + patch_items() + prim_items() + sym_items() + [knife_item()]
+	return out + _all_items() + points_items() + patch_items() + prim_items() + sym_items() + [knife_item(), join_item(), merge_dist_item()]
 
 
 const PLANES := [["auto", "Plane: Auto"], ["ground", "Plane: Ground"], ["front", "Plane: Front"], ["side", "Plane: Side"],
@@ -13955,3 +13988,591 @@ func _draw_plane(pl: Dictionary) -> void:
 		a = o + v * (cv + i * step) + u * (cu - n * step)
 		b = o + v * (cv + i * step) + u * (cu + n * step)
 		layer.draw_line(_screen(a), _screen(b), Color(0.6, 0.85, 1.0, al), 1.0)
+
+
+# --- auto join: solids meeting along one edge made one ---------------------------------------------
+
+## Auto join: the solids (made from edges) that meet along an edge - an edge of each in nearly the same
+## place, nearly the same shape, the surface stopping at it on both sides - made one solid each group: one
+## of each pair of edges kept, the meshes welded along it (no gap, quads kept - auto_join.gd), each part of
+## it its own material still, its bone weights from its old solid's. Only solids on the same bone join.
+## Worked out on a worker; one undo step when it lands. `ps`: the solids to look at ([] - the selected, two
+## or more, else all); `must`: only groups with one of these in. False - nothing to look at, or already going.
+func auto_join(ps: Array = [], quiet := false, must: Array = []) -> bool:
+	if ed == null or ed.model == null or has_meta("join_job"):
+		return false
+	if ps.is_empty():
+		var sp0: Array = ed.selected_parts()
+		ps = sp0 if sp0.size() >= 2 else ed.parts()
+	var AJ: GDScript = load("res://scripts/editor/mesh/auto_join.gd")
+	var inv := _mx().affine_inverse()
+	var cand := []
+	var solids := []
+	var mats := []   # (every material, once: the solids' by their number in it)
+	var users := {}   # curve id -> how many solids use it
+	for q: MeshInstance3D in ed.parts():
+		for id in spec_ids(q.get_meta("curve_solid", {})):
+			users[int(id)] = int(users.get(int(id), 0)) + 1
+	for p in ps:
+		if not (p is MeshInstance3D) or not is_instance_valid(p) or not (p as Node).is_inside_tree() or not (p as Node3D).is_visible_in_tree():
+			continue
+		var sp: Dictionary = (p as Node).get_meta("curve_solid", {})
+		if str(sp.get("kind", "")) != "edges" or not sp.has("mesh") or sp.has("faces") or (p as MeshInstance3D).mesh == null:
+			continue
+		if (sp.get("ids", []) as Array).any(func(id): return int(users.get(int(id), 0)) > 1):
+			continue   # (an edge another solid uses too: left as it is)
+		var cs := {}
+		for id in sp.get("ids", []):
+			cs[int(id)] = curve_by_id(int(id))
+		var mat := _join_material(p)
+		var mi := mats.find(mat)
+		if mi < 0:
+			mi = mats.size()
+			mats.append(mat)
+		var skinned: bool = (p as Node).has_meta("weight_src") or (p as MeshInstance3D).skin != null
+		solids.append({"group": "%s|%s" % [str(sp.get("bone_name", "")), skinned], "xf": inv * (p as Node3D).global_transform, "spec": sp,
+			"curves": cs, "mat": mi, "v": sp["mesh"]["v"], "t": sp["mesh"]["t"], "fv": sp.get("fv", []), "chains": sp.get("chains", []), "c0": sp.get("c0", {})})
+		cand.append(p)
+	if solids.size() < 2:
+		if not quiet:
+			ed._say("Auto join: no two solids made from edges to look at.")
+		return false
+	var must_i := {}
+	for p in must:
+		var i := cand.find(p)
+		if i >= 0:
+			must_i[i] = true
+	var tol := merge_dist()
+	var h := [null]
+	var id := WorkerThreadPool.add_task(func(): h[0] = _join_compute(AJ, solids, tol, must_i), false, "ECurves: auto join")
+	set_meta("join_job", [id, h, cand, solids, mats, quiet])
+	if not quiet:
+		ed._say("Auto join: looking for solids that meet...")
+	return true
+
+
+## A solid's material (what it's drawn with).
+static func _join_material(p: MeshInstance3D) -> Material:
+	if p.material_override:
+		return p.material_override
+	if p.mesh and p.mesh.get_surface_count() > 0:
+		return p.get_surface_override_material(0) if p.get_surface_override_material(0) else p.mesh.surface_get_material(0)
+	return null
+
+
+## (on a worker) The pairs of edges, the groups of solids they join, each group joined. [{members (solids by
+## number, the first kept), rels (each one's place in the first's), r (auto_join.join's result)}...].
+static func _join_compute(AJ: GDScript, solids: Array, tol: float, must_i: Dictionary) -> Array:
+	var pairs: Array = AJ.find_pairs(solids, tol)
+	if pairs.is_empty():
+		return []
+	# groups: solids linked by pairs
+	var root := range(solids.size())
+	var find := func(x: int, rt: Array) -> int:
+		while int(rt[x]) != x:
+			x = int(rt[x])
+		return x
+	for pr in pairs:
+		var a: int = find.call(int(pr[0]), root)
+		var b: int = find.call(int(pr[2]), root)
+		if a != b:
+			root[b] = a
+	var groups := {}
+	for pr in pairs:
+		var g: int = find.call(int(pr[0]), root)
+		if not groups.has(g):
+			groups[g] = {"members": [], "pairs": []}
+		for k in [int(pr[0]), int(pr[2])]:
+			if not k in groups[g]["members"]:
+				(groups[g]["members"] as Array).append(k)
+		(groups[g]["pairs"] as Array).append(pr)
+	var out := []
+	for g in groups:
+		var mem: Array = groups[g]["members"]
+		if not must_i.is_empty() and not mem.any(func(k): return must_i.has(int(k))):
+			continue
+		# (the one with the most triangles kept - the others brought into its place)
+		mem.sort_custom(func(x, y): return (solids[x]["t"] as Array).size() > (solids[y]["t"] as Array).size())
+		var a_xf: Transform3D = solids[mem[0]]["xf"]
+		var parts := []
+		var rels := {}
+		var where := {}
+		for li in mem.size():
+			var s: Dictionary = solids[mem[li]]
+			where[int(mem[li])] = li
+			var rel: Transform3D = a_xf.affine_inverse() * (s["xf"] as Transform3D)
+			rels[int(mem[li])] = rel
+			var mv: Array = s["v"]
+			var v := PackedVector3Array()
+			v.resize(mv.size() / 3)
+			for i in v.size():
+				v[i] = rel * Vector3(mv[i * 3], mv[i * 3 + 1], mv[i * 3 + 2])
+			var c0 := {}
+			var src_c0: Dictionary = s["c0"]
+			for k in src_c0:
+				var cs := from_json([src_c0[k]])
+				if not cs.is_empty():
+					c0[k] = to_json([baked(cs[0], rel) if li > 0 else cs[0]])[0]
+			parts.append({"v": v, "t": PackedInt32Array(s["t"]), "fv": s["fv"], "chains": s["chains"], "c0": c0, "mat": int(s["mat"])})
+		var jp := []
+		for pr in groups[g]["pairs"]:
+			var ca := _chain_at(solids[int(pr[0])]["chains"], int(pr[1]))
+			var cb := _chain_at(solids[int(pr[2])]["chains"], int(pr[3]))
+			var la: int = where[int(pr[0])]
+			var lb: int = where[int(pr[2])]
+			if lb < la:
+				# (the kept solid's edge kept: the pair turned round)
+				jp.append([lb, cb, la, ca])
+			else:
+				jp.append([la, ca, lb, cb])
+		jp.sort_custom(func(x, y): return int(x[2]) < int(y[2]))
+		out.append({"members": mem, "rels": rels, "r": AJ.join(parts, jp)})
+	return out
+
+
+static func _chain_at(chains: Array, id: int) -> int:
+	for ci in chains.size():
+		if int(chains[ci]["id"]) == id:
+			return ci
+	return -1
+
+
+## (each frame) An auto join worked out: put in - one undo step for all its groups.
+func _join_step() -> void:
+	var j: Array = get_meta("join_job")
+	if not WorkerThreadPool.is_task_completed(int(j[0])):
+		return
+	WorkerThreadPool.wait_for_task_completion(int(j[0]))
+	remove_meta("join_job")
+	var res = j[1][0]
+	var cand: Array = j[2]
+	var solids: Array = j[3]
+	var mats: Array = j[4]
+	var quiet: bool = j[5]
+	var groups := []
+	var failed := 0
+	for g: Dictionary in (res if res is Array else []):
+		if (g["r"] as Dictionary).has("error"):
+			failed += 1
+			continue
+		var ok := true
+		for k in g["members"]:
+			var p = cand[int(k)]
+			# (changed since it was looked at - edited, deleted: that group left out)
+			if not is_instance_valid(p) or not (p as Node).is_inside_tree() or (p as Node).get_meta("curve_solid", {}) != solids[int(k)]["spec"]:
+				ok = false
+		if ok:
+			groups.append(g)
+	if groups.is_empty():
+		if not quiet or failed > 0:
+			ed._say("Auto join: no solids meet along an edge%s." % ((" (%d group%s couldn't be welded)" % [failed, "" if failed == 1 else "s"]) if failed > 0 else ""))
+		return
+	var before := _state()
+	var rows_before := []
+	var rows_after := []
+	var outs := []
+	var n_parts := 0
+	var n_shared := 0
+	for g: Dictionary in groups:
+		var mem: Array = g["members"]
+		var r: Dictionary = g["r"]
+		var a: MeshInstance3D = cand[int(mem[0])]
+		var keep_ids := {}
+		for id in r["ids"]:
+			keep_ids[int(id)] = true
+		# the others' edges brought into the kept one's place (it carries them now); the dropped ones gone
+		var dropped := {}
+		for li in range(1, mem.size()):
+			var rel: Transform3D = g["rels"][int(mem[li])]
+			for id in (solids[int(mem[li])]["spec"] as Dictionary).get("ids", []):
+				var ci := _curve_index(int(id))
+				if ci < 0:
+					continue
+				if keep_ids.has(int(id)):
+					curves[ci] = baked(curves[ci], rel)
+				else:
+					dropped[int(id)] = true
+		for id in (solids[int(mem[0])]["spec"] as Dictionary).get("ids", []):
+			if not keep_ids.has(int(id)):
+				dropped[int(id)] = true
+		curves = curves.filter(func(c): return not dropped.has(int(c.get("id", -1))))
+		n_shared += dropped.size()
+		# the materials: the kept one's first
+		var local := []
+		var gl := []
+		for k in mem:
+			var gi: int = solids[int(k)]["mat"]
+			if not gi in gl:
+				gl.append(gi)
+				local.append(mats[gi])
+		var flat := []
+		for q in (r["v"] as PackedVector3Array):
+			flat.append_array([q.x, q.y, q.z])
+		var a_spec: Dictionary = solids[int(mem[0])]["spec"]
+		var spec := {"kind": "edges", "ids": r["ids"], "net": int(Time.get_ticks_usec() % 2000000000) + n_parts, "chains": r["chains"], "c0": r["c0"],
+			"mesh": {"v": flat, "t": Array(r["t"])}, "fv": r["fv"], "tied": true, "qcaps": true, "sealed": false, "paired": false,
+			"dense": (mem.map(func(k): return int((solids[int(k)]["spec"] as Dictionary).get("dense", 0))) as Array).max(), "joined": mem.size()}
+		for key in ["converted", "up", "bone", "bone_name"]:
+			if a_spec.has(key):
+				spec[key] = a_spec[key]
+		if local.size() > 1:
+			spec["mats"] = {"anchors": (r["anchors"] as Array).map(func(an): return [an[0], gl.find(int(an[1]))]),
+				"seams": r["seams"]}
+		var metas_before := {}
+		var metas_after := {}
+		for key in ["ecurve_mats", "mats_mesh", "weight_src", "ecurve_skin", "weighted"]:
+			metas_before[key] = a.get_meta(key) if a.has_meta(key) else null
+			metas_after[key] = null
+		metas_after["ecurve_mats"] = local if local.size() > 1 else null
+		var wm := _joined_weights(a, mem.map(func(k): return cand[int(k)]), mem.map(func(k): return g["rels"][int(k)]))
+		for key in ["weight_src", "ecurve_skin"]:
+			metas_after[key] = wm.get(key, metas_before[key])
+		rows_before.append([a, a_spec, metas_before, a.mesh])
+		rows_after.append([a, spec, metas_after, null])
+		for li in range(1, mem.size()):
+			var q: MeshInstance3D = cand[int(mem[li])]
+			outs.append([q, q.get_parent(), q.get_index()])
+		n_parts += mem.size()
+	sel = []
+	_join_set(rows_after, [], outs, true)
+	var after := _state()
+	_join_set(rows_after, after, outs, true)
+	ed._push("Auto join", _join_set.bind(rows_before, before, outs, false), _join_set.bind(rows_after, after, outs, true))
+	ed._say("Auto join: %d solids made %d - %d shared edge%s welded%s." % [n_parts, groups.size(), n_shared, "" if n_shared == 1 else "s",
+		(" (%d group%s couldn't be welded)" % [failed, "" if failed == 1 else "s"]) if failed > 0 else ""])
+
+
+## Rows of [solid, recipe, metas ({name: value or null - none}), mesh or null] put in; `outs` taken out of the
+## model (`gone`) or put back; then the edges as in state `st` (when it's given).
+func _join_set(rows: Array, st: Array, outs: Array, gone: bool) -> void:
+	for e in outs:
+		var q: Node = e[0]
+		if not is_instance_valid(q):
+			continue
+		if gone and q.get_parent():
+			q.get_parent().remove_child(q)
+		elif not gone and q.get_parent() == null and is_instance_valid(e[1]):
+			(e[1] as Node).add_child(q)
+			(e[1] as Node).move_child(q, mini(int(e[2]), (e[1] as Node).get_child_count() - 1))
+	if gone:
+		ed.sel_parts = (ed.sel_parts as Array).filter(func(q): return is_instance_valid(q) and q.is_inside_tree())
+		if ed.part != null and (not is_instance_valid(ed.part) or not (ed.part as Node).is_inside_tree()):
+			ed.select_part(null)
+	for row in rows:
+		var p: MeshInstance3D = row[0]
+		if not is_instance_valid(p):
+			continue
+		p.set_meta("curve_solid", row[1])
+		p.remove_meta("curve_solid_key")
+		for key in (row[2] as Dictionary):
+			if row[2][key] == null:
+				p.remove_meta(key)
+			else:
+				p.set_meta(key, row[2][key])
+		if row[3] != null:
+			p.mesh = row[3]
+	remove_meta("mat_parts_at")   # (the solids with materials of their own: looked for again)
+	if not st.is_empty():
+		_set_state(st)
+	else:
+		refresh_solids()
+	ed._fill_parts()
+	var t = _w("tree")
+	if t:
+		(t as Node).set_meta("sig", 0)
+	_refresh_panel()
+
+
+## The joined solid's bone weights: the solids' old meshes (where their weights come from) as one, in the
+## kept one's place, their bones numbered as the kept one's skin numbers them (a bone it hasn't, added).
+## {weight_src, ecurve_skin} - or {} (no weights).
+func _joined_weights(a: MeshInstance3D, members: Array, rels: Array) -> Dictionary:
+	var skin_of := func(q: MeshInstance3D) -> Skin:
+		if q.has_meta("ecurve_skin"):
+			return q.get_meta("ecurve_skin")
+		if q.has_meta("src_skin"):
+			return q.get_meta("src_skin")
+		return q.skin
+	if not members.any(func(q): return (q as Node).has_meta("weight_src")):
+		return {}
+	var base: Skin = skin_of.call(a)
+	var skin: Skin = base.duplicate() if base else Skin.new()
+	var bind_key := func(s: Skin, i: int) -> String:
+		var nm := str(s.get_bind_name(i))
+		return nm if nm != "" else "#%d" % s.get_bind_bone(i)
+	var index := {}
+	for i in skin.get_bind_count():
+		index[bind_key.call(skin, i)] = i
+	var out := ArrayMesh.new()
+	for mi in members.size():
+		var q: MeshInstance3D = members[mi]
+		if not q.has_meta("weight_src"):
+			continue
+		var src: Mesh = q.get_meta("weight_src")
+		var qs: Skin = skin_of.call(q)
+		var remap := PackedInt32Array()
+		if qs:
+			for i in qs.get_bind_count():
+				var k: String = bind_key.call(qs, i)
+				if not index.has(k):
+					index[k] = skin.get_bind_count()
+					if str(qs.get_bind_name(i)) != "":
+						skin.add_named_bind(qs.get_bind_name(i), qs.get_bind_pose(i))
+					else:
+						skin.add_bind(qs.get_bind_bone(i), qs.get_bind_pose(i))
+				remap.append(int(index[k]))
+		var rel: Transform3D = rels[mi]
+		for si in src.get_surface_count():
+			if src.surface_get_primitive_type(si) != Mesh.PRIMITIVE_TRIANGLES:
+				continue
+			var arr := src.surface_get_arrays(si)
+			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			for i in v.size():
+				v[i] = rel * v[i]
+			arr[Mesh.ARRAY_VERTEX] = v
+			if arr[Mesh.ARRAY_NORMAL] != null:
+				var n: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+				for i in n.size():
+					n[i] = (rel.basis * n[i]).normalized()
+				arr[Mesh.ARRAY_NORMAL] = n
+			arr[Mesh.ARRAY_TANGENT] = null
+			var flags := 0
+			if arr[Mesh.ARRAY_BONES] != null and not remap.is_empty():
+				var b: PackedInt32Array = arr[Mesh.ARRAY_BONES]
+				for i in b.size():
+					b[i] = remap[b[i]] if b[i] >= 0 and b[i] < remap.size() else b[i]
+				arr[Mesh.ARRAY_BONES] = b
+				if b.size() == v.size() * 8:
+					flags = Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS
+			out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, flags)
+	return {"weight_src": out, "ecurve_skin": skin}
+
+
+## (each frame) Joined solids with more than one material: each time its mesh is made (one surface, as every
+## solid made from edges is), split into a surface a material - every triangle the material of the solid it
+## came from (found from its anchors, so edits and settles keep it).
+func _mats_step() -> void:
+	if not has_meta("mat_parts_at") or Time.get_ticks_msec() >= int(get_meta("mat_parts_at")):
+		set_meta("mat_parts_at", Time.get_ticks_msec() + 500)   # (looked for twice a second - a model opened, an undo)
+		var lst := []
+		if ed.model:
+			for p: MeshInstance3D in ed.parts():
+				if (p.get_meta("curve_solid", {}) as Dictionary).has("mats"):
+					lst.append(p)
+		set_meta("mat_parts", lst)
+	for p in get_meta("mat_parts", []):
+		if is_instance_valid(p) and (p as Node).is_inside_tree():
+			_mats_apply(p)
+
+
+func _mats_apply(p: MeshInstance3D) -> void:
+	var sp: Dictionary = p.get_meta("curve_solid", {})
+	var md = sp.get("mats")
+	var m := p.mesh as ArrayMesh
+	if not (md is Dictionary) or m == null or (p.has_meta("mats_mesh") and p.get_meta("mats_mesh") == m):
+		return
+	var n := 0
+	for an in md.get("anchors", []):
+		n = maxi(n, int(an[1]) + 1)
+	var mats: Array = p.get_meta("ecurve_mats") if p.has_meta("ecurve_mats") else []
+	if mats.size() != n:
+		# (opened from a file: saved a surface a material, in order - its materials from there)
+		if m.get_surface_count() == n:
+			mats = []
+			for si in n:
+				mats.append(m.surface_get_material(si))
+			p.set_meta("ecurve_mats", mats)
+		p.set_meta("mats_mesh", m)
+		return
+	if m.get_surface_count() != 1:
+		p.set_meta("mats_mesh", m)
+		return
+	var AJ: GDScript = load("res://scripts/editor/mesh/auto_join.gd")
+	var t: Array = sp["mesh"]["t"]
+	var key := [int(sp.get("net", 0)), t.size(), hash(t)]
+	var lab: PackedInt32Array
+	var cached = p.get_meta("mats_lab") if p.has_meta("mats_lab") else null
+	if cached is Array and (cached as Array)[0] == key:
+		lab = cached[1]
+	else:
+		var mv: Array = sp["mesh"]["v"]
+		var v := PackedVector3Array()
+		v.resize(mv.size() / 3)
+		for i in v.size():
+			v[i] = Vector3(mv[i * 3], mv[i * 3 + 1], mv[i * 3 + 2])
+		var seam := {}
+		var chains: Array = sp.get("chains", [])
+		for ci in chains.size():
+			if int(chains[ci]["id"]) in (md.get("seams", []) as Array).map(func(x): return int(x)):
+				seam[ci] = true
+		lab = AJ.tri_materials(v, PackedInt32Array(t), sp.get("fv", []), seam, md.get("anchors", []))
+		p.set_meta("mats_lab", [key, lab])
+	var nt := 0
+	var idx = m.surface_get_arrays(0)[Mesh.ARRAY_INDEX]
+	nt = (idx as PackedInt32Array).size() / 3 if idx != null else 0
+	if nt != lab.size():
+		return   # (drawn from other triangles than its recipe's - a moment mid-edit: split once they agree)
+	var out: ArrayMesh = AJ.split_by(m, lab, mats)
+	p.mesh = out
+	p.set_meta("mats_mesh", out)
+
+
+# --- merge by distance ---------------------------------------------------------------------------------
+
+## Merge by distance: the vertices within the merge distance of each other made one - next to each other
+## on one edge: the later one dissolved (its edge keeps its shape through the other); on different edges:
+## moved together to their middle, so the edges meet there (the solids made from them follow). The picked
+## vertices (two or more), else the picked edges', else the picked solid's, else every edge's. One undo
+## step. How many vertices were merged away or welded.
+func merge_by_distance() -> int:
+	var md := maxf(merge_dist(), 1e-6)
+	var scope := {}   # curve index -> {j: true} (or true: all its points)
+	var pp := picked_points()
+	if pp.size() >= 2:
+		for e in pp:
+			if not scope.has(int(e[0])):
+				scope[int(e[0])] = {}
+			scope[int(e[0])][int(e[1])] = true
+	elif not sel.is_empty():
+		for ci in sel:
+			scope[int(ci)] = true
+	elif picked_solid() != null:
+		for id in spec_ids(picked_solid().get_meta("curve_solid", {})):
+			var ci := _curve_index(int(id))
+			if ci >= 0:
+				scope[ci] = true
+	else:
+		for ci in curves.size():
+			scope[ci] = true
+	var own := owner_xfs()
+	var pts := []   # [curve, point, position in the model]
+	for ci in scope:
+		var c: Dictionary = curves[ci]
+		if not str(c.get("kind", "")) in ["line", "spline", "path"]:
+			continue   # (a circle's, an arc's points aren't its vertices along it)
+		var x := cx(c, own)
+		var k: PackedVector3Array = c["ctrl"]
+		for j in k.size():
+			if scope[ci] is Dictionary and not (scope[ci] as Dictionary).has(j):
+				continue
+			pts.append([ci, j, x * k[j]])
+	if pts.size() < 2:
+		ed._say("Merge by distance: no vertices to merge.")
+		return 0
+	# groups of points within the distance of each other (a grid of cells the distance across)
+	var root := range(pts.size())
+	var find := func(i: int) -> int:
+		while int(root[i]) != i:
+			root[i] = root[int(root[i])]
+			i = int(root[i])
+		return i
+	var grid := {}
+	for i in pts.size():
+		var cell := Vector3i(((pts[i][2] as Vector3) / md).floor())
+		for dx in range(-1, 2):
+			for dy in range(-1, 2):
+				for dz in range(-1, 2):
+					for o in grid.get(cell + Vector3i(dx, dy, dz), []):
+						if (pts[o][2] as Vector3).distance_to(pts[i][2]) <= md:
+							var a: int = find.call(i)
+							var b: int = find.call(o)
+							if a != b:
+								root[b] = a
+		if not grid.has(cell):
+			grid[cell] = []
+		(grid[cell] as Array).append(i)
+	var groups := {}
+	for i in pts.size():
+		var g: int = find.call(i)
+		if not groups.has(g):
+			groups[g] = []
+		(groups[g] as Array).append(i)
+	var before := _state()
+	var merged := 0
+	var drop := {}   # curve -> [points to dissolve]
+	for g in groups:
+		var mem: Array = groups[g]
+		if mem.size() < 2:
+			continue
+		# (on one edge, next to each other: the later ones dissolved - each edge keeps one point here)
+		var kept := []
+		var by_curve := {}
+		for i in mem:
+			var ci: int = pts[i][0]
+			if not by_curve.has(ci):
+				by_curve[ci] = []
+			(by_curve[ci] as Array).append(int(pts[i][1]))
+		for ci in by_curve:
+			var js: Array = by_curve[ci]
+			js.sort()
+			var c: Dictionary = curves[ci]
+			var n: int = (c["ctrl"] as PackedVector3Array).size()
+			var closed := bool(c.get("closed", false))
+			var keep: int = js[0]
+			if closed and js.size() > 1 and js.has(0) and js.has(n - 1) and not js.has(1):
+				keep = n - 1   # (round a closed edge's start: its last point next to its first)
+			for j in js:
+				if j == keep:
+					continue
+				var nb: bool = absi(j - keep) == 1 or (closed and absi(j - keep) == n - 1) or js.has(j - 1) or js.has(j + 1)
+				var ends_baked: bool = not closed and (j == 0 or j == n - 1) and _any_baked([ci])
+				if nb and not ends_baked:
+					if not drop.has(ci):
+						drop[ci] = []
+					(drop[ci] as Array).append(j)
+				else:
+					kept.append([ci, j])
+			kept.append([ci, keep])
+		if kept.size() < 2:
+			continue
+		# (on different edges: together at their middle)
+		var mid := Vector3.ZERO
+		for e in kept:
+			mid += cx(curves[e[0]], own) * (curves[e[0]]["ctrl"][e[1]] as Vector3)
+		mid /= kept.size()
+		var apart := false
+		for e in kept:
+			if (cx(curves[e[0]], own) * (curves[e[0]]["ctrl"][e[1]] as Vector3)).distance_to(mid) > 1e-9:
+				apart = true
+		if not apart:
+			continue   # (in one place already: welded before)
+		for e in kept:
+			var x := cx(curves[e[0]], own)
+			var k: PackedVector3Array = curves[e[0]]["ctrl"]
+			var was := k[e[1]]
+			k[e[1]] = x.affine_inverse() * mid
+			curves[e[0]]["ctrl"] = k
+			_move_corner(int(e[0]), was, k[e[1]])
+			merged += 1
+		merged -= 1
+	for ci in drop:
+		var js: Array = drop[ci]
+		js.sort()
+		js.reverse()
+		var c: Dictionary = (curves[ci] as Dictionary).duplicate(true)
+		var closed := bool(c.get("closed", false))
+		for j in js:
+			var k: PackedVector3Array = c["ctrl"]
+			if k.size() <= (3 if closed else 2):
+				break
+			k.remove_at(j)
+			c["ctrl"] = k
+			for key_ in ["sharp", "radii", "tin", "tout"]:
+				if c.has(key_) and j < (c[key_] as Variant).size():
+					var arr = c[key_]
+					arr.remove_at(j)
+					c[key_] = arr
+			merged += 1
+		curves[ci] = c
+	if merged == 0:
+		ed._say("Merge by distance: no vertices within %s m of each other." % String.num(md, 4))
+		return 0
+	set_meta("points", [])
+	_changed("Merge by distance", before)
+	ed._say("Merge by distance: %d vertex%s merged (within %s m)." % [merged, "" if merged == 1 else "es", String.num(md, 4)])
+	return merged
+
+
+## The menu's Merge by distance.
+func merge_dist_item() -> Array:
+	return ["m_cv_pt_merge", "Merge by distance", "Alt+M", "Vertices within the merge distance (the Mirror box's Merge) of each other made one: next to\neach other on one edge - one dissolved; on different edges - moved together to their middle,\nso the edges meet there. The picked vertices, else the picked edges' or solid's, else all.", func(): merge_by_distance(), not curves.is_empty()]

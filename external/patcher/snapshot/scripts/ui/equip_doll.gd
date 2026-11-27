@@ -43,7 +43,7 @@ func add_group(key: String, title: String, at: Vector2, anchor: Vector2, vertica
 	box.columns = (ceili(slots.size() / float(MAX_RUN)) if vertical else mini(slots.size(), MAX_RUN)) if not slots.is_empty() else 1
 	box.add_theme_constant_override("h_separation", 3)
 	box.add_theme_constant_override("v_separation", 3)
-	var cap := UI.label(title, 12, NeonTheme.HEAD)
+	var cap := UI.label(title, 14, NeonTheme.HEAD)
 	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var holder := VBoxContainer.new()
 	holder.add_theme_constant_override("separation", 1)

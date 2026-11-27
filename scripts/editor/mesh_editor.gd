@@ -124,6 +124,13 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	for e in (get_meta("tip_models", {}) as Dictionary).values():
+		if int(e[0]) >= 0:
+			WorkerThreadPool.wait_for_task_completion(int(e[0]))   # (a model read for a tooltip: never left running)
+			e[1] = (e[2] as Array)[0]
+		if e[1] is Node and is_instance_valid(e[1]) and not (e[1] as Node).is_inside_tree():
+			(e[1] as Node).free()
+	remove_meta("tip_models")
 	for t in [_task, _scan_task, _tpose_task, _tm_task]:
 		if t >= 0:
 			WorkerThreadPool.wait_for_task_completion(t)
@@ -205,6 +212,7 @@ func _build() -> void:
 	header.add_child(_btn("Import from disk", "open", "Ctrl+O", "Opens a .glb, .gltf or .obj file from anywhere on this computer (save it into the game or your mod with Save as).", _import))
 	_save_btn = _btn("Save", "save", "Ctrl+S", "Saves the model as glb where it was opened from (into your mod, in the Mod Editor).\nMirror modifiers are applied into the saved meshes; skeleton, skin and animations are kept.", func(): save())
 	header.add_child(_save_btn)
+	header.add_child(_btn("Save as", "export", "Ctrl+Shift+S", "Saves the model under another res:// path (as glb).", save_as))
 	_revert_btn = _btn("Revert to original", "m_revert", "", "Deletes your saved changes to this model (its override) and opens the original again.\nSaving never writes over the original: it's kept, and the game uses your version until you revert.", func(): revert_to_original())
 	header.add_child(_revert_btn)
 	_variant_opt = OptionButton.new()
@@ -221,7 +229,6 @@ func _build() -> void:
 		_btn("Erase variant", "delete", "", "Deletes the open variant (asks first). If it was the latest, the one before it becomes active; none left - the original.", func(): erase_variant())]
 	for b in _variant_btns:
 		header.add_child(b)
-	header.add_child(_btn("Save as", "export", "Ctrl+Shift+S", "Saves the model under another res:// path (as glb).", save_as))
 	header.add_child(_btn("Undo", "undo", "Ctrl+Z", "Takes back the last edit (in edit mode: the last edit of the solid's mesh).", undo))
 	header.add_child(_btn("Redo", "redo", "Ctrl+Y", "Does again what Undo took back.", redo))
 	header.add_child(EditorIcons.docs_button(self, "mesh"))
@@ -408,7 +415,7 @@ func _build_left() -> Control:
 	lower.add_theme_constant_override("separation", 3)
 	split.add_child(lower)
 	var mh := HBoxContainer.new()
-	for t in [["models", "mesh", "Models", "The game's models and yours: open one to edit it."],
+	for t in [["models", "mesh", "Models", "The game's models (the characters, art/*_3d/, first) and every .glb, .gltf, .obj and mesh resource\nin the game (and your mod) - and yours. Double-click one to open it; hover one: its picture, big."],
 			["shapes", "m_shapes", "Primitives", "The primitive solids of ECurve objects - box, cylinder, prism, cone, sphere, torus: double-click\none to add it, or drag it into the view. Each is made of its edges: reshape them and it follows."],
 			["materials", "m_materials", "Material library", "Every material: the open model's, the characters', the game's looks and your own, as balls.\nClick one to edit it (the MATERIAL panel), double-click it to give it to the selected surface\nor faces, or drag it onto a surface in the view.", "Materials"]]:
 		var tb := UI.button("", func(): pass, 14)
@@ -449,7 +456,8 @@ func _build_left() -> Control:
 	_files.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_files.focus_mode = Control.FOCUS_NONE
 	_files.add_theme_font_size_override("font_size", 14)
-	_files.tooltip_text = EditorIcons.tip("Models", "double-click", "The game's models (the characters, art/*_3d/, first) and every .glb, .gltf, .obj and mesh resource\nin the game (and your mod). Double-click one to open it.")
+	_files.tooltip_text = ""   # (the list's own tooltip: on its tab - over the list, each model's own)
+	_files.set_meta("tip_on_tab", "models")
 	_files.item_activated.connect(func(i): open(str(_files.get_item_metadata(i))))
 	_files.item_selected.connect(func(i): fill_variant_browser(str(_files.get_item_metadata(i))))
 	_files.set_drag_forwarding(_drag_model, Callable(), Callable())   # (an ECurve object dragged into the view: added there)
@@ -934,7 +942,7 @@ func _build_right() -> Control:
 	# space), live as it's moved; typed, the selection moves there.
 	var sr := HBoxContainer.new()
 	sr.add_theme_constant_override("separation", 2)
-	_sel_count = UI.label("", 13, UI.TEXT_DIM)
+	_sel_count = UI.label("", 14, UI.TEXT_DIM)
 	_sel_count.custom_minimum_size.x = 30
 	_sel_count.tooltip_text = EditorIcons.tip("Selection", "", "How many points are selected; the numbers beside: where they are - one point's own place,\nor the middle of several - in the solid's own space (metres).")
 	_sel_count.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -2419,6 +2427,29 @@ func _xf_update() -> void:
 func _process(_dt: float) -> void:
 	if not has_meta("wire_btn_ok"):
 		_ensure_wire_button()
+	if not has_meta("tip_views3_ok") and _files != null:
+		set_meta("tip_views3_ok", true)
+		_tip_pics()
+	if not has_meta("save_as_ok") and _header != null and _save_btn != null and _save_btn.get_parent() == _header:
+		# (an editor opened before: its Save as moved next to Save)
+		set_meta("save_as_ok", true)
+		for b in _header.get_children():
+			if b is Button and (b as Button).icon == EditorIcons.get_icon("export"):
+				_header.move_child(b, _save_btn.get_index() + 1)
+	if not has_meta("main_btns_ok") and _header != null:
+		# (an editor opened before they left the right-click menu: their header buttons shown again)
+		set_meta("main_btns_ok", true)
+		hide_menu_twins()
+		for b in _header.find_children("*", "Button", true, false):
+			if (b as Button).icon in [EditorIcons.get_icon("undo"), EditorIcons.get_icon("redo"), EditorIcons.get_icon("save")]:
+				(b as Button).visible = true
+	if has_meta("drop_marker") or has_meta("drop_reads"):
+		var mk = (get_meta("drop_marker") if has_meta("drop_marker") else null)
+		var over: bool = view != null and view.get_global_rect().has_point(view.get_global_mouse_position())
+		if not get_viewport().gui_is_dragging():
+			_drop_marker_end()
+		elif not over and mk != null and is_instance_valid(mk):
+			(mk as Node3D).visible = false   # (dragged out of the view)
 	if has_meta("drop_job"):
 		_drop_step()
 	if has_meta("store_gather"):
@@ -3587,7 +3618,7 @@ func menu(at: Vector2) -> PopupPanel:
 		page_groups = groups.slice(0, groups.size() - 1)
 		for g in ct.menu_groups(at):
 			for it in g:
-				if str(it[1]) == "Bake solid":
+				if str(it[1]) in ["Bake solid", "Auto join", "Merge by distance"]:
 					page_groups.append([it])
 	page_groups.append(general)
 	var page := VBoxContainer.new()
@@ -3825,10 +3856,8 @@ func mesh_menu_groups(as_mode: String) -> Array:
 		["m_side", "Side view", "Numpad 3", "From the right side.", func(): view.set_view("side"), true],
 		["m_top", "Top view", "Numpad 7", "From above.", func(): view.set_view("top"), true],
 		["m_ortho", "Perspective / orthographic", "Numpad 5", "Flat or in perspective.", func(): view.ortho = not view.ortho; view.update_camera(), true],
-		["undo", "Undo", "Ctrl+Z", "Takes back the last edit.", undo, true],
-		["redo", "Redo", "Ctrl+Y", "Does it again.", redo, true],
-		["save", "Save", "Ctrl+S", "Saves the model.", func(): save(), EditTarget.writable()],
 	])
+	# (undo, redo, save, open and the wireframe: on the toolbars, not in this menu)
 	return groups
 
 
@@ -4892,17 +4921,26 @@ func _thumb_made(path: String, tex: Texture2D) -> void:
 
 
 func _fill_files() -> void:
+	if _thumbs != null and not _thumbs.has_meta("size"):
+		# (made before its pictures were sharp on a big screen: made again)
+		_thumbs.queue_free()
+		_thumbs.name = "ThumbsOld"
+		_thumbs = null
 	if _thumbs == null:
 		_thumbs = preload("res://scripts/editor/mesh/mesh_thumbs.gd").new()
+		_thumbs.set_meta("size", 160)   # (shown 72 px - on a 4K screen 144 of its pixels: never stretched)
 		_thumbs.name = "Thumbs"
 		add_child(_thumbs)
 		_thumbs.made.connect(_thumb_made)
-		TurntableHover.attach(_files, func(meta): return _thumbs.frames(str(meta), EditTarget.read_path(str(meta))))
+		if _files.get_node_or_null("TurntableHover") == null:
+			TurntableHover.attach(_files, func(meta): return _thumbs.frames(str(meta), EditTarget.read_path(str(meta))) if _thumbs else [])
 	_thumbs.clear_queue()
 	_files.clear()
 	var words := _filter.text.to_lower().split(" ", false)
+	_model_cats_bar()
+	var cat := str(get_meta("model_cat", "all"))
 	for p in _all_files:
-		var ok := true
+		var ok := cat == "all" or model_category(p) == cat
 		for w in words:
 			if not p.to_lower().contains(w):
 				ok = false
@@ -4919,7 +4957,7 @@ func _fill_files() -> void:
 			_files.set_item_custom_fg_color(i, Color(1.0, 0.85, 0.55))
 		if EditTarget.overridden(p) or (not EditTarget.is_mod() and ModelOverride.has(p)):
 			_files.set_item_custom_fg_color(i, Color(0.55, 1.0, 0.6))   # (edited: an override of it is used)
-		_files.set_item_tooltip(i, p + ("\n(a character made by the Blender pipeline)" if MeshIO.is_character(p) else "") + ("\n(your mod has its own copy)" if EditTarget.overridden(p) else ""))
+		_files.set_item_tooltip(i, EditorIcons.tip(p.get_file().get_basename().capitalize(), "double-click", p + ("\nA character made by the Blender pipeline." if MeshIO.is_character(p) else "") + ("\nYour mod has its own copy." if EditTarget.overridden(p) else "") + ("\nEdited: your version is the one the game uses." if not EditTarget.is_mod() and ModelOverride.has(p) else "")))
 
 
 ## Saves the model as glb at its path (Save as, if it has none), then `then`.
@@ -5300,8 +5338,174 @@ func add_shape_now(id: String, at := Vector3.INF) -> MeshInstance3D:
 	return shape_tools.add_shape_now(id, at)
 
 
-func _can_drop_shape(_at: Vector2, data: Variant) -> bool:
-	return data is Dictionary and (data.has("mesh_shape") or data.has("ecurve_prim") or data.has("ecurve_model")) or mat_tools.can_drop(data)
+func _can_drop_shape(at: Vector2, data: Variant) -> bool:
+	var ok: bool = data is Dictionary and (data.has("mesh_shape") or data.has("ecurve_prim") or data.has("ecurve_model"))
+	if ok:
+		_drop_marker(at, data)   # (where it will land, shown while it's dragged)
+	return ok or mat_tools.can_drop(data)
+
+
+# --- the drop marker: where a dragged shape or object will land ---------------------------
+
+const DROP_COL := Color(0.35, 0.9, 1.0)
+
+
+## A shape, primitive or ECurve object dragged over the view: a ring on the surface under the pointer
+## (lying on it), a stem up from it to the point and, for an ECurve object, its bounds as they'll stand
+## there (the object read on a worker the first time - the drop then uses that read, no wait).
+func _drop_marker(at: Vector2, data: Dictionary) -> void:
+	if view == null or view.world == null:
+		return
+	var mk = (get_meta("drop_marker") if has_meta("drop_marker") else null)
+	if mk == null or not is_instance_valid(mk):
+		mk = _make_drop_marker()
+		set_meta("drop_marker", mk)
+	var hit: Array = shape_tools.drop_hit(at)
+	var p: Vector3 = hit[0]
+	var n: Vector3 = hit[1]
+	var ring := mk.get_node("Ring") as MeshInstance3D
+	var x := n.cross(Vector3.FORWARD if absf(n.dot(Vector3.FORWARD)) < 0.9 else Vector3.RIGHT).normalized()
+	var s := maxf(view.dist * 0.03, 0.002)   # (the same size on screen at any zoom)
+	ring.global_transform = Transform3D(Basis(x, n, x.cross(n)).scaled(Vector3.ONE * s), p)
+	var bx := mk.get_node("Bounds") as MeshInstance3D
+	bx.visible = false
+	if data.has("ecurve_model"):
+		var b = _drop_bounds(str(data["ecurve_model"]))
+		if b is AABB:
+			bx.mesh = _box_lines(b)
+			bx.global_transform = Transform3D(Basis(), p)
+			bx.visible = true
+	(mk as Node3D).visible = true
+
+
+func _make_drop_marker() -> Node3D:
+	var mk := Node3D.new()
+	mk.name = "DropMarker"
+	var line := StandardMaterial3D.new()
+	line.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	line.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	line.no_depth_test = true
+	line.cull_mode = BaseMaterial3D.CULL_DISABLED
+	line.render_priority = 10
+	line.albedo_color = DROP_COL
+	var fill := line.duplicate() as StandardMaterial3D
+	fill.albedo_color = Color(DROP_COL, 0.22)
+	# the ring: a circle, a filled disc, four ticks out from it and a stem along the normal (radius 1)
+	var am := ArrayMesh.new()
+	var lv := PackedVector3Array()
+	var dv := PackedVector3Array()
+	var k := 48
+	for i in k:
+		var a0 := TAU * i / k
+		var a1 := TAU * (i + 1) / k
+		var p0 := Vector3(cos(a0), 0, sin(a0))
+		var p1 := Vector3(cos(a1), 0, sin(a1))
+		lv.append_array([p0, p1])
+		dv.append_array([Vector3.ZERO, p1, p0])
+	for dd in [Vector3.RIGHT, Vector3.LEFT, Vector3.FORWARD, Vector3.BACK]:
+		lv.append_array([dd * 0.55, dd * 1.45])
+	lv.append_array([Vector3.ZERO, Vector3.UP * 2.0])
+	var la := []
+	la.resize(Mesh.ARRAY_MAX)
+	la[Mesh.ARRAY_VERTEX] = lv
+	am.add_surface_from_arrays(Mesh.PRIMITIVE_LINES, la)
+	am.surface_set_material(0, line)
+	var da := []
+	da.resize(Mesh.ARRAY_MAX)
+	da[Mesh.ARRAY_VERTEX] = dv
+	am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, da)
+	am.surface_set_material(1, fill)
+	var ring := MeshInstance3D.new()
+	ring.name = "Ring"
+	ring.mesh = am
+	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mk.add_child(ring)
+	var bx := MeshInstance3D.new()
+	bx.name = "Bounds"
+	bx.material_override = line
+	bx.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mk.add_child(bx)
+	view.world.add_child(mk)
+	return mk
+
+
+## An AABB's twelve edges as lines.
+static func _box_lines(b: AABB) -> ArrayMesh:
+	var v := PackedVector3Array()
+	for e in [[0, 1], [1, 3], [3, 2], [2, 0], [4, 5], [5, 7], [7, 6], [6, 4], [0, 4], [1, 5], [2, 6], [3, 7]]:
+		v.append_array([b.get_endpoint(e[0]), b.get_endpoint(e[1])])
+	var a := []
+	a.resize(Mesh.ARRAY_MAX)
+	a[Mesh.ARRAY_VERTEX] = v
+	var m := ArrayMesh.new()
+	m.add_surface_from_arrays(Mesh.PRIMITIVE_LINES, a)
+	return m
+
+
+## A dragged ECurve object's bounds (in its own space - where it's set down, its origin): read on a worker
+## the first time (null until then). The read object is kept for the drop.
+func _drop_bounds(res_path: String) -> Variant:
+	var c: Dictionary = get_meta("drop_reads", {})
+	if not c.has(res_path):
+		var file := _model_source(res_path, _variant_to_open(res_path, -1))
+		var h := [null, null]
+		var id := WorkerThreadPool.add_task(func():
+			var src: Node3D = MeshIO.read(file)
+			var bb = null
+			if src != null:
+				for m in src.find_children("*", "MeshInstance3D", true, false):
+					if (m as MeshInstance3D).mesh == null:
+						continue
+					var ab: AABB = _rel_xf(src, m) * (m as MeshInstance3D).mesh.get_aabb()
+					bb = ab if bb == null else (bb as AABB).merge(ab)
+			h[0] = src
+			h[1] = bb, false, "ECurves: read a dragged object")
+		c[res_path] = [id, h]
+		set_meta("drop_reads", c)
+		return null
+	if not _read_done(c[res_path]):
+		return null
+	return c[res_path][1][1]
+
+
+## A drop read's task finished (waited for once, its id then -1).
+static func _read_done(e: Array) -> bool:
+	if int(e[0]) < 0:
+		return true
+	if not WorkerThreadPool.is_task_completed(int(e[0])):
+		return false
+	WorkerThreadPool.wait_for_task_completion(int(e[0]))
+	e[0] = -1
+	return true
+
+
+## The drag over: the marker hidden, the objects read for it and not dropped let go.
+func _drop_marker_end() -> void:
+	var mk = (get_meta("drop_marker") if has_meta("drop_marker") else null)
+	if mk != null and is_instance_valid(mk):
+		(mk as Node3D).visible = false
+	var c: Dictionary = get_meta("drop_reads", {})
+	for k in c.keys():
+		var e: Array = c[k]
+		if not _read_done(e):
+			continue   # (still reading: let go once it's done - never waited for here)
+		if e[1][0] != null and is_instance_valid(e[1][0]):
+			(e[1][0] as Node).free()
+		c.erase(k)
+	if c.is_empty():
+		remove_meta("drop_reads")
+
+
+## The object read for the marker while it was dragged, taken for the drop (null: not read yet).
+func _take_drop_read(res_path: String) -> Node3D:
+	var c: Dictionary = get_meta("drop_reads", {})
+	if not c.has(res_path):
+		return null
+	var e: Array = c[res_path]
+	if not _read_done(e):
+		return null
+	c.erase(res_path)
+	return e[1][0]
 
 
 ## A shape dropped in the view: added there; a material: given to the surface under it.
@@ -5313,7 +5517,12 @@ func _drop_shape(at: Vector2, data: Variant) -> void:
 		curve_tools.add_curve_primitive(str(data["ecurve_prim"]), shape_tools.drop_point(at))
 		return
 	if (data as Dictionary).has("ecurve_model"):
-		add_model_into(str(data["ecurve_model"]), shape_tools.drop_point(at))
+		var pre := _take_drop_read(str(data["ecurve_model"]))
+		if pre != null:
+			_add_read_model(pre, str(data["ecurve_model"]), shape_tools.drop_point(at))   # (read while it was dragged)
+		else:
+			add_model_into(str(data["ecurve_model"]), shape_tools.drop_point(at))
+		_drop_marker_end()
 		return
 	shape_tools.add_shape(str(data["mesh_shape"]), shape_tools.drop_point(at))
 
@@ -6477,3 +6686,208 @@ func parts_from_bones(scope := "", bind := -3) -> Array:
 	_say("%d solid%s made from %s - each skinned to its bone, it moves with the animations." % [nodes.size(), "" if nodes.size() == 1 else "s",
 		str(made[0]["bone"]) if scope == "bone" else ("the bones below " + str(made[0]["bone"]) if scope == "children" else "every bone")])
 	return nodes
+
+
+# --- the browsers' and the overview's tooltips: each item's own, the item itself turning in it ------------
+
+## Each list's items' tooltips show the item itself, turning slowly (PinTips' "tip_view": a Mesh or a Node3D
+## to copy, or null till it's ready): the models, primitives and materials, the overview's solids and
+## collections as they are now. (The lists' own tooltips are on their tabs.)
+func _tip_pics() -> void:
+	_files.tooltip_text = ""
+	_files.set_meta("tip_on_tab", "models")   # (the list's own tooltip: on its tab)
+	_files.remove_meta("tip_pic")
+	_files.set_meta("tip_view", func(i: int):
+		var pth := str(_files.get_item_metadata(i))
+		return tip_model(pth))
+	var mb = mat_tools.browser if mat_tools else null
+	if mb != null and mb.get("list") != null:
+		var ml: ItemList = mb.list
+		ml.tooltip_text = ""
+		ml.set_meta("tip_on_tab", "materials")
+		ml.set_meta("tip_view", func(i: int):
+			var id := str(ml.get_item_metadata(i))
+			var e: Dictionary = mb.lib.entry(id)
+			var mat: Material = e["mat"] if e["group"] == "model" else mb.lib.make_material(id)
+			var ML: GDScript = load("res://scripts/editor/mesh/material_library.gd")
+			return ML.sphere_mesh(ML.sphere_arrays(), mat))
+	var pl = get_meta("prims") if has_meta("prims") else null
+	var plist: ItemList = (pl as Node).find_child("Primitives", true, false) if pl is Node else null
+	if plist:
+		plist.tooltip_text = ""
+		plist.set_meta("tip_on_tab", "shapes")
+		plist.set_meta("tip_view", func(i: int):
+			var kind := str(plist.get_item_metadata(i))
+			var m: PrimitiveMesh = {"box": BoxMesh.new(), "cylinder": CylinderMesh.new(), "prism": CylinderMesh.new(), "cone": CylinderMesh.new(),
+				"sphere": SphereMesh.new(), "torus": TorusMesh.new()}.get(kind, BoxMesh.new())
+			if kind == "prism":
+				(m as CylinderMesh).radial_segments = 6
+			if kind == "cone":
+				(m as CylinderMesh).top_radius = 0.0
+			m.material = MeshIO.preset(4)
+			return m)
+	var tr = curve_tools._w("tree") if curve_tools else null
+	if tr is Tree:
+		(tr as Tree).tooltip_text = ""
+		(tr as Tree).auto_tooltip = false   # (Godot's own - the row's name - never over the item's tooltip)
+		(tr as Tree).set_meta("tip_fn", func(at: Vector2) -> String: return tree_tip(tr, at))
+		(tr as Tree).set_meta("tip_view", func(at: Vector2, probe: bool):
+			var it := (tr as Tree).get_item_at_position(at)
+			if (tr as Tree).get_button_id_at_position(at) >= 0:
+				return false if probe else null   # (its eye or its arrow: that button's tooltip, no picture)
+			if it == null or not (it.get_metadata(0) is Dictionary):
+				return false if probe else null
+			var md: Dictionary = it.get_metadata(0)
+			if md.get("part") is MeshInstance3D and is_instance_valid(md["part"]):
+				if probe:
+					return true
+				var p: MeshInstance3D = md["part"]
+				if p.mesh == null:
+					return null
+				var mi := MeshInstance3D.new()
+				mi.mesh = p.mesh
+				mi.material_override = p.material_override
+				return mi
+			if md.get("group") is Node3D and is_instance_valid(md["group"]):
+				if probe:
+					return true
+				var g: Node3D = md["group"]
+				var root := Node3D.new()
+				for q in g.find_children("*", "MeshInstance3D", true, false):
+					if (q as MeshInstance3D).mesh != null and (q as Node3D).is_visible_in_tree():
+						var mi := MeshInstance3D.new()
+						mi.mesh = (q as MeshInstance3D).mesh
+						mi.material_override = (q as MeshInstance3D).material_override
+						mi.transform = g.global_transform.affine_inverse() * (q as Node3D).global_transform
+						root.add_child(mi)
+				return root if root.get_child_count() > 0 else null
+			return false if probe else null)
+
+
+## A tree row's (or its button's) tooltip under `at` - for PinTips only: taken from the row the first time it's
+## hovered, so Godot's own tooltip never shows beside it.
+static func tree_tip(t: Tree, at: Vector2) -> String:
+	var it := t.get_item_at_position(at)
+	if it == null:
+		return ""
+	var col := t.get_column_at_position(at)
+	var bid := t.get_button_id_at_position(at)
+	if bid >= 0 and it.has_meta("btip_%d" % bid):
+		return str(it.get_meta("btip_%d" % bid))   # (a button's: kept for PinTips only)
+	if bid >= 0 and col >= 0:
+		var bi := it.get_button_by_id(col, bid)
+		if bi >= 0:
+			var key := "btip_%d_%d" % [col, bi]
+			var bt := it.get_button_tooltip_text(col, bi)
+			if bt != "":
+				it.set_meta(key, bt)
+				it.set_button_tooltip_text(col, bi, "")
+			return str(it.get_meta(key, ""))
+	for c in t.columns:
+		var tt := it.get_tooltip_text(c)
+		if tt != "":
+			it.set_meta("tip_%d" % c, tt)
+			it.set_tooltip_text(c, "")
+	var own := str(it.get_meta("tip_%d" % maxi(col, 0), ""))
+	return own if own != "" else str(it.get_meta("tip_0", ""))
+
+
+## Model `res_path` read for its tooltip (on a worker the first time - null till then; the last few kept).
+func tip_model(res_path: String) -> Node3D:
+	var c: Dictionary = get_meta("tip_models", {})
+	if c.has(res_path):
+		var e: Array = c[res_path]
+		if e[1] is Node3D:
+			return e[1]
+		if int(e[0]) >= 0 and WorkerThreadPool.is_task_completed(int(e[0])):
+			WorkerThreadPool.wait_for_task_completion(int(e[0]))
+			e[0] = -1
+			e[1] = (e[2] as Array)[0]
+			return e[1] if e[1] is Node3D else null
+		return null
+	if c.size() >= 6:
+		# (the oldest let go - a model read a while ago is read again if it's wanted)
+		for k in c.keys():
+			var o: Array = c[k]
+			if int(o[0]) < 0:
+				if o[1] is Node and is_instance_valid(o[1]):
+					(o[1] as Node).free()
+				c.erase(k)
+				break
+	var file := EditTarget.read_path(res_path)
+	var h := [null]
+	var id := WorkerThreadPool.add_task(func(): h[0] = MeshIO.read(file), false, "ECurves: a model for its tooltip")
+	c[res_path] = [id, null, h]
+	set_meta("tip_models", c)
+	return null
+
+
+# --- the models browser's categories -----------------------------------------------------------------
+
+## [id, label, what it holds] - the models browser's categories.
+const MODEL_CATS := [["all", "All", "Every model."],
+	["npcs", "NPCs", "The people: each empire's android, the guard, the pirate, Kilon Alios and you."],
+	["creatures", "Creatures", "Monsters and animals."],
+	["ships", "Ships", "Ships and their hulls."],
+	["stations", "Stations", "Space stations."],
+	["buildings", "Buildings", "Towns' buildings."],
+	["props", "Props", "Everything else - weapons, parts, things."],
+	["yours", "Yours", "The models you've made (res://models/ and your mod's)."]]
+
+
+## Which category model `res_path` is in (MODEL_CATS).
+func model_category(res_path: String) -> String:
+	var d := res_path.to_lower()
+	var n := d.get_file().get_basename()
+	if n in ["demon", "skeleton"] or d.contains("creature") or d.contains("monster") or d.contains("fauna"):
+		return "creatures"
+	if MeshIO.is_character(res_path):
+		return "npcs"
+	if d.contains("ship") or d.contains("hull"):
+		return "ships"
+	if d.contains("station"):
+		return "stations"
+	if d.contains("building") or d.contains("town") or d.contains("house"):
+		return "buildings"
+	if d.begins_with("res://models/") or d.begins_with("user://"):
+		return "yours"
+	return "props"
+
+
+## The category buttons over the models list (made once - an editor made before them gets them too), their
+## counts kept up to date; one empty: greyed.
+func _model_cats_bar() -> void:
+	if _models_box == null:
+		return
+	var bar := _models_box.get_node_or_null("ModelCats") as HFlowContainer
+	if bar == null:
+		bar = HFlowContainer.new()
+		bar.name = "ModelCats"
+		bar.add_theme_constant_override("h_separation", 4)
+		bar.add_theme_constant_override("v_separation", 4)
+		_models_box.add_child(bar)
+		_models_box.move_child(bar, _filter.get_index() + 1)
+		for c in MODEL_CATS:
+			var b := Button.new()
+			b.name = "Cat_" + str(c[0])
+			b.toggle_mode = true
+			b.focus_mode = Control.FOCUS_NONE
+			b.add_theme_font_size_override("font_size", 14)
+			var id := str(c[0])
+			b.pressed.connect(func():
+				set_meta("model_cat", id)
+				_fill_files())
+			bar.add_child(b)
+	var counts := {"all": _all_files.size()}
+	for p in _all_files:
+		var k := model_category(p)
+		counts[k] = int(counts.get(k, 0)) + 1
+	var cat := str(get_meta("model_cat", "all"))
+	for c in MODEL_CATS:
+		var b := bar.get_node("Cat_" + str(c[0])) as Button
+		var n := int(counts.get(c[0], 0))
+		b.text = "%s %d" % [c[1], n] if str(c[0]) != "all" else str(c[1])
+		b.disabled = n == 0 and str(c[0]) != "all"
+		b.set_pressed_no_signal(str(c[0]) == cat)
+		b.tooltip_text = EditorIcons.tip("Models: " + str(c[1]), "", str(c[2]) + ("" if n > 0 or str(c[0]) == "all" else "\nNone yet."))
+

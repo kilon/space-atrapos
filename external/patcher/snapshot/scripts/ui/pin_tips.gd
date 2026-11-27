@@ -15,6 +15,8 @@ extends CanvasLayer
 const HOVER := 0.45
 const PIN := 12.0                   # seconds of hovering (after it shows) until it pins
 const WIDTH := 460.0
+const PIC := 280.0                  # an item's picture in its tooltip
+const TipView := preload("res://scripts/ui/tip_view.gd")
 
 ## The documentation section for this screen (always linked), and its book.
 var screen_doc := "overview"
@@ -110,14 +112,41 @@ func _hovered_tip() -> String:
 			if n == focus or n == focus.get_parent() and n is SpinBox:
 				return ""
 			n = n.get_parent()
+	set_meta("pic_fn", null)
+	set_meta("view_fn", null)
 	while c != null:
 		if _is_ours(c):
 			return ""
+		if c is ItemList and not c.has_meta("tip_fn"):
+			# (a list's items: each its own tooltip, its picture big - the list's own never over them; it's on
+			# the list's tab)
+			var il := c as ItemList
+			if il.tooltip_text != "":
+				il.tooltip_text = ""
+			var i := il.get_item_at_position(il.get_local_mouse_position(), true)
+			if i < 0 or il.get_item_tooltip(i) == "":
+				return ""
+			if il.is_item_tooltip_enabled(i):
+				il.set_item_tooltip_enabled(i, false)   # (Godot's own: not as well)
+			_src = c
+			var pf: Callable = (func(): return (il.get_meta("tip_pic") as Callable).call(i)) if il.has_meta("tip_pic") else (func(): return il.get_item_icon(i))
+			set_meta("pic_fn", pf)
+			if il.has_meta("tip_view"):
+				set_meta("view_fn", func(): return (il.get_meta("tip_view") as Callable).call(i))
+			return il.get_item_tooltip(i)
 		if c.has_meta("tip_fn"):
-			var t: String = (c.get_meta("tip_fn") as Callable).call(c.get_local_mouse_position())
+			var at := c.get_local_mouse_position()
+			var t: String = (c.get_meta("tip_fn") as Callable).call(at)
 			if t != "":
 				_src = c
+				var cc := c
+				if c.has_meta("tip_pic"):
+					set_meta("pic_fn", func(): return (cc.get_meta("tip_pic") as Callable).call(at))
+				if c.has_meta("tip_view") and (cc.get_meta("tip_view") as Callable).call(at, true) == true:
+					set_meta("view_fn", func(): return (cc.get_meta("tip_view") as Callable).call(at, false))
 				return t
+			if c is Tree or c is ItemList:
+				return ""   # (between its rows: nothing - not the list's own)
 		if c.tooltip_text != "":
 			c.set_meta("tip", c.tooltip_text)
 			c.tooltip_text = ""   # (Godot's tooltip would show it too)
@@ -174,6 +203,7 @@ func _process(delta: float) -> void:
 		_close_pinned()   # a new tooltip replaces the one pinned before
 		_panel = _make(_text, false)
 		_place(_panel)
+	_update_pics()
 	if _panel:
 		var k := clampf((_t - HOVER) / PIN, 0.0, 1.0)
 		_bar.size.x = (_panel.size.x - 20.0) * k
@@ -181,6 +211,32 @@ func _process(delta: float) -> void:
 			_pin(_panel)
 			_pinned_text = _text
 			_panel = null
+
+
+## How many of the screen's pixels one of the interface's is (a big screen, the interface scaled up: 2...).
+static func screen_scale(n: Node) -> float:
+	var w := n.get_tree().root
+	var s := w.content_scale_factor
+	if w.content_scale_size.y > 0 and w.content_scale_mode != Window.CONTENT_SCALE_MODE_DISABLED:
+		s *= float(w.size.y) / float(w.content_scale_size.y)
+	return maxf(s, 1.0)
+
+
+## Tooltips' pictures: the item's better picture once it's made (a big one drawn in the background).
+func _update_pics() -> void:
+	for n in get_children():
+		if not n.has_meta("pic"):
+			continue
+		var pic = n.get_meta("pic")
+		if not is_instance_valid(pic):
+			continue
+		var fn: Callable = (pic as Node).get_meta("pic_fn")
+		if not fn.is_valid():
+			continue
+		var tex = fn.call()
+		if tex is Texture2D and tex != (pic as TextureRect).texture:
+			(pic as TextureRect).texture = tex
+			(pic as Control).visible = true
 
 
 ## Closes every pinned tooltip.
@@ -286,6 +342,36 @@ func _make(tip: String, pinned: bool) -> PanelContainer:
 		var x := CloseX.new()
 		x.pressed.connect(p.queue_free)
 		head.add_child(x)
+	var pf = get_meta("pic_fn") if has_meta("pic_fn") else null
+	var vf = get_meta("view_fn") if has_meta("view_fn") else null
+	if vf is Callable and (vf as Callable).is_valid():
+		# (the item itself, turning slowly - drawn at the screen's pixels)
+		var tv: TextureRect = TipView.new()
+		tv.name = "View"
+		tv.custom_minimum_size = Vector2(PIC, PIC)
+		tv.source = vf
+		tv.fallback = (pf as Callable).call() if pf is Callable and (pf as Callable).is_valid() else null
+		v.add_child(tv)
+		p.set_meta("view_fn", vf)
+		p.set_meta("pic_fn", pf)
+	elif pf is Callable and (pf as Callable).is_valid():
+		# (an item's picture, big: what it is at a glance - a better one swapped in when it's made)
+		var pic := TextureRect.new()
+		pic.name = "Pic"
+		pic.custom_minimum_size = Vector2(PIC, PIC)
+		pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		pic.texture = (pf as Callable).call()
+		pic.set_meta("pic_fn", pf)
+		pic.visible = pic.texture != null
+		if pic.texture:
+			# (never bigger than its own pixels on the screen: not blurred)
+			var sc := screen_scale(self)
+			var px := minf(PIC, minf(pic.texture.get_width(), pic.texture.get_height()) / sc)
+			pic.custom_minimum_size = Vector2(px, px)
+		v.add_child(pic)
+		p.set_meta("pic", pic)
 	var body := RichTextLabel.new()
 	body.bbcode_enabled = true
 	body.fit_content = true
@@ -310,7 +396,7 @@ func _make(tip: String, pinned: bool) -> PanelContainer:
 	docs.scroll_active = false
 	docs.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	docs.custom_minimum_size = Vector2(WIDTH - 20, 0)
-	docs.add_theme_font_size_override("normal_font_size", 13)
+	docs.add_theme_font_size_override("normal_font_size", 14)
 	docs.mouse_filter = Control.MOUSE_FILTER_IGNORE if not pinned else Control.MOUSE_FILTER_STOP
 	var parts_l := links.map(func(id): return "[url=doc:%s]%s[/url]" % [id, EditorDocs.title(id)])
 	docs.text = "[color=#8fa3b8]Documentation:[/color]  [color=#7fd6ff]%s[/color]" % "   ·   ".join(parts_l)
@@ -337,6 +423,11 @@ func _make(tip: String, pinned: bool) -> PanelContainer:
 func _pin(p: PanelContainer) -> void:
 	var at := p.position
 	var tip := _text
+	if p.has_meta("pic") and is_instance_valid(p.get_meta("pic")):
+		set_meta("pic_fn", (p.get_meta("pic") as Node).get_meta("pic_fn"))
+	if p.has_meta("view_fn"):
+		set_meta("view_fn", p.get_meta("view_fn"))
+		set_meta("pic_fn", p.get_meta("pic_fn"))
 	p.queue_free()
 	var q := _make(tip, true)
 	q.position = at

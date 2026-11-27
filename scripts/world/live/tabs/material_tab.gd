@@ -159,7 +159,7 @@ static func _zero(t: int, _hint: String) -> Variant:
 
 func _texture_row(name: String, v: Variant, s: int, set_tex: Callable) -> Control:
 	var h := HBoxContainer.new()
-	var l := UI.label(name.capitalize(), 13, UI.TEXT_DIM)
+	var l := UI.label(name.capitalize(), 14, UI.TEXT_DIM)
 	l.custom_minimum_size.x = 130
 	l.clip_text = true
 	l.tooltip_text = EditorIcons.tip(name.capitalize(), "", str(TEXTURES.get(name, "A texture (picture) of the shader parameter \"%s\"." % name)))

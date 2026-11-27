@@ -150,7 +150,7 @@ func _legend(c: Color, text: String) -> HBoxContainer:
 	dot.custom_minimum_size = Vector2(10, 10)
 	dot.size_flags_vertical = SIZE_SHRINK_CENTER
 	h.add_child(dot)
-	h.add_child(UI.label(text, 13, UI.TEXT_DIM))
+	h.add_child(UI.label(text, 14, UI.TEXT_DIM))
 	return h
 
 

@@ -54,7 +54,7 @@ func bind(ed: Node) -> void:
 	_here.item_selected.connect(func(i): _edit(str(_here.get_item_metadata(i))))
 	add_child(_here)
 	var row := HBoxContainer.new()
-	row.add_child(UI.label("Any effect", 13, UI.TEXT_DIM))
+	row.add_child(UI.label("Any effect", 14, UI.TEXT_DIM))
 	_all = OptionButton.new()
 	_all.name = "All"
 	_all.focus_mode = FOCUS_NONE
@@ -65,7 +65,7 @@ func bind(ed: Node) -> void:
 	row.add_child(_btn("Replay", "play", "Plays the effects on what's picked again (one-shots).", replay))
 	add_child(row)
 	var arow := HBoxContainer.new()
-	arow.add_child(UI.label("Add", 13, UI.TEXT_DIM))
+	arow.add_child(UI.label("Add", 14, UI.TEXT_DIM))
 	_add = OptionButton.new()
 	_add.name = "AddWhich"
 	_add.focus_mode = FOCUS_NONE
@@ -77,7 +77,7 @@ func bind(ed: Node) -> void:
 	add_child(arow)
 	var srow := HBoxContainer.new()
 	srow.add_child(_btn("Save", "save", "Writes the effects (data/effects.json) and what you added - into the game, or the mod picked.", func(): save()))
-	_note = UI.label("", 13, UI.TEXT_DIM)
+	_note = UI.label("", 14, UI.TEXT_DIM)
 	_note.clip_text = true
 	_note.size_flags_horizontal = SIZE_EXPAND_FILL
 	srow.add_child(_note)

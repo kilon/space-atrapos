@@ -124,7 +124,7 @@ func _ready() -> void:
 	_info = UI.label("", 14, UI.TEXT_DIM)
 	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	right.add_child(_info)
-	_file = UI.label("", 12, Color(UI.TEXT_DIM, 0.8))
+	_file = UI.label("", 14, Color(UI.TEXT_DIM, 0.8))
 	_file.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	right.add_child(_file)
 	_live = UI.button("View live", _open_live, 17)

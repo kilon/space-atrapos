@@ -2,7 +2,7 @@ extends TestCase
 ## The game's typeface and its text sizes: Atrapos Sans (tools/make_font.py)
 ## is the font everywhere - the theme's default, ThemeDB's fallback (what
 ## code-drawn text uses), the headings - and it has the letters the game's
-## texts use; and no text is ever under 12 px (Settings.MIN_FONT): the shared
+## texts use; and no text is ever under 14 px (Settings.MIN_FONT): the shared
 ## helpers clamp, and no script or scene asks for a smaller size.
 
 const REGULAR := "res://assets/fonts/AtraposSans-Regular.ttf"
@@ -27,9 +27,9 @@ func test_atrapos_sans_everywhere() -> void:
 	check(missing == "", "Atrapos Sans has every letter the game uses (missing: %s)" % missing)
 
 
-func test_helpers_never_under_12() -> void:
+func test_helpers_never_under_14() -> void:
 	var m := Settings.MIN_FONT
-	check_eq(m, 12, "the smallest text size is 12 px")
+	check_eq(m, 14, "the smallest text size is 14 px")
 	var l := UI.label("x", 8)
 	check(l.get_theme_font_size("font_size") >= m, "UI.label clamps (asked 8, got %d)" % l.get_theme_font_size("font_size"))
 	var n := UI.note("x", 9)
@@ -43,9 +43,9 @@ func test_helpers_never_under_12() -> void:
 	b.free()
 
 
-## A size under 12 written into a script or a scene: font size overrides,
+## A size under 14 written into a script or a scene: font size overrides,
 ## the helpers' size arguments, Settings.fs, draw_string's size.
-func test_no_literal_text_under_12() -> void:
+func test_no_literal_text_under_14() -> void:
 	var pats := [
 		'font_size_override\\("[a-z_]+",\\s*(\\d+)\\)',
 		'font_sizes/[a-z_]+\\s*=\\s*(\\d+)\\b',
@@ -68,7 +68,7 @@ func test_no_literal_text_under_12() -> void:
 					var v := int(mt.get_string(1))
 					if v > 0 and v < Settings.MIN_FONT:
 						bad.append("%s:%d (%d)" % [path.trim_prefix("res://"), i + 1, v])
-	check(bad.is_empty(), "no text under 12 px: %s" % ", ".join(bad))
+	check(bad.is_empty(), "no text under 14 px: %s" % ", ".join(bad))
 
 
 func _files(dir: String, ext: String) -> Array:

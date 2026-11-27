@@ -77,7 +77,7 @@ func _ready() -> void:
 	head.add_theme_font_size_override("font_size", 26)
 	head.add_theme_color_override("font_color", NeonTheme.HEAD)
 	left.add_child(head)
-	left.add_child(UI.label("Every book of the game in one place.", 13, UI.TEXT_DIM))
+	left.add_child(UI.label("Every book of the game in one place.", 14, UI.TEXT_DIM))
 	_search = LineEdit.new()
 	_search.placeholder_text = "Search every book..."
 	_search.clear_button_enabled = true

@@ -618,7 +618,7 @@ func open_file(p: String) -> void:
 	_file_title.clip_text = true
 	h.add_child(_file_title)
 	_view.add_child(h)
-	_file_note = UI.label("", 13, UI.TEXT_DIM)
+	_file_note = UI.label("", 14, UI.TEXT_DIM)
 	_file_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_view.add_child(_file_note)
 	if ext in TEXT:

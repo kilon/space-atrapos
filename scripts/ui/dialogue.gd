@@ -114,7 +114,7 @@ func _build() -> void:
 	_banner = UI.label("PREVIEW", 14, NeonTheme.HEAD)
 	_banner.visible = false
 	footer.add_child(_banner)
-	footer.add_child(UI.label("Click, Space or Enter to continue", 13, UI.TEXT_DIM))
+	footer.add_child(UI.label("Click, Space or Enter to continue", 14, UI.TEXT_DIM))
 	footer.add_child(UI.spacer())
 	_counter = UI.label("", 14, UI.TEXT_DIM)
 	footer.add_child(_counter)

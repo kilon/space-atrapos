@@ -67,7 +67,7 @@ func _ready() -> void:
 		b.text = "All" if g == "" else str(MaterialLibrary.GROUP_LABEL[g])
 		b.toggle_mode = true
 		b.focus_mode = Control.FOCUS_NONE
-		b.add_theme_font_size_override("font_size", 13)
+		b.add_theme_font_size_override("font_size", 14)
 		b.name = "Group_" + (g if g != "" else "all")
 		b.tooltip_text = EditorIcons.tip("Material group: " + b.text, "", {"": "Every material.", "model": "The open model's own materials.",
 			"character": "Every character's named materials (from its model.json) - each says who wears it.",
@@ -80,7 +80,7 @@ func _ready() -> void:
 	list.name = "MaterialList"
 	list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	list.focus_mode = Control.FOCUS_NONE
-	list.add_theme_font_size_override("font_size", 13)
+	list.add_theme_font_size_override("font_size", 14)
 	list.icon_mode = ItemList.ICON_MODE_TOP
 	list.max_columns = 0
 	list.fixed_icon_size = Vector2i(56, 56)

@@ -25,7 +25,7 @@ func _ready() -> void:
 	left.add_theme_constant_override("separation", 8)
 	add_child(left)
 	left.add_child(UI.section("INVENTORY"))
-	_inv_label = UI.note("", 13, 640)
+	_inv_label = UI.note("", 14, 640)
 	left.add_child(_inv_label)
 	_grid = GridContainer.new()
 	_grid.columns = 12
@@ -59,7 +59,7 @@ func refresh() -> void:
 	# The toolbar, and the automaton's tools (always with it: onto the toolbar).
 	_fill_bar(_bar_foot, data.toolbar_foot)
 	UI.clear(_tools)
-	var tl := UI.label("TOOLS", 13, UI.TEXT_DIM)
+	var tl := UI.label("TOOLS", 14, UI.TEXT_DIM)
 	tl.custom_minimum_size.x = 70.0
 	tl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_tools.add_child(tl)

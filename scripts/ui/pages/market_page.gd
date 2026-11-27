@@ -77,7 +77,7 @@ func _table() -> Control:
 func _header() -> Control:
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 0)
-	var name := UI.label("COMMODITY", 13, UI.TEXT_DIM)
+	var name := UI.label("COMMODITY", 14, UI.TEXT_DIM)
 	name.size_flags_horizontal = SIZE_EXPAND_FILL
 	name.add_theme_constant_override("margin_left", 10)
 	var pad := MarginContainer.new()
@@ -86,7 +86,7 @@ func _header() -> Control:
 	pad.add_child(name)
 	h.add_child(pad)
 	for c in COLS:
-		var l := UI.label(c[0], 13, UI.TEXT_DIM)
+		var l := UI.label(c[0], 14, UI.TEXT_DIM)
 		l.custom_minimum_size.x = c[1] * _k
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT if c[0] in ["SELL", "BUY", "CARGO"] else HORIZONTAL_ALIGNMENT_CENTER
 		h.add_child(l)
@@ -133,7 +133,7 @@ func _row(c: String, rec: Dictionary) -> Button:
 	var name := UI.label("  " + Items.display_name(c), 16, ink)
 	name.size_flags_horizontal = SIZE_EXPAND_FILL
 	h.add_child(name)
-	var tag := UI.label(_short_tag(c, rec), 12, dim)
+	var tag := UI.label(_short_tag(c, rec), 14, dim)
 	h.add_child(tag)
 	h.add_child(_cell(str(sell), COLS[0][1], ink, HORIZONTAL_ALIGNMENT_RIGHT))
 	h.add_child(_cell(str(buy) if sup > 0 else "-", COLS[1][1], ink if sup > 0 else dim, HORIZONTAL_ALIGNMENT_RIGHT))
@@ -306,7 +306,7 @@ func _detail() -> Control:
 		v.add_child(row)
 	if not any:
 		v.add_child(UI.label("No other market within reach.", 14, UI.TEXT_DIM))
-	var tip := UI.label("Buy where it's made, sell where it's used. The galaxy map's trade layer (G) shows the best runs.", 13, UI.TEXT_DIM)
+	var tip := UI.label("Buy where it's made, sell where it's used. The galaxy map's trade layer (G) shows the best runs.", 14, UI.TEXT_DIM)
 	tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(tip)
 	return p

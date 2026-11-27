@@ -3024,6 +3024,177 @@ func test_ecurve_objects() -> void:
 	await _done(ed)
 
 
+## An object dragged over the view: a marker where it'll land (on the surface under the pointer), its
+## bounds once read; dropped: added there at once from that read; the drag over: the marker gone.
+func test_drop_marker_shows_where() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	var box: MeshInstance3D = ct.add_curve_primitive("box", Vector3(0, 0.5, 0))
+	ed.view.frame(box.global_transform * box.get_aabb())
+	await tree.process_frame
+	var at: Vector2 = ed.view.project(box.global_transform * box.get_aabb().get_center())
+	var data := {"ecurve_model": "res://models/test_curve_modeling.glb"}
+	check(ed._can_drop_shape(at, data), "the view takes it")
+	var mk: Node3D = ed.get_meta("drop_marker")
+	var ring: MeshInstance3D = mk.get_node("Ring")
+	var hit: Array = ed.shape_tools.drop_hit(at)
+	check(mk.visible and ring.global_position.distance_to(hit[0]) < 1e-4, "the marker where it'll land")
+	check((hit[0] as Vector3).distance_to(ed.shape_tools.drop_point(at)) < 1e-6, "the same point the drop uses")
+	check(box.get_aabb().grow(0.01).has_point(box.global_transform.affine_inverse() * (hit[0] as Vector3)), "on the solid under the pointer")
+	check((ring.global_basis.y.normalized()).dot(hit[1]) > 0.99, "lying on its surface")
+	var bx: MeshInstance3D = mk.get_node("Bounds")
+	for i in 200:
+		ed._can_drop_shape(at, data)
+		if bx.visible:
+			break
+		await tree.process_frame
+	check(bx.visible and bx.mesh != null, "its bounds shown once read")
+	var n0: int = ed.parts().size()
+	ed._drop_shape(at, data)
+	check(ed.parts().size() > n0 and not ed.has_meta("drop_job"), "dropped: added at once (read while dragged)")
+	check(not mk.visible, "the drag over: the marker gone")
+	# a primitive: the ring only
+	ed._can_drop_shape(at, {"ecurve_prim": "sphere"})
+	check(mk.visible and not bx.visible, "a primitive: the ring, no bounds")
+	await tree.process_frame
+	check(not mk.visible, "not dragging: hidden")
+	await _done(ed)
+
+
+## An open tube between two heights, quads round it (outward), in material `mat`.
+func _tube(y0: float, y1: float, mat: Material) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var n := 24
+	var rows := 5
+	for r in rows:
+		for k in n:
+			var a0 := TAU * k / n
+			var a1 := TAU * (k + 1) / n
+			var ya := lerpf(y0, y1, float(r) / rows)
+			var yb := lerpf(y0, y1, float(r + 1) / rows)
+			var p00 := Vector3(cos(a0) * 0.3, ya, sin(a0) * 0.3)
+			var p10 := Vector3(cos(a1) * 0.3, ya, sin(a1) * 0.3)
+			var p01 := Vector3(cos(a0) * 0.3, yb, sin(a0) * 0.3)
+			var p11 := Vector3(cos(a1) * 0.3, yb, sin(a1) * 0.3)
+			for q in [p00, p01, p11, p00, p11, p10]:
+				st.set_normal(Vector3(q.x, 0, q.z).normalized())
+				st.add_vertex(q)
+	st.index()
+	var m := st.commit()
+	m.surface_set_material(0, mat)
+	return m
+
+
+## Two solids meeting along an edge (two halves of a tube, each its own material): converted, they're
+## joined by themselves - one solid, the shared edge once, welded with no gap, quads kept, both materials;
+## Auto join finds nothing more; undo puts the two back.
+func test_auto_join_after_converting() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	var red := StandardMaterial3D.new()
+	red.albedo_color = Color.RED
+	var grey := StandardMaterial3D.new()
+	grey.albedo_color = Color.GRAY
+	var parts := []
+	for half in [[0.0, 0.4, red, "Low"], [0.4, 0.8, grey, "High"]]:
+		var mi := MeshInstance3D.new()
+		mi.name = half[3]
+		mi.mesh = _tube(half[0], half[1], half[2])
+		ed.model.add_child(mi)
+		parts.append(mi)
+	ed._fill_parts()
+	ct.convert_parts(parts)
+	for k in 1200:
+		if not ct._converting() and not ct.has_meta("join_after") and not ct.has_meta("join_job") and ed.parts().size() == 1:
+			break
+		await tree.process_frame
+	check_eq(ed.parts().size(), 1, "the two halves joined into one solid")
+	if ed.parts().size() != 1:
+		await _done(ed)
+		return
+	var p: MeshInstance3D = ed.parts()[0]
+	var sp: Dictionary = p.get_meta("curve_solid")
+	check(str(sp["kind"]) == "edges" and int(sp.get("joined", 0)) == 2, "an ECurve solid made of both")
+	check_eq((sp["ids"] as Array).size(), 3, "three edges: the bottom, the top, the shared one once")
+	# no gap: the only open sides are the tube's two ends
+	var EN: GDScript = load("res://scripts/editor/mesh/edge_net.gd")
+	var t := PackedInt32Array(sp["mesh"]["t"])
+	var mv: Array = sp["mesh"]["v"]
+	var v := PackedVector3Array()
+	for i in range(0, mv.size(), 3):
+		v.append(Vector3(mv[i], mv[i + 1], mv[i + 2]))
+	var AJ: GDScript = load("res://scripts/editor/mesh/auto_join.gd")
+	var open: Dictionary = AJ.open_sides(Array(t))
+	var at_seam := 0
+	for k in open:
+		if absf(v[k.x].y - 0.4) < 0.05 or absf(v[k.y].y - 0.4) < 0.05:
+			at_seam += 1
+	check(open.size() > 0 and at_seam == 0, "open only at its two ends - nothing open at the seam (%d of %d)" % [at_seam, open.size()])
+	# quads kept
+	var fs: Array = EN._pair_faces(v, t, sp["fv"])
+	var quads := fs.filter(func(f): return (f as Array).size() == 4).size()
+	check(quads >= fs.size() * 0.9, "quads (%d of %d faces)" % [quads, fs.size()])
+	# both materials: a surface each, each in its own half
+	for i in 10:
+		await tree.process_frame
+	check_eq(p.mesh.get_surface_count(), 2, "a surface a material")
+	if p.mesh.get_surface_count() == 2:
+		var ys := []
+		for si in 2:
+			var sv: PackedVector3Array = p.mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX]
+			var sum := 0.0
+			for q in sv:
+				sum += q.y
+			ys.append([p.mesh.surface_get_material(si), sum / maxf(sv.size(), 1)])
+		var low = ys[0] if float(ys[0][1]) < float(ys[1][1]) else ys[1]
+		var high = ys[1] if low == ys[0] else ys[0]
+		check(low[0] == red and high[0] == grey, "each half its own material still")
+		# no shading seam: the normals either side of the weld the same
+		var worst := 0.0
+		var na: Array = p.mesh.surface_get_arrays(0)
+		var nb: Array = p.mesh.surface_get_arrays(1)
+		for i in (na[Mesh.ARRAY_VERTEX] as PackedVector3Array).size():
+			var q: Vector3 = na[Mesh.ARRAY_VERTEX][i]
+			if absf(q.y - 0.4) > 1e-4:
+				continue
+			for j in (nb[Mesh.ARRAY_VERTEX] as PackedVector3Array).size():
+				if (nb[Mesh.ARRAY_VERTEX][j] as Vector3).distance_to(q) < 1e-5:
+					worst = maxf(worst, rad_to_deg((na[Mesh.ARRAY_NORMAL][i] as Vector3).angle_to(nb[Mesh.ARRAY_NORMAL][j])))
+		check(worst < 1.0, "smooth across the weld (normals differ %.2f deg)" % worst)
+	check(not ct.auto_join([], true), "nothing more to join (one solid)")
+	# undo: the two again
+	ed.undo()
+	check_eq(ed.parts().size(), 2, "undo: the two solids back")
+	ed.redo()
+	check_eq(ed.parts().size(), 1, "redo: one again")
+	await _done(ed)
+
+
+## Merge by distance: two vertices of one edge within the merge distance - one dissolved; two edges'
+## ends within it - moved together, so they meet; vertices farther apart left alone; one undo step.
+func test_merge_by_distance() -> void:
+	var ed := await _editor()
+	var ct = ed.curve_tools
+	ed.new_model(true)
+	var a: Dictionary = ct._fresh({"kind": "line", "ctrl": PackedVector3Array([Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(1.0004, 0, 0), Vector3(2, 0, 0)]), "closed": false, "n": Vector3.UP})
+	var b: Dictionary = ct._fresh({"kind": "line", "ctrl": PackedVector3Array([Vector3(2.0006, 0, 0.0002), Vector3(3, 0, 1)]), "closed": false, "n": Vector3.UP})
+	ct.curves = [a, b]
+	ct.set_merge_dist(0.001)
+	var n: int = ct.merge_by_distance()
+	check_eq(n, 2, "two merged: one dissolved, one pair welded")
+	var ka: PackedVector3Array = ct.curves[0]["ctrl"]
+	var kb: PackedVector3Array = ct.curves[1]["ctrl"]
+	check_eq(ka.size(), 3, "the close pair on one edge: one point now")
+	check(ka[ka.size() - 1].distance_to(kb[0]) < 1e-6, "the two edges' ends in one place")
+	check(ka[0] == Vector3.ZERO and kb[1] == Vector3(3, 0, 1), "points farther apart left where they were")
+	check_eq(ct.merge_by_distance(), 0, "nothing left to merge")
+	ed.undo()
+	check_eq((ct.curves[0]["ctrl"] as PackedVector3Array).size(), 4, "undo: as it was")
+	await _done(ed)
+
+
 func test_ecurve_solid_bones() -> void:
 	var ed := await _editor()
 	var ct = ed.curve_tools

@@ -151,9 +151,7 @@
     },
     {
      "t": "badge",
-     "at": [
-      560,
-      450
+     "at": [540, 450
      ],
      "text": "renders: 145 s for all 320",
      "color": "cyan",
@@ -161,9 +159,7 @@
     },
     {
      "t": "badge",
-     "at": [
-      820,
-      450
+     "at": [830, 450
      ],
      "text": "game code: unchanged API",
      "color": "green",

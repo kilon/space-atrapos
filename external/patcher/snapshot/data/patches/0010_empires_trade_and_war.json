@@ -1065,9 +1065,7 @@
     },
     {
      "t": "badge",
-     "at": [
-      500,
-      520
+     "at": [500, 530
      ],
      "text": "Friendly with an empire: all its routes",
      "color": "gold",

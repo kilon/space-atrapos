@@ -335,7 +335,7 @@ func _page_market() -> void:
 	if eff < 0.7:
 		var inputs := ", ".join(Galaxy.INPUTS.get(rec["economy"], []).map(func(c): return Items.display_name(c)))
 		head.add_child(UI.label("Production %d%%: short of %s  " % [roundi(eff * 100), inputs], 14, Color(1.0, 0.6, 0.45)))
-	head.add_child(UI.label("W/S select  ·  A/D quantity  ·  Enter buy  ·  Backspace sell", 13, UI.TEXT_DIM))
+	head.add_child(UI.label("W/S select  ·  A/D quantity  ·  Enter buy  ·  Backspace sell", 14, UI.TEXT_DIM))
 	_content.add_child(head)
 	var page := MarketPage.new()
 	page.setup(self)
@@ -791,8 +791,8 @@ func _show_outfit_detail() -> void:
 		fg.columns = 4
 		fg.add_theme_constant_override("h_separation", 14)
 		for f in facts:
-			fg.add_child(UI.label(f[0], 13, UI.TEXT_DIM))
-			fg.add_child(UI.label(f[2] % f[1], 13))
+			fg.add_child(UI.label(f[0], 14, UI.TEXT_DIM))
+			fg.add_child(UI.label(f[2] % f[1], 14))
 		_outfit_detail.add_child(fg)
 	var rows: Array = sp.get("rows", [])
 	_outfit_detail.add_child(UI.section(("%s: BEFORE  →  AFTER" % sp.get("what", "")).to_upper()))
@@ -807,9 +807,9 @@ func _show_outfit_detail() -> void:
 			var better: bool = (r[2] > r[1]) == bool(r[4])
 			var col := Color(0.45, 0.95, 0.5) if better else Color(1.0, 0.45, 0.4)
 			var delta: float = r[2] - r[1]
-			g.add_child(UI.label(r[0], 13, UI.TEXT_DIM))
-			g.add_child(UI.label(r[3] % r[1], 13))
-			g.add_child(UI.label("→", 13, UI.TEXT_DIM))
+			g.add_child(UI.label(r[0], 14, UI.TEXT_DIM))
+			g.add_child(UI.label(r[3] % r[1], 14))
+			g.add_child(UI.label("→", 14, UI.TEXT_DIM))
 			g.add_child(UI.label(r[3] % r[2], 14, col))
 			g.add_child(UI.label(("+" if delta > 0 else "-") + (r[3] % absf(delta)), 13, col))
 		_outfit_detail.add_child(g)
@@ -865,12 +865,12 @@ func _card(icon_id: String, title: String, sub: String, desc: String, buttons: A
 	text.add_theme_constant_override("separation", 0)
 	text.size_flags_horizontal = SIZE_EXPAND_FILL
 	text.custom_minimum_size.x = 120
-	var t := UI.label(title, 13)
+	var t := UI.label(title, 14)
 	t.clip_text = true
 	t.tooltip_text = row.tooltip_text
 	t.mouse_filter = Control.MOUSE_FILTER_PASS
 	text.add_child(t)
-	var st := UI.label(sub, 12, UI.TEXT_DIM)
+	var st := UI.label(sub, 14, UI.TEXT_DIM)
 	st.clip_text = true
 	text.add_child(st)
 	row.add_child(text)
@@ -1199,7 +1199,7 @@ func _page_shipyard() -> void:
 			cell.add_theme_constant_override("separation", 3)
 			cell.add_child(UI.label("%s %d" % [k[1], v], 12, UI.TEXT_DIM))
 			if absf(dv) >= 1.0 and id != data.ship_class:
-				cell.add_child(UI.label("%+d" % dv, 12, Color(0.45, 0.95, 0.5) if dv > 0 else Color(1.0, 0.45, 0.4)))
+				cell.add_child(UI.label("%+d" % dv, 14, Color(0.45, 0.95, 0.5) if dv > 0 else Color(1.0, 0.45, 0.4)))
 			stats.add_child(cell)
 		info.add_child(stats)
 		info.add_child(UI.label("hardpoints %s  ·  modules %d + %d  ·  fuel %d" % [Hardpoints.summary(Hardpoints.layout(id)), st["internal"], st["utility"], fuel], 12, UI.TEXT_DIM))
@@ -1524,7 +1524,7 @@ func _item_row(id: String, n: int, title: String, subtitle: String) -> HBoxConta
 	text.size_flags_horizontal = SIZE_EXPAND_FILL
 	text.add_theme_constant_override("separation", 0)
 	text.add_child(UI.label(title, 16))
-	var sub := UI.label(subtitle, 13, UI.TEXT_DIM)
+	var sub := UI.label(subtitle, 14, UI.TEXT_DIM)
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	text.add_child(sub)
 	row.add_child(text)

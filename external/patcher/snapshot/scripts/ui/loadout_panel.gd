@@ -90,8 +90,8 @@ func refresh() -> void:
 		var place: Array = PLACES[s]
 		_doll.add_group(s, Gear.AREA_OF_SLOT[s].to_upper(), place[0], place[1], place[2], [slot])
 	if not fill:   # (the Automaton's own page: no how-to line - the tutorial's)
-		add_child(UI.note(HINT, 12, 420))
-	_stats = UI.label(summary(lo), 13, UI.TEXT_DIM)
+		add_child(UI.note(HINT, 14, 420))
+	_stats = UI.label(summary(lo), 14, UI.TEXT_DIM)
 	if fill:
 		_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_stats.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

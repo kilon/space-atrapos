@@ -3,12 +3,13 @@
  "id": "0.32",
  "title": "Make it yours",
  "date": "2026-11-24",
- "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024). Then ECurves (patch 0025): every model an ECurve object, fast enough for a whole character. Then quads along the edges (patch 0026).",
+ "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024). Then ECurves (patch 0025): every model an ECurve object, fast enough for a whole character. Then quads along the edges (patch 0026): bakes in quads that follow their edges, and settings that fit. Then joined solids (patch 0027).",
  "patches": [
   "0023",
   "0024",
   "0025",
-  "0026"
+  "0026",
+  "0027"
  ],
  "steps": [
   {
@@ -387,7 +388,97 @@
   {
    "patch": "0026",
    "title": "Patch 0026 - Quads along the edges",
-   "text": "ECurves keeps its topology clean and its cuts in reach: a bake now lays every face out as quads that follow its edges - grids, rings round a middle grid, rows between two rims - evenly spaced on the surface; a cut inside a solid's recipe can be picked from its ghost and moved whole, the solid following at once; and Simplify keeps an edge's shape in 3D. The settings fit the window - a dialog its own size, the Controls page wrapped and aligned, every tab one height - the resolution you pick applies everywhere and in fullscreen, leaving fullscreen is instant, and a middle click resets the camera's zoom.",
+   "text": "Bakes laid out as quads that follow their edges - grids, rings round a middle grid, rows between two rims - cuts picked from their ghosts and moved whole, Simplify in 3D; a settings dialog that fits, the resolution applied everywhere, fullscreen left at once, and a middle click to reset the zoom.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "PATCH 0026 - QUADS ALONG THE EDGES",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      60,
+      90,
+      260,
+      100
+     ],
+     "stroke": "green",
+     "label": "bakes in quads\nalong the edges",
+     "size": 16
+    },
+    {
+     "t": "box",
+     "rect": [
+      370,
+      90,
+      260,
+      100
+     ],
+     "stroke": "cyan",
+     "label": "cuts picked\nand moved",
+     "size": 16
+    },
+    {
+     "t": "box",
+     "rect": [
+      680,
+      90,
+      260,
+      100
+     ],
+     "stroke": "purple",
+     "label": "Simplify\nin 3D",
+     "size": 16
+    },
+    {
+     "t": "box",
+     "rect": [
+      60,
+      240,
+      260,
+      100
+     ],
+     "stroke": "gold",
+     "label": "settings that\nfit the window",
+     "size": 16
+    },
+    {
+     "t": "box",
+     "rect": [
+      370,
+      240,
+      260,
+      100
+     ],
+     "stroke": "cyan",
+     "label": "your resolution\neverywhere",
+     "size": 16
+    },
+    {
+     "t": "box",
+     "rect": [
+      680,
+      240,
+      260,
+      100
+     ],
+     "stroke": "green",
+     "label": "middle click:\nzoom back",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "patch": "0027",
+   "title": "Patch 0027 - Joined solids",
+   "text": "ECurves joins what belongs together: solids that meet along an edge - a plate against its trim, a joint against its glow - become one solid by themselves after a conversion or a bake (or from the menu), one of each shared edge kept and the meshes welded along it with no gap, quads kept, each part's material and bone weights still its own and no seam in the shading. A dragged model shows where it will land before you drop it, Merge by distance makes close vertices one, and Undo, Redo, Save and Save as sit on the header.",
    "diagram": [
     {
      "t": "box",
@@ -397,7 +488,7 @@
       600,
       80
      ],
-     "label": "PATCH 0026\nQuads along the edges",
+     "label": "PATCH 0027\nJoined solids",
      "size": 18,
      "stroke": "gold"
     },
@@ -407,7 +498,7 @@
       210,
       200
      ],
-     "text": "Cuts you can pick and move",
+     "text": "Auto join: solids that meet become",
      "color": "cyan",
      "size": 15,
      "delay": 0.3
@@ -418,7 +509,7 @@
       500,
       200
      ],
-     "text": "Simplify keeps the shape",
+     "text": "Welded with no gap, quads kept",
      "color": "green",
      "size": 15,
      "delay": 0.44999999999999996
@@ -429,7 +520,7 @@
       790,
       200
      ],
-     "text": "Bakes in quads along the edges",
+     "text": "Materials, weights and shading kep",
      "color": "purple",
      "size": 15,
      "delay": 0.6
@@ -440,7 +531,7 @@
       210,
       290
      ],
-     "text": "A settings dialog that fits",
+     "text": "Drop marker, merge by distance, a ",
      "color": "gold",
      "size": 15,
      "delay": 0.75
@@ -451,7 +542,7 @@
       500,
       290
      ],
-     "text": "Fullscreen at your resolution",
+     "text": "Tooltips show the item itself, tur",
      "color": "red",
      "size": 15,
      "delay": 0.8999999999999999
@@ -462,7 +553,7 @@
       790,
       290
      ],
-     "text": "A middle click resets the zoom",
+     "text": "Text never under 14 px",
      "color": "blue",
      "size": 15,
      "delay": 1.05

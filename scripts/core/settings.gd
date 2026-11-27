@@ -20,7 +20,7 @@ const DEFAULT_RESOLUTION := Vector2i(1920, 1080)
 
 ## No text smaller than this (px), anywhere - menus, HUD, text drawn on
 ## screen - whatever the text size settings: it stays easy to read.
-const MIN_FONT := 12
+const MIN_FONT := 14
 ## Text size slider range (1.0 = 100%).
 const TEXT_SCALE_MIN := 0.5
 const TEXT_SCALE_MAX := 3.0

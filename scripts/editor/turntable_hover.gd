@@ -6,7 +6,7 @@ extends Node
 ## second, nothing while the mouse is elsewhere.
 ##   TurntableHover.attach(item_list, func(meta) -> Array: return thumbs.frames(meta))
 
-const FPS := 18.0
+const FPS := 5.0   # (a slow turn: about five seconds round)
 
 var list: ItemList
 var frames_of: Callable

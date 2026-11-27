@@ -31,7 +31,7 @@ var _wait := 0
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(DIR)
 	_vp = SubViewport.new()
-	_vp.size = Vector2i(SIZE, SIZE)
+	_vp.size = Vector2i(_sz(), _sz())
 	_vp.own_world_3d = true
 	_vp.transparent_bg = true
 	_vp.msaa_3d = Viewport.MSAA_4X
@@ -60,6 +60,21 @@ func _ready() -> void:
 	_vp.add_child(_cam)
 	_pivot = Node3D.new()
 	_vp.add_child(_pivot)
+
+
+## Its pictures' size and how many a turntable has: SIZE and FRAMES, or (set before it's added) metas
+## "size" / "frames" - the tooltips' big pictures: one, much bigger.
+func _sz() -> int:
+	return int(get_meta("size", SIZE))
+
+
+func _nf() -> int:
+	return int(get_meta("frames", FRAMES))
+
+
+## Something made by `maker` drawn but not kept on disk (a solid as it is now - it changes) - under `key`.
+func ask_now(key: String, maker: Callable) -> void:
+	_enqueue(key, maker, "")
 
 
 func _exit_tree() -> void:
@@ -112,7 +127,7 @@ func _pump_reads() -> void:
 		var key: String = e[0]
 		_reading.erase(key)
 		var img: Image = e[1]
-		if img and img.get_width() == SIZE * FRAMES:
+		if img and img.get_width() == _sz() * _nf():
 			_mem[key] = _cut(ImageTexture.create_from_image(img))
 			made.emit(key, _mem[key][0])
 	if _read_queue.is_empty() or _read_task >= 0 or _read_done.size() > 8:
@@ -130,10 +145,10 @@ func _pump_reads() -> void:
 
 func _cut(strip: Texture2D) -> Array:
 	var out := []
-	for i in FRAMES:
+	for i in _nf():
 		var a := AtlasTexture.new()
 		a.atlas = strip
-		a.region = Rect2(i * SIZE, 0, SIZE, SIZE)
+		a.region = Rect2(i * _sz(), 0, _sz(), _sz())
 		out.append(a)
 	return out
 
@@ -165,7 +180,8 @@ func clear_queue() -> void:
 
 func _disk(key: String, file: String) -> String:
 	var t := FileAccess.get_modified_time(file) if file != "" and FileAccess.file_exists(file) else 0
-	return DIR + ("%d|%s|%d" % [VERSION, key, t]).md5_text() + ".png"
+	var sz := "" if _sz() == SIZE and _nf() == FRAMES else "%dx%d|" % [_sz(), _nf()]   # (a big one apart from the list's)
+	return DIR + (sz + "%d|%s|%d" % [VERSION, key, t]).md5_text() + ".png"
 
 
 func _process(_dt: float) -> void:
@@ -199,7 +215,7 @@ func _process(_dt: float) -> void:
 		_pivot.rotation = Vector3.ZERO
 		_pivot.add_child(_model)
 		_aim()
-		_strip = Image.create_empty(SIZE * FRAMES, SIZE, false, Image.FORMAT_RGBA8)
+		_strip = Image.create_empty(_sz() * _nf(), _sz(), false, Image.FORMAT_RGBA8)
 		_frame = 0
 		_shoot()
 		return
@@ -214,16 +230,17 @@ func _process(_dt: float) -> void:
 	_dl_img = null
 	if img and not img.is_empty():
 		img.convert(Image.FORMAT_RGBA8)
-		_strip.blit_rect(img, Rect2i(0, 0, SIZE, SIZE), Vector2i(_frame * SIZE, 0))
+		_strip.blit_rect(img, Rect2i(0, 0, _sz(), _sz()), Vector2i(_frame * _sz(), 0))
 	_frame += 1
-	if _frame < FRAMES:
+	if _frame < _nf():
 		_shoot()
 		return
 	var key := _busy
 	_model.queue_free()
 	_model = null
 	_busy = ""
-	_strip.save_png(_busy_disk)
+	if _busy_disk != "":
+		_strip.save_png(_busy_disk)
 	_mem[key] = _cut(ImageTexture.create_from_image(_strip))
 	_strip = null
 	made.emit(key, _mem[key][0])
@@ -263,7 +280,7 @@ func _download() -> bool:
 
 ## The next frame: the thing turned on, drawn once.
 func _shoot() -> void:
-	_pivot.rotation.y = TAU * float(_frame) / FRAMES
+	_pivot.rotation.y = TAU * float(_frame) / _nf() + (0.6 if _nf() == 1 else 0.0)   # (one picture: turned a little, three-quarters on)
 	_vp.render_target_update_mode = SubViewport.UPDATE_ONCE
 	_wait = 2
 

@@ -101,7 +101,7 @@ func build_right(box: VBoxContainer) -> void:
 	_keep_box.toggled.connect(func(on): keep_b = on)
 	row.add_child(_keep_box)   # (beside the tools: one row)
 	box.add_child(row)
-	_bool_note = UI.note("", 13, 200)   # (kept for its messages, not shown: the tools' tooltips say what they need)
+	_bool_note = UI.note("", 14, 200)   # (kept for its messages, not shown: the tools' tooltips say what they need)
 	_bool_note.visible = false
 	box.add_child(_bool_note)
 	box.add_child(EditorIcons.tipped(UI.section("SHAPE"), EditorIcons.tip("Shape", "", "The selected shape from the library: its settings, made again as you change them.")))
@@ -310,15 +310,22 @@ func _add_mesh(id: String, e: Dictionary, m: Mesh, at: Vector3) -> MeshInstance3
 ## Where a shape dropped at `at` (the view's point) goes: the surface under the mouse, else
 ## the ground (y = 0), else in front of the camera.
 func drop_point(at: Vector2) -> Vector3:
+	return drop_hit(at)[0]
+
+
+## Where a drop at `at` lands: [the point (the nearest solid under it, else the ground, else ahead of the
+## camera), the surface's normal there].
+func drop_hit(at: Vector2) -> Array:
 	var r: Array = ed.view.ray(at)
 	var o: Vector3 = r[0]
 	var d: Vector3 = (r[1] as Vector3).normalized()
 	var best := INF
 	var hit := Vector3.INF
+	var nrm := Vector3.UP
 	for p: MeshInstance3D in ed.parts():
-		if not p.is_visible_in_tree():
+		if not p.is_visible_in_tree() or p.mesh == null:
 			continue
-		var tm := p.mesh.generate_triangle_mesh()
+		var tm := p.mesh.generate_triangle_mesh()   # (cached by the mesh)
 		if tm == null:
 			continue
 		var inv := p.global_transform.affine_inverse()
@@ -329,12 +336,15 @@ func drop_point(at: Vector2) -> Vector3:
 		if w.distance_to(o) < best:
 			best = w.distance_to(o)
 			hit = w
+			nrm = (p.global_transform.basis.inverse().transposed() * (h["normal"] as Vector3)).normalized()
 	if hit != Vector3.INF:
-		return hit
+		if nrm.dot(d) > 0.0:
+			nrm = -nrm   # (the side facing the camera)
+		return [hit, nrm]
 	var g = Plane(Vector3.UP, 0.0).intersects_ray(o, d)
 	if g != null:
-		return g
-	return o + d * 3.0
+		return [g, Vector3.UP]
+	return [o + d * 3.0, -d]
 
 
 # --- the selected part's shape -----------------------------------------------------------

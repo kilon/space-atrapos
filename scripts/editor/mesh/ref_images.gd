@@ -325,7 +325,7 @@ func build_right(box: VBoxContainer) -> void:
 	_list = ItemList.new()
 	_list.custom_minimum_size.y = 56
 	_list.auto_height = true
-	_list.add_theme_font_size_override("font_size", 13)
+	_list.add_theme_font_size_override("font_size", 14)
 	_list.tooltip_text = EditorIcons.tip("Reference images", "", "This model's reference images: pick one to change it below.")
 	_list.item_selected.connect(func(i): _sel = i; _fill_fields())
 	box.add_child(_list)
@@ -382,7 +382,7 @@ func build_right(box: VBoxContainer) -> void:
 
 
 func _row(grid: GridContainer, text: String, c: Control, key: String) -> void:
-	var l := UI.label(text, 13, UI.TEXT_DIM)
+	var l := UI.label(text, 14, UI.TEXT_DIM)
 	l.mouse_filter = Control.MOUSE_FILTER_STOP
 	l.tooltip_text = c.tooltip_text
 	grid.add_child(l)

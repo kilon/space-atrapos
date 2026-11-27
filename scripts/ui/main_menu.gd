@@ -421,7 +421,7 @@ func _fill_slots() -> void:
 			if str(sm.get("planet", "")) != "":
 				where = "on %s  ·  %s" % [sm["planet"], where]
 			text.add_child(UI.label(("%s  ·  " % SaveGame.slot_name(slot) if slot > SaveGame.SLOTS else "") + where, 17))
-			text.add_child(UI.label("%s  ·  %s  ·  %d drachmas" % [str(info.get("saved_at", "")).replace("T", "  "), sm.get("ship", "?"), int(sm.get("credits", 0))], 13, UI.TEXT_DIM))
+			text.add_child(UI.label("%s  ·  %s  ·  %d drachmas" % [str(info.get("saved_at", "")).replace("T", "  "), sm.get("ship", "?"), int(sm.get("credits", 0))], 14, UI.TEXT_DIM))
 		row.add_child(text)
 		var b: Button
 		if _slots_mode == "save":
@@ -1062,7 +1062,7 @@ func _build_controls() -> VBoxContainer:
 				tl.text = t
 				tl.custom_minimum_size = Vector2(104 if t != "" else 32, 0)
 				tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-				tl.add_theme_font_size_override("font_size", 12)
+				tl.add_theme_font_size_override("font_size", 14)
 				tl.add_theme_color_override("font_color", UI.TEXT_DIM)
 				gh.add_child(tl)
 			col.add_child(gh)
@@ -1081,7 +1081,7 @@ func _build_controls() -> VBoxContainer:
 		for slot in 3:
 			var b := Button.new()
 			b.custom_minimum_size = Vector2(104, 26)
-			b.add_theme_font_size_override("font_size", 13)
+			b.add_theme_font_size_override("font_size", 14)
 			b.clip_text = true
 			b.pressed.connect(_start_listen.bind(a[0], slot))
 			b.gui_input.connect(func(ev):

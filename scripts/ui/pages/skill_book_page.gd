@@ -49,7 +49,7 @@ func _ready() -> void:
 	body.add_child(side)
 	_name = UI.section("", NeonTheme.HEAD)
 	side.add_child(_name)
-	_text = UI.note("", 13, 380.0, NeonTheme.TEXT)
+	_text = UI.note("", 14, 380.0, NeonTheme.TEXT)
 	side.add_child(_text)
 	side.add_child(UI.note("Fighting earns experience: enemies defeated, blows and spells that land. Each level gives a skill point. "
 		+ "Every use costs stamina.", 12, 380.0))

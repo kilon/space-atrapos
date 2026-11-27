@@ -181,7 +181,7 @@ func _build() -> void:
 	h2.add_child(_btn("Save", "save", "Ctrl+S", "Keeps every edit: put back each time such a thing is made.", save))
 	box.add_child(h2)
 	var h4 := HBoxContainer.new()
-	h4.add_child(UI.label("Save", 13, UI.TEXT_DIM))
+	h4.add_child(UI.label("Save", 14, UI.TEXT_DIM))
 	_target = OptionButton.new()
 	_target.focus_mode = Control.FOCUS_NONE
 	_target.clip_text = true
@@ -197,7 +197,7 @@ func _build() -> void:
 	_title = UI.label("Nothing picked", 18, NeonTheme.HEAD)
 	_title.clip_text = true
 	box.add_child(_title)
-	_kind = UI.label("", 13, UI.TEXT_DIM)
+	_kind = UI.label("", 14, UI.TEXT_DIM)
 	_kind.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(_kind)
 	var h3 := HBoxContainer.new()
@@ -225,7 +225,7 @@ func _build() -> void:
 	_tab_holder = VBoxContainer.new()
 	_tab_holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(_tab_holder)
-	_status = UI.label("", 13, UI.TEXT_DIM)
+	_status = UI.label("", 14, UI.TEXT_DIM)
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(_status)
 

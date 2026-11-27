@@ -45,7 +45,7 @@ func _ready() -> void:
 	list.name = "ShapeList"
 	list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	list.focus_mode = Control.FOCUS_NONE
-	list.add_theme_font_size_override("font_size", 13)
+	list.add_theme_font_size_override("font_size", 14)
 	list.icon_mode = ItemList.ICON_MODE_TOP
 	list.max_columns = 0
 	list.fixed_icon_size = Vector2i(56, 56)
@@ -73,7 +73,7 @@ func fill_cats() -> void:
 		b.text = "All" if c == "" else str(c)
 		b.toggle_mode = true
 		b.focus_mode = Control.FOCUS_NONE
-		b.add_theme_font_size_override("font_size", 13)
+		b.add_theme_font_size_override("font_size", 14)
 		b.name = "Cat_" + (b.text.validate_node_name())
 		b.tooltip_text = EditorIcons.tip("Category: " + b.text, "", "Shows %s." % ("every shape" if c == "" else "the shapes of this category"))
 		b.button_pressed = c == cat

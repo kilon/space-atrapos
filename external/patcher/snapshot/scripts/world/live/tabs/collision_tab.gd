@@ -69,18 +69,18 @@ func bind(e: Node) -> void:
 	_rel = LiveEdits.rel_path(_anchor, _owner) if _anchor else "."
 	_rot = SolidsEdit.rotation_of(_owner)
 	add_child(LiveFields.head("SOLIDS"))
-	_info = UI.note("", 13, 420.0)
+	_info = UI.note("", 14, 420.0)
 	add_child(_info)
 	_xray = CheckBox.new()
 	_xray.text = "Show through walls"
 	_xray.focus_mode = Control.FOCUS_NONE
-	_xray.add_theme_font_size_override("font_size", 13)
+	_xray.add_theme_font_size_override("font_size", 14)
 	_xray.tooltip_text = EditorIcons.tip("Show through walls", "", "Draws the solid boxes over everything, not hidden behind walls and floors.")
 	_xray.toggled.connect(func(_v): _redraw = true)
 	add_child(_xray)
 	_list = ItemList.new()
 	_list.custom_minimum_size = Vector2(0, 220)
-	_list.add_theme_font_size_override("font_size", 13)
+	_list.add_theme_font_size_override("font_size", 14)
 	_list.focus_mode = Control.FOCUS_NONE
 	_list.tooltip_text = EditorIcons.tip("Solids nearby", "", "The solid boxes nearest the camera: number, kind, distance. Click one to select it\n(or click a box in the world); its fields show below.")
 	_list.item_selected.connect(func(i): _select(int(_listed[i]) if i < _listed.size() else -1, false))
@@ -276,7 +276,7 @@ func _fill_fields() -> void:
 		return
 	UI.clear(_fields)
 	if _sel < 0 or _sel >= _shapes.size():
-		_fields.add_child(UI.note("None: click a box in the world, or one in the list.", 13, 420.0))
+		_fields.add_child(UI.note("None: click a box in the world, or one in the list.", 14, 420.0))
 		return
 	var s: Dictionary = _shapes[_sel]
 	var xf: Transform3D = s["xf"]
@@ -284,7 +284,7 @@ func _fill_fields() -> void:
 	_fields.add_child(UI.label("#%d  %s" % [_sel, _describe(s)], 14))
 	_fields.add_child(LiveFields.row("Solid", bool(s.get("on", true)), func(v): _change(_sel, "on", v), "", "Off: the box stops nothing (kept, drawn grey) - a gap without deleting it."))
 	if ro:
-		_fields.add_child(UI.note("A sloped or many-sided block: it can be turned off, copied (as a box) or deleted, not moved.", 13, 420.0))
+		_fields.add_child(UI.note("A sloped or many-sided block: it can be turned off, copied (as a box) or deleted, not moved.", 14, 420.0))
 		return
 	_fields.add_child(LiveFields.row("Centre (m)", xf.origin, func(v): _change(_sel, "centre", v), "", "The box's middle (metres), in the place's own frame."))
 	var size: Vector3 = (s["half"] as Vector3) * 2.0
@@ -299,11 +299,11 @@ func _fill_fields() -> void:
 				func(v): _change(_sel, "euler", v), "", "The box's turn (degrees) about x, y and z."))
 	if SolidsEdit.kind_of(_owner) == "hangar":
 		var h := HBoxContainer.new()
-		var l := UI.label("Stops", 13, UI.TEXT_DIM)
+		var l := UI.label("Stops", 14, UI.TEXT_DIM)
 		l.custom_minimum_size.x = 150
 		h.add_child(l)
 		var ob := OptionButton.new()
-		ob.add_theme_font_size_override("font_size", 13)
+		ob.add_theme_font_size_override("font_size", 14)
 		ob.focus_mode = Control.FOCUS_NONE
 		ob.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		for i in USES.size():
@@ -316,7 +316,7 @@ func _fill_fields() -> void:
 		h.add_child(ob)
 		_fields.add_child(h)
 	if SolidsEdit.kind_of(_owner) in ["hangar", "interior"]:
-		_fields.add_child(UI.note("Feet: only its footprint counts (its height is drawn, not used).", 13, 420.0))
+		_fields.add_child(UI.note("Feet: only its footprint counts (its height is drawn, not used).", 14, 420.0))
 
 
 func _change(i: int, what: String, v: Variant) -> void:
