@@ -8,7 +8,7 @@
 shader_type spatial;
 render_mode unshaded, cull_disabled, depth_draw_never, blend_mix, fog_disabled;
 
-uniform vec3 sun_dir = vec3(0.0, 1.0, 0.0);
+uniform vec3 sun_dir = vec3(0.0, 1.0, 0.0);   // (towards the star in its own frame - CosmosPlanet.spin_sun)
 uniform float cover = 0.5;
 uniform float scale = 2.2;
 uniform float seed = 0.0;
@@ -56,8 +56,8 @@ void fragment() {
 	float lit = smoothstep(-0.2, 0.4, sd);
 	// (by the dawn and the dusk: lit gold and rose from below, the sun's last light - under
 	// them, as the sun stands where you are; from above, where they are)
-	vec3 eye = CAMERA_POSITION_WORLD - NODE_POSITION_WORLD;
 	float shell = length(MODEL_MATRIX[0].xyz);   // (its radius: a unit sphere, scaled)
+	vec3 eye = transpose(mat3(MODEL_MATRIX)) * (CAMERA_POSITION_WORLD - NODE_POSITION_WORLD) / shell;   // (in its own frame, as sun_dir and `up`: its world turns)
 	float below = 1.0 - smoothstep(0.98, 1.02, length(eye) / max(shell, 1.0));
 	float se = mix(sd, dot(normalize(eye), sun_dir), below);
 	float glow = exp(-pow((se - 0.03) / 0.14, 2.0));

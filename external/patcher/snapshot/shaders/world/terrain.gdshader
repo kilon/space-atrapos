@@ -24,6 +24,7 @@ uniform vec4 cuts[128];                  // the carves nearest you: planet-local
 uniform int cut_n = 0;
 varying float v_cut;
 varying float v_vox;
+varying float v_wet;                     // (a lake's, a river's: its bed and banks - the patches' UV.y < 0, CosmosPlanet)
 const int VEINS = 16;
 uniform int vein_n = 0;                  // the veins known round you (the nearest; 0 on other worlds)
 uniform int ghost_n = 0;                 // the first of them the scanner's shown (their ghosts)
@@ -62,7 +63,8 @@ varying float v_gloss;                   // (to light(): how wet and glossy - a 
 varying vec2 v_wx;                       // (the weather on the ground here: how wet, how much snow lies - a vertex's: the cells span kilometres)
 
 void vertex() {
-	v_vox = UV.y;
+	v_vox = max(UV.y, 0.0);
+	v_wet = max(-UV.y, 0.0);
 #if CURRENT_RENDERER == RENDERER_COMPATIBILITY
 	v_local = (planet_inv * (MODEL_MATRIX * vec4(VERTEX, 1.0))).xyz;
 	v_cut = 0.0;
@@ -192,7 +194,7 @@ void fragment() {
 		}
 	}
 	vec3 up = normalize(v_local);
-	vec3 wn = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
+	vec3 wn = normalize(transpose(mat3(MODEL_MATRIX)) * (INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);   // (planet-local, as `up`: the world turns - its patches unscaled)
 	float slope = 1.0 - clamp(dot(wn, up), 0.0, 1.0);
 	float dist = length(VERTEX);
 	// Noise at three scales: the planet's (biomes), a field's, underfoot
@@ -285,6 +287,20 @@ void fragment() {
 		col = mix(col, col * 0.35 + vec3(0.02, 0.03, 0.04), pud);
 		rough = mix(rough, 0.03, pud);
 		v_gloss = max(wet * 0.15, pud);
+	}
+	if (v_wet > 0.01) {
+		// A lake's or a river's ground: under its water a bed of pebbles and silt, dark and
+		// glossy; up its banks damp earth, drying off a few metres from the water.
+		float bed = smoothstep(0.8, 1.0, v_wet);
+		float pb = nz(v_local / 0.42);
+		vec3 stones = mix(vec3(0.36, 0.34, 0.3), vec3(0.6, 0.56, 0.5), pb) * (0.75 + 0.4 * nz(v_local / 0.13 + 2.1));
+		vec3 silt = mix(col, vec3(0.3, 0.27, 0.22), 0.6);
+		vec3 bedc = mix(silt, stones, smoothstep(0.45, 0.6, pb + (n2 - 0.5) * 0.3) * near2);
+		col = mix(col, col * vec3(0.55, 0.5, 0.45), v_wet * (1.0 - bed));
+		col = mix(col, bedc * 0.7, bed);
+		rough = mix(rough, 0.45, v_wet);
+		v_gloss = max(v_gloss, v_wet * (1.0 - bed) * 0.3);
+		snowl *= 1.0 - bed;
 	}
 	if (snowl > 0.01) {
 		float sl = snowl * (1.0 - smoothstep(0.35, 0.62, slope + (n2 - 0.5) * 0.18 * near));

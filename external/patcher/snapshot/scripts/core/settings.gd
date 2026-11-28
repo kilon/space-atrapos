@@ -77,6 +77,19 @@ const AUTOSAVE_DEFAULT := 5
 var autosave_minutes := AUTOSAVE_DEFAULT
 var autosave_events := true
 
+## How long the worlds' days are (CosmosPlanet's day: each world turns on its axis):
+## a multiple of each world's own day - 1: its own, 16-24 min (day and night each at
+## most 12 min where its towns are); 0: no turning (a place's hour comes only from
+## its world going round its star). Changed in play: the worlds go on from where they are.
+const DAY_LENGTHS := [[0.4, "Short (about 8 min)"], [0.6, "About 12 min"], [1.0, "Each world's own (16-24 min)"],
+	[2.0, "About 40 min"], [3.0, "About 1 hour"], [6.0, "About 2 hours"], [0.0, "No turning"]]
+const DAY_LENGTH_DEFAULT := 1.0
+var day_length := DAY_LENGTH_DEFAULT
+
+func set_day_length(mult: float) -> void:
+	day_length = mult if DAY_LENGTHS.any(func(d): return is_equal_approx(float(d[0]), mult)) else DAY_LENGTH_DEFAULT
+	_queue_save()
+
 func set_fps_counter(on: bool) -> void:
 	fps_counter = on
 	_queue_save()
@@ -290,6 +303,7 @@ func reset_to_defaults() -> void:
 	terrain_3d = true
 	autosave_minutes = AUTOSAVE_DEFAULT
 	autosave_events = true
+	day_length = DAY_LENGTH_DEFAULT
 	reset_crt()
 	apply_volumes()
 	apply()
@@ -498,6 +512,7 @@ func save_settings() -> void:
 	cfg.set_value("display", "antialias", antialias)
 	cfg.set_value("game", "autosave_minutes", autosave_minutes)
 	cfg.set_value("game", "autosave_events", autosave_events)
+	cfg.set_value("game", "day_length", day_length)
 	cfg.set_value("crt", "on", crt_on)
 	cfg.set_value("crt", "attract", crt_attract)
 	for k in crt:
@@ -533,6 +548,9 @@ func load_settings() -> void:
 	if not autosave_minutes in AUTOSAVE_CHOICES:
 		autosave_minutes = AUTOSAVE_DEFAULT
 	autosave_events = bool(cfg.get_value("game", "autosave_events", true))
+	day_length = float(cfg.get_value("game", "day_length", DAY_LENGTH_DEFAULT))
+	if not DAY_LENGTHS.any(func(d): return is_equal_approx(float(d[0]), day_length)):
+		day_length = DAY_LENGTH_DEFAULT
 	crt_on = bool(cfg.get_value("crt", "on", CRT_ON_DEFAULT))
 	crt_attract = bool(cfg.get_value("crt", "attract", CRT_ATTRACT_DEFAULT))
 	for p in CRT_PARAMS:

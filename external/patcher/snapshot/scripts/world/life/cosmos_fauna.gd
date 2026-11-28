@@ -47,7 +47,7 @@ const SPECIES := {
 	"boar": ["heavy", "wild boar", 62, 35, 205, "predator", 60, 11, Color(0.28, 0.2, 0.15), Color(0.5, 0.4, 0.32), 0, {"horns": 2, "snout": 0.4}],
 	"snake": ["serpent", "Aesculapian snake", 26, 22, 30, "predator", 15, 7, Color(0.35, 0.32, 0.15), Color(0.85, 0.75, 0.3), 1, {}],
 	"tigrokeros": ["hoof", "striped tigrokeros", 76, 42, 160, "grazer", 35, 7, Color(0.9, 0.55, 0.2), Color(0.12, 0.1, 0.08), 1, {"horns": 2, "herd": true}],
-	"mykelephas": ["heavy", "mushroom mammoth", 130, 24, 60, "grazer", 120, 16, Color(0.45, 0.4, 0.38), Color(0.75, 0.2, 0.15), 2, {"cap": 1.0, "snout": 0.9, "horns": 2, "leg_len": 0.9}],
+	"mykelephas": ["heavy", "mushroom mammoth", 780, 60, 150, "calm", 600, 35, Color(0.45, 0.4, 0.38), Color(0.75, 0.2, 0.15), 2, {"cap": 1.0, "snout": 0.9, "horns": 2, "leg_len": 0.9, "herd": true, "model": "mammoth"}],   # (towering - 14 m; calm: it lets you walk among them)
 	"selas": ["hoof", "glowing selas stag", 116, 44, 175, "grazer", 40, 9, Color(0.88, 0.92, 0.95), Color(0.4, 0.9, 1.0), 2, {"antlers": 1.2, "glow": 1.5}],
 	"capslug": ["grub", "capped slug", 66, 12, 12, "grazer", 50, 0, Color(0.5, 0.35, 0.55), Color(0.9, 0.6, 0.3), 2, {"cap": 1.0}],
 	"toad": ["small", "bubble toad", 40, 40, 170, "skittish", 12, 0, Color(0.35, 0.55, 0.25), Color(0.9, 0.85, 0.4), 2, {"neck": 0.0, "leg_len": 0.25}],
@@ -104,7 +104,7 @@ const SETS := {
 	"ic": ["icestag", "shardcrawler", "icehare", "starcrawler", "frostray", "wisp", "frostbeast", "frostwolf", "strider", "scuttler", "bubblespider", "icewyrm"],
 	"vo": ["magmabehemoth", "cinderstalker", "obsidianmantis", "bloater", "lavaserpent", "ventcrab", "pyrohound", "ashwraith", "basaltgolem", "emberqueen", "cratermaw", "fumaroletitan"]}
 ## The 2D game's tempers -> the 3D creature's (how it behaves).
-const TEMPERS := {"grazer": "grazer", "skittish": "skittish", "predator": "predator", "slow": "grazer", "bird": "skittish", "soar": "skittish", "drift": "grazer"}
+const TEMPERS := {"calm": "calm", "grazer": "grazer", "skittish": "skittish", "predator": "predator", "slow": "grazer", "bird": "skittish", "soar": "skittish", "drift": "grazer"}
 
 
 ## One of the 2D game's species, built for CosmosCreature.

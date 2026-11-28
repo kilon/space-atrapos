@@ -292,6 +292,7 @@ class Body:
 		arr[Mesh.ARRAY_INDEX] = b.idx
 		var m := ArrayMesh.new()
 		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT)
+		LodKit.later(m, [arr], Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT)   # (its levels of detail - LodKit)
 		return {"mesh": m, "spheres": b.spheres}
 
 	func _v(p: Vector3, n: Vector3, c: Color, t: float) -> int:

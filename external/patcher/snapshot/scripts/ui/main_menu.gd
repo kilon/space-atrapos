@@ -1273,6 +1273,7 @@ var _crt_scroll: ScrollContainer
 
 var _autosave_option: OptionButton
 var _autosave_events: CheckButton
+var _day_option: OptionButton
 
 
 func _build_game_settings() -> VBoxContainer:
@@ -1307,6 +1308,21 @@ func _build_game_settings() -> VBoxContainer:
 		Settings.save_settings())
 	row2.add_child(_autosave_events)
 	box.add_child(row2)
+	var row3 := HBoxContainer.new()
+	row3.add_theme_constant_override("separation", 16)
+	var l3 := UI.label("Day length", 20)
+	l3.custom_minimum_size.x = 260
+	row3.add_child(l3)
+	_day_option = OptionButton.new()
+	for d in Settings.DAY_LENGTHS:
+		_day_option.add_item(str(d[1]))
+	_day_option.add_theme_font_size_override("font_size", 18)
+	_day_option.custom_minimum_size = Vector2(260, 40)
+	_day_option.tooltip_text = "How long a day and a night last on the worlds (each world turns on its own axis). Changed in play, the worlds go on from where they are."
+	_day_option.item_selected.connect(func(i: int):
+		Settings.set_day_length(float(Settings.DAY_LENGTHS[i][0])))
+	row3.add_child(_day_option)
+	box.add_child(row3)
 	var hint := UI.label("Autosaves go into their own slot (Autosave, at the top of the Load list), never into your six.\nF5 quicksaves and F9 quickloads at any time (Settings > Controls to rebind).", 15, UI.TEXT_DIM)
 	box.add_child(hint)
 	_sync_game_settings()
@@ -1318,6 +1334,11 @@ func _sync_game_settings() -> void:
 		return
 	_autosave_option.select(maxi(0, Settings.AUTOSAVE_CHOICES.find(Settings.autosave_minutes)))
 	_autosave_events.set_pressed_no_signal(Settings.autosave_events)
+	var di := 0
+	for i in Settings.DAY_LENGTHS.size():
+		if is_equal_approx(float(Settings.DAY_LENGTHS[i][0]), Settings.day_length):
+			di = i
+	_day_option.select(di)
 
 
 func _tabify_settings() -> void:

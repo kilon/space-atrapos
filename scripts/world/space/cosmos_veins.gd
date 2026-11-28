@@ -71,7 +71,7 @@ func _process(delta: float) -> void:
 		_send(Vector3.ZERO)
 	if planet == null or w.get("deck") != null:
 		return
-	var local: Vector3 = w.global_position - planet.global_position
+	var local: Vector3 = planet.to_local(w.global_position)
 	if not ghosted.is_empty():   # (the ghost: on for its minute, fading out at the end)
 		var now := Time.get_ticks_msec() / 1000.0
 		var k := clampf((ghost_until - now) / FADE, 0.0, 1.0)
@@ -276,7 +276,7 @@ func reveal(me: Vector3) -> Array:
 	var out := []
 	if planet == null:
 		return out
-	var local := me - planet.global_position
+	var local := planet.to_local(me)
 	_clear_ghosts()
 	for k in veins:
 		var v: Dictionary = veins[k]

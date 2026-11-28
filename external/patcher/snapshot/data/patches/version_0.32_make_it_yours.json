@@ -3,7 +3,7 @@
  "id": "0.32",
  "title": "Make it yours",
  "date": "2026-11-24",
- "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024). Then ECurves (patch 0025): every model an ECurve object, fast enough for a whole character. Then quads along the edges (patch 0026): bakes in quads that follow their edges, and settings that fit. Then joined solids (patch 0027). Then clean topology (patch 0028). Then living worlds (patch 0029).",
+ "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024). Then ECurves (patch 0025): every model an ECurve object, fast enough for a whole character. Then quads along the edges (patch 0026): bakes in quads that follow their edges, and settings that fit. Then joined solids (patch 0027). Then clean topology (patch 0028). Then living worlds (patch 0029). Then turning worlds (patch 0030).",
  "patches": [
   "0023",
   "0024",
@@ -11,7 +11,8 @@
   "0026",
   "0027",
   "0028",
-  "0029"
+  "0029",
+  "0030"
  ],
  "steps": [
   {
@@ -778,8 +779,155 @@
   },
   {
    "patch": "0029",
-   "title": "Patch 0029 - Living worlds",
-   "text": "The worlds come alive. The land has mountain chains, valleys, canyons and abysses, and you climb it - up and along cliffs and walls, each with its own move - and slide down it.",
+   "title": "Living worlds",
+   "text": "The worlds come alive: mountains, canyons and abysses to climb and slide down; caves and dungeons in the ground itself; sunsets, starlit nights and lamplit caves; weather moving over each world in three cloud layers, with rain, storms, snow and ash; sun rays through the trees; Greek trees of real branches and leaves among meadows; a new dragonfly, aeromanta and fox; the automaton's folding rifle, boot thrusters and shield; roads, caravans and loot.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "LIVING WORLDS",
+     "size": 22,
+     "color": "gold",
+     "align": "center",
+     "delay": 0.0
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      95,
+      290,
+      80
+     ],
+     "stroke": "cyan",
+     "label": "mountains, canyons:\nclimb and slide",
+     "size": 18,
+     "delay": 0.2
+    },
+    {
+     "t": "box",
+     "rect": [
+      355,
+      95,
+      290,
+      80
+     ],
+     "stroke": "cyan",
+     "label": "caves, dungeons\nin the ground",
+     "size": 18,
+     "delay": 0.3
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      95,
+      290,
+      80
+     ],
+     "stroke": "gold",
+     "label": "sunsets, nights,\nlamplit caves",
+     "size": 18,
+     "delay": 0.4
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      210,
+      290,
+      80
+     ],
+     "stroke": "purple",
+     "label": "weather: rain,\nstorms, snow, ash",
+     "size": 18,
+     "delay": 0.5
+    },
+    {
+     "t": "box",
+     "rect": [
+      355,
+      210,
+      290,
+      80
+     ],
+     "stroke": "green",
+     "label": "Greek trees,\nbranch and leaf",
+     "size": 18,
+     "delay": 0.6
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      210,
+      290,
+      80
+     ],
+     "stroke": "green",
+     "label": "dragonfly,\naeromanta, fox",
+     "size": 18,
+     "delay": 0.7
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      325,
+      290,
+      80
+     ],
+     "stroke": "cyan",
+     "label": "folding rifle,\nboot thrusters",
+     "size": 18,
+     "delay": 0.8
+    },
+    {
+     "t": "box",
+     "rect": [
+      355,
+      325,
+      290,
+      80
+     ],
+     "stroke": "purple",
+     "label": "a shield\nlike a ship's",
+     "size": 18,
+     "delay": 0.9
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      325,
+      290,
+      80
+     ],
+     "stroke": "gold",
+     "label": "roads, caravans,\nloot",
+     "size": 18,
+     "delay": 1.0
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      480
+     ],
+     "text": "no loading: walk from the land into the rock",
+     "color": "gold",
+     "size": 18,
+     "delay": 1.4
+    }
+   ]
+  },
+  {
+   "patch": "0030",
+   "title": "Patch 0030 - Turning worlds",
+   "text": "The worlds turn: every world spins on its own axis, the sun rising and setting every few minutes (a Day length setting), with the time to sunrise and sunset on the HUD. Towns are laid out in blocks between streets, lit at night by lamps in each empire's style; main roads join the cities and cross water on stone bridges, you walk faster on them, and they show on the planet map.",
    "diagram": [
     {
      "t": "box",
@@ -789,7 +937,7 @@
       600,
       80
      ],
-     "label": "PATCH 0029\nLiving worlds",
+     "label": "PATCH 0030\nTurning worlds",
      "size": 18,
      "stroke": "gold"
     },
@@ -799,7 +947,7 @@
       210,
       200
      ],
-     "text": "Mountains, valleys, canyons - and ",
+     "text": "The worlds turn",
      "color": "cyan",
      "size": 15,
      "delay": 0.3
@@ -810,7 +958,7 @@
       500,
       200
      ],
-     "text": "Caves and dungeons in the ground",
+     "text": "Towns: streets, blocks and lamps",
      "color": "green",
      "size": 15,
      "delay": 0.44999999999999996
@@ -821,7 +969,7 @@
       790,
       200
      ],
-     "text": "Light: sunsets, nights, undergroun",
+     "text": "Roads, bridges, faster on the way",
      "color": "purple",
      "size": 15,
      "delay": 0.6
@@ -832,7 +980,7 @@
       210,
       290
      ],
-     "text": "Weather: local, moving, in layers",
+     "text": "Landing pads, traffic, pilots",
      "color": "gold",
      "size": 15,
      "delay": 0.75
@@ -843,7 +991,7 @@
       500,
       290
      ],
-     "text": "Sun rays, the compass, markers",
+     "text": "Water: sea, lakes and rivers",
      "color": "red",
      "size": 15,
      "delay": 0.8999999999999999
@@ -854,7 +1002,7 @@
       790,
       290
      ],
-     "text": "Greek trees, grass and ground",
+     "text": "The folding rifle, the mammoth",
      "color": "blue",
      "size": 15,
      "delay": 1.05
@@ -865,7 +1013,7 @@
       500,
       400
      ],
-     "text": "... and 3 more steps",
+     "text": "... and 2 more steps",
      "size": 15,
      "color": "dim",
      "align": "center"

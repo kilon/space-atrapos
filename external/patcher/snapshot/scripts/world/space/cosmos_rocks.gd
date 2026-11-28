@@ -129,7 +129,7 @@ static func _rock_mesh(seed: int) -> Array:
 	var st := SurfaceTool.new()
 	st.create_from_arrays(arr)
 	st.generate_normals()
-	return [st.commit(), n, sc]
+	return [LodKit.commit(st), n, sc]   # (with its levels of detail - LodKit)
 
 
 # --- Where things are on a rock (its tumble) ---------------------------------------------
@@ -252,6 +252,7 @@ func _carve_step(i: int, delta: float) -> void:
 		c["task"] = -1
 		var m := ArrayMesh.new()
 		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, c["out"][0])
+		LodKit.later(m, [c["out"][0]])   # (its levels of detail - LodKit)
 		c.erase("out")
 		if not c.has("mm"):
 			var e: Array = _inst[i]

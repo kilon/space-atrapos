@@ -191,6 +191,12 @@ func _ready() -> void:
 	_play("guard" if dungeon or in_cave else (("gun_idle" if weapon != "" else "idle") if town else "guard"))
 
 
+## Its `facing` in a town's or a dungeon's own frame (not the world's): not turned
+## with the world's spin by Cosmos._spin_carry (its place comes from that frame).
+func spin_local() -> bool:
+	return is_instance_valid(town) or is_instance_valid(dungeon)
+
+
 func up() -> Vector3:
 	if dungeon:
 		return dungeon.global_basis.y
@@ -255,6 +261,18 @@ func _process(delta: float) -> void:
 		elif _crew == 1 and _dl != Vector3.INF and is_instance_valid(ride):
 			global_position = ride.to_global(_dl)   # (a frame he doesn't think: still where he was by it)
 		return
+	if _off in [1, 4]:   # (a landing field's pilot on his ship's ramp: down it, or back up it)
+		if not is_instance_valid(off_ship):
+			_off = 2 if _off == 1 else 5
+			return
+		var d := _lazy_step(delta)
+		if d >= 0.0:
+			_walk_ramp(d)
+		else:
+			global_position = off_ship.to_global(_dl)
+		return
+	if _off == 5:
+		return   # (back aboard: gone with it)
 	if town:
 		var d := _lazy_step(delta)
 		if d >= 0.0:
@@ -267,7 +285,7 @@ func _process(delta: float) -> void:
 		_cave_fight(delta)
 		return
 	var u := up()
-	var me := global_position - planet.global_position
+	var me := planet.to_local(global_position)   # (planet-local, as its camp: the world turns)
 	var player: Node3D = cosmos.walker if cosmos else null
 	var to := Vector3.ZERO
 	var pd := INF
@@ -307,8 +325,8 @@ func _process(delta: float) -> void:
 		if _t <= 0.0:
 			_t = _rng.randf_range(3.0, 7.0)
 			var t := u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized().rotated(u, _rng.randf() * TAU)
-			_goal = camp + t * _rng.randf_range(3.0, 14.0)
-		var g := _goal - me
+			_goal = camp + planet.dir_local(t) * _rng.randf_range(3.0, 14.0)
+		var g := planet.dir_world(_goal - me)
 		g -= u * g.dot(u)
 		if g.length() > 1.0:
 			move = g.normalized() * 0.6
@@ -318,7 +336,7 @@ func _process(delta: float) -> void:
 	global_position += move * SPEED * delta
 	var local := global_position - planet.global_position
 	var d := local.normalized()
-	global_position = planet.global_position + d * (planet.radius + maxf(planet.shape.height(d), 0.0))
+	global_position = planet.global_position + d * (planet.radius + maxf(planet.shape.height(planet.dir_local(d)), 0.0))
 	if cosmos and cosmos.get("builds") and cosmos.builds.planet == planet:   # (kept out of what you've built - an unlocked door pushed open)
 		global_position += cosmos.builds.push_body(global_position, 0.45, true)
 	facing = (facing - d * facing.dot(d)).normalized()
@@ -380,12 +398,31 @@ func _citizen(delta: float) -> void:
 				_play("fire", true)
 			elif not (_clip == "fire" and _anim and _anim.is_playing()):
 				_play("gun_idle")
+	elif role == "captain" and _off == 3 and (not is_instance_valid(off_ship) or (not (off_ship.get("hire") as Dictionary).is_empty() and off_ship.call("hire_state") != "wait")):
+		_off = 2   # (his ship gone without him: one of the town's people a while yet)
+		off_ship = null
+		_off_goal = Vector3.INF
+	elif role == "captain" and _off == 3:   # (his time ashore up: back through the town to his ship's ramp)
+		move = _ashore_step(_ramp_foot(), delta)
+		speed = CREW_RUN if _off_hurry else CREW_SPEED
+		if move == Vector3.ZERO:
+			if is_instance_valid(off_ship) and (off_ship.get("hire") as Dictionary).is_empty():
+				_off = 4   # (up his ramp, in)
+				_dl = off_ship.to_local(global_position)
+				var e := _ramp_ends(off_ship)
+				_off_path = [e[1], e[0]]
+			_play("idle")
+		else:
+			_play("run" if _off_hurry else "walk")
 	elif near:
 		var to: Vector3 = town.to_local(me.global_position) - _tl
 		to.y = 0.0
 		if to.length() > 0.1:
 			facing = _turn.step(facing, to, Vector3.UP, delta)   # (round smoothly - never snapped)
 		_play("gun_idle" if armed else "idle")
+	elif role == "captain":   # (ashore: to where he spends his time - the square, a door, the colonnade - and there a while)
+		move = _ashore_step(stay_at, delta)
+		_play("walk" if move != Vector3.ZERO else "idle")
 	elif role in ["vendor", "courier", "pilot"] or _wait > 0.0:
 		_wait -= delta
 		_play("gun_idle" if armed else "idle")
@@ -394,13 +431,19 @@ func _citizen(delta: float) -> void:
 		g.y = 0.0
 		_t -= delta
 		if g.length() < 1.0 or _t <= 0.0:
-			_goal = town.spots[_rng.randi() % town.spots.size()] + Vector3(_rng.randf_range(-3, 3), 0, _rng.randf_range(-3, 3))
+			_goal = _next_spot() + Vector3(_rng.randf_range(-1.5, 1.5), 0, _rng.randf_range(-1.5, 1.5))
 			_t = 25.0
 			_wait = _rng.randf_range(1.0, 6.0) if _rng.randf() < 0.6 else 0.0
 		else:
 			move = g.normalized()
 			facing = _turn.step(facing, move, Vector3.UP, delta)
 			_play("gun_walk" if armed else "walk")
+			_stuck_t += delta
+			if _stuck_t > 2.0:   # (held up - a post, a wall, someone in the way: not walking on the spot - elsewhere)
+				if _tl.distance_to(_stuck_at) < 0.5:
+					_t = 0.0
+				_stuck_t = 0.0
+				_stuck_at = _tl
 	_tl += move * speed * delta
 	_tl += town.push(_tl, 0.4)
 	var r: float = town.site["r"]
@@ -412,6 +455,20 @@ func _citizen(delta: float) -> void:
 	f = (f - u * f.dot(u)).normalized()
 	if f.length() > 0.5:
 		global_basis = Basis.looking_at(f, u)
+
+
+## Where to walk next in its town: one of its spots near (the next along a street,
+## mostly - its spots are its streets', a few apart), not where it stands.
+func _next_spot() -> Vector3:
+	var best: Vector3 = town.spots[_rng.randi() % town.spots.size()]
+	var bd := INF
+	for k in 6:
+		var p: Vector3 = town.spots[_rng.randi() % town.spots.size()]
+		var d := Vector2(p.x - _tl.x, p.z - _tl.z).length()
+		if d > 5.0 and d < bd:
+			bd = d
+			best = p
+	return best
 
 
 ## A town's local pilot hired (CosmosSandbox._hire): when his ship is down on
@@ -432,6 +489,12 @@ const CREW_RUN := 4.2            # (you aboard already, waiting: he runs)
 
 
 func board_ride(s: Node3D) -> void:
+	if role == "captain" and _off in [2, 3]:   # (a landing field's pilot, in the town: back through it to his ship's ramp first)
+		if _off == 2:
+			go_back(true)
+		if not is_instance_valid(town) or Vector2(_tl.x - _ramp_foot().x, _tl.z - _ramp_foot().z).length() > 1.2:
+			return
+		_off = 0
 	ride = s
 	process_priority = 4   # (after the ships each frame: moved with his, never a frame behind)
 	if _crew == 0:
@@ -676,14 +739,15 @@ func _cave_fight(delta: float) -> void:
 	elif not busy:
 		_play("guard")
 	var sh := planet.shape
-	var local := global_position - planet.global_position + move * speed * delta
+	var local := planet.to_local(global_position) + planet.dir_local(move * speed * delta)   # (planet-local: the carved ground's frame)
+	var ul := local.normalized()
 	for hgt: float in [0.55, 1.5]:   # (its walls: the knees and the head kept out of them, along the ground)
-		var pt: Vector3 = local + u * hgt * scale_k
+		var pt: Vector3 = local + ul * hgt * scale_k
 		var mv: Vector3 = sh.push_out(pt, 0.4 * scale_k) - pt
-		local += mv - u * mv.dot(u)
+		local += mv - ul * mv.dot(ul)
 	local = local.normalized() * (planet.radius + sh.floor_below(local))
-	global_position = planet.global_position + local
-	u = local.normalized()
+	global_position = planet.to_global(local)
+	u = planet.dir_world(local.normalized())
 	var f := (facing - u * facing.dot(u)).normalized()
 	if f.length() > 0.5:
 		facing = f
@@ -717,3 +781,278 @@ func _play(clip: String, restart := false) -> void:
 		if restart:
 			_anim.seek(0.0, true)
 		_clip = clip
+
+
+# --- A landing field's pilot (CosmosLandingField) ---------------------------------------
+
+## Down his ship's ramp from inside its door into the town (`ashore`: in it already,
+## where he spends his time), there a while, back to it and up the ramp (go_back) - or,
+## hired, to its pilot's seat (board_ride). His walk through the town: the spots of its
+## streets one after another toward where he's going (_route), round what's in the way.
+var off_ship: Node3D = null      # (his ship on its pad)
+var stay_at := Vector3.ZERO      # (town-local: where he spends his time ashore)
+var _off := 0                    # 1 down its ramp, 2 ashore, 3 back to its ramp's foot, 4 up it, 5 aboard (gone)
+var _off_path: Array = []        # (on the ramp: ship-space points; ashore: town-local spots on his way)
+var _off_goal := Vector3.INF
+var _off_end := Vector3.ZERO     # (where his walk ends: his goal, or the nearest the streets go to it)
+var _off_hurry := false
+var _stuck_t := 0.0
+var _stuck_at := Vector3.ZERO
+
+
+func leave_ship(s: Node3D, ashore := false) -> void:
+	off_ship = s
+	process_priority = 4   # (after the ships: moved with his, never a frame behind)
+	_off_goal = Vector3.INF
+	if ashore:   # (in the town already: where he spends his time - or as near as its streets go)
+		_off = 2
+		if is_instance_valid(town):
+			var entry := Vector3(float(CosmosTown.layout(str(town.site.get("kind", "")))["half"]) + 3.0, 0, town.to_local(s.global_position).z)
+			var way := _route(entry, stay_at)
+			if not way.is_empty() and not _clear(way[way.size() - 1], stay_at):
+				stay_at = way[way.size() - 1]
+			_tl = stay_at
+			global_position = town.to_global(stay_at)
+		return
+	_off = 1
+	var e := _ramp_ends(s)
+	_off_path = [e[1], e[2], e[3]]
+	_dl = e[0]
+	global_position = s.to_global(_dl)
+
+
+## Back to his ship (his time ashore up - or hired: `hurry`, he runs).
+func go_back(hurry := false) -> void:
+	_off_hurry = _off_hurry or hurry
+	if _off == 1:   # (still on its ramp: straight back up it)
+		var e := _ramp_ends(off_ship)
+		_off = 4
+		_off_path = [e[1], e[0]]
+	elif _off == 2:
+		_off = 3
+		_off_goal = Vector3.INF
+
+
+## Gone back aboard (up its ramp, in at its door).
+func back_aboard() -> bool:
+	return _off == 5
+
+
+## His ship's ramp (ship space): [inside its door, its top, its foot, a step past it].
+func _ramp_ends(s: Node3D) -> Array:
+	var ramp: Node3D = s.get("_ramp")
+	if ramp == null:
+		return [Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]
+	var plank: Node3D = ramp.get_child(0)
+	var top: Vector3 = ramp.position + Vector3(0, plank.scale.y * 0.5, 0)
+	var ang: float = s.get("_ramp_ang")
+	var foot: Vector3 = ramp.position + Vector3(0, -sin(ang), cos(ang)) * float(s.get("_ramp_len"))
+	foot.y = -float(s.call("rest_height"))   # (on the deck it stands on)
+	return [top + Vector3(0, 0, -2.2), top, foot, foot + Vector3(0, 0, 2.5)]
+
+
+## The step past his ship's ramp's foot (town-local).
+func _ramp_foot() -> Vector3:
+	if not is_instance_valid(off_ship) or not is_instance_valid(town):
+		return _tl
+	var p := town.to_local(off_ship.to_global(_ramp_ends(off_ship)[3]))
+	p.y = 0.0
+	return p
+
+
+func _walk_ramp(delta: float) -> void:
+	if _anim and not visible:
+		visible = true
+		_anim.active = true
+	var left := (CREW_RUN if _off_hurry else CREW_SPEED) * delta
+	var dir := Vector3.ZERO
+	while left > 0.0 and not _off_path.is_empty():
+		var to: Vector3 = _off_path[0] - _dl
+		if to.length() <= left:
+			_dl = _off_path.pop_front()
+			left -= to.length()
+		else:
+			dir = to.normalized()
+			_dl += dir * left
+			left = 0.0
+	global_position = off_ship.to_global(_dl)
+	var flat := Vector3(dir.x, 0, dir.z)
+	if flat.length() > 0.01:
+		global_basis = Basis.looking_at(off_ship.global_basis * flat.normalized(), off_ship.global_basis.y)
+	_play("run" if _off_hurry else "walk")
+	if not _off_path.is_empty():
+		return
+	if _off == 1:   # (off it: one of the town's people a while)
+		_off = 2
+		_off_goal = Vector3.INF
+		if is_instance_valid(town):
+			var f := town.global_basis.inverse() * (off_ship.global_basis * flat)
+			f.y = 0.0
+			if f.length() > 0.01:
+				facing = f.normalized()
+	else:
+		_off = 5   # (in at its door: aboard - CosmosLandingField takes him off with it)
+		visible = false
+
+
+## A step of his walk ashore toward `goal` (town-local): the way along the town's
+## spots, then straight to it - ZERO once he's there.
+func _ashore_step(goal: Vector3, delta: float) -> Vector3:
+	if _off_goal != goal:
+		_off_goal = goal
+		_off_path = _route(_tl, goal)
+		_off_end = goal
+		if not _off_path.is_empty() and not _clear(_off_path[_off_path.size() - 1], goal):
+			_off_end = _off_path[_off_path.size() - 1]   # (no way to it from the streets: as near as they go)
+		_stuck_t = 0.0
+		_stuck_at = _tl
+	var at: Vector3 = _off_path[0] if not _off_path.is_empty() else _off_end
+	var g := at - _tl
+	g.y = 0.0
+	if g.length() < (0.35 if _off_path.is_empty() else 1.2):
+		if _off_path.is_empty():
+			return Vector3.ZERO
+		_off_path.pop_front()
+		return _ashore_step(goal, delta)
+	_stuck_t += delta
+	if _stuck_t > 3.0:   # (held up against a wall: on to the next spot of his way - or, its last stretch, there as near as he gets)
+		if _tl.distance_to(_stuck_at) < 0.6:
+			if not _off_path.is_empty():
+				_off_path.pop_front()
+			else:
+				_off_end = _tl   # (no walking on the spot against it for ever: he stands where he is)
+				_stuck_t = 0.0
+				return Vector3.ZERO
+		_stuck_t = 0.0
+		_stuck_at = _tl
+	var mv := g.normalized()
+	facing = _turn.step(facing, mv, Vector3.UP, delta)
+	return mv
+
+
+## A way across the town from `a` to `b` (town-local): along its spots (its streets'),
+## the shortest chain of them from the nearest to `a` to the nearest to `b` - each hop
+## along a street (TownStreets' pieces) or a short one (a crossing) - then `b`.
+const HOP := 26.0
+const PALACE_WAY := [Vector3(0, 0, 19), Vector3(0, 0, -19), Vector3(0, 0, 8), Vector3(0, 0, -8)]   # (a city's palace: through its gateways into its court)
+static var _spot_graphs := {}   # town instance id -> {cells: Vector2i -> [spot index]}
+
+
+func _route(a: Vector3, b: Vector3) -> Array:
+	var out: Array = []
+	if not is_instance_valid(town) or town.spots.is_empty() or Vector2(b.x - a.x, b.z - a.z).length() < HOP:
+		return out
+	var sp: Array = town.spots + (PALACE_WAY if str(town.site.get("kind", "")) == "city" else [])
+	var gk := town.get_instance_id()
+	if not _spot_graphs.has(gk) or int(_spot_graphs[gk]["n"]) != sp.size():
+		var cells := {}
+		for i in sp.size():
+			var k := Vector2i(floori(sp[i].x / HOP), floori(sp[i].z / HOP))
+			if not cells.has(k):
+				cells[k] = []
+			cells[k].append(i)
+		_spot_graphs[gk] = {"cells": cells, "n": sp.size()}
+	var cells: Dictionary = _spot_graphs[gk]["cells"]
+	var near := func(p: Vector3) -> int:
+		var best := -1
+		var bd := INF
+		for i in sp.size():
+			var d := Vector2(sp[i].x - p.x, sp[i].z - p.z).length_squared()
+			if d < bd:
+				bd = d
+				best = i
+		return best
+	var s0: int = near.call(a)
+	var s1: int = near.call(b)
+	if s0 < 0 or s0 == s1:
+		return out
+	# (A*: the spots as nodes, a hop between any two within HOP of each other)
+	var g := {s0: 0.0}
+	var from := {}
+	var open: Array = [s0]
+	var done := {}
+	var found := false
+	var closest := s0   # (no way to b's: the nearest to it there is a way to)
+	var cd := INF
+	for guard in 4000:
+		if open.is_empty():
+			break
+		var bi := 0
+		var bf := INF
+		for j in open.size():
+			var n: int = open[j]
+			var f: float = g[n] + Vector2(sp[n].x - sp[s1].x, sp[n].z - sp[s1].z).length()
+			if f < bf:
+				bf = f
+				bi = j
+		var cur: int = open[bi]
+		open.remove_at(bi)
+		if cur == s1:
+			found = true
+			break
+		var hd := Vector2(sp[cur].x - b.x, sp[cur].z - b.z).length()
+		if hd < cd:
+			cd = hd
+			closest = cur
+		done[cur] = true
+		var c := Vector2i(floori(sp[cur].x / HOP), floori(sp[cur].z / HOP))
+		for dx in [-1, 0, 1]:
+			for dz in [-1, 0, 1]:
+				for nb in cells.get(c + Vector2i(dx, dz), []):
+					if done.has(nb):
+						continue
+					var hop := Vector2(sp[nb].x - sp[cur].x, sp[nb].z - sp[cur].z).length()
+					if hop > HOP or (hop > 9.0 and not _on_street(sp[cur], sp[nb]) and not _clear(sp[cur], sp[nb])):
+						continue
+					var ng: float = g[cur] + hop
+					if not g.has(nb) or ng < float(g[nb]):
+						g[nb] = ng
+						from[nb] = cur
+						if not nb in open:
+							open.append(nb)
+	if not found:
+		s1 = closest
+		if s1 == s0:
+			return [Vector3(sp[s0].x, 0, sp[s0].z)]
+	var n: int = s1
+	while n != s0:
+		out.push_front(Vector3(sp[n].x, 0, sp[n].z))
+		n = from[n]
+	out.push_front(Vector3(sp[s0].x, 0, sp[s0].z))
+	# (to or from the landing field, out past the town's edge: along the street out of it, then along its edge)
+	var edge: float = float(CosmosTown.layout(str(town.site.get("kind", "")))["half"]) + 3.0
+	if b.x > edge - 3.0:
+		var last: Vector3 = out[out.size() - 1]
+		out.append_array([Vector3(edge, 0, last.z), Vector3(edge, 0, b.z)])
+	if a.x > edge - 3.0:
+		var first: Vector3 = out[0]
+		out = [Vector3(edge, 0, a.z), Vector3(edge, 0, first.z)] + out
+	return out
+
+
+## Nothing of the town's in the way from `p` to `q` (town-local), at a body's height (a little to each side).
+func _clear(p: Vector3, q: Vector3) -> bool:
+	var d := Vector3(q.x - p.x, 0, q.z - p.z)
+	var l := d.length()
+	if l < 0.01:
+		return true
+	d /= l
+	var side := Vector3(-d.z, 0, d.x) * 0.45
+	for o in [Vector3.ZERO, side, -side]:
+		if float(town.ray_hit(Vector3(p.x, 0.9, p.z) + o, d, l)[0]) < l:
+			return false
+	return true
+
+
+## The way from `p` to `q` (town-local) along one of the town's streets (its middle and quarters on its paving).
+func _on_street(p: Vector3, q: Vector3) -> bool:
+	for k in [0.25, 0.5, 0.75]:
+		var m := Vector2(lerpf(p.x, q.x, k), lerpf(p.z, q.z, k))
+		var on := false
+		for st in town.streets:
+			if (st["r"] as Rect2).grow(1.5).has_point(m):
+				on = true
+				break
+		if not on:
+			return false
+	return true

@@ -46,7 +46,7 @@ func _process(delta: float) -> void:
 		_worlds_t = WORLDS_S
 		for p: CosmosPlanet in cosmos.planets:
 			if is_instance_valid(p):
-				p.weather_tick(Galaxy.time, cam.global_position - p.global_position)
+				p.weather_tick(Galaxy.time, p.to_local(cam.global_position))
 	_t -= delta
 	if _t <= 0.0:
 		_t = TICK_S
@@ -55,6 +55,7 @@ func _process(delta: float) -> void:
 	var falls := str(now.get("falls", ""))
 	var storm := float(now.get("storm", 0.0))
 	var w: Node3D = cosmos.get("walker")
+	var wet_eye := _eye_under(cam)   # (the camera under water - looked at every frame: no drop or flake down there, not even the last ones)
 	for k in KINDS:   # (what falls here: its particles on, round the camera; the others off; the rain's splashes round your feet)
 		var on: bool = (k == falls or (k == "splash" and falls == "rain" and w != null and w.get("deck") == null)) and precip > 0.03
 		var gp: GPUParticles3D = _parts.get(k)
@@ -64,11 +65,31 @@ func _process(delta: float) -> void:
 			_parts[k] = gp
 		if gp == null:
 			continue
-		gp.emitting = on
-		if on:
+		gp.emitting = on and not wet_eye
+		gp.visible = not wet_eye
+		if on and not wet_eye:
 			_follow(gp, cam, k, precip, storm)
 	_lightning(delta, cam, storm if not sheltered else 0.0)
 	_sounds(delta, precip, storm, falls)
+
+
+## The camera under water: the sea's (below its level on a world with a sea), or a lake's or river's, or the
+## underwater scene's own say.
+func _eye_under(cam: Camera3D) -> bool:
+	var uw = cosmos.get("underwater")
+	if uw and uw.get("under"):
+		return true
+	var pl: CosmosPlanet = planet
+	if pl == null:
+		return false
+	var lp := pl.to_local(cam.global_position)
+	if pl.shape.sea > 0 and lp.length() < pl.radius - 0.05:
+		return true
+	if pl.shape.has_method("water_level"):
+		var wl = pl.shape.water_level(lp.normalized())
+		if wl is float and lp.length() < pl.radius + float(wl) - 0.05:
+			return true
+	return false
 
 
 ## The weather where you are (a few times a second): its world, the place under you.
@@ -80,9 +101,9 @@ func _look(cam: Camera3D) -> void:
 	if pl == null or pl.weather == null:
 		return
 	planet = pl
-	var local := cam.global_position - pl.global_position
+	var local := pl.to_local(cam.global_position)   # (planet-local: its weather's cells turn with it)
 	var u := local.normalized()
-	now = pl.weather.at(u, Galaxy.time, pl.sun_dir)
+	now = pl.weather.at(u, Galaxy.time, pl.sun_local)
 	now["alt"] = local.length() - pl.radius
 	var w: Node3D = cosmos.get("walker")
 	sheltered = cosmos.get("docked") == true or cosmos.get("dungeon") != null
@@ -111,8 +132,8 @@ func _follow(gp: GPUParticles3D, cam: Camera3D, k: String, precip: float, storm:
 	var at := cam.global_position + u * (16.0 if k == "rain" else 3.0)
 	if k == "splash":   # (on the ground round your feet)
 		var wk: Node3D = cosmos.walker
-		var lw := wk.global_position - planet.global_position
-		at = planet.global_position + lw.normalized() * (planet.radius + wk.floor_at(lw) + 0.03)
+		var lw := planet.to_local(wk.global_position)
+		at = planet.to_global(lw.normalized() * (planet.radius + wk.floor_at(lw) + 0.03))
 		gp.global_transform = Transform3D(Basis(f, u, f.cross(u)), at)
 		gp.amount_ratio = clampf(precip * (1.0 + storm), 0.05, 1.0)
 		return
@@ -149,7 +170,7 @@ func _lightning(delta: float, cam: Camera3D, storm: float) -> void:
 	var side := u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized().rotated(u, _rng.randf() * TAU)
 	var dist := _rng.randf_range(150.0, 1400.0)
 	var d := (u * planet.radius + side * dist).normalized()
-	var ground := planet.global_position + d * (planet.radius + maxf(planet.shape.height(d), 0.0))
+	var ground := planet.global_position + d * (planet.radius + maxf(planet.shape.height(planet.dir_local(d)), 0.0))
 	var cloud := planet.global_position + d * (planet.radius + planet.shape.top() * 0.85 + 25.0)
 	_strike(cloud, ground, cam)
 	_thunder.append([dist / 340.0, clampf(-4.0 - dist / 160.0, -16.0, -2.0)])

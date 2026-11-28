@@ -16,6 +16,7 @@ const float HALF = 2.2;   // m: half the road's width (CosmosRoads.WIDTH)
 
 varying vec2 v_uv;
 varying float v_paved;
+varying float v_bridge;   // (COLOR.g: on a bridge's deck - paved to its parapets, no verge)
 
 // (Along the road it repeats every PERIOD m, seamlessly: each noise's lattice
 // wraps there - its frequencies whole numbers of cells in it - and an integer
@@ -67,6 +68,7 @@ float relief(vec2 m, float pv) {
 void vertex() {
 	v_uv = UV;
 	v_paved = COLOR.r;
+	v_bridge = COLOR.g;
 	vec3 vp = (MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	float d = length(vp);
 	vp *= max(d - min(0.05 + d * 0.01, d * 0.5), 0.05) / max(d, 0.001);
@@ -79,7 +81,7 @@ void fragment() {
 	float pv = v_paved;
 	// Its edge: ragged, eaten by the verge.
 	float edge = 1.02 - a + (vnoise(m, 0.75) - 0.5) * 0.3 + (vnoise(m, 5.0) - 0.5) * 0.12;
-	ALPHA = smoothstep(0.0, 0.04, edge);
+	ALPHA = smoothstep(0.0, 0.04, mix(edge, 1.0, v_bridge));
 	ALPHA_SCISSOR_THRESHOLD = 0.5;
 	float n1 = vnoise(m * vec2(3.4, 1.0), 0.375);
 	float n2 = vnoise(m, 7.0);
@@ -98,7 +100,7 @@ void fragment() {
 	vec3 col = mix(earth, cobbled, pv);
 	float rough = mix(0.93 - rut * 0.1, mix(0.95, 0.68 - rut * 0.12, smoothstep(0.02, 0.07, cb.x)), pv);
 	// Its verges: the ground's grass and dust closing in at the sides.
-	col = mix(col, mix(verge, soil, 0.5), smoothstep(0.8, 1.0, a + (n2 - 0.5) * 0.15) * 0.7);
+	col = mix(col, mix(verge, soil, 0.5), smoothstep(0.8, 1.0, a + (n2 - 0.5) * 0.15) * 0.7 * (1.0 - v_bridge));
 	ALBEDO = col;
 	ROUGHNESS = rough;
 	float e = 0.03;

@@ -154,7 +154,7 @@
    ]
   },
   "space3d_foot": {
-   "caption": "On foot on an ocean world: the 2D game's animals in 3D - a herd of mushroom mammoths, an eagle overhead.",
+   "caption": "On foot on an ocean world: the 2D game's animals in 3D, among the Greek woods.",
    "sources": [
     "scripts/world/space/cosmos.gd",
     "scripts/world/player/cosmos_hud.gd",
@@ -602,10 +602,58 @@
       1500,
       560
      ],
-     "text": "The altar with its horns",
+     "text": "The altar with its horns, its braziers",
      "to": [
-      1030,
-      520
+      945,
+      478
+     ]
+    }
+   ]
+  },
+  "space3d_town_night": {
+   "caption": "The same city by night: lamp posts in its empire's style along an avenue to the palace, their flames lit at dusk - real light on the street round you, a warm glow under the lamps further off.",
+   "sources": [
+    "scripts/world/life/town_lamps.gd",
+    "scripts/world/life/town_streets.gd",
+    "scripts/world/life/cosmos_town.gd",
+    "shaders/world/building.gdshader",
+    "shaders/world/lamp_pool.gdshader"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      330,
+      700
+     ],
+     "text": "A lamp post: red column, bronze bowl",
+     "to": [
+      800,
+      455
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1500,
+      330
+     ],
+     "text": "The avenue to the palace's gate",
+     "to": [
+      960,
+      500
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1500,
+      800
+     ],
+     "text": "Their light on the paving",
+     "to": [
+      1000,
+      700
      ]
     }
    ]
@@ -790,8 +838,55 @@
      ],
      "text": "The road between the towns",
      "to": [
-      1330,
-      470
+      1425,
+      512
+     ]
+    }
+   ]
+  },
+  "space3d_bridge": {
+   "caption": "A road over the sea on a stone bridge: its deck well over the waves, parapets either side, arches on piers in the water, lamps at its ends - built in its empire's own style.",
+   "sources": [
+    "scripts/world/life/road_bridges.gd",
+    "scripts/world/life/cosmos_roads.gd",
+    "shaders/world/road.gdshader",
+    "shaders/world/building.gdshader"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1300,
+      250
+     ],
+     "text": "The deck, over the waves",
+     "to": [
+      1100,
+      480
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      560,
+      860
+     ],
+     "text": "Arches on piers: swim under",
+     "to": [
+      1110,
+      600
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      720,
+      200
+     ],
+     "text": "Lamps at its ends",
+     "to": [
+      798,
+      472
      ]
     }
    ]
@@ -1270,7 +1365,7 @@
    ]
   },
   "planet3d": {
-   "caption": "The planet map: the world you're on as a 3D globe of its real ground - what you've explored of it bright, the rest under the fog; its towns, caves and camps marked where you've seen them, you and your ship, a town picked and its details.",
+   "caption": "The planet map: the world you're on as a 3D globe of its real ground - what you've explored of it bright, the rest under the fog; its towns, caves and camps marked where you've seen them, you and your ship, a town picked and its details - and its roads, where you've seen them.",
    "sources": [
     "scripts/ui/pages/planet_map_page.gd",
     "scripts/ui/pages/maps_page.gd",
@@ -1327,11 +1422,23 @@
       968,
       662
      ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1150,
+      930
+     ],
+     "text": "Roads, where you've seen the ground",
+     "to": [
+      945,
+      812
+     ]
     }
    ]
   },
   "town_plan3d": {
-   "caption": "A town's plan: a city you've walked into, from above, north up - its palace, houses, shrine and storehouse, the landing field and the people by it named: the ore buyer, the courier's office and the local pilot.",
+   "caption": "A town's plan: a city you've walked into, from above, north up - its palace, its blocks of houses between the streets, shrine and storehouse, the landing field and the people by it named: the ore buyer, the courier's office and the local pilot.",
    "sources": [
     "scripts/ui/pages/planet_map_page.gd",
     "scripts/world/life/cosmos_town.gd",
@@ -1358,8 +1465,8 @@
      ],
      "text": "The palace in the middle of the city",
      "to": [
-      905,
-      637
+      820,
+      565
      ]
     },
     {
@@ -1372,6 +1479,18 @@
      "to": [
       1462,
       282
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      230,
+      330
+     ],
+     "text": "Streets between the blocks of houses",
+     "to": [
+      690,
+      437
      ]
     }
    ]
@@ -1532,6 +1651,124 @@
      "to": [
       700,
       505
+     ]
+    }
+   ]
+  },
+  "space3d_river": {
+   "caption": "A river's rapids on an ocean world: white water streaming over the standing waves, the wet banks of pebbles, the woods along it - swim it here and the current carries you off.",
+   "sources": [
+    "scripts/world/space/planet_water.gd",
+    "scripts/world/space/cosmos_waters.gd",
+    "shaders/world/water_surface.gdshader",
+    "shaders/world/terrain.gdshader",
+    "scripts/world/player/cosmos_walker.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1250,
+      250
+     ],
+     "text": "Rapids: white water, a strong current",
+     "to": [
+      1560,
+      640
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1250,
+      900
+     ],
+     "text": "Wet banks of pebbles and silt",
+     "to": [
+      1105,
+      525
+     ]
+    }
+   ]
+  },
+  "space3d_underwater_up": {
+   "caption": "Looking up from under the sea: the sky in a bright round window overhead, the sun's glare in it, the deep mirrored round it - the surface rippling.",
+   "sources": [
+    "scripts/world/life/cosmos_underwater.gd",
+    "shaders/world/underwater.gdshader",
+    "shaders/world/underwater_glow.gdshader",
+    "shaders/world/underwater.gdshaderinc"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1250,
+      250
+     ],
+     "text": "The sky's window overhead, the sun in it",
+     "to": [
+      1000,
+      500
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1150,
+      880
+     ],
+     "text": "Beyond it, the deep mirrored",
+     "to": [
+      1350,
+      760
+     ]
+    }
+   ]
+  },
+  "space3d_field": {
+   "caption": "A city's landing pads: a shuttle down on its pad, its pilot walking down the ramp into the town; traders and a courier on the pads beyond, each in its empire's colours with the hazard band, the emblem and the lamps round its edge.",
+   "sources": [
+    "scripts/world/life/cosmos_landing_field.gd",
+    "scripts/world/space/cosmos_npc_ship.gd",
+    "scripts/world/space/cosmos_hull.gd",
+    "scripts/world/life/cosmos_npc.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      300,
+      640
+     ],
+     "text": "Its pilot, down the ramp into the town",
+     "to": [
+      885,
+      425
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1300,
+      650
+     ],
+     "text": "A pad: the hazard band, the emblem, its lamps",
+     "to": [
+      1250,
+      500
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      380,
+      230
+     ],
+     "text": "Ships on the pads beyond: traders, couriers",
+     "to": [
+      600,
+      420
      ]
     }
    ]

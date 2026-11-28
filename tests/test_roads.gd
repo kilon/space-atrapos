@@ -92,13 +92,86 @@ func test_network_joins_towns_over_land() -> void:
 				if sh.sea == 1 and sh.height(pts[i]) < 0.0:
 					wet += 1
 			check(worst_gap < CosmosRoads.STEP * 1.35, "a point every %.0f m (worst gap %.1f)" % [CosmosRoads.STEP, worst_gap])
-			check(wet < pts.size() / 50 + 2, "over land, not the sea (%d of %d points wet)" % [wet, pts.size()])
+			check(wet < pts.size() / 50 + 2 or (wet * CosmosRoads.STEP < CosmosTown.LONG_CAUSEWAY + 120.0 and float(r.get("wet", 0.0)) > 0.0),
+				"over land, or a causeway's water at most (%d of %d points wet)" % [wet, pts.size()])
 			# Along it: point() at its ends and between.
 			check(CosmosRoads.point(r, 0.0).is_equal_approx(pts[0]), "point at 0: its start")
 			check(CosmosRoads.point(r, float(r["length"]) + 50.0).is_equal_approx(pts[pts.size() - 1]), "past its end: its end")
 			var mid := CosmosRoads.point(r, float(r["length"]) * 0.5)
 			check(absf(mid.length() - 1.0) < 0.001, "a unit direction")
 	check(roads_seen >= 4, "roads made (%d)" % roads_seen)
+
+
+## A road out of a town leaves by a gate - where one of its streets meets its
+## edge (TownStreets) - with no gap and no overlap, and goes on in along that
+## street. Every world with towns has two cities or more, joined by roads; every
+## city is on a main road (or, on an island no causeway reaches, a track to a
+## village); no road crosses more water than a causeway.
+func test_roads_join_streets_and_cities() -> void:
+	var lone := 0
+	var cw := 0
+	for w in _worlds(10):
+		var sh: PlanetShape = w[0]
+		var sites: Array = w[2]
+		var nm: String = str(w[1].get("id", "?"))
+		var net := CosmosRoads.network(sh, sites)
+		var cities: Array = range(sites.size()).filter(func(i): return sites[i]["kind"] == "city")
+		check(cities.size() >= 2, "%s: two cities or more (%d)" % [nm, cities.size()])
+		var adj := {}
+		for r in net:
+			var dr: Vector2i = r["drawn"]
+			var pts: PackedVector3Array = r["pts"]
+			for e in [[int(r["a"]), dr.x, 0], [int(r["b"]), dr.y, pts.size() - 1]]:
+				var st: Dictionary = sites[e[0]]
+				var inv := CosmosTown.frame(st, sh.radius).affine_inverse()
+				var q: Vector3 = inv * (pts[e[1]] * (sh.radius + float(st["h"])))
+				var best := INF
+				for g in TownStreets.gates(str(st["kind"]), str(st["empire"])):
+					best = minf(best, Vector2(q.x - (g["at"] as Vector3).x, q.z - (g["at"] as Vector3).z).length())
+				check(best < 0.5, "%s: its road meets a street's end at a gate (%.2f m off)" % [nm, best])
+				var inner: Vector3 = inv * (pts[e[2]] * (sh.radius + float(st["h"])))
+				check(TownStreets.on_street(str(st["kind"]), str(st["empire"]), inner, 0.5), "%s: and goes on in along the street" % nm)
+			check(float(r.get("wet", 0.0)) <= CosmosTown.LONG_CAUSEWAY + 60.0, "%s: no more water than a causeway (%.0f m)" % [nm, float(r.get("wet", 0.0))])
+			if float(r.get("wet", 0.0)) > 1.0:
+				cw += 1
+			check_eq(bool(r["main"]), sites[r["a"]]["kind"] == "city" and sites[r["b"]]["kind"] == "city", "%s: city to city a main road" % nm)
+			adj[int(r["a"])] = adj.get(int(r["a"]), []) + [int(r["b"])]
+			adj[int(r["b"])] = adj.get(int(r["b"]), []) + [int(r["a"])]
+		# The first city joined to another by road.
+		var seen := {cities[0]: true}
+		var todo: Array = [cities[0]]
+		while not todo.is_empty():
+			var i: int = todo.pop_back()
+			for j in adj.get(i, []):
+				if not seen.has(j):
+					seen[j] = true
+					todo.append(j)
+		check(cities.slice(1).any(func(ci): return seen.has(ci)), "%s: two of its cities joined by road" % nm)
+		for ci in cities:
+			if not net.any(func(r): return r["main"] and (int(r["a"]) == ci or int(r["b"]) == ci)):
+				lone += 1
+				check(adj.has(ci), "%s: a city with no main road has a track at least" % nm)
+	print("  (cities not on a main road: %d; roads over a causeway: %d)" % [lone, cw])
+
+
+func test_roads_keep_off_the_landing_fields() -> void:
+	var worlds := _worlds(6)
+	var checked := 0
+	var bad := 0
+	for w in worlds:
+		var sh: PlanetShape = w[0]
+		var towns: Array = w[2]
+		var net := CosmosRoads.network(sh, towns)
+		var fields := CosmosRoads.fields_of(sh, towns)
+		for r in net:
+			var pts: PackedVector3Array = r["pts"]
+			var dr: Vector2i = r.get("drawn", Vector2i(0, pts.size() - 1))
+			for i in range(dr.x, dr.y + 1):
+				checked += 1
+				if CosmosRoads.in_field(fields, pts[i] * sh.radius):
+					bad += 1
+	check(checked > 100, "roads looked at (%d points)" % checked)
+	check(bad == 0, "no road over a landing field or its pads (%d of %d points)" % [bad, checked])
 
 
 func test_path_goes_round_the_sea() -> void:
@@ -136,10 +209,9 @@ func test_road_piece_lies_on_the_ground() -> void:
 		return
 	var pts: PackedVector3Array = net[0]["pts"]
 	var res := CosmosRoads.piece_mesh(sh, pts, 0, mini(CosmosRoads.CHUNK_PTS + 1, pts.size()), 0.0, Vector2(CosmosRoads.PAVED, -1.0), float(net[0]["length"]))
-	check(res.size() == 2, "a mesh and its centre")
-	var m: ArrayMesh = res[0]
+	check(res.size() == 2, "its mesh's arrays and its centre")
+	var arr: Array = res[0]
 	var c: Vector3 = res[1]
-	var arr := m.surface_get_arrays(0)
 	var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
 	var col: PackedColorArray = arr[Mesh.ARRAY_COLOR]
 	var rows := (mini(CosmosRoads.CHUNK_PTS + 1, pts.size()) - 1) * CosmosRoads.SUB + 1
@@ -234,7 +306,7 @@ func test_caravans_carry_goods_and_meet_raiders() -> void:
 	var g3: Dictionary = cv._new_group(w, pl, rl, 0, 1, s, "caravan")
 	g3["raided"] = true   # (no ambush of its own while it's watched: one's set off below)
 	var here := CosmosCaravans.where(pl, rl, g3, s - 30.0, 6.0)
-	c.walker.global_position = pl.global_position + here
+	c.walker.global_position = pl.to_global(here)
 	c._shift_origin(true)
 	for k in 40:
 		await tree.process_frame
@@ -250,6 +322,8 @@ func test_caravans_carry_goods_and_meet_raiders() -> void:
 	# Town guards leave them be.
 	var guard := CosmosNpc.new()
 	guard.cosmos = c
+	guard.set_process(false)
+	c.world.add_child(guard)   # (in the world: where it stands - the pirates and beasts round it measured from there)
 	check(not people.has(guard._nearest_foe(500.0)) or guard._nearest_foe(500.0) == null, "not a town guard's foe")
 	guard.free()
 	g3["ambush"] = 0.05
@@ -265,7 +339,7 @@ func test_caravans_carry_goods_and_meet_raiders() -> void:
 		await tree.process_frame
 	check(loot.drops.any(func(e): return str(e["title"]) == "raider"), "a dead raider's loot")
 	# Away from it: back into numbers.
-	c.walker.global_position = pl.global_position + CosmosCaravans.where(pl, rl, g3, s + 900.0)
+	c.walker.global_position = pl.to_global(CosmosCaravans.where(pl, rl, g3, s + 900.0))
 	c._shift_origin(true)
 	for k in 5:
 		await tree.process_frame

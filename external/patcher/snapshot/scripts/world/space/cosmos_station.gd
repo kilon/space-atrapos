@@ -787,6 +787,7 @@ func _bake_poll() -> void:
 	_bake_task = -1
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, _bake_out)
+	LodKit.later(mesh, [_bake_out])   # (its levels of detail: a far station a fraction of its triangles - LodKit)
 	_bake_out = []
 	var mi := MeshInstance3D.new()
 	mi.name = "Body"

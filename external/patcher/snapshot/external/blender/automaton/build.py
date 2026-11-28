@@ -30,6 +30,7 @@ def skin_module(name):
     kit.GUN_HAND_R = mod.GUN_HAND_R
     kit.GUN_HAND_L = mod.GUN_HAND_L
     kit.GUN_FOLD = dict(getattr(mod, "GUN_FOLD", {}))   # (a rifle that folds for its holster: its pieces' bones)
+    kit.POD = dict(getattr(mod, "POD", {}))             # (the hip's compartment it's put away in: its box and lid's bones)
     return mod
 
 
@@ -80,7 +81,7 @@ def points(clip):
         p = dict(poses[-1])
         p["air"] = 0.0
         m = kit.solve(p)["gun"]
-        tip = m @ Vector((0.0, 0.78, 0.075))
+        tip = m @ Vector((0.0, 0.785, 0.08))
         out["muzzle"] = {d: _screen(tip, d) for d in kit.DIRS}
     for mark in ("cast", "hit"):
         if mark in clip.get("marks", {}) and not clip.get("gun"):
@@ -212,7 +213,7 @@ def export(name, art_id):
             p = dict(poses[-1])
             p["air"] = 0.0
             g = kit.solve(p)["gun"]
-            tip = g @ Vector((0.0, 0.78, 0.075))
+            tip = g @ Vector((0.0, 0.785, 0.08))
             pts["muzzle"] = [round(v, 4) for v in tip]
         for mark in ("cast", "hit"):
             if mark in c.get("marks", {}) and not c.get("gun"):

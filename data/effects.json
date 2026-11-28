@@ -46,5 +46,12 @@
 			{"name": "glow", "material": "glow", "amount": 3, "lifetime": 0.15, "lifetime_random": 0.3, "one_shot": false, "explosiveness": 0.0, "velocity": [0.0, 0.0], "scale": [3.0, 5.0], "colors": [[0.0, "#ffd0a0ff"], [1.0, "#ff603000"]], "emissive": 2.5},
 			{"name": "dust", "material": "smoke", "amount": 10, "lifetime": 1.6, "lifetime_random": 0.3, "one_shot": false, "explosiveness": 0.0, "spread": 50.0, "velocity": [2.0, 6.0], "damping": [1.0, 2.0], "scale": [1.5, 3.0], "scale_curve": [[0.0, 0.5], [1.0, 1.8]], "spin": [-20.0, 20.0], "colors": [[0.0, "#8a807500"], [0.1, "#8a807570"], [1.0, "#8a807500"]], "emissive": 1.0, "local": false, "tinted": false}
 		]
+	},
+	"water_spray": {
+		"about": "White water thrown up round the automaton in a river's rapids, or a splash where it wades fast water (CosmosWalker: scaled by how fast the water runs; made for a 1.5 m burst).",
+		"emitters": [
+			{"name": "spray", "material": "smoke", "amount": 8, "lifetime": 0.9, "lifetime_random": 0.4, "explosiveness": 0.85, "shape": "ring", "size": 0.45, "spread": 35.0, "velocity": [1.2, 2.6], "radial": [0.6, 1.6], "gravity": [0.0, -6.0, 0.0], "damping": [1.5, 3.0], "scale": [0.45, 0.8], "scale_curve": [[0.0, 0.4], [1.0, 1.7]], "spin": [-40.0, 40.0], "colors": [[0.0, "#ffffff00"], [0.1, "#f4f8ffb0"], [0.6, "#e8f0f660"], [1.0, "#ffffff00"]], "emissive": 1.0, "tinted": false},
+			{"name": "drops", "material": "spark", "mesh": "streak", "amount": 12, "lifetime": 0.6, "lifetime_random": 0.4, "explosiveness": 0.9, "spread": 45.0, "velocity": [2.0, 4.5], "gravity": [0.0, -9.8, 0.0], "damping": [0.2, 0.6], "scale": [0.05, 0.1], "colors": [[0.0, "#ffffffd0"], [1.0, "#e0ecff00"]], "emissive": 0.6, "tinted": false}
+		]
 	}
 }

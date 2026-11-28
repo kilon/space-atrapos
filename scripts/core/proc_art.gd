@@ -94,6 +94,8 @@ func _exit_tree() -> void:
 	CosmosShipInterior.finish_tasks()
 	Cosmos.finish_tasks()
 	PlanetMapPage.finish_tasks()
+	LodKit.finish_tasks()
+	CosmosHullGrid.finish_tasks()
 
 
 ## Every sprite loaded at start-up: [key, path, label].

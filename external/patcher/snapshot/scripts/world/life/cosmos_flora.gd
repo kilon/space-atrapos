@@ -20,9 +20,12 @@ extends RefCounted
 ## species: wood and leaves in one mesh (vertex colours; UV2.x 1 marks leaves -
 ## translucent, fluttering; UV2.y > 0 a draw distance the plant shrinks away
 ## at - grass and flowers fade out, not pop). Each species has a far mesh too
-## (the same tree: no twigs, coarser clumps) - the coarser patches draw it.
+## (the same tree: no twigs, coarser clumps); the trees and shrubs a whole chain
+## of levels of detail down to an impostor, drawn to the horizon (FloraLods).
 ##
-## Placement (scatter, on CosmosPlanet's patch workers): per species a seeded
+## Placement (scatter - the grass and flowers on the finest patches; the trees
+## and shrubs FloraLods.own, the same rules, carried down the quadtree - on
+## CosmosPlanet's patch workers): per species a seeded
 ## candidate count from its density, each kept by chance: woods and open land
 ## from a low-frequency noise (forests and groves, meadows and clearings, lone
 ## trees in the open), each species its own territories (the same species near
@@ -64,7 +67,8 @@ const FLOWER_FADE := 36.0
 
 
 ## The species of a planet (its PlanetShape, seed and type).
-static func design(shape: PlanetShape, seed: int, type: String) -> Array:
+## `stop` [true]: given up part way (its world gone - CosmosPlanet's exit waits for this).
+static func design(shape: PlanetShape, seed: int, type: String, stop: Array = []) -> Array:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed * 31 + 7
 	var L := shape.look
@@ -77,6 +81,8 @@ static func design(shape: PlanetShape, seed: int, type: String) -> Array:
 	noise.fractal_octaves = 3
 	var out: Array = []
 	for i in designs.size():
+		if not stop.is_empty() and stop[0]:
+			return out
 		var sp := _species(str(designs[i]), rng, L, type)
 		sp["noise"] = noise
 		sp["off"] = Vector3(rng.randf_range(-500, 500), rng.randf_range(-500, 500), rng.randf_range(-500, 500))
@@ -243,6 +249,8 @@ static func _species(dname: String, rng: RandomNumberGenerator, L: Dictionary, t
 	if LEAVES.has(dname) or dname in ["cypress", "fir"]:   # (up close: every branch and leaf)
 		sp["near"] = mk.call(0)
 		sp["cards"] = true   # (leaf cards: drawn with leaf_flora.gdshader, which cuts them)
+	if FloraLods.is_stand(sp):   # (the trees, shrubs and the like: their chain of meshes down to the impostor - FloraLods)
+		FloraLods.chain(sp)
 	return sp
 
 
@@ -1356,7 +1364,7 @@ static func size_of(sp: Dictionary, rng: RandomNumberGenerator) -> float:
 ## Each species its own seed - a coarse cell (only the solid ones) puts them
 ## exactly where its finer cells will.
 static func scatter(flora: Array, shape: PlanetShape, radius: float, cell_seed: int, n: Vector3, u: Vector3, v: Vector3,
-		a0: float, b0: float, span: float, centre: Vector3, coarse: bool, digs: PackedFloat64Array, out: Dictionary, solids: Array) -> void:
+		a0: float, b0: float, span: float, centre: Vector3, coarse: bool, digs: PackedFloat64Array, out: Dictionary, solids: Array, stands := true) -> void:
 	var area := pow(span * radius * 0.9, 2.0) / 100.0   # (densities are a 100 m2)
 	var step := 1.2 / radius
 	var rng := RandomNumberGenerator.new()
@@ -1372,8 +1380,8 @@ static func scatter(flora: Array, shape: PlanetShape, radius: float, cell_seed: 
 	for k in flora.size():
 		var sp: Dictionary = flora[k]
 		var solid: float = sp["solid"]
-		if coarse and solid <= 0.0:
-			continue
+		if coarse and solid <= 0.0 or not stands and FloraLods.is_stand(sp):
+			continue   # (the trees and shrubs: FloraLods carries them, on every patch)
 		var bound := 0.0
 		for q in 9:
 			bound = maxf(bound, cluster(sp, sd[q], radius) * site(sp, shape, sh[q], 0.0))

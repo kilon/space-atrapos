@@ -29,7 +29,7 @@ void fragment() {
 		vec3 q = v_obj / 11.0 - vec3(0.0, TIME * 0.07, TIME * 0.04);
 		vec3 w = vec3(texture(noise_tex, p).r, texture(noise_tex, p + 0.31).r, texture(noise_tex, q).r) - 0.5;
 		vec3 wn = normalize(up + w * 0.25 * near);
-		NORMAL = normalize((VIEW_MATRIX * vec4(wn, 0.0)).xyz);
+		NORMAL = normalize(mat3(VIEW_MATRIX) * (mat3(MODEL_MATRIX) * wn));   // (wn its own sphere's: the world turns)
 		float fres = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 4.0);
 		ALBEDO = mix(deep.rgb, shallow.rgb, 0.35 + 0.3 * big) * (1.0 - fres * 0.4) + vec3(0.25, 0.35, 0.45) * fres;
 		ROUGHNESS = 0.12;

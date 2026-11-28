@@ -971,11 +971,12 @@ GUNS = {
 }
 
 
-# The automaton's rifle holstered on its right hip when it isn't in its hands (in every clip without it),
-# folded (automaton.GUN_FOLD - "fold" 1): the grip up by the hip, the collapsed rifle down the outside of the
-# thigh, muzzle down and a little back, its top forward - riding the thigh ("tR": (out, forward, down) from the
-# hip joint, the thigh's axes). The holster (automaton.holster) is made round it there.
-HOLSTER = ((0.165, -0.03, 0.20), (0.0, -0.30, 1.0), (0.0, 1.0, 0.30))
+# The automaton's rifle put away in the compartment on its right hip when it isn't in its hands (in every clip
+# without it), folded (automaton.GUN_FOLD - "fold" 1): the grip at the box's top, the folded rifle down the outside
+# of the thigh, muzzle down, its top in toward the thigh (its underside - the grip - toward the lid) - riding the
+# thigh ("tR": (out, forward, down) from the hip joint, the thigh's axes). The box (automaton.holster, on its own
+# bones: automaton.POD) is made round it there; its lid shut ("lid" 0).
+HOLSTER = ((0.252, 0.0, 0.225), (-0.08, 0.0, 1.0), (-1.0, 0.0, -0.08))   # (leaning in a little down the thigh, as it narrows)
 STOW = {"automaton": ("tR",) + HOLSTER + ("none",)}
 
 
@@ -1000,29 +1001,67 @@ def _w(m, local):
     return ("w", (p.x, -p.y, p.z))
 
 
+def _track(n, pts):
+    """A control's value each frame 0..n-1 from (frame, value[, "io"]) points: straight between them, or eased."""
+    out = []
+    for f in range(n):
+        v = pts[-1][1]
+        for i in range(len(pts) - 1):
+            f0, v0 = pts[i][0], pts[i][1]
+            f1, v1 = pts[i + 1][0], pts[i + 1][1]
+            if f0 <= f <= f1:
+                t = (f - f0) / float(f1 - f0) if f1 > f0 else 1.0
+                if len(pts[i + 1]) > 2:
+                    t = t * t * (3 - 2 * t)
+                v = v0 + (v1 - v0) * t
+                break
+        out.append(v)
+    return out
+
+
+# The draw's and the holster's timing (frames, 30 fps): DRAW_N long; the lid open / shut, the rifle unfolding /
+# folding each frame (kit.DEFAULT "lid", "fold"; the pieces' own shares of the fold: automaton.GUN_FOLD).
+DRAW_N = 32
+DRAW_LID = [(0, 0.0), (1, 0.0), (8, 1.0, "io"), (12, 1.0), (19, 0.0, "io")]
+DRAW_FOLD = [(0, 1.0), (4, 1.0), (8, 0.92), (13, 0.92), (29, 0.0)]
+HOLSTER_LID = [(0, 0.0), (12, 0.0), (18, 1.0, "io"), (25, 1.0), (32, 0.0, "io")]
+HOLSTER_FOLD = [(0, 0.0), (2, 0.0), (17, 0.92), (23, 0.92), (27, 1.0)]
+
+
 def draw_clips(skin):
-    """Drawing the rifle from the hip (draw, 0.6 s) and holstering it (holster, 0.6 s): the right hand
-    down to the grip, the folded rifle pulled up out of the holster, swung forward and up - unfolding
-    as it comes (the stock out, the scope up, the fore-end and the barrel sliding out last) - the left
-    hand meeting it at its fore-grip; holstered the other way, folding as it goes down."""
+    """Drawing the rifle from the hip's compartment (draw, DRAW_N frames) and putting it away (holster): leaning
+    to the right a little, the right hand goes down to the box as its lid swings open and the folded grip springs
+    out to meet it; the folded rifle drawn straight out of the box, the lid shutting behind it, then up and
+    forward - unfolding piece after piece as it comes (the grip, the rear and the stock, the magazine, the scope,
+    the fore-end and the barrel, the muzzle brake's turn last), the left hand meeting it at its fore-grip, snapped
+    into shape in the hands. Put away the other way, folding as it goes down, into the open box, the grip folding
+    in as the hand lets go, the lid shut."""
     g = GUNS.get(skin, GUNS["automaton"])
     s = STOW[skin]
     hold = s[:4] + ("right",)
+    grip, way, top = HOLSTER
     idle = kit.full(g["idle"])
-    base = kit.full(P(STAND, gun=s, fold=1.0))
-    m0 = kit.solve(base, extra=False)["gun"]
-    reach = P(base, handR=_w(m0, kit.GUN_HAND_R), elbowR=(-1.0, -0.6, -0.2), twist=-6, hyaw=-14, hpitch=12, lean=4, bend=-3)
+    base = kit.full(P(STAND, gun=s, fold=1.0, lid=0.0))
+    lean = P(base, elbowR=(-1.0, -0.5, -0.1), twist=-8, hyaw=-18, hpitch=16, lean=6, bend=-20, pelvis=(0.0, 0.0, -0.03),
+             proll=-5)
+    reach = P(lean, handR=_w(kit.solve(lean, extra=False)["gun"], kit.GUN_HAND_R))
     grab = P(reach, gun=hold)
-    # (pulled straight up out of the holster, still folded - the stock starting to swing out)
-    pull = P(grab, gun=("tR", (0.21, 0.0, -0.06), (0.0, -0.10, 1.0), (0.0, 1.0, 0.10), "right"), fold=0.82,
-             twist=-4, hyaw=-8, hpitch=6, lean=2, bend=-1)
-    over = P(STAND, gun=("c", (-0.25, 0.20, -0.38), (0.35, 0.75, -0.45), (0.10, 0.45, 1.0), "right"), fold=0.3,
-             twist=-8, hyaw=-4)
+    # (out of the box straight along its open side - clear of it - then up by the hip, turning)
+    out = P(grab, gun=("tR", (grip[0] + 0.15, grip[1], grip[2] + 0.012), way, top, "right"), bend=-27, lean=7, proll=-8,
+            hpitch=10)
+    up = P(STAND, gun=("tR", (0.45, 0.09, -0.04), (0.0, 0.45, 1.0), (-0.55, 0.8, -0.1), "right"), twist=-6, hyaw=-10,
+           hpitch=6, bend=-4, lean=2)
+    over = P(STAND, gun=("c", (-0.25, 0.20, -0.38), (0.35, 0.75, -0.45), (0.10, 0.45, 1.0), "right"), twist=-8, hyaw=-4)
     mo = kit.solve(over, extra=False)["gun"]
     over["handL"] = _w(mo, (0.0, kit.GUN_HAND_L[1], kit.GUN_HAND_L[2] - 0.07))   # (the left hand coming to the fore-grip)
     idle = P(idle, handL=_w(kit.solve(idle, extra=False)["gun"], kit.GUN_HAND_L))   # (blended toward it: on it at the end)
-    draw = K((0, base), (4, reach, "io"), (6, grab, "io"), (9, pull, "io"), (13, over, "io"), (17, idle, "o"))
-    holster = K((0, idle), (4, over, "io"), (8, pull, "io"), (11, grab, "io"), (13, reach, "io"), (17, base, "o"))
+    n = DRAW_N
+    draw = K((0, base), (7, reach, "io"), (9, grab, "io"), (13, out, "io"), (18, up, "io"), (24, over, "io"), (n - 1, idle, "o"))
+    holster = K((0, idle), (7, over, "io"), (13, up, "io"), (18, out, "io"), (22, grab, "io"), (24, reach, "io"),
+                (n - 1, base, "io"))
+    for poses, lid, fold in ((draw, DRAW_LID, DRAW_FOLD), (holster, HOLSTER_LID, HOLSTER_FOLD)):
+        for p, lv, fv in zip(poses, _track(len(poses), lid), _track(len(poses), fold)):
+            p["lid"], p["fold"] = lv, fv
     return {"draw": dict(poses=draw, gun=True), "holster": dict(poses=holster, gun=True)}
 
 

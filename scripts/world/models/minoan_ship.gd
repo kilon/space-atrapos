@@ -144,9 +144,24 @@ static func meshes() -> Array:
 		_mesh = ArrayMesh.new()
 		_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a["hull"])
 		_mesh.set_meta("verts", a["hull"][Mesh.ARRAY_VERTEX])   # (its shape, for the rooms inside it: CosmosNpcInterior)
+		LodKit.later(_mesh, [a["hull"]])   # (its levels of detail - LodKit)
 		_glass = ArrayMesh.new()
 		_glass.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a["glass"])
+		_glass.set_meta("hull_verts", a["glass"][Mesh.ARRAY_VERTEX])   # (its windows solid too: CosmosHullGrid)
+		_mesh.set_meta("seal", seal())   # (the tail's doorway closed - open only while its ramp's down)
 	return [_mesh, _glass]
+
+
+## The tail's doorway as two triangles (ship space): what closes it for the hull's
+## solid (CosmosHullGrid) - the door itself is the inside's.
+static func seal() -> PackedVector3Array:
+	var z: float = HULL[HULL.size() - 1][0]
+	var x: float = DOOR[0]
+	var a := Vector3(-x, DOOR[1], z)
+	var b := Vector3(x, DOOR[1], z)
+	var c := Vector3(x, DOOR[2], z)
+	var d := Vector3(-x, DOOR[2], z)
+	return PackedVector3Array([a, b, c, a, c, d])
 
 
 ## Another ship of this kind into `root`, scaled `k` (its middle at the root's,

@@ -36,7 +36,7 @@ const ABOVE := 12.0             # m: the eye this high over a sea (or lower - a 
 const LEAVE := 400.0            # m: further above it, all of it let go
 const REPLAN := 8.0             # m the eye moves before the area's cells are worked out again
 const CHECK_S := 0.25           # s between looks round (which sea, the area)
-const SNOW_N := 600
+const SNOW_N := 300
 const SNOW_BOX := 14.0
 const SCHOOLS := 4
 const JELLIES := 9
@@ -45,6 +45,8 @@ var cosmos: Node
 var planet: CosmosPlanet = null    # the sea world the eye's at (null: none near)
 var under := false                 # the camera under its surface now
 var eye_depth := 0.0               # m under it (the camera)
+var surface := 0.0                 # m over the radius: the surface of the water the eye's at (the sea's 0; a lake's, a river's)
+var in_sea := true                 # (that water the sea's - else a lake's or a river's: their own colour, no sea life)
 var design: Dictionary = {}        # the planet's sea life (design())
 var cells := {}                    # Vector3i -> its built cell (cell())
 var shown_cells: Array = []        # the cells drawn now
@@ -178,13 +180,18 @@ func _process(delta: float) -> void:
 	if planet == null:
 		_set_under(false)
 		return
-	var local := eye - planet.global_position
+	var local := planet.to_local(eye)   # (planet-local: its sea's plants, rocks and animals are)
 	var r := local.length()
-	eye_depth = planet.radius - r
+	surface = planet.shape.water_level(local / r)   # (the sea's - or a lake's, a river's: the water you're in)
+	eye_depth = planet.radius + surface - r
+	in_sea = surface <= 0.01
 	_set_under(eye_depth > (0.0 if under else 0.06) and _in_open_water(local))   # (a little hysteresis: no flicker at the waterline)
+	if _root:
+		_root.visible = under or (eye_depth > -ABOVE * 0.75 and in_sea)   # (near over the sea: its floor's life seen through it)
 	if under:
 		_update_look(local)
-		_swim(delta, local)
+		if in_sea:
+			_swim(delta, local)
 
 
 ## Whether the camera's out in the sea (not in a ship, a hangar, a dungeon or the ground).
@@ -267,7 +274,7 @@ func _look_round(eye: Vector3) -> void:
 			_begin(planet)
 	if planet == null or not design.has("plants") or _area_task != -1 or not _mesh_todo.is_empty() or not _apply.is_empty():
 		return
-	var local := eye - planet.global_position
+	var local := planet.to_local(eye)
 	var r := local.length()
 	if r > planet.radius + ABOVE:
 		return
@@ -654,7 +661,7 @@ static func depth_of(pl: CosmosPlanet, p: Vector3) -> float:
 # --- The look -----------------------------------------------------------------------------
 
 func _update_look(local: Vector3) -> void:
-	var up := local.normalized()
+	var up := planet.dir_world(local.normalized())   # (the shaders' rays are the world's: all in its axes - the world turns)
 	var L := planet.shape.look
 	var sun := planet.sun_dir.normalized()
 	var ca := sun.dot(up)
@@ -668,30 +675,40 @@ func _update_look(local: Vector3) -> void:
 	var lt: Node = cosmos.get("light")
 	if lt is DirectionalLight3D:
 		energy = (lt as DirectionalLight3D).light_energy
+	var body := 0 if in_sea else (1 if planet.shape.water and planet.shape.water.lake_at(local.normalized()) >= 0 else 2)
 	for m: ShaderMaterial in [_fx_mat, _glow_mat]:
-		m.set_shader_parameter("eye_rel", local)
+		m.set_shader_parameter("eye_rel", planet.dir_world(local))
 		m.set_shader_parameter("up", up)
-		m.set_shader_parameter("radius", planet.radius)
+		m.set_shader_parameter("radius", planet.radius + surface)
+		if int(m.get_meta("body", -1)) != body:   # (the water's own: the sea's, a lake's peaty green, a river's clear)
+			m.set_meta("body", body)
+			var wcol: Color = water_colour(L)
+			if body == 1:
+				wcol = wcol.lerp(Color(0.1, 0.22, 0.14), 0.55)
+			elif body == 2:
+				wcol = wcol.lerp(Color(0.16, 0.3, 0.22), 0.45)
+			m.set_shader_parameter("water", wcol)
+			m.set_shader_parameter("absorb", [Vector3(0.16, 0.045, 0.032), Vector3(0.3, 0.12, 0.16), Vector3(0.24, 0.09, 0.1)][body])
+			m.set_shader_parameter("extinct", [Vector3(0.13, 0.052, 0.042), Vector3(0.3, 0.17, 0.19), Vector3(0.22, 0.12, 0.13)][body])
 		m.set_shader_parameter("eye_depth", eye_depth)
 		m.set_shader_parameter("light_dir", lw)
 		m.set_shader_parameter("sun_dir", sun)
 		m.set_shader_parameter("light", energy)
-		m.set_shader_parameter("anchor", _anchor)
-		m.set_shader_parameter("axis_u", _axis_u)
-		m.set_shader_parameter("axis_v", _axis_v)
+		m.set_shader_parameter("anchor", planet.dir_world(_anchor))   # (kept planet-local: the pattern fixed to the floor)
+		m.set_shader_parameter("axis_u", planet.dir_world(_axis_u))
+		m.set_shader_parameter("axis_v", planet.dir_world(_axis_v))
 		if not m.has_meta("tinted"):
 			m.set_meta("tinted", true)
 			m.set_shader_parameter("noise_tex", Cosmos.noise_ready())
-			m.set_shader_parameter("water", water_colour(L))
 			m.set_shader_parameter("sky", (L.get("atmosphere", Color(0.5, 0.75, 1.0)) as Color).lightened(0.25))
 	var day := energy * smoothstep(-0.05, 0.15, ca)
-	var wc: Color = water_colour(L)
+	var wc: Color = _glow_mat.get_shader_parameter("water")
 	var k := Vector3(exp(-0.16 * eye_depth), exp(-0.045 * eye_depth), exp(-0.032 * eye_depth)) * (0.25 + 0.9 * day)
 	_snow_mat.set_shader_parameter("tint", Color(0.5 + wc.r * k.x * 2.0, 0.5 + wc.g * k.y * 1.2, 0.5 + wc.b * k.z, 0.5) * (0.35 + 0.65 * day))
 	if _plant_mat and int(_t * 2.0) != int((_t - get_process_delta_time()) * 2.0):
 		# (the current: slowly turning along the floor)
 		var a := _t * 0.03
-		_plant_mat.set_shader_parameter("current", (_axis_u * cos(a) + _axis_v * sin(a)) * 0.8)
+		_plant_mat.set_shader_parameter("current", planet.dir_world(_axis_u * cos(a) + _axis_v * sin(a)) * 0.8)   # (the shader's current is the world's)
 		# (the water's own light all round, as deep as you are: the plants' and animals' shade lit by it)
 		var fill := Color(wc.r * k.x, wc.g * k.y, wc.b * k.z) * 1.6
 		_plant_mat.set_shader_parameter("fill", fill)

@@ -63,13 +63,23 @@ var _flora_task := -1
 var _cave_task := -1
 var caves_ready := false        # (its caves carved in: PlanetShape.caves)
 static var _caves_frame := -1
-var _flora_meshes: Array = []
-var _flora_far: Array = []      # (each species' far mesh: the coarser patches draw it)
-var _flora_near: Array = []     # (each tree's near mesh - every branch and leaf - or null: drawn up close)
+var _flora_meshes: Array = []   # (the grass's and flowers' meshes - null for the trees and shrubs: _flora_lods)
 var _flora_mk := -1             # (the species whose meshes are made next)
-const FLORA_NEAR := 32.0       # (m: a patch nearer than this draws its trees' near meshes)
 var _flora_mat: ShaderMaterial
 var _leaf_mat: ShaderMaterial
+## The trees and shrubs to the horizon (FloraLods): each patch from level
+## _stand_top down carries its plants (its parent's on it and its own), built on
+## a worker once its ground is in and its parent's plants are known; each
+## species' chain of meshes (_flora_lods: [mesh, lo, hi]), the impostors drawn
+## from one atlas (_imp_tex).
+var _flora_lods: Array = []
+var _imp_atlas := {}
+var _imp_tex: ImageTexture
+var _stand_top := 0
+var _stand_wait: Array = []     # patches whose plants are to be (re)built
+var _stand_busy: Array = []     # ...being built
+var _leaving := false           # (leaving the tree: the queued plant tasks end at once)
+var _stop := [false]            # (...and the impostors' baking)
 static var _rock_mesh: Mesh
 
 
@@ -104,10 +114,21 @@ class Patch:
 	var rocks_new: Array = []   # (while building: the next rocks - swapped in when it's in)
 	var digs := PackedFloat64Array()   # (the digs near it, a snapshot for its build)
 	var again := false          # (dug again while building: built once more)
+	var parent: Patch
+	var dead := false           # (merged away: its parent's drawn again)
+	var hs := PackedFloat32Array()   # its ground's heights (its grid, PATCH + 3 a side - its plants stand on it)
+	var stands = null           # its trees and shrubs: FloraLods records (its parent's on it and its own) - made once, kept
+	var stand_task := -1
+	var stand_again := false
+	var stand_res: Array = []   # (the worker's: [stands if new, buffers, solids])
+	var fl: Node3D              # (its impostors drawn: shown with it)
+	var stand_bufs := {}        # (its plants as MultiMesh buffers: FloraLods.build - the near field's source)
+	var stand_ok := false       # (its plants built: its parent's give way to it only then)
+	var rock_only: Array = []   # (its boulders - rocks: these and its trees' trunks)
+	var stand_solids: Array = []
 
 
 var towns: Array = []           # CosmosTown.sites: where its towns stand
-var sun_hint := Vector3.ZERO    # (towards the star, before it's placed - the towns' day side)
 
 
 func setup(record: Dictionary, noise: Texture3D) -> void:
@@ -138,7 +159,9 @@ func setup(record: Dictionary, noise: Texture3D) -> void:
 		m.set_shader_parameter("noise_tex", noise)
 		material = m
 		_ball(radius, 128, 64, m, "Body")
-		if float(L.get("rings", 0.0)) > 0.0:
+		var ringed := float(L.get("rings", 0.0)) > 0.0
+		_spin_setup(Vector3(float(L.get("incline", 0.3)) * 0.6, 0.0, float(L.get("tilt", 0.2))) if ringed else Vector3.INF)   # (a ringed giant turns round its rings' axis)
+		if ringed:
 			_add_rings(L)
 		atmo_radius = radius * 1.04
 		_add_atmosphere(atmo_col, atmo_k * 0.7)
@@ -161,18 +184,41 @@ func setup(record: Dictionary, noise: Texture3D) -> void:
 	var lh: Color = L.get("land_high", Color(0.4, 0.38, 0.35))
 	_rock_mat.set_shader_parameter("tone", lh.lerp(Color(0.42, 0.4, 0.38), 0.4))
 	# The towns (CosmosTown): where they stand, their ground levelled - before any ground is built.
-	towns = CosmosTown.sites(shape, rec, Galaxy.owner_of(str(rec.get("system", Galaxy.current_system))), sun_hint)
+	_spin_setup()
+	towns = CosmosTown.sites(shape, rec, Galaxy.owner_of(str(rec.get("system", Galaxy.current_system))))
+	_morning_start()
 	shape.set_flats(CosmosTown.flats_of(towns, radius))
-	if shape.kind == "rocky":   # (its caves and dungeons: made on a worker - its towns known: kept clear of them - carved in when done, _caves_in)
-		var sh := shape
-		_cave_task = WorkerThreadPool.add_task(func(): sh.make_caves(), true, "planet caves")
+	# (a sea world's lakes and rivers: PlanetWater, made on a worker - its towns known: kept off them - the
+	# ground built once they're in, then its caves: _water_in)
+	water_ready = not (shape.kind == "rocky" and shape.sea == 1)
+	if not water_ready:
+		var wk := _water_key()
+		if _water_cache.has(wk):
+			shape.water = _water_cache[wk]
+			water_ready = true
+		else:
+			var sh := shape
+			var out := {}
+			_water_out = out
+			var stop := _stop
+			_water_task = WorkerThreadPool.add_task(func():
+				if not stop[0]:   # (its world gone before it began: a wait on it runs it here - nothing to do)
+					out["w"] = PlanetWater.make(sh, stop), true, "planet water")
+	if shape.kind == "rocky" and water_ready:   # (its caves and dungeons: made on a worker - its towns known: kept clear of them - carved in when done, _caves_in)
+		_caves_start()
 	_flora_mat = ShaderMaterial.new()
 	_flora_mat.shader = preload("res://shaders/world/flora.gdshader")
 	_leaf_mat = ShaderMaterial.new()   # (the trees: their leaf cards cut into leaves - CosmosFlora)
 	_leaf_mat.shader = preload("res://shaders/world/leaf_flora.gdshader")
 	var fseed := int(rec.get("seed", 1))
 	var ftype := str(rec.get("type", "rocky"))
-	_flora_task = WorkerThreadPool.add_task(func(): flora = CosmosFlora.design(shape, fseed, ftype), true, "planet flora")
+	_flora_task = WorkerThreadPool.add_task(_design_flora.bind(fseed, ftype), true, "planet flora")
+	# (the coarsest level carrying trees: its plants reach as far as the furthest trees)
+	_stand_top = 0
+	for lv in range(max_level, -1, -1):
+		if FloraLods.LEVEL_REACH * _level_size(lv) >= FloraLods.TREE_REACH:
+			_stand_top = lv
+			break
 	for f in 6:
 		var p := Patch.new()
 		p.face = f
@@ -181,9 +227,12 @@ func setup(record: Dictionary, noise: Texture3D) -> void:
 		p.span = 2.0
 		_place(p)
 		_roots.append(p)
-		_start(p)
+		if water_ready:
+			_start(p)
 	if shape.sea > 0:
 		_add_sea(L, noise)
+	if water_ready:
+		_waters_add()
 	atmo_radius = radius + maxf(shape.top() * 2.5, radius * 0.06)
 	var has_air := shape.kind == "rocky" and atmo_k > 0.3
 	if has_air or float(L.get("clouds", 0.0)) > 0.05 and atmo_k > 0.3:
@@ -194,6 +243,10 @@ func setup(record: Dictionary, noise: Texture3D) -> void:
 
 ## Built enough to be seen: every face's first patch is in.
 func settled() -> bool:
+	if not water_ready:
+		_water_in()
+		if not water_ready:
+			return false
 	if not caves_ready:
 		_caves_in()
 		if not caves_ready:
@@ -202,6 +255,22 @@ func settled() -> bool:
 		if not p.ready:
 			return false
 	return true
+
+
+## (Worker) Its species (CosmosFlora) and their impostors' atlas (FloraLods).
+func _design_flora(fseed: int, ftype: String) -> void:
+	if _stop[0]:
+		return   # (its world gone before this began: a wait on a task not started runs it on the waiting thread - nothing to do)
+	var fl := CosmosFlora.design(shape, fseed, ftype, _stop)
+	if _stop[0]:
+		return
+	_imp_atlas = FloraLods.bake(fl, _stop)
+	flora = fl
+
+
+## A level's patches' size (m).
+func _level_size(lv: int) -> float:
+	return radius * (2.0 / pow(2.0, lv)) * 0.9
 
 
 func _place(p: Patch) -> void:
@@ -216,6 +285,53 @@ func _start(p: Patch) -> void:
 	_busy.append(p)
 	p.digs = shape.digs_near(p.centre, p.size * 0.8, true) if p.level >= max_level - DIG_LEVELS and shape.dig_n > 0 else PackedFloat64Array()   # (those that open its face)
 	p.task = WorkerThreadPool.add_task(_build.bind(p, p.face, p.a0, p.b0, p.span, p.centre), true, "planet patch")
+
+
+## Its lakes and rivers (PlanetWater): made once a run a world (the same ground, the same water).
+static var _water_cache := {}
+var water_ready := true          # (its lakes and rivers in - false while a sea world's are being made)
+var waters: CosmosWaters         # (its lakes' and rivers' surfaces, their sounds)
+var _water_task := -1
+var _water_out := {}
+
+
+func _water_key() -> String:
+	return "%s:%d:%d" % [str(rec.get("id", name)), int(rec.get("seed", 0)), towns.size()]
+
+
+## (Main) Its lakes and rivers in: the ground built from now on with them, its caves made.
+func _water_in() -> void:
+	if water_ready or _water_task == -1 or not WorkerThreadPool.is_task_completed(_water_task):
+		return
+	WorkerThreadPool.wait_for_task_completion(_water_task)
+	_water_task = -1
+	var w: PlanetWater = _water_out.get("w")
+	_water_out = {}
+	if w != null and w.stats.has("rivers"):   # (made whole - not given up)
+		shape.water = w
+		if _water_cache.size() >= 8:
+			_water_cache.erase(_water_cache.keys()[0])
+		_water_cache[_water_key()] = w
+	water_ready = true
+	for p: Patch in _roots:
+		if p.task == -1 and not p.ready:
+			_start(p)
+	_caves_start()
+	_waters_add()
+
+
+func _caves_start() -> void:
+	if _cave_task == -1 and not caves_ready and shape.kind == "rocky":
+		var sh := shape
+		_cave_task = WorkerThreadPool.add_task(func(): sh.make_caves(), true, "planet caves")
+
+
+## Its lakes' and rivers' surfaces (CosmosWaters: built on a worker, near you).
+func _waters_add() -> void:
+	if waters == null and shape.kind == "rocky" and shape.sea == 1:
+		waters = CosmosWaters.new()
+		waters.planet = self
+		add_child(waters)
 
 
 ## The caves made (a worker): carved in - the ground where they open built again
@@ -287,7 +403,8 @@ func cuts_settle() -> void:
 
 
 ## The finest patches within `r` of planet-local `local` built again (their
-## boulders and plants: ground built over - CosmosStructure - or dug).
+## boulders and plants: ground built over - CosmosStructure - or dug); the
+## coarser ones' trees and shrubs placed again.
 func _rebuild_near(local: Vector3, r: float) -> void:
 	var stack := _roots.duplicate()
 	while not stack.is_empty():
@@ -296,6 +413,8 @@ func _rebuild_near(local: Vector3, r: float) -> void:
 			continue
 		stack.append_array(p.kids)
 		if p.level < max_level - DIG_LEVELS or not p.ready:
+			if p.stand_ok:   # (the coarser ones' trees: placed again, their ground as it was)
+				_want_stands(p)
 			continue
 		if p.task != -1:
 			p.again = true
@@ -321,7 +440,9 @@ func _build(p: Patch, face: int, a0: float, b0: float, span: float, centre: Vect
 			var h := shape.height(d)
 			hs[j * G + i] = h
 			pts[j * G + i] = d * (radius + h)
+	p.hs = hs
 	var V := PATCH + 1
+	var wt: PlanetWater = shape.water if p.level >= max_level - 4 else null
 	var verts := PackedVector3Array()
 	var norms := PackedVector3Array()
 	var uvs := PackedVector2Array()
@@ -339,7 +460,7 @@ func _build(p: Patch, face: int, a0: float, b0: float, span: float, centre: Vect
 				nr = -nr
 			verts[j * V + i] = pts[k] - centre
 			norms[j * V + i] = nr
-			uvs[j * V + i] = Vector2(hs[k], 0.0)
+			uvs[j * V + i] = Vector2(hs[k], -wt.wet(pts[k].normalized()) if wt else 0.0)   # (y: how wet - a lake's, a river's banks; < 0, the carved ground's chunks say 1)
 	for j in PATCH:
 		for i in PATCH:
 			var a := j * V + i
@@ -443,7 +564,7 @@ func _scatter_cell(p: Patch, n: Vector3, u: Vector3, v: Vector3, a0: float, b0: 
 	if not flora_ready:
 		return
 	# (the plants - groves and meadows, sizes, each species its own seed: CosmosFlora.scatter)
-	CosmosFlora.scatter(flora, shape, radius, rng.seed, n, u, v, a0, b0, span, centre, coarse, p.digs, p.flora_xf, p.rocks_new)
+	CosmosFlora.scatter(flora, shape, radius, rng.seed, n, u, v, a0, b0, span, centre, coarse, p.digs, p.flora_xf, p.rocks_new, false)
 
 
 ## (The plants designed) The finest patches built before - bare - built again with their plants.
@@ -453,11 +574,372 @@ func _replant() -> void:
 		var p: Patch = stack.pop_back()
 		stack.append_array(p.kids)
 		if p.level < max_level - 1:
+			if p.ready:
+				_want_stands(p)   # (its trees: the finer ones' with their ground, built again below)
 			continue
 		if p.task != -1:
 			p.again = true
 		elif p.ready:
 			_start(p)
+
+
+## Its trees and shrubs to be built (again): its ground's in (or dug, or the plants
+## just designed). Above _stand_top: none.
+func _want_stands(p: Patch) -> void:
+	if flora.is_empty() and flora_ready:
+		return
+	if p.level < _stand_top:
+		if p.stands == null:
+			p.stands = {}
+		return
+	if not _stand_wait.has(p):
+		_stand_wait.append(p)
+
+
+## (Each frame) The patches' plants: built on workers - each once its parent's are
+## known (its share of them handed down) - and drawn once built, within the frame's
+## budget: per species a MultiMesh a level of detail its plants can need there (the
+## rest culled by their visibility ranges), the impostors of all in one.
+func _stands_collect() -> void:
+	if not flora_ready:
+		return
+	var i := 0
+	while i < _stand_wait.size():
+		var p: Patch = _stand_wait[i]
+		if p.dead:
+			_stand_wait.remove_at(i)
+			continue
+		var par := p.parent
+		if par != null and par.level >= _stand_top and par.stands == null:
+			i += 1   # (its parent's plants first)
+			continue
+		_stand_wait.remove_at(i)
+		if p.stand_task != -1:
+			p.stand_again = true
+			continue
+		var inh: Dictionary = par.stands if par != null and par.level >= _stand_top else {}
+		var lv := p.level
+		var hi := INF if lv == _stand_top else FloraLods.LEVEL_REACH * _level_size(lv)
+		var lo := 0.0 if lv == max_level else FloraLods.LEVEL_REACH * _level_size(lv + 1)
+		p.stand_task = WorkerThreadPool.add_task(_stand_build.bind(p, inh, p.stands, lo, hi, p.hs, p.digs, shape._bare_list), true, "planet plants")
+		_stand_busy.append(p)
+	i = 0
+	while i < _stand_busy.size():
+		var p: Patch = _stand_busy[i]
+		if not WorkerThreadPool.is_task_completed(p.stand_task):
+			i += 1
+			continue
+		if Time.get_ticks_usec() > deadline_us:
+			break
+		WorkerThreadPool.wait_for_task_completion(p.stand_task)
+		p.stand_task = -1
+		_stand_busy.remove_at(i)
+		var res := p.stand_res
+		p.stand_res = []
+		if p.dead or res.is_empty():
+			continue
+		if res[0] != null:
+			p.stands = res[0]
+		p.stand_solids = res[2]
+		p.rocks = p.rock_only + p.stand_solids
+		_stands_draw(p, res[1])
+		if p.stand_again:
+			p.stand_again = false
+			_want_stands(p)
+
+
+## (Worker) A patch's plants: its own made (the first time) and its parent's on it
+## added; then set on its ground as MultiMesh buffers (FloraLods).
+func _stand_build(p: Patch, inh: Dictionary, have, lo: float, hi: float, hs: PackedFloat32Array, digs: PackedFloat64Array, bare: Array) -> void:
+	if _leaving:
+		return   # (the planet going: the tasks still queued end at once - its exit waits for them)
+	var all: Dictionary
+	var fresh = null
+	if have == null:
+		var ax := PlanetShape.face_axes(p.face)
+		var sd := hash([int(shape.look.get("seed", 0.0) * 100.0), p.face, snappedf(p.a0, 1e-6), snappedf(p.b0, 1e-6), p.level, 5])
+		var mine := FloraLods.own(flora, shape, radius, sd, ax[0], ax[1], ax[2], p.a0, p.b0, p.span, lo, hi)
+		all = FloraLods.inherit(inh, p.a0, p.b0, p.span, mine)
+		fresh = all
+	else:
+		all = have
+	var solids: Array = []
+	var res := FloraLods.build(flora, shape, radius, all, p.a0, p.b0, p.span, p.centre, hs, PATCH, p.level >= max_level - 1, digs, solids, bare)
+	p.stand_res = [fresh, res, solids]
+
+
+## Patch `p`'s plants: kept as buffers (the near field draws them up close) and
+## its impostors drawn - all species in one MultiMesh, culled where none can be one.
+func _stands_draw(p: Patch, res: Dictionary) -> void:
+	p.stand_bufs = res
+	p.stand_ok = true
+	if p.shown:
+		_nf_dirty = true
+	if p.fl:
+		p.fl.queue_free()
+		p.fl = null
+	if not res.has("imp"):
+		return
+	var e: Array = res["imp"]
+	var s := _level_size(p.level)
+	# (where its plants can be from the camera while it's drawn: from where it splits - nearer
+	# while its children build - to where its parent merges back)
+	var win := Vector2(0.0 if p.level == max_level else s * 1.3, INF if p.level == _stand_top else s * 7.5)
+	var band := FloraLods.band_m(FloraLods.IMP, FloraLods.IMP, float(e[2]), float(e[3]))
+	band.y = minf(band.y, float(e[4]))
+	if band.x >= band.y or band.y < win.x or band.x > win.y:
+		return
+	var box: AABB = e[5]
+	var r := 0.0
+	for c in 8:
+		r = maxf(r, box.get_endpoint(c).length())
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_custom_data = true
+	mm.mesh = FloraLods.impostor_mesh()
+	mm.instance_count = e[1]
+	mm.buffer = e[0]
+	mm.custom_aabb = box
+	var mmi := MultiMeshInstance3D.new()
+	mmi.multimesh = mm
+	mmi.material_override = _leaf_mat
+	mmi.visibility_range_begin = maxf(band.x - r, 0.0)
+	mmi.visibility_range_end = band.y + r
+	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mmi.position = p.centre
+	mmi.visible = p.shown
+	add_child(mmi)
+	p.fl = mmi
+
+
+# --- The near field: the plants' finer levels round the camera ---------------------
+
+## The trees' and shrubs' meshes finer than the impostor - every species' near, mid,
+## far and low - drawn round the camera: per species and level one MultiMesh of the
+## plants that level can draw now (their distance over their size near its band, a
+## margin for the camera's movement until the next), gathered on a worker from the
+## patches drawn whenever the camera's moved NF_STEP (the near and mid levels' 4 m,
+## the far and low ones' 24 m - each tier gathered on its own) or the patches changed - a few
+## hundred MultiMeshes in all (each group in NF_SECTORS by bearing - those out of
+## sight culled), whatever the patches. Each plant's level is the shader's
+## pick, the same as the gathering's: nothing pops when the field's gathered again.
+const NF_STEP := [4.0, 24.0]    # m: gathered again after the camera's moved this far - the near and mid levels, the far and low ones
+const NF_CAST_M := 50.0         # m: the plants casting shadows (near and mid levels: solid ones)
+const NF_SECTORS := 8           # (each group split by its bearing from the camera: the ones behind it culled)
+var _nf: Node3D
+var _nf_mmi := {}               # group key -> MultiMeshInstance3D
+var _nf_groups: Array = []      # [key, species, mesh, lo x, hi x, cast, near only, far only, tier]
+var _nf_task := -1
+var _nf_res := {}
+var _nf_apply := {}             # (gathered, being handed to the MultiMeshes: key -> [buffer, AABB, hash])
+var _nf_i := 0
+var _nf_busy := false
+var _nf_at: Array = [Vector3(INF, INF, INF), Vector3(INF, INF, INF)]   # (each tier's camera when last gathered)
+var _nf_t: Array = [0, 0]
+var _nf_dirty := false
+var _nf_dirt: Array = [false, false]
+var _nf_tiers: Array = [false, false]   # (the tiers the gathering under way is of)
+var _nf_hash := {}              # key -> its buffer's hash (unchanged: not sent again)
+
+
+## The groups (made once the meshes are): per species, per level of its chain - the
+## mid level split at NF_CAST_M (the nearer half casts shadows).
+func _nf_setup() -> void:
+	_nf_groups.clear()
+	for k in _flora_lods.size():
+		var solid := float(flora[k]["solid"]) > 0.0
+		for lm: Array in _flora_lods[k]:
+			var lo: int = lm[1]
+			var hi: int = lm[2]
+			var bx := FloraLods.band_x(lo, hi)
+			var lx: float = bx.x
+			var hx: float = bx.y
+			var tier := 0 if lo < FloraLods.IMP - 2 else 1   # (near and mid levels / far and low)
+			if solid and lo < FloraLods.IMP - 2 and hi < FloraLods.IMP - 2:
+				_nf_groups.append([_nf_groups.size(), k, lm[0], lx, hx, true, true, false, tier])
+				_nf_groups.append([_nf_groups.size(), k, lm[0], lx, hx, false, false, true, tier])
+			else:
+				_nf_groups.append([_nf_groups.size(), k, lm[0], lx, hx, false, false, false, tier])
+
+
+## (Each LOD visit) Gather the near field again if the camera's moved or the patches changed.
+func _nf_check(cam: Vector3) -> void:
+	if not flora_ready or _flora_lods.is_empty() or _nf_task != -1 or _nf_busy:
+		return
+	if _nf_dirty:
+		_nf_dirty = false
+		_nf_dirt = [true, true]
+	var now := Time.get_ticks_msec()
+	var due: Array = [false, false]
+	var margin: Array = [0.0, 0.0]
+	for t in 2:
+		var moved: float = cam.distance_to(_nf_at[t])
+		# (the far tier's gathering is the bulk: for the patches changing, at most every 0.4 s)
+		due[t] = moved >= float(NF_STEP[t]) or bool(_nf_dirt[t]) and (t == 0 or now - int(_nf_t[t]) > 400)
+		if not due[t]:
+			continue
+		var speed: float = moved / maxf((now - int(_nf_t[t])) / 1000.0, 0.05) if (_nf_at[t] as Vector3).x < INF else 0.0
+		margin[t] = clampf(float(NF_STEP[t]) + speed * 0.35, float(NF_STEP[t]), 250.0)   # (fast: a wider margin - it moves further before the next)
+		_nf_t[t] = now
+		_nf_at[t] = cam
+		_nf_dirt[t] = false
+	if not due[0] and not due[1]:
+		return
+	if _nf_groups.is_empty():
+		_nf_setup()
+	var reach := 0.0
+	for g: Array in _nf_groups:
+		if due[g[8]]:
+			reach = maxf(reach, float(g[4]) * float(flora[g[1]]["h"]) * 1.7 + float(margin[g[8]]))
+	# (the patches drawn round it: their plants' buffers)
+	var snap: Array = []
+	var stack := _roots.duplicate()
+	while not stack.is_empty():
+		var q: Patch = stack.pop_back()
+		if q.centre.distance_to(cam) > reach + q.size:
+			continue
+		if q.shown:
+			if not q.stand_bufs.is_empty():
+				snap.append([q.centre, q.stand_bufs])
+		else:
+			stack.append_array(q.kids)
+	_nf_tiers = due
+	_nf_task = WorkerThreadPool.add_task(_nf_build.bind(snap, cam, margin, due), true, "planet plants near")
+
+
+## (Worker) Each group's plants: those whose distance over size is within its band
+## (and the margin), planet-local (a float's precision there: under a millimetre) -
+## [buffer, AABB] each.
+func _nf_build(snap: Array, cam: Vector3, margins: Array, due: Array) -> void:
+	if _leaving:
+		return
+	var by_k := {}
+	for g: Array in _nf_groups:
+		if not due[g[8]]:
+			continue
+		var l: Array = by_k.get(g[1], [])
+		l.append(g)
+		by_k[g[1]] = l
+	var out := {}
+	var co := cam
+	var up := cam.normalized()
+	var e1 := up.cross(Vector3.UP if absf(up.y) < 0.9 else Vector3.RIGHT).normalized()
+	var e2 := up.cross(e1)
+	for e: Array in snap:
+		var off: Vector3 = e[0]
+		var bufs: Dictionary = e[1]
+		for k in bufs:
+			if not k is int or not by_k.has(k):
+				continue
+			var gs: Array = by_k[k]
+			var margin := 0.0
+			for g: Array in gs:
+				margin = maxf(margin, float(margins[g[8]]))
+			var buf: PackedFloat32Array = bufs[k][0]
+			for i in range(0, buf.size(), 16):
+				var px := buf[i + 3] + off.x
+				var py := buf[i + 7] + off.y
+				var pz := buf[i + 11] + off.z
+				var d := Vector3(px, py, pz).distance_to(co)
+				var reach := buf[i + 13]
+				if d - margin > reach:
+					continue
+				var size := buf[i + 12]
+				var rel := Vector3(px, py, pz) - co
+				var sec := int(floor((atan2(rel.dot(e2), rel.dot(e1)) + PI) / TAU * NF_SECTORS)) % NF_SECTORS
+				for g: Array in gs:
+					var gm: float = margins[g[8]]
+					if (d + gm) / size < float(g[3]) or (d - gm) / size > float(g[4]):
+						continue
+					if bool(g[6]) and d > NF_CAST_M or bool(g[7]) and d <= NF_CAST_M:
+						continue   # (the near ones cast shadows, the rest not: each in one of the two)
+					var key: int = int(g[0]) * NF_SECTORS + sec
+					var acc: Array = out.get(key, [])   # [buffer, offset, instance] triples (an Array: appended in place)
+					if acc.is_empty():
+						out[key] = acc
+					acc.append_array([buf, Vector3(px, py, pz), i])
+	var res := {}
+	for key in out:   # (each one's buffer, and bounds: its plants' places, their sizes round them)
+		var acc: Array = out[key]
+		var ob := PackedFloat32Array()
+		ob.resize(acc.size() / 3 * 16)
+		var lo := Vector3(INF, INF, INF)
+		var hi := -lo
+		var big := 0.0
+		var w := 0
+		for j in range(0, acc.size(), 3):
+			var src: PackedFloat32Array = acc[j]
+			var o: Vector3 = acc[j + 1]
+			var i: int = acc[j + 2]
+			for q in 16:
+				ob[w + q] = src[i + q]
+			ob[w + 3] = o.x
+			ob[w + 7] = o.y
+			ob[w + 11] = o.z
+			w += 16
+			lo = lo.min(o)
+			hi = hi.max(o)
+			big = maxf(big, src[i + 12])
+		res[key] = [ob, AABB(lo - Vector3.ONE * big * 1.3, hi - lo + Vector3.ONE * big * 2.6), hash(ob)]
+	_nf_res = res
+
+
+## (Each frame) The gathered field in: each group's MultiMesh given its plants - as
+## many as the frame's budget allows, the rest the next frames (a group's buffer
+## swapped whole: a plant in two groups for a frame at most).
+func _nf_collect() -> void:
+	if _nf_task != -1 and WorkerThreadPool.is_task_completed(_nf_task):
+		WorkerThreadPool.wait_for_task_completion(_nf_task)
+		_nf_task = -1
+		_nf_apply = _nf_res
+		_nf_res = {}
+		_nf_i = 0
+		_nf_busy = true
+	if not _nf_busy:
+		return
+	if _nf == null:
+		_nf = Node3D.new()
+		_nf.name = "PlantsNear"
+		add_child(_nf)
+	var total := _nf_groups.size() * NF_SECTORS
+	while _nf_i < total:
+		if Time.get_ticks_usec() > deadline_us and _nf_i > 0:
+			return
+		var key := _nf_i
+		_nf_i += 1
+		var g: Array = _nf_groups[key / NF_SECTORS]
+		if not _nf_tiers[g[8]]:
+			continue   # (not gathered this time: as it was)
+		var e: Array = _nf_apply.get(key, [])
+		var mmi: MultiMeshInstance3D = _nf_mmi.get(key)
+		if e.is_empty():
+			if mmi:
+				mmi.visible = false
+			_nf_hash.erase(key)
+			continue
+		if mmi and mmi.visible and int(_nf_hash.get(key, 0)) == int(e[2]):
+			continue   # (the same plants: nothing sent)
+		_nf_hash[key] = e[2]
+		var buf: PackedFloat32Array = e[0]
+		if mmi == null:
+			var mm := MultiMesh.new()
+			mm.transform_format = MultiMesh.TRANSFORM_3D
+			mm.use_custom_data = true
+			mm.mesh = g[2]
+			mmi = MultiMeshInstance3D.new()
+			mmi.multimesh = mm
+			mmi.material_override = _leaf_mat
+			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if bool(g[5]) else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			_nf.add_child(mmi)
+			_nf_mmi[key] = mmi
+		var m := mmi.multimesh
+		if m.instance_count != buf.size() / 16:
+			m.instance_count = buf.size() / 16
+		m.buffer = buf
+		m.custom_aabb = e[1]
+		mmi.visible = true
+	_nf_busy = false
+	_nf_apply = {}
 
 
 ## Called by Cosmos a few times a second: the camera's planet-local position.
@@ -484,6 +966,7 @@ func update_lod(cam_local: Vector3) -> void:
 	var until := Time.get_ticks_usec() + visit_budget_us
 	while not _stack.is_empty() and Time.get_ticks_usec() < until:
 		_visit(_stack.pop_back())
+	_nf_check(cam_local)
 
 
 func _send_cuts() -> void:
@@ -536,27 +1019,37 @@ func collect_only() -> void:
 
 
 func _collect() -> void:
+	_water_in()
 	_caves_in()
 	if _flora_task != -1 and WorkerThreadPool.is_task_completed(_flora_task):
 		WorkerThreadPool.wait_for_task_completion(_flora_task)
 		_flora_task = -1
 		_flora_mk = 0 if not flora.is_empty() else -1
 		flora_ready = flora.is_empty()
-	if _flora_mk >= 0:   # (the species' meshes made, one species a frame - their near, mid and far meshes: CosmosFlora)
+		if _imp_atlas.has("image"):   # (the impostors' atlas: FloraLods.bake)
+			_imp_tex = ImageTexture.create_from_image(_imp_atlas["image"])
+			_leaf_mat.set_shader_parameter("impostors", _imp_tex)
+			_leaf_mat.set_shader_parameter("imp_grid", _imp_atlas["grid"])
+			_imp_atlas = {}
+	if _flora_mk >= 0 and flora[_flora_mk].has("lods"):   # (a tree's or shrub's chain of meshes, one species a frame: FloraLods)
+		var lods: Array = []
+		for e: Array in flora[_flora_mk]["lods"]:
+			var lm := ArrayMesh.new()
+			lm.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, e[0])
+			lods.append([lm, e[1], e[2]])
+		_flora_lods.append(lods)
+		_flora_meshes.append(null)
+		_flora_mk += 1
+		if _flora_mk >= flora.size():
+			_flora_mk = -1
+			flora_ready = true
+			_replant()
+	elif _flora_mk >= 0:   # (a grass's or flower's mesh)
 		var sp: Dictionary = flora[_flora_mk]
+		_flora_lods.append([])
 		var m := ArrayMesh.new()
 		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, sp["arrays"])
 		_flora_meshes.append(m)
-		var fm := m
-		if not is_same(sp.get("far", sp["arrays"]), sp["arrays"]):
-			fm = ArrayMesh.new()
-			fm.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, sp["far"])
-		_flora_far.append(fm)
-		var nm: ArrayMesh = null
-		if sp.has("near"):
-			nm = ArrayMesh.new()
-			nm.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, sp["near"])
-		_flora_near.append(nm)
 		_flora_mk += 1
 		if _flora_mk >= flora.size():
 			_flora_mk = -1
@@ -586,7 +1079,8 @@ func _collect() -> void:
 		mi.visible = p.shown and p.mi != null   # (built again - dug: in place of the old one)
 		if p.mi:
 			p.mi.queue_free()
-		p.rocks = p.rocks_new
+		p.rock_only = p.rocks_new
+		p.rocks = p.rock_only + p.stand_solids if not p.stand_solids.is_empty() else p.rock_only
 		p.rocks_new = []
 		if not COMPAT:   # (the web's renderer: none - see terrain.gdshader)
 			mi.set_instance_shader_parameter("patch_info", Vector4(p.centre.x, p.centre.y, p.centre.z, 0.0 if p.digs.is_empty() else 1.0))   # (its centre; 1: carves near - not drawn inside them)
@@ -615,7 +1109,7 @@ func _collect() -> void:
 				continue
 			var fm := MultiMesh.new()
 			fm.transform_format = MultiMesh.TRANSFORM_3D
-			fm.mesh = _flora_meshes[k] if p.level >= max_level or k >= _flora_far.size() else _flora_far[k]   # (far mesh on the coarser patches)
+			fm.mesh = _flora_meshes[k]   # (the grass and flowers: the finest patches')
 			fm.instance_count = buf.size() / 12
 			fm.buffer = buf
 			var fmi := MultiMeshInstance3D.new()
@@ -626,23 +1120,14 @@ func _collect() -> void:
 			# (draw distances: the small plants only near - their patches' draw calls go)
 			fmi.visibility_range_end = float(flora[k].get("range", 0.0))   # (each species' own: CosmosFlora - grass and flowers fade out before it)
 			mi.add_child(fmi)
-			if FLORA_NEAR > 0.0 and p.level >= max_level and k < _flora_near.size() and _flora_near[k] != null:   # (up close: the trees' every branch and leaf)
-				fmi.visibility_range_begin = FLORA_NEAR
-				var nmm := MultiMesh.new()
-				nmm.transform_format = MultiMesh.TRANSFORM_3D
-				nmm.mesh = _flora_near[k]
-				nmm.instance_count = fm.instance_count
-				nmm.buffer = buf
-				var nmi := MultiMeshInstance3D.new()
-				nmi.multimesh = nmm
-				nmi.material_override = _leaf_mat
-				nmi.cast_shadow = fmi.cast_shadow
-				nmi.visibility_range_end = FLORA_NEAR
-				mi.add_child(nmi)
 		p.flora_buf = {}
 		if p.again:
 			p.again = false
 			_start(p)
+		else:
+			_want_stands(p)
+	_stands_collect()
+	_nf_collect()
 
 
 func _visit(p: Patch) -> void:
@@ -670,6 +1155,10 @@ func _show(p: Patch, on: bool) -> void:
 	if p.shown != on and p.mi:
 		p.shown = on
 		p.mi.visible = on
+		if p.fl:
+			p.fl.visible = on
+		if not p.stand_bufs.is_empty():
+			_nf_dirty = true
 
 
 func _split(p: Patch) -> void:
@@ -681,6 +1170,7 @@ func _split(p: Patch) -> void:
 		k.span = h
 		k.a0 = p.a0 + h * (q % 2)
 		k.b0 = p.b0 + h * (q / 2)
+		k.parent = p
 		_place(k)
 		p.kids.append(k)
 		_start(k)
@@ -688,14 +1178,14 @@ func _split(p: Patch) -> void:
 
 func _kids_ready(p: Patch) -> bool:
 	for k: Patch in p.kids:
-		if not k.ready:
+		if not k.ready or p.stand_ok and not k.stand_ok:   # (their plants too, once its own are: the trees never blink out)
 			return false
 	return true
 
 
 func _subtree_busy(p: Patch) -> bool:
 	for k: Patch in p.kids:
-		if k.task != -1 or _subtree_busy(k):
+		if k.task != -1 or k.stand_task != -1 or _subtree_busy(k):
 			return true
 	return false
 
@@ -703,8 +1193,12 @@ func _subtree_busy(p: Patch) -> bool:
 func _drop_kids(p: Patch) -> void:
 	for k: Patch in p.kids:
 		_drop_kids(k)
+		k.dead = true
 		if k.mi:
 			k.mi.queue_free()
+		if k.fl:
+			k.fl.queue_free()
+			k.fl = null
 	p.kids.clear()
 
 
@@ -783,6 +1277,11 @@ func ground_at(local: Vector3) -> float:
 
 
 func _add_sea(L: Dictionary, noise: Texture3D) -> void:
+	if shape.sea == 1:   # (water: seen into, its waves, the sky in it - CosmosWaters' too)
+		_sea_low = unit_sphere(64, 32)
+		_sea_high = unit_sphere(384, 192)
+		_sea_mi = _ball(radius, 64, 32, CosmosWaters.sea_material(L, radius), "Sea")
+		return
 	var m := ShaderMaterial.new()
 	m.shader = WATER
 	m.set_shader_parameter("kind", shape.sea)
@@ -839,7 +1338,7 @@ func _add_clouds(L: Dictionary, noise: Texture3D) -> void:
 func weather_tick(t: float, eye_local: Vector3) -> void:
 	if weather == null or weather.cells.is_empty():
 		return
-	var sc: Array = weather.shader_cells(t, sun_dir)
+	var sc: Array = weather.shader_cells(t, sun_local)   # (its cells in its own frame)
 	for m: ShaderMaterial in _cloud_mats:
 		m.set_shader_parameter("cell_a", sc[0])
 		m.set_shader_parameter("cell_b", sc[1])
@@ -893,8 +1392,7 @@ func _add_rings(L: Dictionary) -> void:
 	mi.mesh = st.commit()
 	mi.material_override = m
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	mi.rotation = Vector3(float(L.get("incline", 0.3)) * 0.6, 0.0, float(L.get("tilt", 0.2)))
-	add_child(mi)
+	add_child(mi)   # (in its equator's plane: tilted with its axis - tilt_basis - turning round it, unchanged)
 
 
 ## A unit sphere of `radial` x `rings` segments - one of each kind for every
@@ -927,16 +1425,190 @@ func _ball(r: float, radial: int, rings: int, mat: Material, label: String) -> M
 	return mi
 
 
+## Towards the star (world, `dir`): the shaders lit from it - in the world's frame,
+## but the clouds' (they light their own unit sphere: its frame, spin_sun).
 func set_sun(dir: Vector3) -> void:
 	sun_dir = dir
 	for c in get_children():
-		if c is GeometryInstance3D and c.material_override is ShaderMaterial:
+		if c is GeometryInstance3D and c.material_override is ShaderMaterial and not _cloud_mats.has(c.material_override):
 			(c.material_override as ShaderMaterial).set_shader_parameter("sun_dir", dir)
 	if material:
 		material.set_shader_parameter("sun_dir", dir)
+	spin_sun()
+
+
+## The sun in its own frame (it's turned since): sun_local, and its clouds lit from it -
+## each of Cosmos._orbit_tick's steps.
+func spin_sun() -> void:
+	sun_local = dir_local(sun_dir)
+	for m: ShaderMaterial in _cloud_mats:
+		m.set_shader_parameter("sun_dir", sun_local)
+
+
+# --- Its turning: a day and a night ---------------------------------------------------
+## Every world turns on its own axis - tilted a little (up to TILT_MAX, fixed among
+## the stars: its seasons over its year) - so the sun rises and sets. Its node's
+## basis IS its turn: Cosmos._orbit_tick sets it (ORBIT_HZ) and carries round with it
+## what stands on it; its children (the ground, the sea, the clouds, its towns...)
+## turn with it. "Planet-local" is its own frame: to_local / to_global for points,
+## dir_local / dir_world for directions. Its solar day (noon to noon) 16-24 min
+## from its seed - day and night each at most 12 min where its towns stand (within
+## LIVED_LAT of its equator: CosmosTown.sites - the tilt's longest day there kept to
+## 12 min, its day shortened to fit) - times Settings.day_length; a pure function of
+## its seed and the galaxy's clock (spin_clock: continuous when the setting changes).
+const DAY_MIN := 960.0           # s: the shortest solar day
+const DAY_MAX := 1440.0          # s: the longest
+const HALF_DAY_MAX := 720.0      # s: the longest day (or night) where its towns are
+const TILT_MAX := 0.349          # (20 degrees)
+const LIVED_LAT := 1.047         # (60 degrees: its towns within it)
+var day_len := 1200.0            # s: its solar day (the setting's 1x)
+var year_len := 0.0              # s: its year - a moon: its world's (the solar day's the turn less the year's)
+var spin_phase := 0.0
+var tilt := 0.0
+var tilt_basis := Basis.IDENTITY # (its axis: its local Y, tilted)
+var spin_now := 0.0              # (the turn its basis shows now: Cosmos._orbit_tick)
+var sun_local := Vector3.UP      # (to the star, in its own frame - spin_sun)
+
+
+## Its turn from its record (and, a ringed giant, its rings' tilt - the axis theirs):
+## {day, tilt, tilt_basis, phase}.
+static func spin_of(r: Dictionary, ring_euler := Vector3.INF) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(str(r.get("seed", 1)) + ":" + str(r.get("id", "")) + ":spin")
+	var day := rng.randf_range(DAY_MIN, DAY_MAX)
+	var eps := TILT_MAX * pow(rng.randf(), 1.3)
+	var az := rng.randf() * TAU
+	var phase := rng.randf() * TAU
+	var tb := Basis.IDENTITY
+	if ring_euler != Vector3.INF:
+		tb = Basis.from_euler(ring_euler)
+		eps = (tb * Vector3.UP).angle_to(Vector3.UP)
+	elif eps > 0.0001:
+		var pole := Vector3(sin(eps) * cos(az), cos(eps), sin(eps) * sin(az))
+		tb = Basis(Vector3.UP.cross(pole).normalized(), eps)
+	# (at LIVED_LAT, midsummer: the day's share of the turn - the hour angle of sunset)
+	var share := acos(clampf(-tan(LIVED_LAT) * tan(eps), -1.0, 1.0)) / PI
+	if ring_euler == Vector3.INF:
+		day = minf(day, HALF_DAY_MAX / maxf(share, 0.5))
+	return {"day": day, "tilt": eps, "tilt_basis": tb, "phase": phase}
+
+
+## (Set up in setup: its turn, its year.)
+func _spin_setup(ring_euler := Vector3.INF) -> void:
+	var s := spin_of(rec, ring_euler)
+	day_len = s["day"]
+	tilt = s["tilt"]
+	tilt_basis = s["tilt_basis"]
+	spin_phase = s["phase"]
+	var top := rec
+	var parent := str(rec.get("moon_of", ""))
+	if parent != "":
+		top = Cosmos._orbits_of(str(rec.get("system", Galaxy.current_system)))["by_id"].get(parent, rec)
+	year_len = Cosmos.orbit_period(top) if top.has("orbit") else 0.0
+
+
+## A world with towns: its turn at the clock's start such that its first city has the
+## morning sun then (a new game begins there, galaxy time 0) - its seed's all the same.
+func _morning_start() -> void:
+	if towns.is_empty():
+		return
+	var site: Dictionary = towns[0]
+	for s in towns:
+		if str(s.get("kind", "")) == "city":
+			site = s
+			break
+	spin_phase = morning_turn(site["dir"], 0.0, spin_phase)   # (the clock's start: its turn there is its phase)
+
+
+## The turn (radians) that puts planet-local `d` in the mid-morning sun at galaxy
+## time `t` (the sun rising, a little over halfway up) - `none` if it has no sun.
+func morning_turn(d: Vector3, t: float, none := 0.0) -> float:
+	var at: Vector3 = Cosmos.planet_places(str(rec.get("system", Galaxy.current_system)), t).get(str(rec.get("id", "")), Vector3.ZERO)
+	if at == Vector3.ZERO:
+		return none
+	var u := tilt_basis.inverse() * (-at).normalized()
+	var best := none
+	var best_k := INF
+	var top := 0.0
+	for k in 360:
+		top = maxf(top, (Basis(Vector3.UP, -deg_to_rad(k)) * u).dot(d))
+	for k in 360:
+		var e := (Basis(Vector3.UP, -deg_to_rad(k)) * u).dot(d)
+		var e1 := (Basis(Vector3.UP, -deg_to_rad(k + 1)) * u).dot(d)
+		if e1 > e and absf(e - top * 0.55) < best_k:
+			best_k = absf(e - top * 0.55)
+			best = deg_to_rad(k)
+	return best
+
+
+## How far it's turned at galaxy time `t` (radians).
+func spin_angle(t: float) -> float:
+	var c := spin_clock(t)
+	return spin_phase + TAU * (c.x / day_len - (c.y / year_len if year_len > 0.0 else 0.0))   # (the year's share taken off: it turns the same way as it goes round its star - its days a little longer than its turn)
+
+
+## Its basis at galaxy time `t`: its axis tilted, turned round it.
+func spin_basis(t: float) -> Basis:
+	return basis_at(spin_angle(t))
+
+
+## Its basis turned `a` (radians) round its axis.
+func basis_at(a: float) -> Basis:
+	return tilt_basis * Basis(Vector3.UP, a)   # (seen from its north - its local +Y - turning anticlockwise: the sun rises in the east, sets in the west)
+
+
+## A direction (or an offset from its centre) in the world's frame, in its own - and back.
+func dir_local(v: Vector3) -> Vector3:
+	return global_basis.inverse() * v
+
+
+func dir_world(v: Vector3) -> Vector3:
+	return global_basis * v
+
+
+## The direction to its star in its own frame at galaxy time `t` (m round the star: `where`
+## its place then - Cosmos.planet_places) - for what looks ahead (the HUD's sunrise, the shots).
+func sun_local_at(t: float, where: Vector3) -> Vector3:
+	return spin_basis(t).inverse() * (-where).normalized()
+
+
+## The spin's clock: [day clock, year clock] (s) at galaxy time `t` - the galaxy's own
+## times the setting's rate (Settings.day_length: 2 - days twice as long; 0 - no turning).
+## Its rate changed: carried on from where it was (the worlds don't jump); a game
+## loaded: from the galaxy's time (reset_spin).
+static var _clk := [0.0, 0.0, 0.0]   # (from: galaxy time, day clock, year clock)
+static var _clk_rate := Vector2(1.0, 1.0)
+
+
+static func spin_clock(t: float) -> Vector2:
+	var dt := t - float(_clk[0])
+	return Vector2(float(_clk[1]) + dt * _clk_rate.x, float(_clk[2]) + dt * _clk_rate.y)
+
+
+static func _rate_of(mult: float) -> Vector2:
+	return Vector2.ZERO if mult <= 0.0 else Vector2(1.0 / mult, 1.0)
+
+
+## The setting's rate from now (galaxy time `t`) - kept continuous; true if it changed.
+static func spin_rate(mult: float, t: float) -> bool:
+	var r := _rate_of(mult)
+	if r == _clk_rate:
+		return false
+	var c := spin_clock(t)
+	_clk = [t, c.x, c.y]
+	_clk_rate = r
+	return true
+
+
+## A game begun or loaded: the clock the galaxy's own times the setting's rate.
+static func reset_spin(mult: float) -> void:
+	_clk = [0.0, 0.0, 0.0]
+	_clk_rate = _rate_of(mult)
 
 
 func _enter_tree() -> void:
+	_leaving = false
+	_stop[0] = false
 	if COMPAT and not RenderingServer.frame_pre_draw.is_connected(_pre_draw):
 		RenderingServer.frame_pre_draw.connect(_pre_draw)
 
@@ -950,6 +1622,8 @@ func _pre_draw() -> void:
 
 
 func _exit_tree() -> void:
+	_leaving = true
+	_stop[0] = true
 	if RenderingServer.frame_pre_draw.is_connected(_pre_draw):
 		RenderingServer.frame_pre_draw.disconnect(_pre_draw)
 	if _flora_task != -1:
@@ -958,9 +1632,20 @@ func _exit_tree() -> void:
 	if _cave_task != -1:
 		WorkerThreadPool.wait_for_task_completion(_cave_task)
 		_cave_task = -1
+	if _water_task != -1:
+		WorkerThreadPool.wait_for_task_completion(_water_task)
+		_water_task = -1
 	for p: Patch in _busy:
 		if p.task != -1:
 			WorkerThreadPool.wait_for_task_completion(p.task)
 			p.task = -1
 			tasks -= 1
 	_busy.clear()
+	for p: Patch in _stand_busy:
+		if p.stand_task != -1:
+			WorkerThreadPool.wait_for_task_completion(p.stand_task)
+			p.stand_task = -1
+	_stand_busy.clear()
+	if _nf_task != -1:
+		WorkerThreadPool.wait_for_task_completion(_nf_task)
+		_nf_task = -1

@@ -565,6 +565,16 @@ func set_legs(down: bool) -> void:
 		interior.set_ramp(down)
 
 
+## The doorway through the tail (ship space) while the door's open - its hull's solid
+## (CosmosHullGrid) cut there, as the inside's door is; else none.
+func door_box() -> AABB:
+	if interior == null or interior.door_t < 0.3:
+		return AABB()
+	var lo := Vector3(-MinoanShip.DOOR[0], CosmosShipInterior.FLOOR - 0.4, float(CosmosShipInterior.RAMP[1]) - 1.5)
+	var hi := Vector3(MinoanShip.DOOR[0], float(MinoanShip.DOOR[2]) + 0.25, float(CosmosShipInterior.RAMP[1]) + 40.0)
+	return AABB(lo, hi - lo)
+
+
 func _engine_mat(glow: bool) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = preload("res://shaders/world/engine.gdshader")

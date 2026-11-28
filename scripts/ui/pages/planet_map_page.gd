@@ -45,6 +45,12 @@ static var _meshes := {}         # planet id -> ArrayMesh (the globe)
 static var _tasks := {}          # planet id -> [task id, {mesh}]
 static var _plans := {}          # town key -> ImageTexture (its plan)
 static var _plan_tasks := {}     # town key -> [task id, {img}]
+static var _roads := {}          # roads key (CosmosRoads.key_of) -> [[unit dirs (simplified), main]] (its roads on the globe)
+static var _road_tasks := {}     # roads key -> [task id, {r}] (a world's network made for the map)
+const ROAD_FILL := Color(0.86, 0.68, 0.42)    # (a main road's - city to city; a village's track paler, thinner)
+const TRACK_FILL := Color(0.7, 0.6, 0.46)
+const ROAD_CASE := Color(0.16, 0.11, 0.07)
+const BRIDGE_CASE := Color(0.7, 0.66, 0.58)   # (a bridge's: its pale stone, under the road over the water)
 
 ## Every map being drawn collected (leaving the game: no task left in the pool).
 static func finish_tasks() -> void:
@@ -54,6 +60,9 @@ static func finish_tasks() -> void:
 	for k in _plan_tasks:
 		WorkerThreadPool.wait_for_task_completion(_plan_tasks[k][0])
 	_plan_tasks = {}
+	for k in _road_tasks:
+		WorkerThreadPool.wait_for_task_completion(_road_tasks[k][0])
+	_road_tasks = {}
 
 var _view: GlobeView
 var _plan: TownPlan
@@ -224,7 +233,7 @@ func focus_you(keep_pick := false) -> void:
 		var node: Node3D = _t.get("node")
 		if c == null or not is_instance_valid(node) or c.ship == null:
 			return
-		var d: Vector3 = c.ship.global_position - node.global_position
+		var d: Vector3 = node.to_local(c.ship.global_position)   # (the globe's in the world's own frame: it turns)
 		if d.length() < 1.0:
 			return
 		_view.turn_to(d, R * 2.7)
@@ -264,6 +273,13 @@ func _process(delta: float) -> void:
 		while _meshes.size() > KEEP:   # (the oldest let go: a few MB each)
 			_meshes.erase(_meshes.keys()[0])
 		_view.set_mesh(_meshes[id])
+	for k in _road_tasks.keys():
+		if WorkerThreadPool.is_task_completed(_road_tasks[k][0]):
+			WorkerThreadPool.wait_for_task_completion(_road_tasks[k][0])
+			var res: Dictionary = _road_tasks[k][1]
+			_road_tasks.erase(k)
+			CosmosRoads.store(k, res.get("r", []), float(res.get("radius", 1.0)))
+			_roads_ready(k)
 	for k in _plan_tasks.keys():
 		if WorkerThreadPool.is_task_completed(_plan_tasks[k][0]):
 			WorkerThreadPool.wait_for_task_completion(_plan_tasks[k][0])
@@ -285,8 +301,9 @@ func _process(delta: float) -> void:
 			_update_info()
 
 
-## The globe of `t`: made on a worker the first time.
+## The globe of `t`: made on a worker the first time (and its roads).
 func _ensure(t: Dictionary) -> void:
+	_want_roads(t)
 	var id := str(t["id"])
 	if _meshes.has(id):
 		_view.set_mesh(_meshes[id])
@@ -345,6 +362,7 @@ static func build_globe(shape: PlanetShape) -> ArrayMesh:
 	var idx := PackedInt32Array()
 	var uvs := PackedVector2Array()
 	var wet := shape.sea == 1 or shape.sea == 3
+	var wt := shape.water           # (its lakes, its rivers)
 	var S := N + 3                 # (samples a side: the face's N + 1, and one more each way)
 	for f in 6:
 		var ax := PlanetShape.face_axes(f)
@@ -356,8 +374,12 @@ static func build_globe(shape: PlanetShape) -> ArrayMesh:
 			for i in S:
 				var d := PlanetShape.face_dir(ax[0], ax[1], ax[2], -1.0 + 2.0 * (i - 1) / N, -1.0 + 2.0 * (j - 1) / N)
 				var h := 0.0 if shape.kind == "gas" else shape.height(d)
-				hs[j * S + i] = h
+				var li := wt.lake_at(d) if wt else -1
 				pts[j * S + i] = d * R * (1.0 + (maxf(h, 0.0) if shape.sea > 0 else h) / shape.radius * EXAG)
+				if li >= 0:   # (a lake: flat at its water's level, coloured as water)
+					pts[j * S + i] = d * R * (1.0 + float(wt.lakes[li]["level"]) / shape.radius * EXAG)
+					h = -0.03 * shape.amp
+				hs[j * S + i] = h
 		var base := verts.size()
 		for j in range(1, N + 2):
 			for i in range(1, N + 2):
@@ -382,6 +404,8 @@ static func build_globe(shape: PlanetShape) -> ArrayMesh:
 					idx.append_array([a, a + W, a + 1, a + 1, a + W, a + W + 1])
 				else:
 					idx.append_array([a, a + 1, a + W, a + 1, a + W + 1, a + W])
+	if wt:
+		_globe_rivers(shape, wt, verts, norms, cols, uvs, idx)
 	var arr := []
 	arr.resize(Mesh.ARRAY_MAX)
 	arr[Mesh.ARRAY_VERTEX] = verts
@@ -392,6 +416,38 @@ static func build_globe(shape: PlanetShape) -> ArrayMesh:
 	var m := ArrayMesh.new()
 	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
 	return m
+
+
+## Its rivers on the globe: ribbons over the ground (wide enough to be seen), coloured as water.
+static func _globe_rivers(shape: PlanetShape, wt: PlanetWater, verts: PackedVector3Array, norms: PackedVector3Array, cols: PackedColorArray, uvs: PackedVector2Array, idx: PackedInt32Array) -> void:
+	var water: Color = (shape.look.get("water_shallow", Color(0.15, 0.45, 0.6)) as Color).srgb_to_linear()
+	for rv in wt.rivers:
+		var first := int(rv["first"])
+		var n := int(rv["count"])
+		var base := verts.size()
+		var k := 0
+		for q in range(first, first + n, 2):
+			var p := wt.pts[q]
+			var u := p.normalized()
+			var b := mini(q + 2, first + n - 1)
+			var a := maxi(q - 2, first)
+			var side := (wt.pts[b] - wt.pts[a]).cross(u).normalized()
+			var hw := maxf(wt.hw[q] / shape.radius * R, 0.16)
+			var lift := R * (1.0 + maxf(wt.lvl[q], 0.0) / shape.radius * EXAG) + 0.08
+			for sgn in [-1.0, 1.0]:
+				var d: Vector3 = (u * R + side * hw * sgn).normalized()
+				verts.append(d * lift)
+				norms.append(d)
+				cols.append(water)
+				uvs.append(Vector2(-0.05, 0.0))
+			k += 1
+		for t in k - 1:
+			var a0 := base + t * 2
+			var tri := [a0, a0 + 1, a0 + 2, a0 + 1, a0 + 3, a0 + 2]
+			var c0 := verts[a0]
+			if (verts[a0 + 1] - c0).cross(verts[a0 + 2] - c0).dot(c0) > 0.0:
+				tri = [a0, a0 + 2, a0 + 1, a0 + 1, a0 + 2, a0 + 3]
+			idx.append_array(tri)
 
 
 ## The globe's material for `shape` (its fog; its seas' colours).
@@ -452,19 +508,19 @@ func gather() -> Dictionary:
 	if c and node:
 		var pl := node as Node3D
 		if c.ship and is_instance_valid(c.ship):
-			var lp: Vector3 = c.ship.global_position - pl.global_position
+			var lp: Vector3 = pl.to_local(c.ship.global_position)   # (planet-local: the globe's frame)
 			var alt := lp.length() - (_t["radius"] as float)
 			if alt < (_t["radius"] as float) * 3.0:
 				var d := lp.normalized()
 				out["ship"] = {"kind": "ship", "name": "Your ship", "dir": d, "pos": d * maxf(on_globe(sh, d, 0.3).length(), R * (1.0 + alt / (_t["radius"] as float) * EXAG * 0.3)), "r": 12.0, "color": NeonTheme.INFO, "alt": alt}
 		if c.walker and c.walker.planet == node:
-			var wl: Vector3 = c.walker.global_position - pl.global_position
+			var wl: Vector3 = pl.to_local(c.walker.global_position)
 			var u := wl.normalized()
 			var east := Vector3.UP.cross(u).normalized()
 			if east.length() < 0.5:
 				east = Vector3.RIGHT
 			var north := u.cross(east)
-			var f: Vector3 = c.walker.facing
+			var f: Vector3 = pl.global_basis.inverse() * (c.walker.facing as Vector3)   # (your way, in its frame)
 			out["you"] = {"kind": "you", "name": "You", "dir": u, "pos": on_globe(sh, u, 0.3), "ground": on_globe(sh, u), "r": 12.0, "color": Color.WHITE,
 				"heading": atan2(f.dot(east), f.dot(north)), "north": north, "east": east}
 	return out
@@ -604,9 +660,130 @@ func prepare_plan(key: String) -> void:
 		var kind := str(s["kind"])
 		var seed := int(s["seed"])
 		var emp := str(s["empire"])
-		_plan_tasks[k] = [WorkerThreadPool.add_task(func(): out["img"] = bake_plan(kind, seed, emp), false, "town plan"), out]
+		var ways := town_ways((_t["towns"] as Array).find(s))
+		_plan_tasks[k] = [WorkerThreadPool.add_task(func(): out["img"] = bake_plan(kind, seed, emp, ways), false, "town plan"), out]
 	if _plan.key != k:
 		_plan.show_town(o, k, _t)
+
+
+## The roads of `t` on its globe: from the roads made already (CosmosRoads), or
+## its network made on a worker now (as CosmosRoads would) - drawn when it's done.
+func _want_roads(t: Dictionary) -> void:
+	var sh: PlanetShape = t["shape"]
+	var towns: Array = t.get("towns", [])
+	if sh.kind != "rocky" or towns.size() < 2:
+		_view.set_roads([])
+		return
+	var key := CosmosRoads.key_of(t["rec"])
+	if CosmosRoads.has_roads(key):
+		_roads_ready(key)
+	elif not _road_tasks.has(key):
+		var out := {"radius": sh.radius}
+		var tw: Array = towns.duplicate(true)
+		_road_tasks[key] = [WorkerThreadPool.add_task(func(): out["r"] = CosmosRoads.network(sh, tw), false, "map roads"), out]
+
+
+## A world's roads made: their lines (once), on the globe if it's the one shown; its towns' plans redrawn with them.
+func _roads_ready(key: String) -> void:
+	if not _roads.has(key):
+		_roads[key] = road_lines(CosmosRoads.cached(key), float(_t.get("radius", 1000.0)) if not _t.is_empty() else 1000.0)
+		for pk in _plans.keys():   # (plans drawn before: their roads in now)
+			if str(pk).begins_with(str(_t.get("id", "?")) + ":"):
+				_plans.erase(pk)
+		if _plan and _view.town != "":
+			prepare_plan(_view.town)
+	if not _t.is_empty() and CosmosRoads.key_of(_t["rec"]) == key:
+		_view.set_roads(_roads[key])
+
+
+## A world's roads as lines to draw: [[unit dirs, main]] - from gate to gate (in
+## the towns, their streets), simplified (Douglas-Peucker, to ~8 m on the ground).
+static func road_lines(roads: Array, radius: float) -> Array:
+	var out: Array = []
+	for r in roads:
+		var pts: PackedVector3Array = r["pts"]
+		var dr: Vector2i = r.get("drawn", Vector2i(0, pts.size() - 1))
+		out.append([simplify(pts.slice(dr.x, dr.y + 1), 8.0 / radius), bool(r.get("main", false))])
+	for r in roads:   # (its bridges: a pale stone casing under the road where it crosses the water - [dirs, main, pieces, true])
+		var pts: PackedVector3Array = r["pts"]
+		for br in r.get("bridges", []):
+			out.append([simplify(pts.slice(int(br["i0"]), int(br["i1"]) + 1), 8.0 / radius), bool(r.get("main", false)), null, true])
+	return out
+
+
+## A road's line cut into ~25 m pieces: [their unit dirs, their places on the globe (no lift)].
+static func road_pieces(shape: PlanetShape, dirs: PackedVector3Array) -> Array:
+	var piece := 25.0 / maxf(shape.radius, 1.0)
+	var pd := PackedVector3Array()
+	var pg := PackedVector3Array()
+	for i in dirs.size():
+		if i > 0:
+			var n := maxi(1, ceili(dirs[i - 1].angle_to(dirs[i]) / piece))
+			for j in range(1, n):
+				var d: Vector3 = dirs[i - 1].slerp(dirs[i], float(j) / n)
+				pd.append(d)
+				pg.append(on_globe(shape, d))
+		pd.append(dirs[i])
+		pg.append(on_globe(shape, dirs[i]))
+	return [pd, pg]
+
+
+## Douglas-Peucker: the points that keep the line within `eps` (unit-direction units).
+static func simplify(pts: PackedVector3Array, eps: float) -> PackedVector3Array:
+	if pts.size() < 3:
+		return pts
+	var keep := PackedByteArray()
+	keep.resize(pts.size())
+	keep[0] = 1
+	keep[pts.size() - 1] = 1
+	var stack: Array = [[0, pts.size() - 1]]
+	while not stack.is_empty():
+		var se: Array = stack.pop_back()
+		var a: int = se[0]
+		var b: int = se[1]
+		var worst := -1.0
+		var wi := -1
+		for i in range(a + 1, b):
+			var d := Geometry3D.get_closest_point_to_segment(pts[i], pts[a], pts[b]).distance_to(pts[i])
+			if d > worst:
+				worst = d
+				wi = i
+		if wi >= 0 and worst > eps:
+			keep[wi] = 1
+			stack.append([a, wi])
+			stack.append([wi, b])
+	var out := PackedVector3Array()
+	for i in pts.size():
+		if keep[i]:
+			out.append(pts[i])
+	return out
+
+
+## The roads that leave town `i` of the world shown, as they come to its gates - town-local
+## [x, z] points from its gate outward (~150 m), and main: [[PackedVector2Array, main]].
+func town_ways(i: int) -> Array:
+	var out: Array = []
+	if _t.is_empty() or i < 0 or i >= (_t["towns"] as Array).size():
+		return out
+	var roads := CosmosRoads.cached(CosmosRoads.key_of(_t["rec"]))
+	var s: Dictionary = _t["towns"][i]
+	var R: float = _t["radius"]
+	var inv := CosmosTown.frame(s, R).affine_inverse()
+	for r in roads:
+		var pts: PackedVector3Array = r["pts"]
+		var dr: Vector2i = r.get("drawn", Vector2i(0, pts.size() - 1))
+		var line := PackedVector2Array()
+		if int(r["a"]) == i:
+			for k in range(dr.x, mini(dr.x + 60, dr.y + 1)):
+				var q: Vector3 = inv * (pts[k] * (R + float(s["h"])))
+				line.append(Vector2(q.x, q.z))
+		elif int(r["b"]) == i:
+			for k in range(dr.y, maxi(dr.y - 60, dr.x - 1), -1):
+				var q: Vector3 = inv * (pts[k] * (R + float(s["h"])))
+				line.append(Vector2(q.x, q.z))
+		if line.size() >= 2:
+			out.append([line, bool(r.get("main", false))])
+	return out
 
 
 ## How much of the plan shows at `ppm` (the globe's px a metre at the town):
@@ -684,7 +861,7 @@ static func plan_key(pid: String, s: Dictionary) -> String:
 ## own layout for its seed), the paved square, the landing field - town-local
 ## metres from plan_rect(kind)'s corner, PLAN_PPM pixels a metre. The roofs
 ## lighter the taller (their tops), each edged dark.
-static func bake_plan(kind: String, seed: int, empire: String) -> Image:
+static func bake_plan(kind: String, seed: int, empire: String, ways: Array = []) -> Image:
 	var rect := plan_rect(kind)
 	var w := int(rect.size.x * PLAN_PPM)
 	var h := int(rect.size.y * PLAN_PPM)
@@ -697,6 +874,21 @@ static func bake_plan(kind: String, seed: int, empire: String) -> Image:
 		return Rect2i(int((x0 - rect.position.x) * PLAN_PPM), int((z0 - rect.position.y) * PLAN_PPM),
 			maxi(1, int((x1 - x0) * PLAN_PPM)), maxi(1, int((z1 - z0) * PLAN_PPM)))
 	img.fill_rect(px.call(-half, -half, half, half), Color(0.2, 0.19, 0.17))
+	for wy in ways:   # (the roads out, from its gates: a dark casing, the road over it)
+		for pass_k in 2:
+			var wd: float = (CosmosRoads.MAIN_WIDTH if wy[1] else CosmosRoads.WIDTH) + (1.2 if pass_k == 0 else 0.0)
+			var col: Color = ROAD_CASE if pass_k == 0 else (ROAD_FILL if wy[1] else TRACK_FILL).darkened(0.35)
+			var line: PackedVector2Array = wy[0]
+			for k in line.size() - 1:
+				var a := line[k]
+				var b := line[k + 1]
+				var n := maxi(1, ceili(a.distance_to(b) * PLAN_PPM))
+				for m in n + 1:
+					var q := a.lerp(b, float(m) / n)
+					img.fill_rect(px.call(q.x - wd * 0.5, q.y - wd * 0.5, q.x + wd * 0.5, q.y + wd * 0.5).intersection(Rect2i(0, 0, w, h)), col)
+	for st in TownStreets.pieces(kind, empire):   # (its streets between the blocks, paved - the roads out start at their ends)
+		var sr: Rect2 = st["r"]
+		img.fill_rect(px.call(sr.position.x, sr.position.y, sr.end.x, sr.end.y), Color(0.36, 0.33, 0.28) if st["main"] else Color(0.3, 0.28, 0.24))
 	img.fill_rect(px.call(port.x - 34, port.z - 34, port.x + 34, port.z + 34), Color(0.13, 0.13, 0.14))
 	img.fill_rect(px.call(port.x - 30, port.z - 0.4, port.x + 30, port.z + 0.4), Color(0.45, 0.4, 0.3))
 	img.fill_rect(px.call(port.x - 0.4, port.z - 30, port.x + 0.4, port.z + 30), Color(0.45, 0.4, 0.3))
@@ -762,6 +954,9 @@ class GlobeView extends Map3DView:
 	var _fog: PlanetFog
 	var _fog_v := -1
 	var _sh: PlanetShape
+	var _roads_mi: MeshInstance3D
+	var road_lines: Array = []   # [[unit dirs, main]] (PlanetMapPage.road_lines): drawn where you've seen the ground
+	var road_segs := 0           # (the segments drawn: the fog's share of them)
 
 	func _init() -> void:
 		super()
@@ -773,6 +968,46 @@ class GlobeView extends Map3DView:
 		_globe = MeshInstance3D.new()
 		_globe.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		world.add_child(_globe)
+		_roads_mi = MapKit.Lines.new().into(null)
+		world.add_child(_roads_mi)
+
+	## The world's roads to draw (on its ground, under the fog like the rest).
+	func set_roads(lines: Array) -> void:
+		road_lines = lines
+		_draw_roads()
+
+	## Its roads as lines on the globe: a dark casing, the road over it - a main
+	## road (city to city) wider and warmer than a village's track; only where
+	## you've seen the ground (redrawn as the fog lifts).
+	func _draw_roads() -> void:
+		var L := MapKit.Lines.new()
+		road_segs = 0
+		if _sh != null and _globe.visible:
+			for pass_k in 2:
+				for rl in road_lines:
+					var dirs: PackedVector3Array = rl[0]
+					var main: bool = rl[1]
+					var bridge: bool = rl.size() > 3   # (a bridge: its casing only, wider and pale, between the road's casing and the road)
+					if bridge and pass_k == 1:
+						continue
+					var wd: float = (3.0 if main else 1.6) + (1.8 if pass_k == 0 else 0.0) + (2.4 if bridge else 0.0)
+					var col: Color = PlanetMapPage.BRIDGE_CASE if bridge else (PlanetMapPage.ROAD_CASE if pass_k == 0 else (PlanetMapPage.ROAD_FILL if main else PlanetMapPage.TRACK_FILL))
+					var lift := 0.07 if bridge else (0.05 if pass_k == 0 else 0.09)
+					if rl.size() < 3:   # (its ~25 m pieces and their places on the globe: worked out once - the fog judged a piece at a time,
+						rl.append(PlanetMapPage.road_pieces(_sh, dirs))   # a long straight stretch shown as far as you've seen it)
+					elif rl[2] == null:
+						rl[2] = PlanetMapPage.road_pieces(_sh, dirs)
+					var pc: Array = rl[2]
+					var pd: PackedVector3Array = pc[0]
+					var pg: PackedVector3Array = pc[1]
+					for i in pd.size() - 1:
+						if pd[i] == Vector3.ZERO or pd[i + 1] == Vector3.ZERO:
+							continue   # (a break between its stretches)
+						if not _fog or (_fog.explored(pd[i]) and _fog.explored(pd[i + 1])):
+							L.seg(pg[i] + pd[i] * lift, pg[i + 1] + pd[i + 1] * lift, col, wd)
+							if pass_k == 1:
+								road_segs += 1
+		L.into(_roads_mi)
 
 	func set_planet(t: Dictionary) -> void:
 		all = {}
@@ -785,6 +1020,8 @@ class GlobeView extends Map3DView:
 		_town_dirs = {}
 		_ground = R
 		_ground_at = Vector3.ZERO
+		road_lines = []
+		_draw_roads()
 		if t.is_empty():
 			_globe.visible = false
 			_sh = null
@@ -805,6 +1042,7 @@ class GlobeView extends Map3DView:
 		if _globe.mesh != m:
 			_globe.mesh = m
 			_globe.visible = true
+			_draw_roads()
 			mark_dirty()
 
 	## The marks gathered again (the fog, where you are).
@@ -823,6 +1061,7 @@ class GlobeView extends Map3DView:
 		if _fog and _fog.version != _fog_v:
 			_fog_v = _fog.version
 			_mat.set_shader_parameter("fog_tex", _fog.texture())
+			_draw_roads()
 			rebuild()
 			return
 		var fresh: Dictionary = page.gather()
@@ -1406,15 +1645,15 @@ class TownPlan extends Control:
 			var info := Color(NeonTheme.INFO, ya)
 			var white := Color(1, 1, 1, ya)
 			if c.ship and is_instance_valid(c.ship):
-				var sp3: Vector3 = _frame.affine_inverse() * (c.ship.global_position - node.global_position)
+				var sp3: Vector3 = _frame.affine_inverse() * node.to_local(c.ship.global_position)
 				if absf(sp3.y) < 400.0:
 					var sp := to_screen(Vector2(sp3.x, sp3.z))
 					draw_colored_polygon(PackedVector2Array([sp + Vector2(0, -9), sp + Vector2(7, 7), sp + Vector2(-7, 7)]), info)
 					_label(sp + Vector2(10, 5), "Your ship", 15, info, taken, font)
 			if c.walker and c.walker.planet == node:
-				var wl: Vector3 = _frame.affine_inverse() * (c.walker.global_position - node.global_position)
+				var wl: Vector3 = _frame.affine_inverse() * node.to_local(c.walker.global_position)
 				var wp := to_screen(Vector2(wl.x, wl.z))
-				var f: Vector3 = _frame.basis.inverse() * (c.walker.facing as Vector3)
+				var f: Vector3 = _frame.basis.inverse() * (node.global_basis.inverse() * (c.walker.facing as Vector3))
 				var dir := Vector2(f.x, f.z).normalized().rotated(_rot)
 				draw_circle(wp, 6.0, white)
 				draw_line(wp, wp + dir * 16.0, white, 2.0)

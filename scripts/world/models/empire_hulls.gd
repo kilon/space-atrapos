@@ -90,10 +90,12 @@ static func _meshes(emp: String, big: bool, v: int) -> Array:
 		var m := ArrayMesh.new()
 		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, out[0])
 		m.set_meta("verts", out[0][Mesh.ARRAY_VERTEX])   # (its shape, for the rooms inside it: CosmosNpcInterior)
+		LodKit.later(m, [out[0]])   # (its levels of detail - LodKit)
 		e["mesh"] = m
 		if not (out[1][Mesh.ARRAY_VERTEX] as PackedVector3Array).is_empty():
 			var g := ArrayMesh.new()
 			g.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, out[1])
+			g.set_meta("hull_verts", out[1][Mesh.ARRAY_VERTEX])   # (its canopy solid too: CosmosHullGrid)
 			e["glass"] = g
 	return [e["mesh"], e["glass"]]
 

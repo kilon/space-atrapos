@@ -10,7 +10,7 @@ extends Node3D
 ## it falls over and is gone a few seconds later.
 
 const SHADER := preload("res://shaders/world/creature.gdshader")
-const SIGHT := {"grazer": 14.0, "skittish": 26.0, "predator": 38.0}
+const SIGHT := {"grazer": 14.0, "skittish": 26.0, "predator": 38.0, "calm": 0.0}   # (calm: it lets you come - a mushroom mammoth)
 
 var _turn := SmoothTurn.new(6.0, 6.0, 12.0)
 var kind := {}
@@ -51,8 +51,8 @@ var _ray_wait := false
 var _wave := 0.3                 # (... how deep its wing waves are now)
 var _stroking := false
 var _bend := 0.0
-var _fox: MeshInstance3D         # (a red fox: its own model - CosmosFox - on its own rig)
-var _rig: CosmosFox.Rig
+var _fox: MeshInstance3D         # (a model on its own rig - a red fox's (CosmosFox), a mushroom mammoth's (CosmosMammoth))
+var _rig                         # (... its Rig: CosmosFox.Rig / CosmosMammoth.Rig)
 var _fox_wait := false
 var _pace := 1.0
 
@@ -111,9 +111,13 @@ func setup(k: Dictionary, pl: CosmosPlanet, seed: int) -> void:
 		reach = maxf(b.z, b.x) * 0.55 * s + 0.2
 		_new_goal()
 		return
-	if str(k.get("model", "")) == "fox":
+	if str(k.get("model", "")) in ["fox", "mammoth"]:
 		_fox_build(k)
 		reach = maxf(b.z, b.x) * 0.55 * s + 0.2
+		if _rig is CosmosMammoth.Rig:
+			reach = 1.1 * s   # (its bulk: shots, bites - a towering beast)
+			add_to_group("cam_solid")   # (the camera stops short of it - cam_hit)
+			set_meta("cam_reach", 2.2 * s)
 		_new_goal()
 		return
 	if str(k.get("model", "")) == "aeromanta":
@@ -240,32 +244,64 @@ func _fly_attach() -> void:
 	_fly.set_surface_override_material(1, _wmat)
 
 
-## A red fox: one skinned mesh (one surface) shared by them all - made on a
-## worker, nothing shown until it's ready - on its own skeleton, which its Rig poses.
+## The model class of a rigged animal (kind "model"): CosmosFox, CosmosMammoth.
+func _rigged() -> GDScript:
+	return CosmosMammoth if str(kind.get("model", "")) == "mammoth" else CosmosFox
+
+
+## A red fox, a mushroom mammoth: one skinned mesh (one surface) shared by all of
+## its kind - made on a worker, nothing shown until it's ready - on its own
+## skeleton, which its Rig poses.
 func _fox_build(k: Dictionary) -> void:
-	_mat = CosmosFox.material(k["c1"], k["c2"])
+	var m := _rigged()
+	_mat = m.material(k["c1"], k["c2"])
 	_body.position.y = 0.0   # (its model stands on the ground)
-	var sk := CosmosFox.skeleton()
+	var sk: Skeleton3D = m.skeleton()
 	_body.add_child(sk)
 	_fox = MeshInstance3D.new()
-	_fox.visibility_range_end = 220.0
+	_fox.visibility_range_end = 480.0 if m == CosmosMammoth else 220.0   # (a mammoth towers: seen as far as animals live)
 	sk.add_child(_fox)
 	_fox.skeleton = NodePath("..")
-	_fox.skin = CosmosFox.skin()
+	_fox.skin = m.skin()
 	_head = Node3D.new()
 	_body.add_child(_head)
-	_rig = CosmosFox.Rig.new(sk, _rng.randi())
-	if CosmosFox.is_ready():
+	_rig = m.rig(sk, _rng.randi())
+	if m.is_ready():
 		_fox_attach()
 	else:
-		CosmosFox.start()
+		m.start()
 		_fox_wait = true
 
 
 func _fox_attach() -> void:
 	_fox_wait = false
-	_fox.mesh = CosmosFox.mesh()
+	_fox.mesh = _rigged().mesh()
 	_fox.material_override = _mat
+
+
+## The camera's ray o + dir * s (s up to `limit`) against a mammoth's bulk: where it enters, or `limit`.
+func cam_hit(o: Vector3, dir: Vector3, limit: float) -> float:
+	if not (_rig is CosmosMammoth.Rig) or dead:
+		return limit
+	var inv := global_transform.affine_inverse()
+	var hit := CosmosMammoth.ray_hit(inv * o, inv.basis * dir, limit, float(kind["size"]) * float(kind["scale"]))
+	return minf(hit, limit)
+
+
+## Keeps the walker `w` out of a mammoth's legs - pillars you walk between and under it.
+func push_walker(w: Node3D, body_r: float) -> void:
+	if not (_rig is CosmosMammoth.Rig) or dead or _fox == null:
+		return
+	if w.global_position.distance_squared_to(global_position) > reach * reach * 4.0:
+		return
+	var sk := _fox.get_parent() as Skeleton3D
+	var u := up()
+	var need := 0.17 * float(kind["size"]) * float(kind["scale"]) + body_r
+	for c: Vector3 in (_rig.feet as Dictionary).values():
+		var d := w.global_position - sk.global_transform * c
+		d -= u * d.dot(u)
+		if d.length() < need and d.length() > 0.01:
+			w.global_position += d.normalized() * (need - d.length())
 
 
 ## An aeromanta: one mesh of one surface, shared by them all (made on a worker -
@@ -348,10 +384,25 @@ func up() -> Vector3:
 	return (global_position - planet.global_position).normalized()
 
 
+## How far out of a town's edge it keeps (m): more for the big ones.
+func _town_margin() -> float:
+	return 25.0 + float(kind.get("size", 1.0)) * float(kind.get("scale", 1.0)) * 1.5 if kind else 25.0
+
+
+## The way out of a town (planet-local) if planet-local `local` is in one or near its edge, else ZERO.
+func _town_out(local: Vector3) -> Vector3:
+	if cosmos == null or planet == null or not cosmos.has_method("town_keep_out"):
+		return Vector3.ZERO
+	return cosmos.town_keep_out(planet, local, _town_margin())
+
+
 func _new_goal() -> void:
 	var u := up() if planet and is_inside_tree() else Vector3.UP
 	var t := u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized().rotated(u, _rng.randf() * TAU)
-	_goal = (global_position - planet.global_position) + t * _rng.randf_range(8.0, 30.0) if planet and is_inside_tree() else Vector3.ZERO
+	_goal = planet.to_local(global_position) + planet.dir_local(t) * _rng.randf_range(8.0, 30.0) if planet and is_inside_tree() else Vector3.ZERO   # (planet-local: fixed to the ground as the world turns)
+	var out := _town_out(_goal)
+	if out != Vector3.ZERO:   # (a goal in a town: out past its edge instead)
+		_goal += out * (40.0 + _town_margin())
 	_t = _rng.randf_range(3.0, 8.0)
 	state = "wander" if _rng.randf() < 0.7 else "idle"
 
@@ -371,6 +422,18 @@ func hurt(dmg: float, from: Vector3) -> void:
 		return
 	if kind["temper"] == "predator":
 		state = "hunt"
+	elif kind["temper"] == "calm":   # (a mammoth: it turns on you and trumpets, then strides off - or, hurt badly, charges)
+		if _rig is CosmosMammoth.Rig and (_rig.trumpet < 0.0):
+			_rig.call_out()
+		if state != "hunt":
+			if hp < max_hp * 0.5:
+				state = "hunt"
+				_t = 8.0
+			elif state == "flee":
+				_t = minf(_t, 6.0) + 2.0 if _t <= 6.0 else _t   # (already striding off: on, no stopping again)
+			else:
+				state = "flee"
+				_t = 8.0
 	else:
 		state = "flee"
 		_t = 6.0
@@ -402,7 +465,7 @@ func _process(delta: float) -> void:
 		_fly_attach()
 	if _ray_wait and CosmosAeromanta.is_ready():
 		_ray_attach()
-	if _fox_wait and CosmosFox.is_ready():
+	if _fox_wait and _rigged().is_ready():
 		_fox_attach()
 	if planet == null:
 		return
@@ -428,7 +491,7 @@ func _process(delta: float) -> void:
 		_mat.set_shader_parameter("flash", _hurt * 4.0)
 		_flash_on = _hurt > 0.0
 	_bite_cd = maxf(0.0, _bite_cd - delta)
-	var me := global_position - planet.global_position
+	var me := planet.to_local(global_position)   # (planet-local, as its goal)
 	var player: Node3D = cosmos.walker if cosmos else null
 	var to_player := Vector3.ZERO
 	var pd := INF
@@ -436,6 +499,9 @@ func _process(delta: float) -> void:
 		to_player = player.global_position - global_position
 		pd = to_player.length()
 	var sight: float = SIGHT[kind["temper"]] * (1.4 if kind["monster"] else 1.0)
+	var calm: bool = kind["temper"] == "calm"
+	if calm and state == "hunt":
+		sight = 30.0   # (charging you: as far as it follows)
 	var want := Vector3.ZERO
 	var speed := 0.0
 	match state:
@@ -444,7 +510,7 @@ func _process(delta: float) -> void:
 			if _t <= 0.0:
 				_new_goal()
 			if state == "wander":
-				var g := _goal - me
+				var g := planet.dir_world(_goal - me)
 				g -= u * g.dot(u)
 				if g.length() < 1.5:
 					state = "idle"
@@ -461,10 +527,16 @@ func _process(delta: float) -> void:
 				away -= u * away.dot(u)
 				want = away.normalized()
 			speed = float(kind["run"])
+			if calm and _t > 6.0:   # (first it stops, turns to face you, and calls)
+				speed = 0.0
+				if pd < INF:
+					facing = _turn.step(facing, to_player, u, delta)
+				want = Vector3.ZERO
 			if _t <= 0.0 and pd > sight * 1.5:
 				_new_goal()
 		"hunt":
-			if pd > sight * 2.2:
+			_t -= delta
+			if pd > sight * 2.2 or (calm and _t <= 0.0):
 				_new_goal()
 			elif pd < INF:
 				var go := to_player - u * to_player.dot(u)
@@ -477,6 +549,17 @@ func _process(delta: float) -> void:
 						_bite_cd = 1.2
 						player.hurt(float(kind["bite"]), self)
 						_head.position.z -= 0.15
+	if not _fly:   # (animals keep out of towns: in one or near its edge - out, a hunt given up there)
+		var out := _town_out(me)
+		if out != Vector3.ZERO:
+			var wout := planet.dir_world(out)
+			wout -= u * wout.dot(u)
+			if state == "hunt":
+				_new_goal()
+				state = "wander"
+			if wout.length() > 0.01:
+				want = (want * 0.25 + wout.normalized()).normalized()
+				speed = maxf(speed, float(kind["walk"]))
 	if _fly:
 		speed = _fly_speed(delta, want, speed)
 	if _rig:   # (a fox: wandering, now trotting, now walking with its nose down; leaping when it pounces)
@@ -484,7 +567,7 @@ func _process(delta: float) -> void:
 			_pace = 0.4 if _pace > 0.5 else 1.0
 		if state == "wander":
 			speed *= _pace
-		var leap := _rig.leap_speed()
+		var leap: float = _rig.leap_speed()
 		if leap >= 0.0:
 			want = facing
 			speed = leap
@@ -500,14 +583,17 @@ func _process(delta: float) -> void:
 	# Stand on the ground (out of the sea: grazers don't swim - turn back).
 	var local := global_position - planet.global_position
 	var d := local.normalized()
-	var h := planet.shape.height(d)
-	if planet.shape.sea > 0 and h < 0.3:
+	var h := planet.shape.height(planet.dir_local(d))   # (the ground in its own frame: it turns)
+	var dk := CosmosRoads.deck_top(planet, planet.dir_local(d) * planet.radius)   # (a bridge: over the water on its deck)
+	if dk > -INF:
+		h = maxf(h, dk)
+	elif planet.shape.sea > 0 and h < 0.3:
 		global_position -= velocity * delta * 2.0
 		velocity = -velocity * 0.5
 		_new_goal()
 		local = global_position - planet.global_position
 		d = local.normalized()
-		h = maxf(planet.shape.height(d), 0.3)
+		h = maxf(planet.shape.height(planet.dir_local(d)), 0.3)
 	# Flying or floating: its height over the ground (birds take off when they flee).
 	var fly_to := float(kind.get("alt", 0.0))
 	if state == "hunt":
@@ -538,7 +624,7 @@ func _process(delta: float) -> void:
 		_ray_motion(delta, flat, d)
 		return
 	if _rig:
-		_rig.step(delta, flat.length(), float(kind["size"]) * float(kind["scale"]), state == "idle", state == "flee")
+		_rig.step(delta, flat.length(), float(kind["size"]) * float(kind["scale"]), state == "idle", state == "flee" or state == "hunt")
 		_body.position.y = _rig.leap_height()
 		return
 	# The gait.

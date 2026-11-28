@@ -102,13 +102,13 @@ static func meshes() -> Array:
 		var len := rng.randf_range(0.5, 0.95) * (1.6 if k == 0 else 1.0)
 		_prism(st, base, lean, len, rng.randf_range(0.09, 0.16) * (1.5 if k == 0 else 1.0), rng.randf() * TAU)
 	st.generate_normals()
-	_meshes.append(st.commit())
+	_meshes.append(LodKit.commit(st))   # (with its levels of detail - LodKit)
 	st = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	_lump(st, Vector3(0, 0.38, 0), Vector3(0.75, 0.5, 0.65), 77, 0.0)
 	_lump(st, Vector3(0.45, 0.2, 0.25), Vector3(0.35, 0.28, 0.32), 78, 0.0)
 	st.generate_normals()
-	_meshes.append(st.commit())
+	_meshes.append(LodKit.commit(st))   # (with its levels of detail - LodKit)
 	_mat = ShaderMaterial.new()
 	_mat.shader = preload("res://shaders/world/deposit.gdshader")
 	return _meshes
@@ -203,7 +203,7 @@ func _process(delta: float) -> void:
 		return
 	# The set round you: looked over on a worker when you've moved (paced by time).
 	_check -= delta
-	var local: Vector3 = w.global_position - planet.global_position
+	var local: Vector3 = planet.to_local(w.global_position)
 	if _task != -1 and WorkerThreadPool.is_task_completed(_task):
 		WorkerThreadPool.wait_for_task_completion(_task)
 		_task = -1
@@ -307,7 +307,7 @@ func _shape_of(dep: Dictionary) -> void:
 func _sphere(dep: Dictionary) -> Array:
 	var left := float(dep["units"]) / maxf(1.0, float(dep["max"]))
 	var s := float(dep["size"]) * (0.3 + 0.7 * sqrt(left))
-	return [planet.global_position + (dep["at"] as Vector3) + (dep["up"] as Vector3) * s * 0.45, s * 0.7]
+	return [planet.to_global((dep["at"] as Vector3) + (dep["up"] as Vector3) * s * 0.45), s * 0.7]
 
 
 ## The deposit a line from `o` along `dir` meets first within `reach`: [dep, distance] or [].
@@ -414,7 +414,7 @@ func _dig(delta: float, firing: bool) -> bool:
 		_dig_t = DIG_EVERY
 		dig_at = ground_hit(cam.global_position, dir, RANGE + cam.global_position.distance_to(w.global_position))
 		if dig_at != Vector3.ZERO and dig_at.distance_to(w.global_position) < RANGE:
-			var c := dig_at - planet.global_position - dir * DIG_R * 0.6
+			var c := planet.to_local(dig_at - dir * DIG_R * 0.6)   # (planet-local)
 			var d := c.normalized()
 			var top := c.length() - planet.radius
 			if cosmos.get("builds") and cosmos.builds.damage_at(dig_at, DIG_R * 0.75, 30.0):
@@ -484,9 +484,9 @@ func _quarry(c: Vector3) -> void:
 ## `reach` (global; carves and all), or ZERO: steps of 0.6 m, then halved down to ~1 cm.
 func ground_hit(o: Vector3, dir: Vector3, reach: float) -> Vector3:
 	var shape: PlanetShape = planet.shape
-	var c := planet.global_position
+	var inv := planet.global_transform.affine_inverse()   # (planet-local: its ground turns with it)
 	var solid := func(t: float) -> bool:
-		return shape.density(o + dir * t - c) < 0.0
+		return shape.density(inv * (o + dir * t)) < 0.0
 	var t0 := 0.0
 	var t := 0.6
 	while t <= reach:

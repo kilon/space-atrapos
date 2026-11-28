@@ -37,6 +37,7 @@ var pilot_seat := {"face": Vector3(0, 0, -1), "kind": "sit", "who": null}
 var ramp_hw := 1.2
 var foot := Vector3.ZERO      # the ramp's foot (ship space)
 var ramp_lift := 0.1          # the ramp's top face over its middle line (its plank's half thickness, along its slope)
+var door := AABB()            # the doorway through the hull (ship space: its solid's - CosmosHullGrid - cut out while the ramp's down)
 var _cut_lo := Vector3.ZERO   # the doorway in the hull (its mesh's space)
 var _cut_hi := Vector3.ZERO
 var _hull: MeshInstance3D
@@ -136,8 +137,11 @@ func _finish() -> void:
 		_lights.append(o)
 	# The doorway through the hull: over the ramp's top, from the rooms' aft end out past the stern.
 	var inv := _to_ship(_hull).affine_inverse()
-	var a := inv * Vector3(-ramp_hw - 0.05, sill - 0.4, tunnel - 0.4)
-	var b := inv * Vector3(ramp_hw + 0.05, sill + DOOR_H + 0.25, z_aft + 40.0)
+	var lo := Vector3(-ramp_hw - 0.05, sill - 0.4, tunnel - 0.4)
+	var hi := Vector3(ramp_hw + 0.05, sill + DOOR_H + 0.25, z_aft + 40.0)
+	door = AABB(lo, hi - lo)
+	var a := inv * lo
+	var b := inv * hi
 	_cut_lo = Vector3(minf(a.x, b.x), minf(a.y, b.y), minf(a.z, b.z))
 	_cut_hi = Vector3(maxf(a.x, b.x), maxf(a.y, b.y), maxf(a.z, b.z))
 	add_to_group("cam_solid")   # (its walls between rooms stop the camera - aboard: cam_hit)

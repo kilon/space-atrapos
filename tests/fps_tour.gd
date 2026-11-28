@@ -199,10 +199,11 @@ func _record(name: String, frames: Array, cost := {}) -> void:
 	var r := {"name": name, "fps": avg, "p95_ms": p95, "low1_fps": 1000.0 / p99, "worst_ms": worst, "hitches": hitches,
 		"frames": frames.size(), "ok": ok,
 		"draw_calls": Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
+		"primitives": Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME),
 		"objects": Performance.get_monitor(Performance.OBJECT_NODE_COUNT), "cost_ms": cost}
 	results.append(r)
-	print("  %-4s %-46s %6.0f fps  p95 %5.1f ms  1%%low %5.0f fps  worst %6.1f ms  hitches %d  (%d draw calls, %d nodes)" % [
-		"ok" if ok else "SLOW", name, avg, p95, r["low1_fps"], worst, hitches, r["draw_calls"], r["objects"]])
+	print("  %-4s %-46s %6.0f fps  p95 %5.1f ms  1%%low %5.0f fps  worst %6.1f ms  hitches %d  (%d draw calls, %.2fM triangles, %d nodes)" % [
+		"ok" if ok else "SLOW", name, avg, p95, r["low1_fps"], worst, hitches, r["draw_calls"], r["primitives"] / 1e6, r["objects"]])
 	if not cost.is_empty():
 		print("       (per frame: scripts %.1f ms, physics %.1f ms, render CPU %.1f ms, GPU %.1f ms)" % [cost["script"], cost["physics"], cost["render_cpu"], cost["gpu"]])
 
@@ -279,7 +280,7 @@ func _space3d() -> void:
 	var t := d.cross(Vector3.UP if absf(d.y) < 0.9 else Vector3.RIGHT).normalized()
 	var at := (camp + t * 30.0).normalized()
 	var pl: Node3D = c.planets[ocean]
-	c.walker.global_position = pl.global_position + at * (pl.radius + c.walker.floor_at(at * pl.radius) + 0.05)
+	c.walker.global_position = pl.to_global(at * (pl.radius + c.walker.floor_at(at * pl.radius) + 0.05))
 	c.walker.hp = 100000.0
 	c.walker.drive = {"fire": true}
 	for i in 4:
@@ -299,7 +300,7 @@ func _space3d() -> void:
 		c.walker.drive = {}
 		c.walker.set_deck(null)
 		c.walker.planet = tpl
-		c.walker.global_position = tpl.global_position + txf * Vector3(0, 0.3, 40)
+		c.walker.global_position = tpl.to_global(txf * Vector3(0, 0.3, 40))
 		c.walker.heading = (tpl.global_basis * txf.basis) * Vector3(0, 0, -1)
 		c.walker.velocity = Vector3.ZERO
 		for i in 300:
@@ -331,7 +332,7 @@ func _space3d() -> void:
 		for i in 30:
 			await process_frame
 		c.walker.planet = c.planets[ocean]
-		c.walker.global_position = pl.global_position + at * (pl.radius + c.walker.floor_at(at * pl.radius) + 0.05)
+		c.walker.global_position = pl.to_global(at * (pl.radius + c.walker.floor_at(at * pl.radius) + 0.05))
 	# Down a dungeon: its torchlit rooms, its dead coming for you.
 	for k in c.planets.size():
 		var dpl: Node3D = c.planets[k]
@@ -366,7 +367,7 @@ func _space3d() -> void:
 		break
 	c.walker.set_deck(null)
 	c.walker.planet = c.planets[ocean]
-	c.walker.global_position = pl.global_position + at * (pl.radius + c.walker.floor_at(at * pl.radius) + 0.05)
+	c.walker.global_position = pl.to_global(at * (pl.radius + c.walker.floor_at(at * pl.radius) + 0.05))
 	c.walker.hp = 100.0
 	c.board() if c.walker.global_position.distance_to(c.ship.global_position) < 11.0 else null
 	if c.walker:
@@ -458,20 +459,20 @@ func _under_the_sea(c: Node, ocean: int) -> void:
 	for i in 20000:
 		var v := Vector3(sin(i * 1.7 + 0.3), cos(i * 2.3), sin(i * 0.9 + 1.0)).normalized()
 		var h: float = pl.shape.height(v)
-		if h < -10.0 and h > -15.0 and v.dot(pl.sun_dir) > 0.55:
+		if h < -10.0 and h > -15.0 and v.dot(pl.sun_local) > 0.55:
 			d = v
 			break
 	if d == Vector3.ZERO:
 		return
 	var depth: float = -pl.shape.height(d)
-	c.walker.global_position = pl.global_position + d * pl.radius   # (swimming at the surface above)
+	c.walker.global_position = pl.to_global(d * pl.radius)   # (swimming at the surface above; `d` its own frame)
 	c.walker.drive = {}
 	c.cam.set_process(false)
 	c.cam.set_physics_process(false)
-	var eye: Vector3 = pl.global_position + d * (pl.radius - 5.0)
+	var eye: Vector3 = pl.to_global(d * (pl.radius - 5.0))
 	var t := d.cross(Vector3.UP if absf(d.y) < 0.9 else Vector3.RIGHT).normalized()
 	c.cam.global_position = eye
-	c.cam.look_at(eye + t * 10.0 - d * (depth - 5.0) * 0.25, d)
+	c.cam.look_at(eye + pl.dir_world(t * 10.0 - d * (depth - 5.0) * 0.25), pl.dir_world(d))
 	for i in 600:   # (the floor's cells built, their buffers in)
 		await process_frame
 		if i > 90 and not uw.shown_cells.is_empty() and uw._apply.is_empty() and uw._area_task == -1:

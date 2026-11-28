@@ -51,8 +51,11 @@ static func mesh() -> ArrayMesh:
 		WorkerThreadPool.wait_for_task_completion(_task)
 		_task = -1
 		var m := ArrayMesh.new()
-		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, _built.body.arrays())
-		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, _built.wings.arrays())
+		var body: Array = _built.body.arrays()
+		var wings: Array = _built.wings.arrays()
+		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, body)
+		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, wings)
+		LodKit.later(m, [body, wings])   # (its levels of detail - LodKit)
 		m.custom_aabb = AABB(Vector3(-1.0, -0.4, -0.9), Vector3(2.0, 1.2, 1.9))   # (the beating wings inside)
 		made = {"legs": _built.legs, "wings": _built.wing_n, "segments": _built.segments, "build_ms": _built.ms}
 		_built = null

@@ -352,8 +352,9 @@ func cam_basis() -> Basis:
 
 
 ## A new structure's frame at global `at` (planet-local origin), x across `look`.
-func new_frame(at: Vector3, look: Vector3) -> Transform3D:
-	var o := at - planet.global_position
+func new_frame(at: Vector3, look_w: Vector3) -> Transform3D:
+	var o := planet.to_local(at)
+	var look := planet.dir_local(look_w)   # (planet-local: the frame's its world's)
 	var up := o.normalized()
 	var f := (look - up * look.dot(up))
 	if f.length() < 0.01:
@@ -380,15 +381,15 @@ func _ground_in(fr: Transform3D, x: float, z: float) -> float:
 
 ## Where a line from `o` along `dir` meets the ground within `reach` (global), or ZERO.
 func ground_hit(o: Vector3, dir: Vector3, reach: float) -> Vector3:
-	var c := planet.global_position
+	var inv := planet.global_transform.affine_inverse()   # (planet-local: its ground's frame)
 	var shape := planet.shape
 	var t0 := 0.0
 	var t := 0.5
 	while t <= reach:
-		if shape.density(o + dir * t - c) < 0.0:
+		if shape.density(inv * (o + dir * t)) < 0.0:
 			for k in 6:
 				var mid := (t0 + t) * 0.5
-				if shape.density(o + dir * mid - c) < 0.0:
+				if shape.density(inv * (o + dir * mid)) < 0.0:
 					t = mid
 				else:
 					t0 = mid
@@ -1003,6 +1004,7 @@ func _lights() -> void:
 			var g := st.to_global(l)
 			all.append([g.distance_squared_to(f), g])
 	all.sort_custom(func(a, b): return a[0] < b[0])
+	_lamps = _lamps.filter(func(o): return is_instance_valid(o))   # (their world let go: gone with it)
 	while _lamps.size() < mini(all.size(), LIGHTS):
 		var o := OmniLight3D.new()
 		o.light_color = Color(1.0, 0.7, 0.42)
@@ -1016,4 +1018,7 @@ func _lights() -> void:
 		var o: OmniLight3D = _lamps[i]
 		o.visible = i < all.size()
 		if o.visible:
+			var holder: Node3D = planet if planet else self   # (on its world: turned with it between looks)
+			if o.get_parent() != holder:
+				o.reparent(holder, false)
 			o.global_position = all[i][1]

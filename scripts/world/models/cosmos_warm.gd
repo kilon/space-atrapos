@@ -62,6 +62,7 @@ func _ready() -> void:
 	CosmosDragonfly.start()   # (its shared mesh on a worker now: ready when _creature draws it)
 	CosmosAeromanta.start()
 	CosmosFox.start()
+	CosmosMammoth.start()
 	if not OS.has_feature("web"):   # (in a browser: started by the game, when it needs them - not sharing the threads with the first loads)
 		CosmosShip.start_hull()                 # (your ship's hull and rooms: made on workers now)
 		CosmosShipInterior.start_dress()
@@ -280,6 +281,22 @@ func _terrain() -> void:
 
 func _water() -> void:
 	_put(CosmosPlanet.unit_sphere(64, 32), _shader("res://shaders/world/water.gdshader"), Vector3(-1, 0, 0))
+	# (a sea world's water - CosmosWaters: the far sphere, the near grid, a lake's, a river's - each its mesh's own layout)
+	var L := {}
+	_put(CosmosPlanet.unit_sphere(64, 32), CosmosWaters.sea_material(L, 1.0), Vector3(-1, 0.5, 0))
+	_put(CosmosWaters.near_mesh(), CosmosWaters.material(L, 1), Vector3(-1, -0.5, 0))
+	var wm := ArrayMesh.new()
+	var arr := []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = PackedVector3Array([Vector3(0, 0, 0), Vector3(0, 0, 1), Vector3(1, 0, 0)])
+	arr[Mesh.ARRAY_NORMAL] = PackedVector3Array([Vector3.UP, Vector3.UP, Vector3.UP])
+	arr[Mesh.ARRAY_COLOR] = PackedColorArray([Color.WHITE, Color.WHITE, Color.WHITE])
+	wm.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr.duplicate())   # (a lake's)
+	arr[Mesh.ARRAY_TEX_UV] = PackedVector2Array([Vector2.ZERO, Vector2.ONE, Vector2.RIGHT])
+	var rm := ArrayMesh.new()
+	rm.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)   # (a river's)
+	_put(wm, CosmosWaters.material(L, 2), Vector3(-1.5, 0, 0))
+	_put(rm, CosmosWaters.material(L, 3), Vector3(-1.5, 0.5, 0))
 
 
 func _atmosphere() -> void:
@@ -422,6 +439,19 @@ func _flora() -> void:
 	lmi.scale = Vector3.ONE * 0.4
 	lmi.position = Vector3(0.5, -0.5, 0.5)
 	_vp.add_child(lmi)
+	# (the trees' and shrubs' levels of detail: a MultiMesh with custom data - each plant's size and
+	# reach - and the impostor's cards, from its atlas: FloraLods)
+	var im := MultiMesh.new()
+	im.transform_format = MultiMesh.TRANSFORM_3D
+	im.use_custom_data = true
+	im.mesh = FloraLods.impostor_mesh()
+	im.instance_count = 1
+	im.set_instance_transform(0, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * 0.4), Vector3(0.5, -0.5, -0.5)))
+	im.set_instance_custom_data(0, Color(0.01, 1000.0, 0.6, 0.0))
+	var imi := MultiMeshInstance3D.new()
+	imi.multimesh = im
+	imi.material_override = lmat
+	_vp.add_child(imi)
 
 
 func _veins() -> void:
@@ -488,6 +518,17 @@ func _creature() -> void:
 	fox.material_override = CosmosFox.material(Color(0.85, 0.42, 0.15), Color(0.95, 0.92, 0.88))
 	fox_sk.add_child(fox)
 	fox.skeleton = NodePath("..")
+	# The mushroom mammoth's own model (CosmosMammoth): its skin-and-fungus shader on a skinned mesh, the shared mesh made now.
+	var mam_sk := CosmosMammoth.skeleton()
+	mam_sk.position = Vector3(0.6, -0.6, 0.4)
+	mam_sk.scale = Vector3.ONE * 0.3
+	_vp.add_child(mam_sk)
+	var mam := MeshInstance3D.new()
+	mam.mesh = CosmosMammoth.mesh()
+	mam.skin = CosmosMammoth.skin()
+	mam.material_override = CosmosMammoth.material(Color(0.45, 0.4, 0.38), Color(0.75, 0.2, 0.15))
+	mam_sk.add_child(mam)
+	mam.skeleton = NodePath("..")
 
 
 func _pirate() -> void:
@@ -521,7 +562,9 @@ func _citizen() -> void:
 
 func _town() -> void:
 	# The towns' buildings (one shader: their palette as parameters).
-	_put(BoxMesh.new(), CosmosTown.material("minoa"), Vector3(-1.5, 0, 0), true)
+	_put(BoxMesh.new(), CosmosTown.material("minoa"), Vector3(-1.5, 0, 0), true).set_instance_shader_parameter("lamp_lit", 1.0)
+	# Their lamps' glows on the ground by night (TownLamps: added on, unshaded).
+	_put(QuadMesh.new(), TownLamps.pool_material(), Vector3(1.5, 0, 0)).set_instance_shader_parameter("lamp_lit", 1.0)
 
 
 func _builds() -> void:

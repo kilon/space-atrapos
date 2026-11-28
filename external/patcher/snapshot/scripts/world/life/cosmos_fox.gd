@@ -78,7 +78,9 @@ static func mesh() -> ArrayMesh:
 		WorkerThreadPool.wait_for_task_completion(_task)
 		_task = -1
 		var m := ArrayMesh.new()
-		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, _built.body.arrays())
+		var body: Array = _built.body.arrays()
+		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, body)
+		LodKit.later(m, [body])   # (its levels of detail - LodKit)
 		m.custom_aabb = AABB(Vector3(-1.2, -0.3, -1.8), Vector3(2.4, 3.2, 3.8))   # (leaping, sitting, its tail streaming)
 		made = {"legs": _built.legs, "ears": _built.ears, "eyes": _built.eyes, "whiskers": _built.whiskers, "tail_rings": _built.tail_rings, "build_ms": _built.ms}
 		_built = null
@@ -118,6 +120,11 @@ static func skeleton() -> Skeleton3D:
 		sk.set_bone_rest(i, Transform3D(Basis(), at))
 	sk.reset_bone_poses()
 	return sk
+
+
+## A fox's Rig on its skeleton (CosmosCreature makes one through this - as it does a mammoth's).
+static func rig(sk: Skeleton3D, seed: int) -> Rig:
+	return Rig.new(sk, seed)
 
 
 ## The mesh's vertices with their bones and weights.

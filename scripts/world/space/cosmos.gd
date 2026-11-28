@@ -196,10 +196,10 @@ func _build() -> void:
 	for r: Dictionary in recs:
 		var p := CosmosPlanet.new()
 		var at := _orbit_pos(r, where)
-		p.sun_hint = (star.global_position - at).normalized()   # (its towns on its day side)
 		p.setup(r, noise)
 		where[r["id"]] = at
-		p.position = at - origin
+		p.spin_now = p.spin_angle(Galaxy.time)
+		p.transform = Transform3D(p.basis_at(p.spin_now), at - origin)   # (turned as far as it has by now: CosmosPlanet's day)
 		world.add_child(p)
 		_orbit_body(p, "planet:" + str(r["id"]), Vector3.ZERO, 0.0, clampf(p.radius * 5.0, 6000.0, 20000.0))
 		p.set_sun((star.global_position - p.global_position).normalized())
@@ -370,15 +370,29 @@ static func start_noise() -> void:
 
 ## Its build collected if it was started (leaving the game: no task left in the pool).
 static func finish_tasks() -> void:
+	_noise_lock.lock()
 	if _noise_task != -1:
 		WorkerThreadPool.wait_for_task_completion(_noise_task)
 		_noise_task = -1
+	_noise_lock.unlock()
 
 
 ## The noise if it's made (finishing it off if its task is done), else null.
+static var _noise_lock := Mutex.new()   # (asked for from workers too - materials made there: one collects it)
+
+
 static func noise_ready() -> Texture3D:
 	if _noise != null:
 		return _noise
+	_noise_lock.lock()
+	var t := _noise_collect()
+	_noise_lock.unlock()
+	return t
+
+
+static func _noise_collect() -> Texture3D:
+	if _noise != null:
+		return _noise   # (collected by another thread meanwhile)
 	if _noise_task == -1 or not WorkerThreadPool.is_task_completed(_noise_task):
 		return null
 	WorkerThreadPool.wait_for_task_completion(_noise_task)
@@ -689,17 +703,23 @@ func _ride_of(n: Node3D) -> int:
 	return best
 
 
-## The worlds on along their orbits (and what rides with them), to Galaxy.time;
-## each node near one carried by as much as its body moved.
+## The worlds on along their orbits and turned on their axes (CosmosPlanet's day)
+## to Galaxy.time, and what rides with them: each node near one carried by as much
+## as its body moved - near a world's ground (within its air) turned round with it
+## too, its own way and its velocities with it (it stands still on the ground); out
+## past its air less and less of the turn (SPIN_FREE: in space nothing's dragged round).
 func _orbit_tick(_delta: float) -> void:
 	var t: float = Galaxy.time
-	if _bodies.is_empty() or absf(t - _orbit_t) < 1.0 / ORBIT_HZ:
+	var rate_changed := CosmosPlanet.spin_rate(Settings.day_length, t)   # (the day's length set otherwise: from where the worlds are)
+	if _bodies.is_empty() or (absf(t - _orbit_t) < 1.0 / ORBIT_HZ and not rate_changed):
 		return
 	var step := clampf(t - _orbit_t, 0.0, 1.0) if _orbit_t >= 0.0 else 0.0
 	_orbit_t = t
 	var where := planet_places(system_id, t)
 	var moved: Array = []
 	moved.resize(_bodies.size())
+	var turned: Array = []
+	turned.resize(_bodies.size())
 	for i in _bodies.size():
 		var b: Array = _bodies[i]
 		var n: Node3D = b[0]
@@ -710,7 +730,15 @@ func _orbit_tick(_delta: float) -> void:
 		else:
 			at = co_orbit(system_id, key, b[2], b[3], t, where)
 		var d: Vector3 = at - origin - n.position
-		n.position += d
+		if n is CosmosPlanet:
+			var pl: CosmosPlanet = n
+			var a1 := pl.spin_angle(t)
+			turned[i] = [pl.dir_world(Vector3.UP), a1 - pl.spin_now, pl.position, pl.atmo_radius]   # (its turn this step: round its axis, about where its centre was)
+			pl.spin_now = a1
+			pl.transform = Transform3D(pl.basis_at(a1), pl.position + d)
+			pl.spin_sun()
+		else:
+			n.position += d
 		moved[i] = d
 		if n is CosmosLair and is_instance_valid(n.monster):
 			n.monster.lair += d   # (its monster's home ground goes with it)
@@ -724,20 +752,95 @@ func _orbit_tick(_delta: float) -> void:
 		var n: Node3D = _movers[_ride_i]
 		if is_instance_valid(n):
 			_rides[n] = _ride_of(n)
+	for n in [walker, ship, cam]:   # (you, your ship, the camera: looked at every step - never left behind on a turning world)
+		if n != null and is_instance_valid(n) and _rides.has(n):
+			_rides[n] = _ride_of(n)
 	for n in _rides:
 		var i: int = _rides[n]
 		if i < 0:
 			continue
 		var d: Vector3 = moved[i]
-		(n as Node3D).position += d
-		if n == ship:
-			ship._land_from.origin += d   # (a landing or take-off under way: its ends move too)
-			ship._land_to.origin += d
+		var nd := n as Node3D
+		if turned[i] != null:
+			_spin_carry(nd, turned[i], d)
+		else:
+			nd.position += d
+			if n == ship:
+				ship._land_from.origin += d   # (a landing or take-off under way: its ends move too)
+				ship._land_to.origin += d
 	_sun_t -= step
 	if _sun_t <= 0.0:
 		_sun_t = 0.5
 		for p: CosmosPlanet in planets:
 			p.set_sun((star.global_position - p.global_position).normalized())
+
+
+const SPIN_FREE := 0.35          # (past a world's air, out to this much of its height again: its turn carries less and less)
+const SPIN_VECS := ["velocity", "facing", "heading", "_aim_flat", "_wall", "_steep", "_aim"]   # (world directions a rider keeps: turned with it)
+var _spin_props := {}            # script -> those of SPIN_VECS it has
+
+## A rider of a world carried with it this step: `turn` [its axis, the angle it
+## turned, where its centre was, its air's radius]; `d` its move. Within its air all
+## of the turn - standing still on its ground it stays on the same spot, facing the
+## same way - beyond it less. (Its place turned in double precision, its distance
+## from the centre kept: a parked ship doesn't creep off its spot over the hours.)
+func _spin_carry(n: Node3D, turn: Array, d: Vector3) -> void:
+	var ax: Vector3 = turn[0]
+	var ang: float = turn[1]
+	var c0: Vector3 = turn[2]
+	var air: float = turn[3]
+	var off := n.position - c0
+	var r := off.length()
+	if r > air:
+		ang *= 1.0 - smoothstep(air, air * (1.0 + SPIN_FREE) + 1500.0, r)
+		if absf(ang) < 1e-9:
+			n.position += d
+			if n == ship:
+				ship._land_from.origin += d
+				ship._land_to.origin += d
+			return
+	var q := Quaternion(ax, ang)
+	var R := Basis(q)
+	n.position = c0 + d + _turned(off, ax, ang)
+	n.quaternion = (q * n.quaternion).normalized()
+	if n.has_method("spin_local") and n.spin_local():
+		return   # (its ways kept in a town's or a dungeon's own frame: turning with it already)
+	var sc: Variant = n.get_script()
+	if not _spin_props.has(sc):
+		var have: Array = []
+		for pr in n.get_property_list():
+			if pr["name"] in SPIN_VECS and int(pr["type"]) == TYPE_VECTOR3:
+				have.append(pr["name"])
+		_spin_props[sc] = have
+	for pn in _spin_props[sc]:
+		n.set(pn, R * (n.get(pn) as Vector3))
+	if n == ship:
+		ship._land_from = Transform3D(Basis((q * ship._land_from.basis.get_rotation_quaternion()).normalized()), c0 + d + _turned(ship._land_from.origin - c0, ax, ang))   # (a landing or take-off under way: its ends turn too)
+		ship._land_to = Transform3D(Basis((q * ship._land_to.basis.get_rotation_quaternion()).normalized()), c0 + d + _turned(ship._land_to.origin - c0, ax, ang))
+	elif n == cam:
+		cam._q = (q * cam._q).normalized()
+
+
+## `v` turned `ang` round unit axis `ax` - worked out in doubles, its length kept.
+static func _turned(v: Vector3, ax: Vector3, ang: float) -> Vector3:
+	var x: float = v.x
+	var y: float = v.y
+	var z: float = v.z
+	var ux: float = ax.x
+	var uy: float = ax.y
+	var uz: float = ax.z
+	var ul := sqrt(ux * ux + uy * uy + uz * uz)
+	ux /= ul
+	uy /= ul
+	uz /= ul
+	var co := cos(ang)
+	var si := sin(ang)
+	var dt := ux * x + uy * y + uz * z
+	var nx := x * co + (uy * z - uz * y) * si + ux * dt * (1.0 - co)
+	var ny := y * co + (uz * x - ux * z) * si + uy * dt * (1.0 - co)
+	var nz := z * co + (ux * y - uy * x) * si + uz * dt * (1.0 - co)
+	var k := sqrt((x * x + y * y + z * z) / maxf(nx * nx + ny * ny + nz * nz, 1e-30))
+	return Vector3(nx * k, ny * k, nz * k)
 
 
 ## Every world's place now (m, round the star) - for place_now.
@@ -841,7 +944,7 @@ func warp_to(i: int, alt: float, tilt := 0.6, pitch := 0.0, at_up := Vector3.ZER
 	var up := pl.sun_dir.rotated(pl.sun_dir.cross(Vector3.UP).normalized(), tilt).normalized()
 	if at_up != Vector3.ZERO:
 		up = at_up
-	var r := pl.radius + pl.ground_at(up) + alt
+	var r := pl.radius + pl.ground_at(pl.dir_local(up)) + alt
 	var p := pl.global_position + up * r
 	var fwd := up.cross(Vector3.UP).normalized()
 	ship.global_position = p
@@ -861,7 +964,7 @@ func warp_to(i: int, alt: float, tilt := 0.6, pitch := 0.0, at_up := Vector3.ZER
 ## for warp_to (tests, screenshots, the tour); its sub-solar point if none.
 func land_up(i: int) -> Vector3:
 	var pl: CosmosPlanet = planets[i]
-	var s := pl.sun_dir
+	var s := pl.sun_local   # (in its own frame: its ground's - the answer turned back to the world's)
 	var a := s.cross(Vector3.UP).normalized()
 	var b := s.cross(a)
 	for k in 600:
@@ -875,8 +978,8 @@ func land_up(i: int) -> Vector3:
 				if absf(pl.shape.height((u * pl.radius + o * 16.0).normalized()) - h) > 1.8:
 					ok = false
 			if ok:
-				return u
-	return s
+				return pl.dir_world(u)
+	return pl.dir_world(s)
 
 
 # --- Each frame ---------------------------------------------------------------
@@ -971,6 +1074,7 @@ func _process(delta: float) -> void:
 	# a visit of the planet underfoot is ~1 ms of script: rarer, fewer long frames)
 	var hz := LOD_HZ if ship.speed() > 60.0 and walker == null else LOD_SLOW_HZ
 	_update_lod(_lod_t >= 1.0 / hz)
+	LodKit.pump()   # (meshes' levels of detail made on workers: swapped in)
 	if _lod_t >= 1.0 / hz:
 		_lod_t = 0.0
 	if target != null and not is_instance_valid(target):
@@ -1011,7 +1115,7 @@ func _update_lod(visit: bool) -> void:
 	CosmosPlanet.visit_budget_us = CosmosPlanet.VISIT_BUDGET_US if fast else CosmosPlanet.VISIT_BUDGET_SLOW_US
 	var eye := cam.global_position if cam else ship.global_position
 	for p: CosmosPlanet in planets:
-		var local := eye - p.global_position
+		var local := p.to_local(eye)   # (in its own frame: its quadtree turns with it)
 		# (a far planet stays as it is - a few coarse patches: only those near are visited)
 		if dungeon != null and p.settled():
 			p.collect_only()   # (in a dungeon: the ground overhead unseen - not refined meanwhile)
@@ -1116,7 +1220,7 @@ func clearance(p: Vector3, skip: Node3D = null, ahead := Vector3.ZERO) -> float:
 			continue
 		var d := pl.global_position.distance_to(p)
 		if d < pl.radius * 3.0:
-			d -= pl.radius + pl.ground_at(p - pl.global_position)
+			d -= pl.radius + pl.ground_at(pl.to_local(p))
 		else:
 			d -= pl.radius
 		if ahead != Vector3.ZERO:
@@ -1174,7 +1278,7 @@ func _ahead(p: Vector3, at: Vector3, r: float, dir: Vector3) -> bool:
 func surface_distance(b: Node3D, p: Vector3) -> float:
 	var d := b.global_position.distance_to(p)
 	if b is CosmosPlanet:
-		return d - (b as CosmosPlanet).radius - maxf((b as CosmosPlanet).ground_at(p - b.global_position), 0.0)
+		return d - (b as CosmosPlanet).radius - maxf((b as CosmosPlanet).ground_at(b.to_local(p)), 0.0)
 	if b is CosmosStar:
 		return d - (b as CosmosStar).radius * 1.3
 	if b is CosmosStation:
@@ -1232,11 +1336,11 @@ func bump(s: CosmosShip) -> void:
 		return
 	var p := s.global_position
 	for pl: CosmosPlanet in planets:
-		var local := p - pl.global_position
+		var local := pl.to_local(p)   # (its ground in its own frame)
 		var r := local.length()
 		if r > pl.radius + pl.shape.top() + 50.0:
 			continue
-		var up := local / r
+		var up := (p - pl.global_position) / r
 		var ground := pl.radius + pl.ground_at(local) + CosmosShip.HULL_R * 0.4
 		if r < ground:
 			s.global_position = pl.global_position + up * ground
@@ -1254,7 +1358,7 @@ func bump(s: CosmosShip) -> void:
 			var pts := [p, p + fw * 18.0, p - fw * 16.0, p + sd * 12.0, p - sd * 12.0]
 			var rocks := pl.rocks_near(local, 30.0, "ship")
 			for pt: Vector3 in pts:
-				var lp := pt - pl.global_position
+				var lp := pl.to_local(pt)
 				for rk in rocks:
 					var c: Vector3 = rk[0]
 					var v := lp - c
@@ -1265,7 +1369,7 @@ func bump(s: CosmosShip) -> void:
 					var flat := v - cu * hgt
 					var need := float(rk[1]) + HULL_BALL
 					if flat.length() < need and flat.length() > 0.001:
-						_ship_push(s, flat / flat.length() * (need - flat.length()))
+						_ship_push(s, pl.dir_world(flat / flat.length() * (need - flat.length())))
 				var t := town_at(pl, pt)
 				if t:
 					var pb := t.push_ball(t.to_local(pt), HULL_BALL)
@@ -1341,12 +1445,12 @@ func camera_clear(pivot: Vector3, want: Vector3, skip: Node = null) -> Vector3:
 		return want
 	var dir := seg / L
 	var t := L
-	if walker and walker.planet and dungeon == null and walker.planet.shape.carved_near(pivot - walker.planet.global_position):
+	if walker and walker.planet and dungeon == null and walker.planet.shape.carved_near(walker.planet.to_local(pivot)):
 		# (dug ground: the camera stops short of a tunnel's or a pit's walls)
 		var pl: CosmosPlanet = walker.planet
 		var s := 0.25
 		while s < t:
-			if pl.shape.density(pivot + dir * s - pl.global_position) < 0.25:
+			if pl.shape.density(pl.to_local(pivot + dir * s)) < 0.25:
 				t = maxf(s - 0.3, 0.2)
 				break
 			s += 0.25
@@ -1359,6 +1463,8 @@ func camera_clear(pivot: Vector3, want: Vector3, skip: Node = null) -> Vector3:
 		var reach: float = float(n3.get_meta("cam_reach", 600.0))
 		if n3.global_position.distance_to(pivot) > reach + L:
 			continue
+		if n3.has_meta("hull_grid"):   # (a ship's hull, as it's shaped - CosmosHullGrid; then its legs, as parts)
+			t = minf(t, hull_ray(n3, pivot, dir, t))
 		if n3.has_method("cam_hit"):   # (its own parts: a station)
 			t = minf(t, n3.cam_hit(pivot, dir, t))
 			continue
@@ -1383,15 +1489,18 @@ func camera_clear(pivot: Vector3, want: Vector3, skip: Node = null) -> Vector3:
 	# Trunks and boulders (vertical cylinders), and the ground, sampled along.
 	var pl := planet_below(pivot, 80.0)
 	if pl:
-		var local0 := pivot - pl.global_position
+		var local0 := pl.to_local(pivot)   # (all in its own frame)
 		var rocks := pl.rocks_near(local0, L + 2.0, "cam")
 		var steps := clampi(ceili(L / 1.2), 3, 10)   # (a sample every ~1.2 m along it: on foot a few, not ten)
 		for i in range(1, steps + 1):
 			var d := t * i / steps
 			var p := pivot + dir * d
-			var lp := p - pl.global_position
+			var lp := pl.to_local(p)
 			var up := lp.normalized()
 			if lp.length() < pl.radius + pl.ground_at(lp) + 0.35 and not pl.shape.carved_near(lp):   # (dug ground - a cave, a tunnel: its rock's own, above)
+				t = maxf(d - t / steps, 0.0)
+				break
+			if CosmosRoads.deck_solid(pl, lp, 0.3):   # (a bridge's deck, parapets, piers)
 				t = maxf(d - t / steps, 0.0)
 				break
 			var blocked := false
@@ -1444,23 +1553,36 @@ func keep_above_ground(p: Vector3, m: float) -> Vector3:
 		var d: Node3D = walker.deck
 		var l := d.to_local(p)
 		var c: Vector3 = d.confine(l, 0.25)
-		c.y = clampf(l.y, float(d.floor_y(c)) + 0.3, float(d.ceiling_y(c)) - 0.2)
+		var top := float(d.ceiling_y(c))
+		var wl: Vector3 = d.to_local(walker.global_position)
+		for k in range(1, 8):   # (the lowest ceiling between you and it: never up over a low one's top - the hull seen through from inside)
+			var q: Vector3 = wl.lerp(c, k / 8.0)
+			top = minf(top, float(d.ceiling_y(q)))
+		c.y = clampf(l.y, float(d.floor_y(c)) + 0.3, maxf(top - 0.2, float(d.floor_y(c)) + 0.5))
+		if d is CosmosNpcInterior and c.z > (d as CosmosNpcInterior).z_aft - 0.3 and (d as CosmosNpcInterior).ship.has_meta("hull_grid"):
+			# (behind you on its ramp, under its hull: down in its doorway - never up in the hull over it)
+			var s: Node3D = (d as CosmosNpcInterior).ship
+			var g: CosmosHullGrid = s.get_meta("hull_grid")
+			var door: AABB = s.door_box()
+			var lo := float(d.floor_y(c)) + 0.3
+			while c.y > lo and g.dist(c, door) < 0.2:
+				c.y -= 0.1
 		return d.to_global(c)
 	if docked and hangar:
 		return hangar.to_global(hangar.inside(hangar.to_local(p), maxf(m, 0.8)))
 	for pl: CosmosPlanet in planets:
-		var local := p - pl.global_position
+		var local := pl.to_local(p)   # (its ground in its own frame)
 		var r := local.length()
 		if r > pl.radius + pl.shape.top() + m + 10.0:
 			continue
 		if pl.shape.carved_near(local):
 			if dungeon != null and dungeon.planet == pl:
 				return p   # (in a dungeon: its walls and roof keep the camera in - camera_clear)
-			return pl.global_position + pl.shape.push_out(local, m)   # (dug ground: out of its walls - into a pit, a tunnel)
+			return pl.to_global(pl.shape.push_out(local, m))   # (dug ground: out of its walls - into a pit, a tunnel)
 		var under := walker != null and walker.diving and walker.planet == pl   # (diving: the camera goes under the sea with you - down to its floor)
 		var g := pl.radius + (pl.shape.height(local / r) if under else pl.ground_at(local)) + m
 		if r < g:
-			return pl.global_position + local / r * g
+			return pl.to_global(local / r * g)
 	return p
 
 
@@ -1560,7 +1682,7 @@ func where_text() -> String:
 	var t: Dictionary = Planets.TYPES.get(str(best.rec.get("type", "")), {})
 	var kind := str(t.get("label", "planet"))
 	if bd < best.radius * 0.6:
-		var alt := ship.global_position.distance_to(best.global_position) - best.radius - best.ground_at(ship.global_position - best.global_position)
+		var alt := ship.global_position.distance_to(best.global_position) - best.radius - best.ground_at(best.to_local(ship.global_position))
 		return "Altitude %s over %s (%s)" % [CosmosHud._dist(alt), best.rec.get("name", ""), kind]
 	return "Nearest: %s (%s) %s" % [best.rec.get("name", ""), kind, CosmosHud._dist(bd)]
 
@@ -1625,7 +1747,7 @@ func planet_below(p: Vector3, within := 400.0) -> CosmosPlanet:
 	for pl: CosmosPlanet in planets:
 		if pl.shape.kind == "gas":
 			continue
-		var local := p - pl.global_position
+		var local := pl.to_local(p)
 		var r := local.length() - pl.radius
 		if r - pl.shape.top() > within:
 			continue   # (well above its highest ground: no need to sample it)
@@ -1663,7 +1785,9 @@ func _ship_fwd(pl: CosmosPlanet) -> Vector3:
 ## lava, ground too steep under its hull, too uneven under its tail for the
 ## ramp, trees or boulders.
 func _spot_why(pl: CosmosPlanet, u: Vector3, fwd: Vector3) -> String:
-	var h := set_down_h(pl, u)
+	var h := set_down_h(pl, pl.dir_local(u))   # (`u`, `fwd`: the world's; its ground asked in its own frame)
+	if CosmosRoads.bridge_near(pl, pl.dir_local(u) * pl.radius, 14.0):
+		return "a bridge below - land beside it"
 	if pl.shape.sea == 1 and h < 0.6:
 		return "water below - find dry land"
 	if pl.shape.sea == 3 and h < 0.6:
@@ -1674,7 +1798,7 @@ func _spot_why(pl: CosmosPlanet, u: Vector3, fwd: Vector3) -> String:
 	var lo := h
 	var hi := h
 	for o in [t1, -t1, t2, -t2]:
-		var hh := set_down_h(pl, (u * pl.radius + o * 10.0).normalized())
+		var hh := set_down_h(pl, pl.dir_local((u * pl.radius + o * 10.0).normalized()))
 		lo = minf(lo, hh)
 		hi = maxf(hi, hh)
 	if hi - lo > 3.5:
@@ -1684,7 +1808,7 @@ func _spot_why(pl: CosmosPlanet, u: Vector3, fwd: Vector3) -> String:
 	var ry := ramp_ground(pl, test_spot)
 	if ry < -CosmosShip.GEAR - 2.6 or ry > CosmosShipInterior.FLOOR - 0.25:
 		return "the ground under the tail is too uneven for the ramp"
-	for rk in pl.rocks_near(u * pl.radius, 24.0):
+	for rk in pl.rocks_near(pl.dir_local(u) * pl.radius, 24.0):
 		if float(rk[2]) > 1.0:
 			return "trees or boulders in the way"
 	return ""
@@ -1699,10 +1823,10 @@ var _land_cache := {}
 func land_spot(pl: CosmosPlanet) -> Dictionary:
 	var now := Time.get_ticks_msec()
 	if not _land_cache.is_empty() and _land_cache["pl"] == pl and now - int(_land_cache["t"]) < 300 \
-			and (_land_cache["at"] as Vector3).distance_to(ship.global_position - pl.global_position) < 6.0:
-		return _land_cache["out"]
-	var local := ship.global_position - pl.global_position
-	var u := local.normalized()
+			and (_land_cache["at"] as Vector3).distance_to(pl.to_local(ship.global_position)) < 6.0:
+		return {"spot": pl.global_transform * _land_cache["out"]["spot"]} if _land_cache["out"].has("spot") else {}   # (kept in its own frame: it's turned since)
+	var local := pl.to_local(ship.global_position)
+	var u := (ship.global_position - pl.global_position).normalized()
 	var fwd := _ship_fwd(pl)
 	var out := {}
 	if _spot_why(pl, u, fwd) == "":
@@ -1720,13 +1844,13 @@ func land_spot(pl: CosmosPlanet) -> Dictionary:
 					break
 			if not out.is_empty():
 				break
-	_land_cache = {"pl": pl, "t": now, "at": local, "out": out}
+	_land_cache = {"pl": pl, "t": now, "at": local, "out": {"spot": pl.global_transform.affine_inverse() * out["spot"]} if out.has("spot") else {}}
 	return out
 
 
 func _spot_at(pl: CosmosPlanet, u: Vector3, fwd: Vector3) -> Transform3D:
 	var f := (fwd - u * fwd.dot(u)).normalized()
-	return Transform3D(Basis.looking_at(f, u), pl.global_position + u * (pl.radius + set_down_h(pl, u) + CosmosShip.GEAR))
+	return Transform3D(Basis.looking_at(f, u), pl.global_position + u * (pl.radius + set_down_h(pl, pl.dir_local(u)) + CosmosShip.GEAR))
 
 
 ## Where the ramp's foot meets the ground, for a ship set down at `spot`
@@ -1740,7 +1864,7 @@ func ramp_ground(pl: CosmosPlanet, spot: Transform3D) -> float:
 		var z := CosmosShipInterior.RAMP[1] + sqrt(maxf(pow(CosmosShipInterior.RAMP[2], 2.0) - drop * drop, 1.0))
 		var w := spot * Vector3(0, y, z)
 		var d := (w - pl.global_position).normalized()
-		y = (inv * (pl.global_position + d * (pl.radius + pl.shape.surface(d)))).y
+		y = (inv * (pl.global_position + d * (pl.radius + pl.shape.surface(pl.dir_local(d))))).y
 	return y
 
 
@@ -1802,8 +1926,8 @@ func disembark() -> void:
 	else:
 		walker.planet = planet_below(walker.global_position, 80.0)
 		walker.set_deck(null)
-		var l := walker.global_position - walker.planet.global_position
-		walker.global_position = walker.planet.global_position + l.normalized() * (walker.planet.radius + walker.floor_at(l) + 0.05)
+		var l := walker.planet.to_local(walker.global_position)
+		walker.global_position = walker.planet.to_global(l.normalized() * (walker.planet.radius + walker.floor_at(l) + 0.05))
 
 
 ## Back aboard and in the pilot's seat at once (tests, shots, the tour).
@@ -1887,29 +2011,34 @@ func _npc_boarding() -> void:
 			if hangar == null or not is_instance_valid(hangar) or hangar.station != s.dest or hangar.platform != p:
 				_open_port(s.dest, s.pad)   # (going down into a port: it's there to walk out into)
 		var l := inn.to_local(walker.global_position)
-		if s.hire_open() and l.z > inn.foot.z - 0.3 and walker.velocity.dot(inn.global_basis.z) > 0.2:   # (a hired ride, down on a field: off onto the ground)
-			var hpl: CosmosPlanet = s.hire["pl"]
-			walker.set_deck(null)
-			walker.planet = hpl
-			hud.flash("Down the ramp onto %s" % hpl.rec.get("name", ""))
-			note_event("ride_done" if s.hire_state() == "landed" else "ride_left")
-			return
+		if (s.hire_open() or _field_open(s)) and l.z > inn.foot.z - 0.3 and walker.velocity.dot(inn.global_basis.z) > 0.2:   # (a hired ride, a town's field's ship, down on its pad: off onto the ground)
+			var hpl: CosmosPlanet = s.hire["pl"] if s.hire_open() else planet_below(walker.global_position, 50.0)
+			if hpl:
+				walker.set_deck(null)
+				walker.planet = hpl
+				hud.flash("Down the ramp onto %s" % hpl.rec.get("name", ""))
+				if s.hire_open():
+					note_event("ride_done" if s.hire_state() == "landed" else "ride_left")
+				return
 		if s._ramp_k > 0.99 and s._pad_phase == 3 and hangar and is_instance_valid(hangar) and hangar.station == s.dest \
 				and l.z > inn.foot.z - 0.3 and walker.velocity.dot(inn.global_basis.z) > 0.2:
 			walker.set_deck(hangar)
 			hud.flash("Down the ramp into the port of %s" % label_of(hangar.station))
 		return
-	if walker.deck == null and walker.planet:   # (on a world's ground: a hired ride down on its field, its ramp down)
+	if walker.deck == null and walker.planet:   # (on a world's ground: a hired ride down on its field, a town's pad's ship - their ramps down)
 		for x in npc_ships:
-			if not is_instance_valid(x) or not x.hire_open() or walker.global_position.distance_to(x.global_position) > x.reach * 2.5 + 20.0:
+			if not is_instance_valid(x) or not (x.hire_open() or _field_open(x)) or walker.global_position.distance_to(x.global_position) > x.reach * 2.5 + 20.0:
 				continue
 			var inn: CosmosNpcInterior = x.make_interior()
 			if inn == null or not inn.ok:
 				continue
 			if _steps_aboard(inn, x):
 				walker.set_deck(inn)
-				hud.flash("Up the ramp of the local pilot's ship - it lifts off once you're in and he's at the controls")
-				note_event("ride_boarded")
+				if x.hire_open():
+					hud.flash("Up the ramp of the local pilot's ship - it lifts off once you're in and he's at the controls")
+					note_event("ride_boarded")
+				else:
+					hud.flash("Up the ramp of the %s" % str(x.label).get_slice(" - ", 0))
 				return
 		return
 	if hangar == null or not is_instance_valid(hangar) or walker.deck != hangar:
@@ -1929,6 +2058,11 @@ func _npc_boarding() -> void:
 			return
 
 
+## A town's landing pad's ship (CosmosLandingField), down on its pad with its ramp down: walked into.
+func _field_open(x: CosmosNpcShip) -> bool:
+	return x.traffic != null and x.hire.is_empty() and x._ramp_k > 0.99
+
+
 ## Onto a ship's ramp from the ground or a port's floor: over it and no lower than a
 ## step under its top face - walking up at its foot, or standing on it once a little way up.
 func _steps_aboard(inn: CosmosNpcInterior, x: CosmosNpcShip) -> bool:
@@ -1941,8 +2075,11 @@ func _steps_aboard(inn: CosmosNpcInterior, x: CosmosNpcShip) -> bool:
 ## Off a ship, its ramp and legs are solid: the ramp's sides where it stands higher
 ## than a step (stepped onto where it's low: _npc_boarding), each leg's foot.
 func _npc_bumps(w: CosmosWalker) -> void:
-	for x: CosmosNpcShip in npc_ships:
-		if not is_instance_valid(x) or x._gear.is_empty() or w.global_position.distance_to(x.global_position) > x.reach * 2.5 + 20.0:
+	for x0 in npc_ships:
+		if not is_instance_valid(x0):
+			continue   # (one gone this frame: not typed till it's known to be there)
+		var x: CosmosNpcShip = x0
+		if x._gear.is_empty() or w.global_position.distance_to(x.global_position) > x.reach * 2.5 + 20.0:
 			continue
 		if x._gear_k > 0.5:
 			for g in x._gear:
@@ -1964,6 +2101,133 @@ func _npc_bumps(w: CosmosWalker) -> void:
 			continue   # (on it, about to step on - or well under its high end)
 		l.x = hw * (1.0 if l.x >= 0.0 else -1.0)   # (out to its nearer side)
 		w.global_position = inn.to_global(l)
+
+
+# --- Landed ships' hulls: solid (CosmosHullGrid) ---------------------------------------------
+
+const HULL_NEAR := 60.0          # m past a ship's reach: its hull tested against you
+const HULL_MAKE := 500.0         # ...its grid made (once a design and size, on a worker) within this
+const HULL_PROBES := [1.15, 1.5]  # m up your body: balls of BODY_R held out of a hull (your knees - over a step - to your head)
+const HULL_STEP := 0.7           # m: a hull's top this little over your feet stepped up onto (CosmosSolids.STEP)
+
+var _hulls: Array = []           # [ship, grid] - the landed ships near you (their hulls solid), looked up a few times a second
+var _hulls_at := -1000
+
+
+## The landed ships within HULL_NEAR of the walker whose hulls are in (and their grids
+## started within HULL_MAKE) - not one you're aboard. Gone over five times a second.
+func _hulls_near(w: CosmosWalker) -> Array:
+	var now := Time.get_ticks_msec()
+	if now - _hulls_at < 200:
+		return _hulls
+	_hulls_at = now
+	_hulls = []
+	var at := w.global_position
+	var aboard: Node = w.deck if is_instance_valid(w.deck) else null
+	for x0 in npc_ships:
+		if not is_instance_valid(x0):
+			continue
+		var x: CosmosNpcShip = x0
+		if x._gear.is_empty() or (aboard != null and aboard == x.interior):
+			continue   # (in flight - or you're in it)
+		var d := at.distance_to(x.global_position) - x.reach
+		if d > HULL_MAKE:
+			continue
+		var g := CosmosHullGrid.of(x)
+		if g != null and d < HULL_NEAR:
+			_hulls.append([x, g])
+	if ship and ship.visible and not ship_elsewhere and ship.state != "fly" and (aboard == null or aboard != ship.interior):
+		var d := at.distance_to(ship.global_position) - CosmosShip.HULL_R
+		if d < HULL_MAKE:
+			var g := CosmosHullGrid.of(ship)
+			if g != null and d < HULL_NEAR:
+				_hulls.append([ship, g])
+	return _hulls
+
+
+## Off a ship, its hull is solid - as it's shaped: you walk round it, under a wing or a belly
+## that's over your head, up to its doorway (its ramp down: cut through it - CosmosHullGrid's
+## door), never through it. Balls up your body held out across its skin, along the ground.
+func _hull_bumps(w: CosmosWalker) -> void:
+	for e in _hulls_near(w):
+		var x: Node3D = e[0]
+		if not is_instance_valid(x):
+			continue
+		var g: CosmosHullGrid = e[1]
+		var xf := x.global_transform
+		var inv := xf.affine_inverse()
+		var l := inv * w.global_position
+		var up := (inv.basis * w.up()).normalized()
+		var door: AABB = x.door_box()
+		var moved := Vector3.ZERO
+		for h: float in HULL_PROBES:
+			moved += g.push(l + moved + up * h, CosmosWalker.BODY_R, up, door)
+		if moved != Vector3.ZERO:
+			w.global_position = xf * (l + moved)
+			var into := w.velocity.dot((xf.basis * moved).normalized())
+			if into < 0.0:
+				w.velocity -= (xf.basis * moved).normalized() * into   # (stopped at its skin, not bounced off it)
+
+
+## The top of a landed ship's hull under global `p` (`up` its up) - its back, a wing - if it's
+## no higher than a step over `p`: a world point, or Vector3.INF (none: the ground's).
+func hull_top(p: Vector3, up: Vector3) -> Vector3:
+	if walker == null or _hulls.is_empty():
+		return Vector3.INF
+	var best := Vector3.INF
+	var hb := -INF
+	for e in _hulls:
+		var x: Node3D = e[0]
+		if not is_instance_valid(x):
+			continue
+		var g: CosmosHullGrid = e[1]
+		var inv := x.global_transform.affine_inverse()
+		var l := inv * p
+		var y := g.top_below(l, HULL_STEP, x.door_box())
+		if y > -INF:
+			var top := x.global_transform * Vector3(l.x, y, l.z)
+			var hgt := (top - p).dot(up)
+			if hgt > hb:
+				hb = hgt
+				best = top
+	return best
+
+
+## (CosmosWalker.floor_at) A landed ship's top under planet-local `local`: metres over the
+## planet's radius, or -INF.
+func hull_floor(pl: CosmosPlanet, local: Vector3) -> float:
+	if _hulls.is_empty():
+		return -INF
+	var top := hull_top(pl.to_global(local), pl.dir_world(local.normalized()))
+	return pl.to_local(top).length() - pl.radius if top != Vector3.INF else -INF
+
+
+## (CosmosWalker, on a port's floor) A ship's top under deck-local `l`: deck-local y, or -INF.
+func hull_deck_floor(d: Node3D, l: Vector3) -> float:
+	if _hulls.is_empty() or d != hangar:
+		return -INF
+	var top := hull_top(d.to_global(l), d.global_basis.y.normalized())
+	return d.to_local(top).y if top != Vector3.INF else -INF
+
+
+## A landed ship's hull in the way of the line `o` + `dir` t (world, `dir` a unit) within
+## `limit`: where it meets it, or INF (the camera; a bolt, stopped by it). Not the one you're aboard.
+func hull_ray(n: Node3D, o: Vector3, dir: Vector3, limit: float) -> float:
+	var g: CosmosHullGrid = n.get_meta("hull_grid")
+	if walker and is_instance_valid(walker.deck) and (walker.deck == n.get("interior")):
+		return INF
+	var inv := n.global_transform.affine_inverse()
+	return g.ray(inv * o, (inv.basis * dir).normalized(), limit, n.door_box())
+
+
+## (CosmosBolt) Where a bolt's segment this frame (`a` + `dir` t, t up to `L`) first meets a
+## landed ship's hull near you, or INF: stopped there - not through it at what's behind.
+func hull_hit(a: Vector3, dir: Vector3, L: float) -> float:
+	var best := INF
+	for e in _hulls:
+		if is_instance_valid(e[0]):
+			best = minf(best, hull_ray(e[0], a, dir, minf(L, best)))
+	return best
 
 
 ## In a trader's passenger seat: the camera outside it - its whole ship, turned
@@ -2032,6 +2296,8 @@ func ship_note() -> String:
 			return "In port - the ramp's down, aft: off it into the port"
 		if not s.hire.is_empty():   # (a hired ride: where you paid to go)
 			var to: Dictionary = s.hire["to"]
+			if to.has("gate"):
+				return "Bound for the gate - on to %s" % Galaxy.system(str(to["sys"])).get("name", "?")
 			return "Bound for %s" % (label_of(to["station"]) if to.has("station") else str((to["pl"] as CosmosPlanet).rec.get("name", "")))
 		var d: Node3D = s.dest
 		return "Bound for %s" % (label_of(d) if d and not d is CosmosGate else ("the gate to %s" % Galaxy.system((d as CosmosGate).to).get("name", "?") if d is CosmosGate else "its next port"))
@@ -2221,6 +2487,26 @@ func _ride_through(s: CosmosNpcShip) -> void:
 	LoadVeil.change_to(SCENE, "Through the gate to %s - aboard the %s" % [Galaxy.system(to).get("name", to), r.get("name", "trader")])
 
 
+## Aboard a hired ride (a landing pad's pilot's, a town's local pilot's) through its gate
+## to system `to` (a jump or two on): there on foot in its first station's port - the
+## pilot's set you down; your ship left behind.
+func ride_jump(s: CosmosNpcShip, to: String) -> void:
+	if _jumping or not Galaxy.systems.has(to):
+		return
+	_leave_ship_behind()
+	CosmosGame.extra["foot_at"] = {"station": "", "platform": 0}
+	_recall = {}
+	_jumping = true
+	jumped_to = to
+	note_event("ride_done")
+	if dry_run:
+		return
+	arrive_from = ""   # (your ship doesn't come through: you do, aboard)
+	Galaxy.current_system = to
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	LoadVeil.change_to(SCENE, "Through the gate to %s - %s sets you down at its station" % [Galaxy.system(to).get("name", to), str(s.label)])
+
+
 ## Arrived (a gate ridden through, or a save loaded): back aboard the trader you
 ## were riding, or on foot in the port you were in. The veil waits for it.
 var _resuming := false
@@ -2316,8 +2602,8 @@ func _set_down_on_world(pname: String, at: Array) -> void:
 		world.add_child(walker)
 	walker.planet = pl
 	walker.set_deck(null)
-	walker.global_position = pl.global_position + u * (pl.radius + walker.floor_at(local) + 0.05)
-	walker.heading = (face - u * face.dot(u)).normalized()
+	walker.global_position = pl.to_global(u * (pl.radius + walker.floor_at(local) + 0.05))   # (`local`, `face`: its own frame)
+	walker.heading = pl.dir_world((face - u * face.dot(u)).normalized())
 	walker.facing = walker.heading
 	walker.velocity = Vector3.ZERO
 	cam.walker = walker
@@ -2373,9 +2659,13 @@ func walker_bumps(w: CosmosWalker) -> void:
 		return
 	if w.deck == null or w.deck == hangar:
 		_npc_bumps(w)
+		_hull_bumps(w)   # (landed ships' hulls - yours too: solid as they're shaped)
+		for x in creatures:   # (a mammoth's legs: pillars you walk between)
+			if is_instance_valid(x) and x.reach > 4.0:
+				x.push_walker(w, CosmosWalker.BODY_R)
 	if (ship.state == "landed" or ship.state == "landing") and ship.interior:
-		# (outside: the landing legs are solid; under the hull you walk free - to the ramp)
-		for leg: Vector3 in [Vector3(0, 0, -11), Vector3(-6.5, 0, 9), Vector3(6.5, 0, 9)]:
+		# (outside: the landing legs are solid; the hull itself - _hull_bumps)
+		for leg: Vector3 in [Vector3(0, 0, -18), Vector3(-5.5, 0, 13), Vector3(5.5, 0, 13)]:   # (CosmosShip._build's)
 			var d := w.global_position - ship.to_global(leg)
 			d -= u * d.dot(u)
 			if d.length() < 1.6 and d.length() > 0.01:
@@ -2401,43 +2691,47 @@ func walker_bumps(w: CosmosWalker) -> void:
 		w.global_position += town.global_basis * town.push(town.to_local(w.global_position), CosmosWalker.BODY_R)
 	if builds:
 		builds.push_walker(w)
+	var bp := CosmosRoads.deck_push(w.planet, w.planet.to_local(w.global_position), CosmosWalker.BODY_R)   # (a bridge's parapets, its piers and abutments)
+	if bp != Vector3.ZERO:
+		w.global_position += w.planet.dir_world(bp)
 	if deposits and deposits.planet == w.planet:
 		deposits.push(w)
-	var lw := w.global_position - w.planet.global_position
+	var lw := w.planet.to_local(w.global_position)   # (its ground in its own frame: `ul` your up there)
+	var ul := w.planet.dir_local(u)
 	if not in_dg and w.planet.shape.carved_near(lw):
 		# (dug ground: kept out of its walls and ceilings - the knees and the head)
 		for hgt: float in [0.55, 1.5]:
-			var pt: Vector3 = lw + u * hgt
+			var pt: Vector3 = lw + ul * hgt
 			var mv: Vector3 = w.planet.shape.push_out(pt, CosmosWalker.BODY_R * 0.8) - pt
-			lw += mv - u * mv.dot(u)   # (sideways: the floor's the floor's business - floor_at)
+			lw += mv - ul * mv.dot(ul)   # (sideways: the floor's the floor's business - floor_at)
 		# (under the ground - a tunnel, a cave: its ceiling holds you down - a jump, the jet, swimming up)
 		var sh := w.planet.shape
-		if lw.length() - w.planet.radius < sh.height(u) - 0.5 and sh.density(lw + u * 1.75) < 0.0:
+		if lw.length() - w.planet.radius < sh.height(ul) - 0.5 and sh.density(lw + ul * 1.75) < 0.0:
 			for k in 20:
-				lw -= u * 0.1
-				if sh.density(lw + u * 1.75) >= 0.0:
+				lw -= ul * 0.1
+				if sh.density(lw + ul * 1.75) >= 0.0:
 					break
 			if w.velocity.dot(u) > 0.0:
 				w.velocity -= u * w.velocity.dot(u)
-		w.global_position = w.planet.global_position + lw
-	var local := w.global_position - w.planet.global_position
+		w.global_position = w.planet.to_global(lw)
+	var local := w.planet.to_local(w.global_position)
 	for rk in w.planet.rocks_near(local, 3.0, "walker"):   # (its last answer while fresh)
 		var c: Vector3 = rk[0]
 		var d := local - c
-		var flat := d - u * d.dot(u)
+		var flat := d - ul * d.dot(ul)
 		var need: float = rk[1] + CosmosWalker.BODY_R
 		# (low ones you step over; tall ones block)
-		if float(rk[2]) > 0.5 and flat.length() < need and d.dot(u) < float(rk[2]) and flat.length() > 0.001:
-			w.global_position += flat.normalized() * (need - flat.length())
+		if float(rk[2]) > 0.5 and flat.length() < need and d.dot(ul) < float(rk[2]) and flat.length() > 0.001:
+			w.global_position += w.planet.dir_world(flat.normalized() * (need - flat.length()))
 	var held := w.global_position - held_at
 	w.note_wall(held - u * held.dot(u))
 	if underwater and (w.swimming or w.diving):   # (the sea floor's boulders and corals: solid to a diver)
 		for rk in underwater.rocks_near(local, 3.0):
-			var d: Vector3 = w.global_position - w.planet.global_position - (rk[0] as Vector3)
-			var flat := d - u * d.dot(u)
+			var d: Vector3 = w.planet.to_local(w.global_position) - (rk[0] as Vector3)
+			var flat := d - ul * d.dot(ul)
 			var need: float = float(rk[1]) + CosmosWalker.BODY_R
-			if flat.length() < need and d.dot(u) < float(rk[2]) and flat.length() > 0.001:
-				w.global_position += flat.normalized() * (need - flat.length())
+			if flat.length() < need and d.dot(ul) < float(rk[2]) and flat.length() > 0.001:
+				w.global_position += w.planet.dir_world(flat.normalized() * (need - flat.length()))
 
 
 # --- Dismissing and recalling the ship ------------------------------------------------
@@ -2493,7 +2787,7 @@ func ship_call() -> void:
 		_call = {"kind": "up", "t": 0.0, "from": start, "pl": pl}
 		hud.flash("Your ship lifts off - B to call it back", 3.0)
 		return
-	var spot := _landing_spot_near(pl, walker.global_position - pl.global_position)
+	var spot := _landing_spot_near(pl, pl.to_local(walker.global_position))
 	if spot == Transform3D():
 		hud.flash("No clear, level ground near you for your ship - move on a little")
 		return
@@ -2508,20 +2802,20 @@ func ship_call() -> void:
 ## (planet-local), or Transform3D() if there's none.
 func _landing_spot_near(pl: CosmosPlanet, at: Vector3) -> Transform3D:
 	var u := at.normalized()
-	var t := town_at(pl, pl.global_position + at)
+	var t := town_at(pl, pl.to_global(at))
 	if t:
 		var field: Vector3 = (pl.global_transform.affine_inverse() * t.global_transform) * t.port
 		var fu := field.normalized()
-		return Transform3D(_level(t.global_basis.x, fu), fu * (pl.radius + set_down_h(pl, fu) + CosmosShip.GEAR))
+		return Transform3D(_level(pl.dir_local(t.global_basis.x), fu), fu * (pl.radius + set_down_h(pl, fu) + CosmosShip.GEAR))
 	var e := u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized()
 	for ring in [40.0, 70.0, 100.0, 140.0]:
 		for k in 10:
 			var dir: Vector3 = e.rotated(u, TAU * k / 10.0)
 			var d: Vector3 = (at + dir * ring).normalized()
-			if pl.shape.cleared(d) and town_at(pl, pl.global_position + d * pl.radius) != null:
+			if pl.shape.cleared(d) and town_at(pl, pl.to_global(d * pl.radius)) != null:
 				continue
-			if _spot_why(pl, d, -dir) == "":
-				return _spot_at(pl, d, -dir).translated(-pl.global_position)   # (planet-local; its tail toward you: the ramp)
+			if _spot_why(pl, pl.dir_world(d), pl.dir_world(-dir)) == "":
+				return pl.global_transform.affine_inverse() * _spot_at(pl, pl.dir_world(d), pl.dir_world(-dir))   # (planet-local; its tail toward you: the ramp)
 	return Transform3D()
 
 
@@ -2652,7 +2946,7 @@ func _build_mouth(pl: CosmosPlanet, site: Dictionary) -> Node3D:
 		var w: Vector3 = into["way"]
 		f = (w - u * w.dot(u)).normalized()
 		at = into["mouth"]
-	n.global_transform = Transform3D(Basis.looking_at(f, u), pl.global_position + at)
+	n.transform = Transform3D(Basis.looking_at(f, u), at)   # (planet-local: its child)
 	var stone := CosmosStation._mat(Color(0.45, 0.42, 0.38), 0.0, 0.9)
 	var dark := CosmosStation._mat(Color(0.01, 0.01, 0.01), 0.0, 1.0)
 	var red := CosmosStation._mat(Color(0.5, 0.1, 0.07), 0.0, 0.8)
@@ -2752,7 +3046,7 @@ func _cave_foe(pl: CosmosPlanet, at: Vector3, kind: String, seed: int, boss: boo
 	npc.cosmos = self
 	npc.cave_foe(pl, seed, kind, boss)
 	world.add_child(npc)
-	npc.global_position = pl.global_position + at
+	npc.global_position = pl.to_global(at)
 	npcs.append(npc)
 	return npc
 
@@ -2764,7 +3058,7 @@ func _cave_chest(pl: CosmosPlanet, at: Vector3, open: bool) -> Node3D:
 	pl.add_child(n)
 	var u := at.normalized()
 	var f := u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized()
-	n.global_transform = Transform3D(Basis.looking_at(f, u), pl.global_position + at)
+	n.transform = Transform3D(Basis.looking_at(f, u), at)   # (planet-local: its child)
 	var bronze := CosmosStation._mat(Color(0.55, 0.36, 0.14), 0.85, 0.35)
 	var body := MeshInstance3D.new()
 	body.mesh = CosmosStation._box(Vector3(1.1, 0.6, 0.7))
@@ -2803,7 +3097,7 @@ func cave_chest_here() -> Dictionary:
 		return {}
 	for key in _cave_live:
 		var e: Dictionary = _cave_live[key]
-		if not e["open"] and e["pl"] == walker.planet and ((e["pl"] as CosmosPlanet).global_position + (e["at"] as Vector3)).distance_to(walker.global_position) < 2.2:
+		if not e["open"] and e["pl"] == walker.planet and (e["pl"] as CosmosPlanet).to_global(e["at"] as Vector3).distance_to(walker.global_position) < 2.2:
 			return e
 	return {}
 
@@ -2959,7 +3253,7 @@ func _weather_fog(w: Dictionary, indoors: bool) -> void:
 func _under_ground() -> bool:
 	if walker == null or walker.deck != null or walker.planet == null:
 		return false
-	var local := walker.global_position - walker.planet.global_position
+	var local := walker.planet.to_local(walker.global_position)
 	var sh := walker.planet.shape
 	return sh.carved_near(local) and sh.height(local.normalized()) - (local.length() - walker.planet.radius) > 2.0
 
@@ -2980,7 +3274,7 @@ func dungeons_live() -> Array:
 func dungeon_floor(pl: CosmosPlanet, local: Vector3) -> float:
 	for d: CosmosDungeon in dungeons_live():
 		if d.planet == pl:
-			var dl: Vector3 = d.to_local(pl.global_position + local)
+			var dl: Vector3 = d.to_local(pl.to_global(local))
 			if d.inside(dl):
 				return (d.to_global(Vector3(dl.x, d.floor_top(dl), dl.z)) - pl.global_position).length() - pl.radius
 	return -INF
@@ -3467,6 +3761,8 @@ func monster_died(m: CosmosMonster) -> void:
 ## people out in the streets when you're close.
 func _towns_tick() -> void:
 	var f := focus().global_position
+	TownLamps.of(self)   # (their lamps' light by night: made the first time - after a hot reload too)
+	CosmosLandingField.of(self)   # (their landing pads and the ships on them: made the first time - after a hot reload too)
 	for pl: CosmosPlanet in planets:
 		if pl.towns.is_empty():
 			continue
@@ -3484,8 +3780,8 @@ func _towns_tick() -> void:
 				var xf := CosmosTown.frame(s, pl.radius)
 				var t := CosmosTown.new()
 				t.setup(pl, s)
-				pl.add_child(t)   # (on its world: it goes round the star with it, nothing to carry)
-				t.global_transform = Transform3D(xf.basis, pl.global_position + xf.origin)
+				pl.add_child(t)   # (on its world: it goes round the star with it and turns with it, nothing to carry)
+				t.transform = xf   # (planet-local)
 				list[i] = t
 			elif not near and list[i] != null:
 				(list[i] as Node).queue_free()
@@ -3527,7 +3823,7 @@ func _town_people(t: CosmosTown, d: float) -> void:
 			k.global_position = t.to_global(t.port + (sp[1] as Vector3))
 			citizens.append(k)
 			mine.append(k)
-	mine = mine.filter(func(x): return not x.role in CosmosSandbox.ROLES)
+	mine = mine.filter(func(x): return not x.role in CosmosSandbox.ROLES and x.role != "captain")   # (its own people: not the field's, nor the pilots ashore off its pads)
 	var want := 9 if str(t.site["kind"]) == "city" else 5
 	if d < 400.0 and mine.size() < want and not t.spots.is_empty():
 		# (one of its own people - the town's residents (People): out in its streets, their face their own)
@@ -3581,7 +3877,7 @@ func town_floor(pl: CosmosPlanet, local: Vector3) -> float:
 	for t in _towns.get(pl, []):
 		if t == null or not t.built:
 			continue
-		var tl: Vector3 = t.to_local(pl.global_position + local)
+		var tl: Vector3 = t.to_local(pl.to_global(local))
 		var r: float = t.site["r"]
 		if absf(tl.x) > r or absf(tl.z) > r or tl.y > 40.0 or tl.y < -3.0:
 			continue
@@ -3592,7 +3888,7 @@ func town_floor(pl: CosmosPlanet, local: Vector3) -> float:
 		best = maxf(best, builds.floor_at(pl, local))
 	for d: CosmosDungeon in dungeons_live():   # (a dungeon's floors: its dais, its steps)
 		if d.planet == pl:
-			var dl: Vector3 = d.to_local(pl.global_position + local)
+			var dl: Vector3 = d.to_local(pl.to_global(local))
 			if d.inside(dl):
 				var top: float = d.floor_top(dl)
 				if top > -49.0:
@@ -3601,6 +3897,22 @@ func town_floor(pl: CosmosPlanet, local: Vector3) -> float:
 
 
 ## The town that `p` (global) is in, or null.
+## Animals keep out of towns: at `local` (planet-local) within `margin` m of a town's
+## edge (its site's reach), the way out of it (planet-local, along the ground) - else ZERO.
+func town_keep_out(pl: CosmosPlanet, local: Vector3, margin: float) -> Vector3:
+	if pl == null:
+		return Vector3.ZERO
+	var u := local.normalized()
+	for t: Dictionary in pl.towns:
+		var c: Vector3 = (t["dir"] as Vector3) * pl.radius
+		var off := local - c
+		off -= u * off.dot(u)
+		var reach := float(t["r"]) * 1.42 + margin   # (its square site's corner, and the margin)
+		if off.length() < reach:
+			return off.normalized() if off.length() > 0.01 else u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized()
+	return Vector3.ZERO
+
+
 func town_at(pl: CosmosPlanet, p: Vector3) -> CosmosTown:
 	for t in _towns.get(pl, []):
 		if t != null and t.built:
@@ -3663,7 +3975,7 @@ func _life() -> void:
 				x.queue_free()
 	if pl == null or pl.shape.kind == "gas":
 		return
-	var here := f.global_position - pl.global_position
+	var here := pl.to_local(f.global_position)   # (where you are on it: its own frame - its caves, camps, towns' sites)
 	_dungeon_mouths(pl, here)
 	_cave_life(pl, here)
 	_dungeon_life(pl, here)
@@ -3686,15 +3998,18 @@ func _life() -> void:
 		var t := u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized().rotated(u, _life_rng.randf() * TAU)
 		var at := (here + t * _life_rng.randf_range(LIFE_NEAR, LIFE_FAR)).normalized()
 		var n := _life_rng.randi_range(2, 4) if k["herd"] else 1
+		var apart := maxf(4.0, float(k["size"]) * float(k["scale"]) * 2.6)   # (a herd of giants: room between them)
 		for i in n:
-			var d := (at * pl.radius + t.rotated(u, i * 1.7) * i * 4.0).normalized()
+			var d := (at * pl.radius + t.rotated(u, i * 1.7) * i * apart).normalized()
 			if pl.shape.sea > 0 and pl.shape.height(d) < 0.5:
 				continue
+			if town_keep_out(pl, d * pl.radius, 30.0 + apart) != Vector3.ZERO:
+				continue   # (animals keep out of towns)
 			var c := CosmosCreature.new()
 			c.cosmos = self
 			c.setup(k, pl, _life_rng.randi())
 			world.add_child(c)
-			c.global_position = pl.global_position + d * (pl.radius + maxf(pl.shape.height(d), 0.0))
+			c.global_position = pl.to_global(d * (pl.radius + maxf(pl.shape.height(d), 0.0)))
 			creatures.append(c)
 	# Pirate camps nearby: their props, and their guards turned out.
 	for camp in camps_of(pl):
@@ -3716,7 +4031,7 @@ func _life() -> void:
 				var u := cp.normalized()
 				var off := u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized().rotated(u, i * 2.1) * 6.0
 				var d := (cp + off).normalized()
-				npc.global_position = pl.global_position + d * (pl.radius + maxf(pl.shape.height(d), 0.0))
+				npc.global_position = pl.to_global(d * (pl.radius + maxf(pl.shape.height(d), 0.0)))
 				npcs.append(npc)
 		elif dist > CAMP_NEAR * 2.0 and int(camp[2]) > 0:
 			camp[2] = 0   # (out of range: its guards stood down; they come out again)
@@ -3732,7 +4047,7 @@ func _build_camp(pl: CosmosPlanet, at: Vector3) -> Node3D:
 	pl.add_child(n)   # (on its world: moves with it)
 	var u := at.normalized()
 	var fwd := u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized()
-	n.global_transform = Transform3D(Basis.looking_at(fwd, u), pl.global_position + at)
+	n.transform = Transform3D(Basis.looking_at(fwd, u), at)   # (planet-local: its child)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(at)
 	var cloth := CosmosStation._mat(Color(0.45, 0.12, 0.1), 0.0, 0.9)
@@ -3797,7 +4112,7 @@ func aim() -> Array:
 		var t := 2.0
 		while t < bt:
 			var p := o + dir * t
-			var local := p - pl.global_position
+			var local := pl.to_local(p)
 			if pl.shape.carved_near(local):   # (dug ground - a cave, a tunnel, a dungeon: its rock, not the face above)
 				if pl.shape.density(local) < 0.0:
 					bt = t
@@ -3851,24 +4166,24 @@ func walker_downed() -> void:
 		var bed = CosmosBuilds.bed_on(pl)
 		if bed != null:   # (your bed on this world: you wake in it)
 			var bl: Vector3 = bed
-			walker.revive(pl.global_position + bl.normalized() * (pl.radius + walker.floor_at(bl) + 0.05))
+			walker.revive(pl.to_global(bl.normalized() * (pl.radius + walker.floor_at(bl) + 0.05)))
 			_shift_origin(true)
 			return
 		if ship_elsewhere:   # (no ship of yours here: back on your feet by the nearest town's field)
-			var best := walker.global_position - pl.global_position
+			var best := pl.to_local(walker.global_position)
 			var bd := INF
 			for s in pl.towns:
 				var f := CosmosSandbox.field_of(pl, s)
-				var d := f.origin.distance_to(walker.global_position - pl.global_position)
+				var d := f.origin.distance_to(pl.to_local(walker.global_position))
 				if d < bd:
 					bd = d
 					best = f * Vector3(-24.0, 0.0, 4.0)
-			walker.revive(pl.global_position + best.normalized() * (pl.radius + walker.floor_at(best) + 0.05))
+			walker.revive(pl.to_global(best.normalized() * (pl.radius + walker.floor_at(best) + 0.05)))
 			_shift_origin(true)
 			return
 		var at := ship.interior.to_global(ship.interior.ramp_foot() + Vector3(0, 0, 3.0))   # (by the foot of your ship's ramp)
-		var local := at - pl.global_position
-		walker.revive(pl.global_position + local.normalized() * (pl.radius + walker.floor_at(local) + 0.05))
+		var local := pl.to_local(at)
+		walker.revive(pl.to_global(local.normalized() * (pl.radius + walker.floor_at(local) + 0.05)))
 		_shift_origin(true))
 
 
@@ -4150,8 +4465,8 @@ func terminal_here() -> Array:
 		var bp := builds.prompt(walker)
 		if not bp.is_empty():
 			return bp
-	for x in citizens:   # (the city's ore buyer, courier's office, local pilot)
-		if is_instance_valid(x) and x.role in CosmosSandbox.ROLES and x.global_position.distance_to(walker.global_position) < 3.5:
+	for x in citizens:   # (the city's ore buyer, courier's office, local pilot - and the landing pads' pilots ashore)
+		if is_instance_valid(x) and (x.role in CosmosSandbox.ROLES or x.role == "captain") and x.global_position.distance_to(walker.global_position) < 3.5:
 			return sandbox.prompt_for(x)
 	for x in citizens:   # (a town's resident: their own life)
 		if is_instance_valid(x) and x.pid != "" and not x.dead and x.global_position.distance_to(walker.global_position) < 3.0:
@@ -4716,7 +5031,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			else:
 				open_computer(0)
 		elif Keybinds.pressed(event, "sector_map"):   # (M: the planet's map on a world, else the solar map)
-			open_map(0 if walker != null or planet_below(ship.global_position, 3000.0) != null else 1)
+			open_map_here()
 		elif Keybinds.pressed(event, "galaxy_map"):
 			open_map(2)
 		elif Keybinds.pressed(event, "land"):
@@ -4809,16 +5124,30 @@ func _build_game_hud() -> void:
 	if hud2d.mining_panel:
 		hud2d.mining_panel.process_mode = Node.PROCESS_MODE_DISABLED   # (no mining in the 3D game yet)
 		hud2d.mining_panel.visible = false
-	# Bottom right, icons (each its key over it): the Automaton's inventory, the three maps, the tutorial (its book in the Archive).
+	# Bottom right, icons (each its key over it): the Automaton's inventory, the map (as M), the tutorial (its book in the Archive).
 	var icons := [["InventoryButton", "ui_cargo", "Inventory", "Tab", "Your inventory, your toolbar and your automaton's equipment.", func(): open_computer(0)],
-		["PlanetMapButton", "planets", "Planet map", "M", "The world you're on or nearest, as a globe (M on a planet).", func(): open_map(0)],
-		["SolarMapButton", "ui_system", "Solar map", "M", "The system you're in, in 3D (M off a planet).", func(): open_map(1)],
-		["GalaxyMapButton", "ui_galaxy", "Galaxy map", "G", "The galaxy in 3D.", func(): open_map(2)],
-		["TutorialButton", "help", "Tutorial", "", "The tutorial: how to play - in the Automaton's Archive.", open_tutorial]]
+		["MapButton", "planets", "Map", "M", "The map: the world you're on or near, as a globe - else the system you're in.", open_map_here],
+		["TutorialButton", "help", "Guide", "F1", "The pilot's guide - how to play, every screen and system; the tutorial beside it in the Automaton's Archive.", open_guide]]
 	for i in icons.size():
 		var ic: Array = icons[i]
 		var right := -16.0 - (icons.size() - 1 - i) * 56.0
 		_hud_icon(ic[0], ic[1], EditorIcons.tip(ic[2], ic[3], ic[4]), str(ic[3]), Rect2(right - 48.0, -64.0, 48.0, 48.0), ic[5])
+
+
+## The event log's reach: what happens further from you than this (m) - a ship landing at a far town's field, a
+## caravan's fight down the road - isn't news; what you do is, wherever you are.
+const NEWS_REACH := 2000.0
+
+
+## Whether something at `p` (world) is near enough to you to be in the event log.
+func within_news(p: Vector3) -> bool:
+	var f := focus()
+	return f == null or f.global_position.distance_to(p) <= NEWS_REACH
+
+
+## The map, as M opens it: the planet's map on (or near) a world, else the solar map.
+func open_map_here() -> void:
+	open_map(0 if walker != null or planet_below(ship.global_position, 3000.0) != null else 1)
 
 
 ## An icon button at the HUD's bottom right (`r`: its offsets from that corner), its key written over it.
@@ -4859,6 +5188,15 @@ func open_map(sub: int) -> void:
 	var tab: int = load("res://scripts/ui/ship_menu.gd").MAP_TAB
 	open_computer(tab)
 	_computer.show_tab(tab, sub)
+
+
+## The pilot's guide (as F1): the Automaton's Archive, on the guide.
+func open_guide() -> void:
+	var archive: int = load("res://scripts/ui/ship_menu.gd").ARCHIVE_TAB
+	open_computer(archive)
+	var arch: Node = _computer.page(archive)
+	if arch and arch.has_method("open_book"):
+		arch.open_book("guide")
 
 
 func open_tutorial() -> void:

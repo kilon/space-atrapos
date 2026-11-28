@@ -414,90 +414,236 @@ def hand(sx, sf):
 
 
 def rifle():
-    """On the gun bone: its head = the grip, its Y = the muzzle (world -Y at rest), Z = top. It folds for
-    its holster (GUN_FOLD): the fore-end and the barrel telescoped back into the receiver, the scope swung
-    down along its side, the stock folded forward along the same side - each piece on a bone of its own."""
+    """On the gun bone: its head = the grip, its Y = the muzzle (world -Y at rest), Z = top, X its side (world -X
+    at rest). A long cream-and-orange rifle of many pieces, each on a bone of its own so it can fold up into a
+    compact block for the hip's compartment (GUN_FOLD): the muzzle brake twists free, the fore-end's side panels
+    swing out, the barrel telescopes into the fore-end and the fore-end slides back over the receiver, the panels
+    lock again; the scope's front telescopes in, the scope lifts off its rail, swings down along the left side and
+    seats; the magazine slides up into its well; the stock's butt pad telescopes in, the stock swings forward along
+    the right side and the rear receiver slides in; last the grip folds flat under it."""
     g = Vector((0, -0.4, 1.2))
 
-    def at(fwd, up, side=0.0):
-        return (g.x + side, g.y - fwd, g.z + up)
+    def L(x, y, z):          # (the gun bone's axes at rest: x its side, y the muzzle, z its top)
+        return (g.x - x, g.y - y, g.z + z)
+
+    def B(name, size, c, mat="gun", **k):
+        k.setdefault("bevel", 0.006)
+        box(name, size, L(*c), mat=mat, **k)
+
+    def T(name, a, b_, r1, r2=None, mat="gun", seg=12, **k):
+        tube(name, L(*a), L(*b_), r1, r2, mat=mat, seg=seg, **k)
+
+    # ---- the receiver (the gun bone): the action, the lower and its well, the rail, the fore-grip
     bone("gun")
-    box("Grip", (0.034, 0.045, 0.10), at(-0.012, -0.02), mat="gun", r=rot(-14), bevel=0.008)
-    box("Guard", (0.016, 0.085, 0.012), at(0.035, -0.022), mat="gun", bevel=0.0)
-    box("Lower", (0.056, 0.30, 0.05), at(0.06, 0.04), mat="gun", bevel=0.01)
-    box("Receiver", (0.066, 0.38, 0.07), at(0.07, 0.088), mat="armor", bevel=0.012)
-    box("ReceiverStripe", (0.07, 0.24, 0.02), at(0.09, 0.07), mat="gun_o", bevel=0.004, outline=0.003)
-    box("Port", (0.07, 0.07, 0.022), at(0.03, 0.10), mat="gun", bevel=0.004)
-    box("Rail", (0.03, 0.34, 0.016), at(0.09, 0.128), mat="gun", bevel=0.004)
-    box("Mag", (0.04, 0.075, 0.13), at(0.11, -0.035), mat="gun", r=rot(10), bevel=0.008)
-    box("MagBase", (0.046, 0.08, 0.02), at(0.122, -0.098), mat="gun_o", r=rot(10), bevel=0.004)
-    box("ForeGrip", (0.04, 0.11, 0.05), at(0.27, 0.012), mat="gun", bevel=0.008)
-    box("Hinge", (0.012, 0.03, 0.05), at(-0.105, 0.06, -0.034), mat="grey", bevel=0.003)   # (the stock's, on its side)
-    bone("gun.stock")
-    box("Stock", (0.046, 0.22, 0.075), at(-0.215, 0.062), mat="gun", taper=(1.0, 0.8), bevel=0.012)
-    box("Cheek", (0.05, 0.14, 0.03), at(-0.20, 0.105), mat="armor", bevel=0.008)
-    box("StockPad", (0.052, 0.035, 0.12), at(-0.335, 0.048), mat="armor", bevel=0.008)
-    bone("gun.fore")
-    box("Fore", (0.062, 0.27, 0.08), at(0.385, 0.072), mat="armor", bevel=0.012, taper=((1.0, 1.0), (0.8, 1.0)))
-    box("ForeStripe", (0.066, 0.20, 0.02), at(0.385, 0.05), mat="gun_o", bevel=0.004, outline=0.003)
+    B("Receiver", (0.066, 0.29, 0.07), (0, 0.115, 0.088), mat="armor", bevel=0.012)
+    B("ReceiverStripe", (0.07, 0.20, 0.02), (0, 0.12, 0.068), mat="gun_o", bevel=0.004, outline=0.003)
+    for k, y in enumerate((0.0, 0.235)):
+        B("ReceiverGroove", (0.068, 0.006, 0.05), (0, y, 0.09), mat="gun", bevel=0.0)   # (the panel seams)
+    B("Port", (0.07, 0.07, 0.022), (0, 0.06, 0.105), mat="gun", bevel=0.004)
+    B("PortCover", (0.004, 0.06, 0.016), (0.036, 0.06, 0.105), mat="grey", bevel=0.0)
+    B("ChargingHandle", (0.022, 0.026, 0.014), (-0.044, 0.02, 0.112), mat="grey", bevel=0.003)
+    B("Rail", (0.03, 0.22, 0.014), (0, 0.15, 0.129), mat="gun", bevel=0.003)
+    for k in range(7):
+        B("RailTooth", (0.034, 0.012, 0.006), (0, 0.055 + k * 0.032, 0.138), mat="gun", bevel=0.0)
+    B("ReceiverLight", (0.004, 0.034, 0.008), (0.034, 0.175, 0.078), mat="glow", bevel=0.0, outline=0)
+    B("ReceiverLight", (0.004, 0.034, 0.008), (-0.034, 0.175, 0.078), mat="glow", bevel=0.0, outline=0)
+    for (x, y, z) in ((0.034, 0.02, 0.07), (0.034, 0.215, 0.105), (-0.034, 0.02, 0.07), (-0.034, 0.215, 0.105)):
+        T("Screw", (x * 0.97, y, z), (x * 1.1, y, z), 0.005, mat="grey", seg=6, outline=0)
+    B("Lower", (0.056, 0.24, 0.05), (0, 0.09, 0.04), mat="gun", bevel=0.008)
+    B("LowerPlate", (0.06, 0.13, 0.03), (0, 0.075, 0.035), mat="armor2", bevel=0.004)
+    B("MagWell", (0.062, 0.088, 0.018), (0, 0.145, 0.022), mat="grey", bevel=0.004)
+    for z in (0.025, 0.095):
+        T("StockHinge", (-0.036, -0.03, z - 0.014), (-0.036, -0.03, z + 0.014), 0.008, mat="grey", seg=8)   # (where the rear's hinge locks)
+    # ---- the fore-grip: slides up into the lower
+    bone("gun.foregrip")
+    B("ForeGrip", (0.04, 0.11, 0.05), (0, 0.24, 0.012), mat="gun", bevel=0.008)
     for k in range(3):
-        box("Vent", (0.066, 0.03, 0.012), at(0.32 + k * 0.06, 0.09), mat="gun", bevel=0.0)
+        B("ForeGripRidge", (0.042, 0.012, 0.008), (0, 0.205 + k * 0.035, -0.012), mat="joint", bevel=0.0)
+    # ---- the grip and its guard: they fold flat under the lower, last
+    bone("gun.grip")
+    B("Grip", (0.034, 0.045, 0.10), (0, -0.012, -0.02), r=rot(-14), bevel=0.008)
+    B("GripPanel", (0.038, 0.032, 0.07), (0, -0.016, -0.024), mat="joint", r=rot(-14), bevel=0.004)
+    B("GripCap", (0.036, 0.048, 0.012), (0, -0.026, -0.072), mat="gun_o", r=rot(-14), bevel=0.003)
+    B("Guard", (0.016, 0.07, 0.01), (0, 0.04, -0.024), bevel=0.0)
+    B("GuardPost", (0.014, 0.01, 0.034), (0, 0.072, -0.008), bevel=0.0)
+    B("Trigger", (0.008, 0.012, 0.03), (0, 0.022, -0.004), mat="grey", r=rot(12), bevel=0.0)
+    # ---- the magazine: slides up into its well
+    bone("gun.mag")
+    B("Mag", (0.04, 0.075, 0.12), (0, 0.145, -0.03), bevel=0.008)
+    B("MagWindow", (0.042, 0.01, 0.06), (0, 0.13, -0.03), mat="glow_y", bevel=0.0, outline=0)
+    B("MagBase", (0.046, 0.08, 0.02), (0, 0.145, -0.094), mat="gun_o", bevel=0.004)
+    # ---- the rear receiver: a sleeve over the action's back, the stock's hinge on it - telescopes forward
+    bone("gun.rear")
+    B("RearReceiver", (0.072, 0.13, 0.076), (0, -0.065, 0.088), mat="armor", bevel=0.01)
+    B("RearStripe", (0.076, 0.09, 0.016), (0, -0.07, 0.07), mat="gun_o", bevel=0.003)
+    B("RearCap", (0.06, 0.012, 0.06), (0, -0.132, 0.088), mat="gun", bevel=0.004)
+    for z in (0.06,):
+        T("RearHinge", (-0.038, -0.115, z - 0.022), (-0.038, -0.115, z + 0.022), 0.009, mat="grey", seg=8)
+    # ---- the stock (on the rear): a skeleton frame, a cheek rest; swings forward along the right side
+    bone("gun.stock")
+    T("StockStrut", (0, -0.125, 0.098), (0, -0.315, 0.09), 0.011, seg=10)
+    T("StockStrut", (0, -0.125, 0.028), (0, -0.315, 0.012), 0.011, seg=10)
+    B("Stock", (0.036, 0.075, 0.08), (0, -0.155, 0.06), taper=(1.0, 0.85), bevel=0.01)
+    B("StockWeb", (0.026, 0.16, 0.05), (0, -0.24, 0.052), mat="joint", bevel=0.004)
+    B("Cheek", (0.05, 0.13, 0.026), (0, -0.215, 0.108), mat="armor", bevel=0.008)
+    B("CheekRed", (0.052, 0.05, 0.008), (0, -0.2, 0.12), mat="red", bevel=0.0, outline=0.003)
+    bone("gun.stockpad")
+    T("PadRod", (0.0, -0.33, 0.09), (0.0, -0.255, 0.09), 0.006, mat="grey", seg=8)
+    T("PadRod", (0.0, -0.33, 0.012), (0.0, -0.255, 0.012), 0.006, mat="grey", seg=8)
+    B("StockPad", (0.052, 0.035, 0.12), (0, -0.335, 0.05), mat="armor", bevel=0.008)
+    B("StockButt", (0.054, 0.012, 0.122), (0, -0.357, 0.05), mat="joint", bevel=0.004)
+    # ---- the fore-end: a sleeve, larger than the receiver, slides back over it
+    bone("gun.fore")
+    B("Fore", (0.078, 0.27, 0.095), (0, 0.385, 0.08), mat="armor", bevel=0.012, taper=((1.0, 1.0), (0.86, 1.0)))
+    B("ForeStripe", (0.082, 0.20, 0.018), (0, 0.385, 0.052), mat="gun_o", bevel=0.004, outline=0.003)
+    for k in range(4):
+        B("Vent", (0.082, 0.022, 0.01), (0, 0.30 + k * 0.05, 0.102), bevel=0.0)
+    for k in range(5):
+        B("HeatFin", (0.05, 0.008, 0.008), (0, 0.29 + k * 0.045, 0.128), mat="grey", bevel=0.0)
+    B("ForeCap", (0.07, 0.016, 0.082), (0, 0.515, 0.08), mat="grey", bevel=0.004)
+    for sx, sf in ((1.0, ".R"), (-1.0, ".L")):   # (its side panels: swing out to free it, shut again once it's in)
+        bone("gun.panel" + sf)
+        B("ForePanel", (0.008, 0.18, 0.05), (0.044 * sx, 0.39, 0.062), mat="armor2", bevel=0.003)
+        B("ForePanelGlow", (0.003, 0.11, 0.006), (0.049 * sx, 0.39, 0.068), mat="glow", bevel=0.0, outline=0)
+        B("ForePanelHinge", (0.01, 0.16, 0.008), (0.042 * sx, 0.39, 0.036), mat="grey", bevel=0.0)
+    # ---- the barrel (in the fore-end): telescopes back into it
     bone("gun.barrel")
-    tube("Barrel", at(0.50, 0.075), at(0.72, 0.075), 0.022, mat="gun", seg=12)
-    tube("Shroud", at(0.50, 0.075), at(0.60, 0.075), 0.032, 0.028, mat="grey", seg=12)
-    tube("Muzzle", at(0.68, 0.075), at(0.78, 0.075), 0.034, mat="gun", seg=12)
-    tube("MuzzleBand", at(0.70, 0.075), at(0.72, 0.075), 0.037, mat="gun_o", seg=12)
-    tube("MuzzleGlow", at(0.775, 0.075), at(0.785, 0.075), 0.016, mat="glow", seg=10, outline=0)
-    tube("Barrel2", at(0.50, 0.046), at(0.64, 0.046), 0.013, mat="gun", seg=10)
+    T("Barrel", (0, 0.50, 0.08), (0, 0.72, 0.08), 0.022)
+    T("Shroud", (0, 0.52, 0.08), (0, 0.60, 0.08), 0.030, 0.026, mat="grey")
+    for k in range(3):
+        T("CoolRing", (0, 0.618 + k * 0.026, 0.08), (0, 0.628 + k * 0.026, 0.08), 0.027, mat="grey", seg=12)
+    T("Barrel2", (0, 0.50, 0.051), (0, 0.64, 0.051), 0.011, seg=10)
+    # ---- the muzzle brake (on the barrel): a quarter turn locks it, its ports either side
+    bone("gun.muzzle")
+    B("MuzzleBrake", (0.06, 0.07, 0.05), (0, 0.745, 0.08), bevel=0.006)
+    for y in (0.733, 0.757):
+        B("MuzzlePort", (0.062, 0.011, 0.026), (0, y, 0.08), mat="joint", bevel=0.0)
+    B("MuzzleBand", (0.064, 0.012, 0.054), (0, 0.712, 0.08), mat="gun_o", bevel=0.003)
+    T("MuzzleGlow", (0, 0.779, 0.08), (0, 0.786, 0.08), 0.014, mat="glow", seg=10, outline=0)
+    # ---- the scope: its body on two mounts (on the rail), its front telescoping over it
     bone("gun.scope")
-    tube("Scope", at(-0.03, 0.172), at(0.22, 0.172), 0.029, mat="gun", seg=14)
-    tube("ScopeBack", at(-0.06, 0.172), at(-0.02, 0.172), 0.034, mat="gun", seg=14)
-    tube("ScopeFront", at(0.20, 0.172), at(0.28, 0.172), 0.038, mat="armor", seg=14)
-    tube("ScopeLens", at(0.275, 0.172), at(0.285, 0.172), 0.028, mat="glow", seg=12, outline=0)
-    tube("ScopeRing", at(0.05, 0.172), at(0.085, 0.172), 0.034, mat="gun_o", seg=14, outline=0.004)
-    box("ScopeMount", (0.03, 0.05, 0.03), at(0.02, 0.14), mat="gun", bevel=0.006)
-    box("ScopeMount", (0.03, 0.05, 0.03), at(0.16, 0.14), mat="gun", bevel=0.006)
+    T("Scope", (0, 0.0, 0.172), (0, 0.22, 0.172), 0.029, seg=14)
+    T("ScopeBack", (0, -0.035, 0.172), (0, 0.005, 0.172), 0.034, seg=14)
+    T("ScopeEye", (0, -0.045, 0.172), (0, -0.033, 0.172), 0.031, mat="joint", seg=14)
+    T("ScopeRing", (0, 0.07, 0.172), (0, 0.10, 0.172), 0.034, mat="gun_o", seg=14, outline=0.004)
+    T("ScopeTurret", (0, 0.085, 0.196), (0, 0.085, 0.207), 0.012, mat="grey", seg=10)
+    T("ScopeKnob", (-0.028, 0.085, 0.172), (-0.04, 0.085, 0.172), 0.011, mat="grey", seg=10)
+    for y in (0.04, 0.18):
+        B("ScopeMount", (0.03, 0.05, 0.03), (0, y, 0.142), bevel=0.006)
+    bone("gun.lens")
+    T("ScopeFront", (0, 0.22, 0.172), (0, 0.30, 0.172), 0.038, mat="armor", seg=14)
+    T("ScopeHood", (0, 0.30, 0.172), (0, 0.315, 0.172), 0.039, 0.036, seg=14)
+    T("ScopeLens", (0, 0.296, 0.172), (0, 0.306, 0.172), 0.029, mat="glow", seg=12, outline=0)
 
 
-# The rifle's folding pieces (kit.GUN_FOLD): the gun bone's axes - x its side (out, holstered), y the muzzle,
-# z its top. Folding (the pose's "fold" 0 -> 1) the barrel slides into the fore-end first, the fore-end back
-# over the receiver, then the scope swings down along its side and the stock folds forward under it;
-# unfolding (drawn) the other way - the stock out first, the barrel last, as the rifle comes up.
+# The rifle's folding pieces (kit.GUN_FOLD): the gun bone's axes - x its side (+x its right, folded: forward on the
+# hip), y the muzzle, z its top. "moves" (fold 0 -> 1, each in its own share of it): the muzzle brake, the panels and
+# the barrel first, the stock, the rear and the grip last; unfolding (drawn) the other way round - the grip
+# first, then the rear and the stock out, the scope up, the fore-end and the barrel out, the brake turned
+# home last of all, the rifle snapped into shape in the hands.
+_X, _Y, _Z = (1, 0, 0), (0, 1, 0), (0, 0, 1)
 GUN_FOLD = {
-    "gun.fore": dict(pivot=(0.0, 0.25, 0.072), slide=(0.0, -0.14, 0.0), span=(0.12, 0.45)),
-    "gun.barrel": dict(parent="gun.fore", pivot=(0.0, 0.50, 0.075), slide=(0.0, -0.26, 0.0), span=(0.0, 0.3)),
-    "gun.scope": dict(pivot=(0.033, 0.0, 0.123), axis=(0, 1, 0), angle=90.0, span=(0.4, 0.72)),
-    "gun.stock": dict(pivot=(0.034, -0.105, 0.06), axis=(0, 0, 1), angle=180.0, span=(0.62, 1.0)),
+    "gun.grip": dict(pivot=(0.0, 0.005, 0.042), moves=[dict(span=(0.92, 1.0), axis=_X, angle=90.0)]),
+    "gun.foregrip": dict(pivot=(0.0, 0.24, 0.037), moves=[dict(span=(0.56, 0.64), slide=(0.0, 0.0, 0.02))]),
+    "gun.mag": dict(pivot=(0.0, 0.145, 0.03), moves=[dict(span=(0.60, 0.70), slide=(0.0, 0.0, 0.094))]),
+    "gun.rear": dict(pivot=(0.0, -0.065, 0.088), moves=[dict(span=(0.84, 0.92), slide=(0.0, 0.085, 0.0))]),
+    "gun.stock": dict(parent="gun.rear", pivot=(0.038, -0.115, 0.06), moves=[dict(span=(0.70, 0.86), axis=_Z, angle=180.0)]),
+    "gun.stockpad": dict(parent="gun.stock", pivot=(0.0, -0.335, 0.05), moves=[dict(span=(0.62, 0.70), slide=(0.0, 0.06, 0.0))]),
+    "gun.fore": dict(pivot=(0.0, 0.25, 0.08), moves=[dict(span=(0.24, 0.42), slide=(0.0, -0.24, 0.0))]),
+    "gun.panel.R": dict(parent="gun.fore", pivot=(0.044, 0.39, 0.036), moves=[
+        dict(span=(0.04, 0.14), axis=_Y, angle=70.0), dict(span=(0.40, 0.48), axis=_Y, angle=-70.0)]),
+    "gun.panel.L": dict(parent="gun.fore", pivot=(-0.044, 0.39, 0.036), moves=[
+        dict(span=(0.04, 0.14), axis=_Y, angle=-70.0), dict(span=(0.40, 0.48), axis=_Y, angle=70.0)]),
+    "gun.barrel": dict(parent="gun.fore", pivot=(0.0, 0.52, 0.08), moves=[dict(span=(0.10, 0.28), slide=(0.0, -0.255, 0.0))]),
+    "gun.muzzle": dict(parent="gun.barrel", pivot=(0.0, 0.72, 0.08), moves=[dict(span=(0.0, 0.08), axis=_Y, angle=90.0)]),
+    # (the scope: up off its rail, a quarter turn down to its left side about a hinge inside the receiver, seated)
+    "gun.scope": dict(pivot=(-0.002, 0.0, 0.086), moves=[
+        dict(span=(0.48, 0.54), slide=(0.0, 0.0, 0.02)), dict(span=(0.52, 0.66), axis=_Y, angle=-90.0),
+        dict(span=(0.62, 0.70), slide=(0.0, 0.0, -0.02))]),
+    "gun.lens": dict(parent="gun.scope", pivot=(0.0, 0.22, 0.172), moves=[dict(span=(0.44, 0.52), slide=(0.0, -0.075, 0.0))]),
 }
 
 
-def holster():
-    """The holster on the right thigh (its own part, "Holster": the legs may be overridden): a dark plate
-    against the thigh, a boot the folded fore-end sits in, a clip the receiver locks to, two bands round the
-    thigh - laid round the folded rifle where it rides (moves.HOLSTER), on the thigh's bone."""
+# The compartment on the right hip the folded rifle rides in (kit.POD): its box on "holster.R" - its axes those
+# of the rifle put away in it (x forward, y down the thigh, z in, toward the thigh; its head the grip) - and its
+# armoured lid on "holster.R.lid", hinged along the box's front outer edge: unlatched (out a little), then swung
+# out and forward, open ("lid" 1); shut the other way. (out, forward, down) from the right hip, the thigh's axes.
+POD_IN = dict(x=(-0.132, 0.106), y=(-0.06, 0.31), z=(-0.016, 0.142))   # (inside the box, the rifle's axes)
+POD_WALL = 0.012
+
+
+def _pod_bones():
     import moves
     grip, way, top = moves.HOLSTER
-    mats = {"thigh.R": kit.REST["thigh.R"]}
-    G = kit._m4(kit.frame(kit._space_dir("tR", way, mats), kit._space_dir("tR", top, mats)), kit._space_point("tR", grip, mats))
+    fx = Vector(top).cross(Vector(way))     # (the box's x: forward - (out, forward, down) is a mirrored order)
+    hinge = Vector(grip) + fx * (POD_IN["x"][1] + POD_WALL) + Vector(top) * (POD_IN["z"][0] - 0.006)
+    return {
+        "holster.R": dict(parent="thigh.R", at=grip, y=way, z=top),
+        "holster.R.lid": dict(parent="holster.R", at=tuple(hinge), y=way, z=top, moves=[
+            dict(span=(0.0, 0.3), slide=(0.0, 0.0, -0.006)), dict(span=(0.2, 1.0), axis=(0, 1, 0), angle=-115.0)]),
+    }
+
+
+POD = _pod_bones()
+
+
+def holster():
+    """The hip's compartment (parts of their own, "Holster...": the legs may be overridden): a box down the
+    outside of the right thigh - its back plate on the thigh, its walls dark inside, cream outside, clamps the
+    folded rifle locks into, bands round the thigh - and its armoured lid, hinged at the front: cream armour, the
+    automaton's red mark, a light, a latch. Laid round the folded rifle where it rides (moves.HOLSTER)."""
+    G = kit.REST["holster.R"]
     R = G.to_3x3()
+    xi, yi, zi = POD_IN["x"], POD_IN["y"], POD_IN["z"]
+    w = POD_WALL
 
-    def hb(name, size, c, mat="joint", bevel=0.006, rr=None):
-        box(name, size, G @ Vector(c), mat=mat, r=R @ rr if rr is not None else R, bevel=bevel)
+    def hb(name, lo, hi, mat="joint", bevel=0.004):
+        c = Vector(((lo[0] + hi[0]) * 0.5, (lo[1] + hi[1]) * 0.5, (lo[2] + hi[2]) * 0.5))
+        box(name, (hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]), G @ c, mat=mat, r=R, bevel=bevel)
 
-    def ht(name, a, b, r1, r2=None, mat="joint", seg=14):
-        tube(name, G @ Vector(a), G @ Vector(b), r1, r2, mat=mat, seg=seg)
-    bone("thigh.R")
-    hb("HolsterPlate", (0.012, 0.40, 0.17), (-0.042, 0.17, 0.05), mat="joint")
-    hb("HolsterPlateRim", (0.016, 0.36, 0.012), (-0.040, 0.17, 0.138), mat="grey", bevel=0.003)
-    hb("HolsterPlateRim", (0.016, 0.36, 0.012), (-0.040, 0.17, -0.036), mat="grey", bevel=0.003)
-    ht("HolsterBoot", (0.012, 0.25, 0.072), (0.012, 0.42, 0.072), 0.058, 0.05, mat="grey")
-    ht("HolsterBootLip", (0.012, 0.245, 0.072), (0.012, 0.265, 0.072), 0.063, mat="red", seg=16)
-    hb("HolsterClip", (0.03, 0.03, 0.10), (-0.028, 0.0, 0.07), mat="grey", bevel=0.004)   # (the clip the receiver's side locks to)
-    hb("HolsterClasp", (0.012, 0.02, 0.03), (-0.010, 0.0, 0.07), mat="red", bevel=0.003)
-    hx = -kit.HIP_X
-    for k, (z, a, b) in enumerate(((kit.HIP_Z - 0.20, 0.092, 0.101), (kit.HIP_Z - 0.34, 0.085, 0.094))):
-        kit.loft("HolsterBand", (hx - 0.014, -0.006, z + 0.016), (hx - 0.012, -0.006, z - 0.016),
+    bone("holster.R")
+    hb("HolsterPlate", (xi[0] - w, yi[0] - w, zi[1]), (xi[1] + w, yi[1] + w, zi[1] + w), mat="joint")
+    hb("HolsterWall", (xi[1], yi[0], zi[0]), (xi[1] + w, yi[1], zi[1]), mat="armor2")          # (front)
+    hb("HolsterWall", (xi[0] - w, yi[0], zi[0]), (xi[0], yi[1], zi[1]), mat="armor2")          # (back)
+    hb("HolsterWall", (xi[0] - w, yi[0] - w, zi[0]), (xi[1] + w, yi[0], zi[1]), mat="armor2")  # (top)
+    hb("HolsterWall", (xi[0] - w, yi[1], zi[0]), (xi[1] + w, yi[1] + w, zi[1]), mat="armor2")  # (bottom)
+    for (x0, x1) in ((xi[1] + w - 0.004, xi[1] + w + 0.006), (xi[0] - w - 0.006, xi[0] - w + 0.004)):   # (armour down its sides)
+        hb("HolsterSide", (x0, yi[0] + 0.02, zi[0] + 0.012), (x1, yi[1] - 0.03, zi[1] - 0.01), mat="grey", bevel=0.004)
+    d = 0.003   # (the inside: grey linings, clamps the folded rifle locks into)
+    hb("HolsterLining", (xi[0], yi[0], zi[1] - d), (xi[1], yi[1], zi[1]), mat="grey", bevel=0.0)
+    for y0 in (0.03, 0.2):
+        hb("HolsterClamp", (xi[0] + d, y0, zi[1] - 0.012), (xi[0] + 0.01, y0 + 0.04, zi[1] - d), mat="grey", bevel=0.0)
+        hb("HolsterClamp", (xi[1] - 0.01, y0, zi[1] - 0.012), (xi[1] - d, y0 + 0.04, zi[1] - d), mat="grey", bevel=0.0)
+    hb("HolsterRim", (xi[0] - w - 0.002, yi[1] + w - 0.004, zi[0] - 0.002), (xi[1] + w + 0.002, yi[1] + w + 0.004, zi[0] + 0.03), mat="grey", bevel=0.002)
+    hb("HolsterRim", (xi[0] - w - 0.002, yi[0] - w - 0.004, zi[0] - 0.002), (xi[1] + w + 0.002, yi[0] - w + 0.004, zi[0] + 0.03), mat="grey", bevel=0.002)
+    hb("HolsterLatch", (xi[0] - w - 0.008, 0.10, zi[0] + 0.004), (xi[0] - w, 0.15, zi[0] + 0.03), mat="red", bevel=0.002)
+    hb("HolsterLight", (xi[0] - w - 0.009, 0.17, zi[0] + 0.012), (xi[0] - w - 0.005, 0.26, zi[0] + 0.018), mat="glow", bevel=0.0)
+    hz = zi[0] - 0.006
+    hx = xi[1] + w
+    for (y0, y1) in ((yi[0] - w, yi[0] + 0.06), (0.10, 0.15), (yi[1] - 0.06, yi[1] + w)):   # (the box's hinge knuckles)
+        tube("HolsterHinge", G @ Vector((hx, y0, hz)), G @ Vector((hx, y1, hz)), 0.007, mat="grey", seg=8)
+    hx2 = -kit.HIP_X   # (two bands round the thigh, the box's brackets on them)
+    for (z, a, b) in ((kit.HIP_Z - 0.20, 0.092, 0.101), (kit.HIP_Z - 0.36, 0.080, 0.090)):
+        kit.loft("HolsterBand", (hx2 - 0.014, -0.006, z + 0.016), (hx2 - 0.012, -0.006, z - 0.016),
                  [(0, a, b, 3.8), (1, a - 0.002, b - 0.002, 3.8)], mat="joint", seg=20)
+    for y0 in (0.0, 0.16):
+        hb("HolsterBracket", (-0.04, y0, zi[1] + w), (0.03, y0 + 0.032, zi[1] + w + 0.03), mat="grey", bevel=0.003)
+    # ---- the lid: its own bone, hinged at the front outer edge - an armour plate, chamfered, narrowing down
+    bone("holster.R.lid")
+    zl = zi[0] - 0.014
+    c = Vector(((xi[0] + xi[1]) * 0.5, (yi[0] + yi[1]) * 0.5, (zl + zi[0]) * 0.5))
+    box("HolsterLid", (xi[1] - xi[0] + 2 * w, yi[1] - yi[0] + 2 * w, zi[0] - zl), G @ c, mat="armor", r=R,
+        taper=((0.9, 0.94), (1.0, 1.0)), bevel=0.008)
+    hb("HolsterLidBand", (xi[0] + 0.012, 0.215, zl - 0.004), (xi[1] - 0.012, 0.245, zl + 0.004), mat="red", bevel=0.003)
+    for k in range(3):
+        hb("HolsterLidVent", (-0.05, 0.262 + k * 0.012, zl - 0.002), (0.03, 0.268 + k * 0.012, zl + 0.002), mat="joint", bevel=0.0)
+    hb("HolsterLidCatch", (xi[0] - w - 0.004, 0.105, zl + 0.002), (xi[0] - w + 0.014, 0.145, zi[0]), mat="grey", bevel=0.002)
+    hb("HolsterLidGlow", (-0.07, yi[0] + 0.006, zl - 0.002), (0.05, yi[0] + 0.013, zl + 0.003), mat="glow", bevel=0.0)
+    mk = [(-0.026, 0.02), (0.026, 0.02), (0.0, -0.032)]    # (the automaton's red triangle, a flat plate on the lid)
+    plate("HolsterLidMark", mk, G @ Vector((-0.012, 0.07, zl + 0.001)), R @ Vector((0, 0, -1)), up=R @ Vector((0, -1, 0)),
+          thick=0.004, mat="red", outline=0.0)
+    for (y0, y1) in ((yi[0] + 0.06, 0.10), (0.15, yi[1] - 0.06)):     # (the lid's knuckles, between the box's)
+        tube("HolsterLidHinge", G @ Vector((hx, y0, hz)), G @ Vector((hx, y1, hz)), 0.007, mat="grey", seg=8)
 
 
 def build():
@@ -512,4 +658,5 @@ def build():
 
 # Where the hands hold the rifle (the gun bone's axes: x side, y muzzle, z top), for the wrists.
 GUN_HAND_R = (0.0, -0.075, -0.03)
-GUN_HAND_L = (0.0, 0.255, -0.035)
+GUN_HAND_L = (0.0, 0.225, -0.035)
+

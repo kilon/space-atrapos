@@ -3,7 +3,7 @@
  "id": "0.32",
  "title": "Make it yours",
  "date": "2026-11-24",
- "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024). Then ECurves (patch 0025): every model an ECurve object, fast enough for a whole character. Then quads along the edges (patch 0026): bakes in quads that follow their edges, and settings that fit. Then joined solids (patch 0027). Then clean topology (patch 0028). Then living worlds (patch 0029).",
+ "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024). Then ECurves (patch 0025): every model an ECurve object, fast enough for a whole character. Then quads along the edges (patch 0026): bakes in quads that follow their edges, and settings that fit. Then joined solids (patch 0027). Then clean topology (patch 0028). Then living worlds (patch 0029). Then turning worlds (patch 0030).",
  "patches": [
   "0023",
   "0024",
@@ -11,7 +11,8 @@
   "0026",
   "0027",
   "0028",
-  "0029"
+  "0029",
+  "0030"
  ],
  "steps": [
   {
@@ -917,6 +918,153 @@
       480
      ],
      "text": "no loading: walk from the land into the rock",
+     "color": "gold",
+     "size": 18,
+     "delay": 1.4
+    }
+   ]
+  },
+  {
+   "patch": "0030",
+   "title": "Turning worlds",
+   "text": "The worlds turn, days and nights of minutes (a Day length setting); towns in blocks between streets, lit by night; main roads joining the cities over stone bridges; landing pads where ships come and go and pilots sell rides to other systems; a new sea with lakes, rivers and rapids; the folding rifle and its thigh compartment; the towering mushroom mammoth; detail at a distance for every model; ships you can walk into.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "TURNING WORLDS",
+     "size": 22,
+     "color": "gold",
+     "align": "center",
+     "delay": 0.0
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      95,
+      290,
+      80
+     ],
+     "stroke": "gold",
+     "label": "the worlds turn:\ndays of minutes",
+     "size": 18,
+     "delay": 0.2
+    },
+    {
+     "t": "box",
+     "rect": [
+      355,
+      95,
+      290,
+      80
+     ],
+     "stroke": "cyan",
+     "label": "towns: streets,\nlamps by night",
+     "size": 18,
+     "delay": 0.3
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      95,
+      290,
+      80
+     ],
+     "stroke": "cyan",
+     "label": "main roads,\nstone bridges",
+     "size": 18,
+     "delay": 0.4
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      210,
+      290,
+      80
+     ],
+     "stroke": "purple",
+     "label": "pads, ships,\nrides by pilots",
+     "size": 18,
+     "delay": 0.5
+    },
+    {
+     "t": "box",
+     "rect": [
+      355,
+      210,
+      290,
+      80
+     ],
+     "stroke": "cyan",
+     "label": "sea, lakes,\nrivers, rapids",
+     "size": 18,
+     "delay": 0.6
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      210,
+      290,
+      80
+     ],
+     "stroke": "green",
+     "label": "the folding rifle,\nthe mammoth",
+     "size": 18,
+     "delay": 0.7
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      325,
+      290,
+      80
+     ],
+     "stroke": "green",
+     "label": "detail at\na distance",
+     "size": 18,
+     "delay": 0.8
+    },
+    {
+     "t": "box",
+     "rect": [
+      355,
+      325,
+      290,
+      80
+     ],
+     "stroke": "purple",
+     "label": "ships you can\nwalk into",
+     "size": 18,
+     "delay": 0.9
+    },
+    {
+     "t": "box",
+     "rect": [
+      670,
+      325,
+      290,
+      80
+     ],
+     "stroke": "gold",
+     "label": "compass names,\nnews near you",
+     "size": 18,
+     "delay": 1.0
+    },
+    {
+     "t": "badge",
+     "at": [
+      500,
+      480
+     ],
+     "text": "a day and a night: 16-24 minutes",
      "color": "gold",
      "size": 18,
      "delay": 1.4

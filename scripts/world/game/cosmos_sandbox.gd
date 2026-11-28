@@ -37,8 +37,8 @@ func _process(delta: float) -> void:
 		if _box_deck and is_instance_valid(_box_deck):
 			_box.global_transform = _box_deck.global_transform * Transform3D(Basis(), _box_at)
 		elif _box_pl and is_instance_valid(_box_pl):
-			var u := _box_at.normalized()
-			_box.global_transform = Transform3D(Basis.looking_at(u.cross(Vector3.RIGHT if absf(u.x) < 0.9 else Vector3.FORWARD), u), _box_pl.global_position + _box_at)
+			var u := _box_at.normalized()   # (planet-local: it turns with its world)
+			_box.global_transform = _box_pl.global_transform * Transform3D(Basis.looking_at(u.cross(Vector3.RIGHT if absf(u.x) < 0.9 else Vector3.FORWARD), u), _box_at)
 		else:
 			_box.queue_free()
 			_box = null
@@ -53,6 +53,8 @@ static func spots() -> Array:
 
 
 func prompt_for(x: Node) -> Array:
+	if x.role == "captain":   # (a landing pad's ship's pilot, ashore: CosmosLandingField)
+		return ["Talk to %s" % str(x.label), "svc:%d" % x.get_instance_id()]
 	return ["Talk to the %s" % ROLES[x.role], "svc:%d" % x.get_instance_id()]
 
 
@@ -61,6 +63,7 @@ func talk(x: Node) -> void:
 		"vendor": _vendor(x)
 		"courier": _courier(x)
 		"pilot": _pilot(x)
+		"captain": _captain(x)
 
 
 func _who(x: Node) -> String:
@@ -253,7 +256,7 @@ func _set_down(w: CosmosWalker) -> void:
 		_box_at = l
 	else:
 		_box_pl = w.planet
-		var local := at - w.planet.global_position
+		var local: Vector3 = w.planet.to_local(at)
 		_box_at = local.normalized() * (w.planet.radius + w.floor_at(local))
 
 
@@ -287,10 +290,27 @@ func _pilot(x: Node) -> void:
 	if _ride and is_instance_valid(_ride) and _ride.hire.get("pilot") == x:
 		cosmos.converse([[_who(x), "My ship's coming down on the field for you - I'll be aboard; up the ramp when you're ready."]], [_bye(x)])
 		return
-	var t: Node = x.town
+	var choices: Array = []
+	for o in ride_offers(x.town):
+		var d: Dictionary = o[2]
+		var fee: int = o[1]
+		choices.append(["Fly me to %s - %d dr" % [o[0], fee], func(): _hire(x, d, fee)])
+	choices.append(_bye(x))
+	cosmos.converse([[_who(x), "Need a ride off-world? I fly to the other worlds' towns, the stations - and through the gates. Pay up front."]], choices)
+
+
+## Where a pilot of town `t` flies you, and for how much: [[label, fee, destination]] -
+## your package's place first, a city on each other world, the system's stations,
+## the systems through its gates and one gate on (RIDE_JUMPS).
+const RIDE_JUMPS := 2
+const JUMP_FEE := 150            # dr a jump (and a run to the gate: JUMP_BASE)
+const JUMP_BASE := 60
+
+
+func ride_offers(t: Node) -> Array:
 	var dests: Array = []
 	var p := package()
-	if not p.is_empty():
+	if not p.is_empty() and str(p["dest"].get("kind", "")) in ["town", "station"]:
 		dests.append(p["dest"])
 	for pl: CosmosPlanet in cosmos.planets:
 		if pl == t.planet or pl.towns.is_empty():
@@ -302,29 +322,75 @@ func _pilot(x: Node) -> void:
 	for st: CosmosStation in cosmos.stations:
 		dests.append({"kind": "station", "id": str(st.record.get("id", "")), "label": cosmos.label_of(st)})
 	var seen := {}
-	var choices: Array = []
+	var out: Array = []
 	for d in dests:
 		var key := str(d["label"])
-		if seen.has(key) or choices.size() >= 6:
+		if seen.has(key) or out.size() >= 6:
 			continue
 		seen[key] = true
 		var node := _dest_node(d)
 		if node == null:
 			continue
-		var fee := _fee(node.global_position.distance_to(t.global_position))
-		var dd: Dictionary = d
-		choices.append(["Fly me to %s - %d dr" % [d["label"], fee], func(): _hire(x, dd, fee)])
-	choices.append(_bye(x))
-	cosmos.converse([[_who(x), "Need a ride off-world? I fly to the other worlds' towns and the stations. Pay up front."]], choices)
+		out.append([str(d["label"]), _fee(node.global_position.distance_to(t.global_position)), d])
+	for d in systems_near():
+		out.append([str(d["label"]), int(d["fee"]), d])
+	return out
+
+
+## The systems a ride reaches from here: through this system's gates, and one gate on
+## (each with a station to set you down at) - [{kind "system", sys, via (the first gate's), jumps, label, fee}].
+func systems_near() -> Array:
+	var here := str(cosmos.system_id)
+	var out: Array = []
+	var seen := {here: true}
+	var ring: Array = [[here, ""]]
+	for jumps in range(1, RIDE_JUMPS + 1):
+		var next: Array = []
+		for e in ring:
+			var gates: Dictionary = Galaxy.system(str(e[0])).get("gates", {})
+			for to in gates:
+				var sid := str(to)
+				if seen.has(sid) or not Galaxy.systems.has(sid):
+					continue
+				seen[sid] = true
+				var via: String = sid if jumps == 1 else str(e[1])
+				next.append([sid, via])
+				if jumps == 1 and cosmos._gate_to(sid) == null:
+					continue
+				if (Galaxy.system(sid).get("stations", []) as Array).is_empty():
+					continue   # (nowhere to set you down)
+				out.append({"kind": "system", "sys": sid, "via": via, "jumps": jumps, "fee": JUMP_BASE + JUMP_FEE * jumps,
+					"label": "the %s system (%d jump%s)" % [Galaxy.system(sid).get("name", sid), jumps, "" if jumps == 1 else "s"]})
+		ring = next
+	out.sort_custom(func(a, b): return int(a["jumps"]) < int(b["jumps"]))
+	return out.slice(0, 4)
 
 
 func _dest_node(d: Dictionary) -> Node3D:
 	if d["kind"] == "station":
 		return cosmos._station_by_id(str(d["id"]))
+	if d["kind"] == "system":
+		return cosmos._gate_to(str(d["via"]))
 	for pl: CosmosPlanet in cosmos.planets:
 		if str(pl.rec.get("name", "")) == str(d["planet"]):
 			return pl
 	return null
+
+
+## Where a hired ride flies (CosmosNpcShip.hire_ride's `to`) for destination `d`: {} if it's not there.
+func ride_to(d: Dictionary) -> Dictionary:
+	if d["kind"] == "station":
+		var st := _dest_node(d)
+		return {"station": st} if st else {}
+	if d["kind"] == "system":
+		var g := _dest_node(d)
+		return {"gate": g, "sys": str(d["sys"])} if g else {}
+	var dpl: CosmosPlanet = _dest_node(d)
+	if dpl:
+		for s in dpl.towns:
+			if str(s["name"]) == str(d["town"]):
+				return {"pl": dpl, "field": field_of(dpl, s)}
+	return {}
 
 
 func _hire(x: Node, d: Dictionary, fee: int) -> void:
@@ -332,14 +398,7 @@ func _hire(x: Node, d: Dictionary, fee: int) -> void:
 		cosmos.converse([[_who(x), "That's %d drachmas - come back when you have it." % fee]], [])
 		return
 	var t: Node = x.town
-	var to := {}
-	if d["kind"] == "station":
-		to = {"station": _dest_node(d)}
-	else:
-		var dpl: CosmosPlanet = _dest_node(d)
-		for s in dpl.towns:
-			if str(s["name"]) == str(d["town"]):
-				to = {"pl": dpl, "field": field_of(dpl, s)}
+	var to := ride_to(d)
 	if to.is_empty():
 		CosmosGame.data.add_credits(fee)
 		return
@@ -354,6 +413,51 @@ func _hire(x: Node, d: Dictionary, fee: int) -> void:
 	_ride = s
 	cosmos.note_event("ride_hired")
 	cosmos.converse([[_who(x), "Done. My ship's coming down on the field - walk up the ramp when it's down; I'll take you to %s." % d["label"]]], [])
+
+
+# --- The landing pads' pilots: rides off their pads ----------------------------------------
+
+## A landing pad's ship's pilot ashore (CosmosLandingField): a ride in his own ship -
+## off its pad, where you pay to go; a courier's skiff has no room for you.
+func _captain(x: Node) -> void:
+	var who := str(x.get_meta("who", "The pilot"))
+	var bye := ["Farewell", func(): cosmos.converse([[who, "Clear skies."]], [])]
+	if x.get_meta("hired", false):
+		cosmos.converse([[who, "Up the ramp after me - we're off once you're aboard and I'm at the controls."]], [])
+		return
+	var lf = CosmosLandingField.of(cosmos)
+	if lf.record_of(x).is_empty():
+		cosmos.converse([[who, "My ship's due off - another time."]], [bye])
+		return
+	if x.get_meta("courier", false):
+		cosmos.converse([[who, "A courier's skiff, that one - room for me and the post, no more. The shuttles' pilots take passengers."]], [bye])
+		return
+	var choices: Array = []
+	for o in ride_offers(x.town):
+		var d: Dictionary = o[2]
+		var fee: int = o[1]
+		choices.append(["Fly me to %s - %d dr" % [o[0], fee], func(): hire_captain(x, d, fee)])
+	choices.append(bye)
+	cosmos.converse([[who, "%s - that's my shuttle on pad %d. A ride? This system's stations, the other worlds - and through the gates. Pay up front." % [who, int(x.get_meta("pad", 1))]]], choices)
+
+
+## Pilot `x` hired: the fee taken, his ship yours to `d` - he walks back to it, you after him.
+func hire_captain(x: Node, d: Dictionary, fee: int) -> bool:
+	var who := str(x.get_meta("who", "The pilot"))
+	var to := ride_to(d)
+	if to.is_empty():
+		return false
+	if not CosmosGame.data.spend(fee):
+		cosmos.converse([[who, "That's %d drachmas - come back when you have it." % fee]], [])
+		return false
+	var s: CosmosNpcShip = CosmosLandingField.of(cosmos).hire(x, to)
+	if s == null:
+		CosmosGame.data.add_credits(fee)
+		return false
+	x.set_meta("hired", true)
+	cosmos.note_event("ride_hired")
+	cosmos.converse([[who, "Done - %s it is. Follow me to my ship; up the ramp after me." % d["label"]]], [])
+	return true
 
 
 # --- The scanner -------------------------------------------------------------------------
@@ -374,7 +478,7 @@ func scan() -> void:
 	if cosmos.deposits and cosmos.deposits.planet == pl:
 		for k in cosmos.deposits.deps:
 			var dep: Dictionary = cosmos.deposits.deps[k]
-			var at: Vector3 = pl.global_position + (dep["at"] as Vector3)
+			var at: Vector3 = pl.to_global(dep["at"] as Vector3)
 			if at.distance_to(me) < SCAN_ORE:
 				scan_marks.append([dep["at"], pl, "%s (%d)" % [Items.info(str(dep["mineral"])).get("name", dep["mineral"]), int(dep["units"])], "ore", until])
 				n_ore += 1
@@ -393,18 +497,30 @@ func scan() -> void:
 		places.append([camp[0], "Pirate camp", "foe"])
 	for lr in cosmos.lairs:
 		if is_instance_valid(lr) and lr.global_position.distance_to(me) < SCAN_FAR:
-			places.append([lr.global_position - pl.global_position, "Bio-signature", "foe"])
+			places.append([pl.to_local(lr.global_position), "Bio-signature", "foe"])
 	for c in cosmos.creatures:
 		if is_instance_valid(c) and c.get("hostile") and c.global_position.distance_to(me) < 400.0:
-			places.append([c.global_position - pl.global_position, str(c.get("label")) if c.get("label") else "Creature", "foe"])
+			places.append([pl.to_local(c.global_position), str(c.get("label")) if c.get("label") else "Creature", "foe"])
 	var found := {"town": 0, "cave": 0, "foe": 0}
 	for p in places:
-		var at: Vector3 = pl.global_position + (p[0] as Vector3)
+		var at: Vector3 = pl.to_global(p[0] as Vector3)
 		if at.distance_to(me) < SCAN_FAR:
 			scan_marks.append([p[0], pl, p[1], p[2], until])
 			found[p[2]] = int(found[p[2]]) + 1
+	var n_pads := 0
+	var lf = CosmosLandingField.of(cosmos)
+	for s in pl.towns:   # (the towns' landing pads near you: free, or a ship on it)
+		var xf := CosmosTown.frame(s, pl.radius)
+		if (pl.to_global(xf.origin) as Vector3).distance_to(me) > 4000.0:
+			continue
+		for pd in CosmosLandingField.pads_of(s):
+			var key := CosmosLandingField.key_of(pl, s, pd)
+			var sl := CosmosLandingField.slot_at(key, pd, Galaxy.time, str(s.get("empire", "")))
+			var used: bool = lf.live.has(key) or (sl["busy"] and Galaxy.time >= float(sl["arrive"]) and Galaxy.time < float(sl["gone"]))
+			scan_marks.append([xf * (pd["at"] as Vector3), pl, "Pad %d, %s (%s)" % [int(pd["id"]), s["name"], "a ship on it" if used else "free"], "town", until])
+			n_pads += 1
 	cosmos.note_event("scanned")
-	cosmos.hud.flash("Scan: %d deposits near, %d veins underground, %d towns, %d caves and dungeons, %d foes or camps" % [n_ore, n_veins, found["town"], found["cave"], found["foe"]], 4.0)
+	cosmos.hud.flash("Scan: %d deposits near, %d veins underground, %d towns, %d landing pads, %d caves and dungeons, %d foes or camps" % [n_ore, n_veins, found["town"], n_pads, found["cave"], found["foe"]], 4.0)
 
 
 # --- Bounties ----------------------------------------------------------------------------

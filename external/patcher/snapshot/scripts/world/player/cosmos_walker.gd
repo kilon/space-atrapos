@@ -18,6 +18,13 @@ extends Node3D
 
 const WALK := 3.4               # m/s
 const RUN := 8.0
+const STRIDE_UP := 12.0         # s: forward held on the ground, the walk building up to a run in this long
+var stride_t := 0.0             # s forward's been held on the ground (STRIDE_UP)
+const ROAD_PACE := 1.35         # on a road or a town's street (CosmosRoads.on_way): walking, running and the stride's build-up this much quicker
+const ROAD_EASE := 2.5          # (the pace eased on and off it: a second or so)
+var road_k := 1.0               # the pace now (1 off the roads, ROAD_PACE on one)
+var _on_road := false
+var _road_t := 0.0
 const ACCEL := 22.0
 const AIR_ACCEL := 6.0
 const JUMP := 5.6               # m/s up
@@ -44,6 +51,13 @@ const WALL_HOLD := 0.2          # s without touching the wall: let go (or over t
 const SLIDE := 7.5              # m/s along the ground: the fastest down a steep slope on your feet
 const SLIDE_ACCEL := 9.0
 const DIVE_SPEED := 3.2         # m/s under water (Shift: faster)
+## Swimming builds up as the walk does: forward held, a gentle stroke to a fast crawl over
+## SWIM_UP s (kept while it's held; stopped, back to the gentle one) - at the surface and under.
+const SWIM_SLOW := 1.3          # m/s at the surface, as you start
+const SWIM_FAST := 3.4          # ...after SWIM_UP s (Shift: at once)
+const DIVE_SLOW := 1.4          # m/s under water, as you start
+const SWIM_UP := 11.0
+var swim_t := 0.0               # s forward's been held swimming
 const DIVE_RISE := 2.6          # m/s up (Space) or down (F / Ctrl)
 const DIVE_DRIFT := 0.3         # m/s: a slow drift up when you neither rise nor sink
 ## A package carried in both hands: its middle between them (as the port's cargo hands' crates).
@@ -92,7 +106,7 @@ var gun_state := "slung"
 var arms: ArmsLayer = null
 var _shot_t := 9.0              # (since the last shot)
 var _aim_flat := Vector3.ZERO   # (to where the shots go, along the ground)
-const DRAW_SPEED := 1.25        # (the draw and the holster a little brisker than authored: ~0.45 s)
+const DRAW_SPEED := 1.1         # (the draw and the holster a little brisker than authored: ~0.95 s - the hip box opened, the rifle unfolding piece by piece)
 var _since_hit := 99.0
 var _anim: AnimationPlayer
 var _clip := ""
@@ -167,11 +181,11 @@ func _lamp_step(delta: float) -> void:
 		_lamp_t = 0.3   # (looked at a few times a second)
 		lamp_on = false
 		if planet and deck == null and not (cosmos and cosmos.get("dungeon") != null):   # (in a dungeon: its torches, the light that goes with you indoors)
-			var local := global_position - planet.global_position
+			var local := planet.to_local(global_position)   # (planet-local: its own frame - it turns)
 			var u := local.normalized()
 			if planet.shape.carved_near(local) and planet.shape.height(u) - (local.length() - planet.radius) > 1.2:
 				lamp_on = true   # (down in what's been dug)
-			elif u.dot(planet.sun_dir) < -0.05:
+			elif u.dot(planet.sun_local) < -0.05:
 				lamp_on = true   # (night)
 	var want := LAMP_ENERGY if lamp_on else 0.0
 	lamp.light_energy = move_toward(lamp.light_energy, want, delta * LAMP_ENERGY * 2.5)
@@ -209,11 +223,17 @@ func floor_at(local: Vector3) -> float:
 	if cosmos:
 		h = maxf(h, cosmos.town_floor(planet, local))   # (a town's steps and roofs)
 		h = maxf(h, _rock_top(local))                   # (a boulder climbed)
+		h = maxf(h, cosmos.hull_floor(planet, local))   # (a landed ship's back, a wing - jetted up onto)
+	h = maxf(h, CosmosRoads.deck_floor(planet, local))   # (a bridge's deck, over the water)
+	if planet.shape.sea == 1:   # (the sea, a lake, a river: its surface - the highest over the ground here)
+		var lu := local.normalized()
+		var wl := planet.shape.water_level(lu)
+		if planet.shape.height(lu) >= wl:
+			return h   # (dry land - or under it: a cave, a dungeon; no water over you)
+		return h if diving else maxf(h, wl - SWIM_DEPTH + (CosmosWaters.wave_height(local) * 0.8 if wl <= 0.01 else 0.0))   # (diving: the floor; else afloat at swimming depth - riding the sea's waves)
 	if planet.shape.sea > 0 and planet.shape.height(local.normalized()) >= 0.0:
 		return h   # (under dry land - a cave, a dungeon: no sea over you)
 	match planet.shape.sea:
-		1:
-			return h if diving else maxf(h, -SWIM_DEPTH)   # (diving: the sea floor; else afloat at swimming depth)
 		2:
 			return maxf(h, 0.0)
 		3:
@@ -221,17 +241,67 @@ func floor_at(local: Vector3) -> float:
 	return h
 
 
+## In the water (the sea, a lake, a river - PlanetShape.water_level): how deep it is
+## round you, its current (world, m/s: a river's - fast in its rapids, a lake's drift),
+## pushing you along with it - all of it swimming or diving, less wading the shallower
+## it is - and the wading's drag (_wade_k: deep water slows a walk); white water
+## thrown up round you where it runs fast.
+var current := Vector3.ZERO      # (the water's push on you now: world, m/s)
+var water_depth := 0.0           # (m of water over the ground where you stand; 0 dry)
+var _wade_k := 1.0
+var _stroke_k := 1.0             # (swimming in fast water: the stroke worth less)
+var _water_t := 0.0
+var _flow_l := Vector3.ZERO      # (the current there, planet-local - looked up a few times a second)
+var _spray_t := 0.0
+
+
+func _water_step(delta: float) -> void:
+	_wade_k = 1.0
+	if deck != null or planet == null or planet.shape.sea != 1:
+		current = Vector3.ZERO
+		water_depth = 0.0
+		return
+	var lp := planet.to_local(global_position)
+	var lu := lp.normalized()
+	_water_t -= delta
+	if _water_t <= 0.0:
+		_water_t = 0.1
+		var wl := planet.shape.water_level(lu)
+		var gh := planet.shape.height(lu)
+		water_depth = maxf(wl - gh, 0.0) if wl > -INF and lp.length() < planet.radius + wl + 0.6 else 0.0
+		_flow_l = planet.shape.water_flow(lu) if water_depth > 0.05 else Vector3.ZERO
+	var k := 1.0 if swimming or diving else clampf(water_depth / SWIM_DEPTH, 0.0, 1.0) * 0.75
+	var want := planet.dir_world(_flow_l) * k
+	current = current.lerp(want, clampf(delta * 3.0, 0.0, 1.0))   # (eased: no jolt at a stretch's edge)
+	var fast := _flow_l.length()
+	_stroke_k = lerpf(1.0, 0.55, smoothstep(1.8, 3.4, fast))
+	if not swimming and not diving and water_depth > 0.15:   # (wading: deep water slows you - fast water all the more, off your feet)
+		var dk := clampf(water_depth / SWIM_DEPTH, 0.0, 1.0)
+		_wade_k = lerpf(1.0, 0.5, dk) * lerpf(1.0, 0.4, clampf((fast - 1.0) / 3.0, 0.0, 1.0) * dk)
+	_spray_t -= delta
+	if fast > 1.6 and water_depth > 0.2 and _spray_t <= 0.0 and not diving:
+		_spray_t = lerpf(0.5, 0.18, clampf((fast - 1.6) / 2.5, 0.0, 1.0))
+		_splash(planet.to_global(lu * (planet.radius + planet.shape.water_level(lu))), up(), clampf(fast / 3.0, 0.5, 1.4))
+
+
+## White water thrown up at `at` (global, on the surface), `k` its size.
+func _splash(at: Vector3, u: Vector3, k: float) -> void:
+	if _headless() or cosmos == null:
+		return
+	Fx.spawn("water_spray", cosmos.world, at + facing * 0.35, k, Fx.basis_up(u))
+
+
 ## The ground's rise a metre under you (uphill; its length the gradient), from
 ## the heightfield either side - where it's dug, flat (its own walls: walker_bumps).
 func _rise(u: Vector3, right: Vector3) -> Vector3:
-	var lp := global_position - planet.global_position
-	if planet.shape.carved_near(lp) or (cosmos and cosmos.town_at(planet, global_position)):
+	var lp := planet.to_local(global_position)
+	if planet.shape.carved_near(lp) or (cosmos and cosmos.town_at(planet, global_position)) or CosmosRoads.deck_floor(planet, lp) > -INF:   # (on a bridge: its deck's level, not the bed under it)
 		return Vector3.ZERO
 	var fwd := u.cross(right)
 	var s := 0.8
 	var h0 := planet.shape.height(lp.normalized())
-	var hf := planet.shape.height((lp + fwd * s).normalized())
-	var hr := planet.shape.height((lp + right * s).normalized())
+	var hf := planet.shape.height((lp + planet.dir_local(fwd) * s).normalized())   # (the ground's in its own frame; the rise in the world's)
+	var hr := planet.shape.height((lp + planet.dir_local(right) * s).normalized())
 	return (fwd * (hf - h0) + right * (hr - h0)) / s
 
 
@@ -376,8 +446,29 @@ func _process(delta: float) -> void:
 	if carrying:
 		running = false   # (a package in both hands: walking)
 	mv = mv.limit_length(1.0)
-	var top := (RUN if running else WALK) * (0.45 if swimming else 1.0)
+	# (forward held on the ground: the pace building from a walk to a run over STRIDE_UP s, kept
+	# while it's held; stopped, or forward let go - back to a walk)
+	var striding := mv.y > 0.5 and not swimming and not carrying and not climbing and deck == null
+	_road_t -= delta
+	if _road_t <= 0.0:   # (on a road or a street? looked up a few times a second - planet-local: the worlds turn)
+		_road_t = 0.15
+		if deck != null or planet == null or swimming:
+			_on_road = false
+		elif on_ground:
+			_on_road = CosmosRoads.on_way(planet, planet.to_local(global_position))
+	road_k = move_toward(road_k, ROAD_PACE if _on_road else 1.0, delta * ROAD_EASE * (ROAD_PACE - 1.0))
+	if not striding:
+		stride_t = 0.0
+	elif on_ground:   # (off it a moment - a bump, a hop: kept, not grown)
+		stride_t = minf(stride_t + delta * road_k, STRIDE_UP)
+	var top := (RUN if running else lerpf(WALK, RUN, smoothstep(0.0, STRIDE_UP, stride_t))) * (0.45 if swimming else road_k)
+	swim_t = minf(swim_t + delta, SWIM_UP) if (swimming or diving) and mv.y > 0.5 and deck == null else 0.0
+	var swim_k := 1.0 if running else smoothstep(0.0, SWIM_UP, swim_t)   # (the stroke building: gentle to a fast crawl)
+	if swimming and not diving:
+		top = lerpf(SWIM_SLOW, SWIM_FAST, swim_k) * _stroke_k   # (in rapids, the churning water spoils the stroke)
 	var jump_press := jump and not _jump_was
+	_water_step(delta)
+	top *= _wade_k   # (wading: the water holds your legs back)
 	_jump_was = jump
 	_wall_t += delta
 	var into := -_wall
@@ -428,7 +519,7 @@ func _process(delta: float) -> void:
 	if jetting:
 		var far := unlimited and alt > maxf(planet.atmo_radius - planet.radius, 400.0) * 0.5
 		top = RUN * 1.6 if not unlimited else clampf(alt * 0.9, RUN * 2.0, SPACE_TOP) * (2.0 if running and far else 1.0)
-	var want := (heading * mv.y + right * mv.x) * top
+	var want := (heading * mv.y + right * mv.x) * top + current   # (in a river: carried along)
 	var vert := velocity.dot(u)
 	var flat := velocity - u * vert
 	var acc := ACCEL if on_ground or swimming else (maxf(14.0, top * 0.6) if jetting else AIR_ACCEL)
@@ -453,10 +544,10 @@ func _process(delta: float) -> void:
 			flat = _wall * 3.5
 			vert = JUMP * 0.7
 		elif deck == null:
-			var lp := global_position - planet.global_position
-			var ahead := lp + into * (BODY_R + 0.35)
+			var lp := planet.to_local(global_position)
+			var ahead := lp + planet.dir_local(into) * (BODY_R + 0.35)
 			var feet := lp.length() - planet.radius
-			var roofed := _covered(planet.global_position + ahead.normalized() * (planet.radius + feet + 0.2))
+			var roofed := _covered(planet.to_global(ahead.normalized() * (planet.radius + feet + 0.2)))
 			if roofed and _wall_t > 0.02:
 				# (a window, a doorway in the wall: under its lintel - held on its frame, climbing on past it, not in)
 				_wall_t = 0.0
@@ -464,7 +555,7 @@ func _process(delta: float) -> void:
 			# (a ledge just ahead within a step of the feet, above the floor below, open to the sky - its top: pulled up onto it)
 			var ledge := floor_at(ahead.normalized() * (planet.radius + feet)) if vert > 0.0 and not roofed else -INF
 			if ledge > feet - 0.05 and ledge > floor_at(lp.normalized() * (planet.radius + feet)) + 0.3:
-				global_position = planet.global_position + ahead.normalized() * (planet.radius + ledge)
+				global_position = planet.to_global(ahead.normalized() * (planet.radius + ledge))
 				climbing = false
 				flat = into * 0.5
 				vert = 0.0
@@ -485,9 +576,9 @@ func _process(delta: float) -> void:
 			vert = move_toward(vert, 0.0, float(j[1]) * 3.0 * delta)   # (hovering: neither up nor down - braking hard)
 	if diving:   # (under water: no weight - up and down by hand, a slow drift up between)
 		if mv.length() > 0.01:
-			flat = flat.move_toward((heading * mv.y + right * mv.x) * DIVE_SPEED * (1.6 if running else 1.0), 6.0 * delta)
+			flat = flat.move_toward((heading * mv.y + right * mv.x) * lerpf(DIVE_SLOW, DIVE_SPEED * 1.25, swim_k) * _stroke_k + current, 4.0 * delta)   # (the stroke building, as at the surface)
 		else:
-			flat = flat.move_toward(Vector3.ZERO, 3.0 * delta)
+			flat = flat.move_toward(current, 3.0 * delta)
 		var want_v := DIVE_RISE if jump else (-DIVE_RISE if descend else DIVE_DRIFT)
 		vert = move_toward(vert, want_v, 6.0 * delta)
 	elif not (jetting and unlimited and not descend) and not climbing:
@@ -500,6 +591,8 @@ func _process(delta: float) -> void:
 	if deck:
 		var hl := deck.to_local(global_position)
 		var fy: float = deck.floor_y(hl)
+		if cosmos:
+			fy = maxf(fy, cosmos.hull_deck_floor(deck, hl))   # (in a port: a ship's back, stood on)
 		if hl.y < fy or (hl.y <= fy + 0.02 and velocity.dot(u) <= 0.0):   # (not while rising: a jump's first frames at a high frame rate are within the 2 cm)
 			hl.y = fy
 			if velocity.dot(u) < 0.0:
@@ -513,12 +606,13 @@ func _process(delta: float) -> void:
 		_dl = hl
 		swimming = false
 	else:
-		var local := global_position - planet.global_position
+		var local := planet.to_local(global_position)   # (the ground's queries: planet-local; u, the velocity: the world's)
 		var r := local.length()
 		var stand := planet.radius + floor_at(local)
-		u = local / r
-		swimming = planet.shape.sea == 1 and planet.shape.height(u) < -SWIM_DEPTH * 0.8 and r <= planet.radius + 0.2
-		if diving and (not swimming or (r >= planet.radius - SWIM_DEPTH and velocity.dot(u) >= 0.0)):
+		u = (global_position - planet.global_position) / r
+		var wl := planet.shape.water_level(local / r) if planet.shape.sea == 1 else -INF   # (the sea's, a lake's, a river's)
+		swimming = wl > -INF and planet.shape.height(local / r) < wl - SWIM_DEPTH * 0.8 and r <= planet.radius + wl + 0.6
+		if diving and (not swimming or (r >= planet.radius + wl - SWIM_DEPTH and velocity.dot(u) >= 0.0)):
 			diving = false   # (back up at swimming depth, or into the shallows: afloat again)
 			stand = planet.radius + floor_at(local)
 		if r < stand or (r <= stand + 0.02 and velocity.dot(u) <= 0.0) \
@@ -1075,5 +1169,5 @@ func height_above_ground() -> float:
 	if deck:
 		var l := deck.to_local(global_position)
 		return l.y - float(deck.floor_y(l))
-	var local := global_position - planet.global_position
+	var local := planet.to_local(global_position)
 	return local.length() - planet.radius - floor_at(local)

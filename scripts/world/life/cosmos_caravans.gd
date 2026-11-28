@@ -102,7 +102,7 @@ func _process(delta: float) -> void:
 		if sim:
 			_simulate(w, pl, rl, dt)
 		if pl == life:
-			_near(w, pl, rl, f.global_position - pl.global_position)
+			_near(w, pl, rl, pl.to_local(f.global_position))   # (planet-local, as its roads)
 			_live(w, pl, rl, delta)
 		else:
 			for g in w["groups"]:
@@ -182,6 +182,7 @@ func _new_group(w: Dictionary, pl: CosmosPlanet, rl: Array, k: int, dir: int, s:
 		m["hp"] = -1.0
 		m["goods"] = {}
 		m["dead"] = false
+	speed *= CosmosWalker.ROAD_PACE   # (on the road all the way: its quicker pace, as yours on it)
 	var g := {"id": int(w["next"]), "kind": kind, "road": k, "dir": dir, "s": s, "speed": speed, "members": members,
 		"halt": 0.0, "out": false, "nodes": [], "angry": false, "ambush": -1.0, "raiders": [], "raid": false, "seen": {},
 		"empire": str(pl.towns[0].get("empire", ""))}
@@ -354,7 +355,7 @@ static func where(pl: CosmosPlanet, rl: Array, g: Dictionary, s: float, side := 
 		var right := (ahead - d).cross(d)
 		if right.length() > 1e-9:
 			d = (d * pl.radius + right.normalized() * side).normalized()
-	return d * (pl.radius + maxf(pl.shape.height(d), 0.0))
+	return d * (pl.radius + maxf(maxf(pl.shape.height(d), 0.0), CosmosRoads.deck_along(road, s)))   # (over the water: on its bridge's deck)
 
 
 # --- Near you: its people there ------------------------------------------------------------
@@ -437,7 +438,7 @@ func _put_in(q: Array) -> void:
 		world.add_child(r)
 		var at: Vector3 = q[3]
 		var d := at.normalized()
-		r.global_position = pl.global_position + d * (pl.radius + maxf(pl.shape.height(d), 0.0))
+		r.global_position = pl.to_global(d * (pl.radius + maxf(pl.shape.height(d), 0.0)))
 		cosmos.npcs.append(r)
 		g["raiders"].append(r)
 		return
@@ -455,7 +456,7 @@ func _put_in(q: Array) -> void:
 		c.set_meta("loot_title", "pack donkey")
 		c.set_meta("caravan", g["id"])
 		world.add_child(c)
-		c.global_position = pl.global_position + local
+		c.global_position = pl.to_global(local)
 		if float(m["hp"]) > 0.0:
 			c.hp = float(m["hp"])
 		cosmos.creatures.append(c)
@@ -470,7 +471,7 @@ func _put_in(q: Array) -> void:
 	if float(m["hp"]) > 0.0:
 		t.hp = float(m["hp"])
 	world.add_child(t)
-	t.global_position = pl.global_position + local
+	t.global_position = pl.to_global(local)
 	cosmos.npcs.append(t)
 	g["nodes"][i] = t
 
@@ -545,7 +546,7 @@ func _live(w: Dictionary, pl: CosmosPlanet, rl: Array, delta: float) -> void:
 			if n == null or not is_instance_valid(n) or n.get("dead"):
 				continue
 			var local := where(pl, rl, g, float(g["s"]) - int(g["dir"]) * COLUMN * _slot(g, i), _lane(g, i))
-			var goal := pl.global_position + local
+			var goal := pl.to_global(local)   # (world: worked out again each frame - the world turns)
 			if n is CosmosTraveller:
 				(n as CosmosTraveller).goal = goal
 			else:
@@ -566,6 +567,13 @@ func _who(m: Dictionary) -> String:
 func _say(g: Dictionary, text: String, key: String) -> void:
 	if (g["seen"] as Dictionary).has(key):
 		return
+	if cosmos and cosmos.has_method("within_news"):   # (only within 2 km of you: what happens far down the road isn't news)
+		var pl: CosmosPlanet = g.get("pl") if is_instance_valid(g.get("pl")) else cosmos.life_planet()
+		if pl == null:
+			return
+		var rl: Array = CosmosRoads.of(cosmos).roads_of(pl)
+		if int(g["road"]) >= rl.size() or not cosmos.within_news(pl.to_global(where(pl, rl, g, float(g["s"])))):
+			return
 	g["seen"][key] = true
 	if cosmos and cosmos.get("hud"):
 		cosmos.hud.flash(text, 3.5)

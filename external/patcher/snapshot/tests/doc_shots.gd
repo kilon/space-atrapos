@@ -6,7 +6,7 @@ extends SceneTree
 ##   godot --path . -s tests/doc_shots.gd -- [shot ids...] --out=DIR
 ## (no ids: every shot).
 
-const ALL := ["space3d", "space3d_ground", "space3d_foot", "space3d_sunset", "space3d_rays", "space3d_storm", "space3d_snow", "space3d_town", "space3d_people", "space3d_inside", "space3d_climb", "space3d_road", "space3d_dungeon", "space3d_cave", "space3d_fight", "space3d_monster", "space3d_mining", "space3d_dig", "space3d_digging", "space3d_building", "space3d_vein", "space3d_underwater", "space3d_pad", "space3d_hangar", "space3d_port", "space3d_trader", "map3d", "galaxy3d", "planet3d", "town_plan3d", "space3d_start"]
+const ALL := ["space3d", "space3d_ground", "space3d_foot", "space3d_sunset", "space3d_rays", "space3d_storm", "space3d_snow", "space3d_town", "space3d_town_night", "space3d_people", "space3d_inside", "space3d_climb", "space3d_road", "space3d_bridge", "space3d_dungeon", "space3d_cave", "space3d_fight", "space3d_monster", "space3d_mining", "space3d_dig", "space3d_digging", "space3d_building", "space3d_vein", "space3d_underwater", "space3d_river", "space3d_underwater_up", "space3d_pad", "space3d_hangar", "space3d_port", "space3d_trader", "map3d", "galaxy3d", "planet3d", "town_plan3d", "space3d_start", "space3d_field"]
 
 var galaxy: Node
 var save: Node
@@ -41,13 +41,17 @@ func _run() -> void:
 	var art: Node = root.get_node_or_null("ProcArt")
 	while art and not art.ready_done:
 		await process_frame
+	root.get_node("Settings").day_length = 0.0   # (the worlds held still: each shot keeps the hour it picks - not saved)
+	load("res://scripts/world/space/cosmos_planet.gd").reset_spin(0.0)
 	galaxy.new_game(false)
-	if _any(["space3d", "space3d_ground", "space3d_foot", "space3d_sunset", "space3d_rays", "space3d_storm", "space3d_snow", "space3d_town", "space3d_people", "space3d_inside", "space3d_climb", "space3d_road", "space3d_dungeon", "space3d_cave", "space3d_fight", "space3d_monster", "space3d_mining", "space3d_dig", "space3d_digging", "space3d_building", "space3d_vein", "space3d_underwater", "space3d_pad", "space3d_hangar", "space3d_port", "space3d_trader"]):
+	if _any(["space3d", "space3d_ground", "space3d_foot", "space3d_sunset", "space3d_rays", "space3d_storm", "space3d_snow", "space3d_town", "space3d_town_night", "space3d_people", "space3d_inside", "space3d_climb", "space3d_road", "space3d_bridge", "space3d_dungeon", "space3d_cave", "space3d_fight", "space3d_monster", "space3d_mining", "space3d_dig", "space3d_digging", "space3d_building", "space3d_vein", "space3d_underwater", "space3d_river", "space3d_underwater_up", "space3d_pad", "space3d_hangar", "space3d_port", "space3d_trader"]):
 		await _space3d()
 	if _any(["space3d_mining"]):
 		await _mining3d()
 	if _any(["space3d_start"]):
 		await _start3d()
+	if _any(["space3d_field"]):
+		await _field3d()
 	if _any(["map3d", "galaxy3d"]):
 		await _maps3d()
 	if _any(["planet3d", "town_plan3d"]):
@@ -143,7 +147,7 @@ func _planet_map3d() -> void:
 	w.drive = {}
 	w.set_deck(null)
 	w.planet = pl
-	w.global_position = pl.global_position + txf * Vector3(60, 0.3, 10)
+	w.global_position = pl.to_global(txf * Vector3(60, 0.3, 10))   # (planet-local: its world turns)
 	w.velocity = Vector3.ZERO
 	# What's been explored: a flight's track over the world, and the city walked.
 	var d0: Vector3 = site["dir"]
@@ -264,12 +268,12 @@ func _vein3d(c: Node) -> void:
 	var side: Vector3 = u.cross(along).normalized()
 	var spot: Vector3 = mid - side * 2.5   # (beside it, looking across: you in front of its glow on the ground)
 	spot = spot.normalized() * (pl.radius + w.floor_at(spot) + 0.05)
-	w.global_position = pl.global_position + spot
-	w.heading = side
+	w.global_position = pl.to_global(spot)
+	w.heading = pl.dir_world(side)
 	c.cam.foot_zoom = 1.25
 	c.cam._pitch = 0.42
 	for cr in c.creatures:
-		cr.global_position += u * 0.0 + side * 400.0   # (the animals out of the shot)
+		cr.global_position += pl.dir_world(side) * 400.0   # (the animals out of the shot)
 	for i in 20:
 		await process_frame
 	c.target = null
@@ -282,7 +286,7 @@ func _vein3d(c: Node) -> void:
 ## (the camera pitched `pitch`), among trees if there are any near.
 func _sun_spot(c: Node, wk: Node3D, elev: float, id: String, pitch: float, open_ahead := false) -> void:
 	var spl: Node3D = wk.planet
-	var sd: Vector3 = spl.sun_dir
+	var sd: Vector3 = spl.sun_local   # (planet-local, as its ground)
 	var ax := sd.cross(Vector3.UP).normalized()
 	var spots: Array = []
 	for k2 in 288:
@@ -306,8 +310,8 @@ func _sun_spot(c: Node, wk: Node3D, elev: float, id: String, pitch: float, open_
 	c.hud.show_help = false
 	for at_d in spots:   # (the first whose camera isn't inside a tree's crown)
 		var sp: Vector3 = at_d * spl.radius
-		wk.global_position = spl.global_position + at_d * (spl.radius + wk.floor_at(sp) + 0.05)
-		var to_sun: Vector3 = (sd - at_d * sd.dot(at_d)).normalized()
+		wk.global_position = spl.to_global(at_d * (spl.radius + wk.floor_at(sp) + 0.05))
+		var to_sun: Vector3 = spl.dir_world((sd - at_d * sd.dot(at_d)).normalized())
 		wk.heading = to_sun
 		wk.facing = to_sun
 		wk.velocity = Vector3.ZERO
@@ -356,7 +360,7 @@ func _weather3d(c: Node, type: String, id: String, storm: bool) -> void:
 				continue
 			var d: Vector3 = wx.cell(i, t)[0]
 			var at_t: Vector3 = c.planet_places(c.system_id, t)[str(pl.rec["id"])]
-			var sun_t := -at_t.normalized()   # (the star at the system's middle: its way from the world then)
+			var sun_t: Vector3 = pl.sun_local_at(t, at_t)   # (the star at the system's middle: its way from the world then, in the world's own frame - turned as it will be)
 			var h0: float = pl.shape.height(d)
 			if h0 > 6.0 and h0 < pl.shape.amp * 0.5 and d.dot(sun_t) > 0.35 and (not storm or wx.temperature(d, sun_t) > 4.0):   # (low ground under it; a storm's rain - warm enough)
 				spot = d
@@ -372,9 +376,9 @@ func _weather3d(c: Node, type: String, id: String, storm: bool) -> void:
 		await process_frame
 	var w = c.walker
 	w.planet = pl
-	w.global_position = pl.global_position + spot * (pl.radius + pl.shape.height(spot) + 1.0)
+	w.global_position = pl.to_global(spot * (pl.radius + pl.shape.height(spot) + 1.0))
 	w.velocity = Vector3.ZERO
-	var f: Vector3 = spot.cross(Vector3.UP if absf(spot.y) < 0.9 else Vector3.RIGHT).normalized()
+	var f: Vector3 = pl.dir_world(spot.cross(Vector3.UP if absf(spot.y) < 0.9 else Vector3.RIGHT).normalized())
 	w.heading = f
 	w.facing = f
 	c._shift_origin(true)
@@ -390,17 +394,88 @@ func _weather3d(c: Node, type: String, id: String, storm: bool) -> void:
 		var fwd := -cam.global_basis.z
 		var u: Vector3 = (cam.global_position - pl.global_position).normalized()
 		var d2: Vector3 = ((cam.global_position - pl.global_position) + (fwd - u * fwd.dot(u)).normalized() * 500.0).normalized()
-		c.weather_fx._strike(pl.global_position + d2 * (pl.radius + pl.shape.top() * 0.85 + 25.0), pl.global_position + d2 * (pl.radius + maxf(pl.shape.height(d2), 0.0)), cam)
+		c.weather_fx._strike(pl.global_position + d2 * (pl.radius + pl.shape.top() * 0.85 + 25.0), pl.global_position + d2 * (pl.radius + maxf(pl.shape.height(pl.dir_local(d2)), 0.0)), cam)
 		await process_frame
 		await process_frame
 	print("WEATHER ", id, " ", c.weather_fx.now)
 	await _snap(id, 0.05)
 
 
+## A river's rapids from its bank (PlanetWater, CosmosWaters): white water streaming
+## over the standing waves, its wet banks, the trees along it - the walker's world, by day.
+func _river3d(c: Node) -> void:
+	var w: Node3D = c.walker
+	var pl: Node3D = w.planet
+	var wt = pl.shape.water
+	if wt == null:
+		return
+	var best := -1
+	var bs := -9.0
+	for i in range(1, wt.pts.size() - 1):
+		var d: Vector3 = wt.pts[i] / pl.radius
+		if wt.rid[i - 1] != wt.rid[i] or wt.rid[i + 1] != wt.rid[i] or wt.spd[i] < 2.6 or d.dot(pl.sun_local) < 0.3:
+			continue
+		var s: float = d.dot(pl.sun_local) + wt.hw[i] * 0.08
+		if s > bs:
+			bs = s
+			best = i
+	if best < 0:
+		return
+	var p: Vector3 = wt.pts[best]
+	var u := p.normalized()
+	var way: Vector3 = (wt.pts[best + 1] - wt.pts[best - 1]).normalized()
+	var side := way.cross(u).normalized()
+	var at: Vector3 = (p + side * (wt.hw[best] * 1.9 + 3.0)).normalized()
+	w.global_position = pl.to_global(at * (pl.radius + w.floor_at(at * pl.radius) + 0.05))
+	w.velocity = Vector3.ZERO
+	w.heading = pl.dir_world((-way * 0.75 - side * 0.65).normalized())
+	w.facing = w.heading
+	c._shift_origin(true)
+	c.cam.foot_zoom = 2.4
+	c.cam._pitch = 0.18
+	c.target = null
+	await _fine_ground(w)
+	await _snap("space3d_river", 2.0)
+
+
+## Under the sea looking up (CosmosUnderwater): the surface from below - the sky in Snell's
+## window, the deep mirrored round it - the sun's rays slanting down through the water.
+func _underwater_up3d(c: Node) -> void:
+	var w: Node3D = c.walker
+	var pl: Node3D = w.planet
+	var uw: Node = c.get("underwater")
+	var d := Vector3.ZERO
+	for i in 20000:
+		var v := Vector3(sin(i * 1.7 + 0.3), cos(i * 2.3), sin(i * 0.9 + 1.0)).normalized()
+		var h: float = pl.shape.height(v)
+		if h < -10.0 and h > -16.0 and v.dot(pl.sun_local) > 0.6:
+			d = v
+			break
+	if d == Vector3.ZERO:
+		return
+	w.global_position = pl.to_global(d * pl.radius)
+	w.drive = {}
+	c._shift_origin(true)
+	c.cam.set_process(false)
+	c.cam.set_physics_process(false)
+	var eye: Vector3 = pl.to_global(d * (pl.radius - 5.0))
+	var sun_t: Vector3 = (pl.sun_local - d * pl.sun_local.dot(d)).normalized()
+	c.cam.global_position = eye
+	c.cam.look_at(eye + pl.dir_world(sun_t * 5.0 + d * 7.0), pl.dir_world(d))
+	for i in 900:
+		await process_frame
+		if i > 120 and uw and not uw.shown_cells.is_empty() and uw._apply.is_empty() and uw._area_task == -1:
+			break
+	c.target = null
+	await _snap("space3d_underwater_up", 1.5)
+	c.cam.set_process(true)
+	c.cam.set_physics_process(true)
+
+
 func _underwater3d(c: Node) -> void:
 	var w: Node3D = c.walker
 	var pl: Node3D = w.planet
-	var d0: Vector3 = (w.global_position - pl.global_position).normalized()
+	var d0: Vector3 = pl.to_local(w.global_position).normalized()
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 	var wet := Vector3.ZERO
@@ -412,7 +487,7 @@ func _underwater3d(c: Node) -> void:
 			break
 	if wet == Vector3.ZERO:
 		return
-	w.global_position = pl.global_position + wet * (pl.radius - 1.25)
+	w.global_position = pl.to_global(wet * (pl.radius - 1.25))
 	w.velocity = Vector3.ZERO
 	for i in 10:
 		await process_frame
@@ -445,11 +520,11 @@ func _dig3d(c: Node) -> void:
 			best = d
 			best["_s"] = score
 	var sp: Array = dp._sphere(best)
-	var u: Vector3 = best["up"]
+	var u: Vector3 = w.planet.dir_world(best["up"])   # (its up: planet-local - in the world's frame here)
 	var side: Vector3 = u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized()
 	var right: Vector3 = (-side).cross(u).normalized()
-	var spot: Vector3 = (sp[0] as Vector3) + side * (float(sp[1]) + 3.2) - right * 0.55 - w.planet.global_position
-	w.global_position = w.planet.global_position + spot.normalized() * (w.planet.radius + w.floor_at(spot) + 0.05)
+	var spot: Vector3 = w.planet.to_local((sp[0] as Vector3) + side * (float(sp[1]) + 3.2) - right * 0.55)
+	w.global_position = w.planet.to_global(spot.normalized() * (w.planet.radius + w.floor_at(spot) + 0.05))
 	w.heading = -side
 	c.cam.foot_zoom = 1.0
 	var drop: float = (w.global_position + u * 1.55 - (sp[0] as Vector3)).dot(u)
@@ -469,18 +544,18 @@ func _digging3d(c: Node) -> void:
 	var u: Vector3 = w.up()
 	var pl: Node3D = w.planet
 	var side: Vector3 = w.heading.cross(u).normalized()
-	var spot: Vector3 = w.global_position + side * 40.0 - pl.global_position   # (open ground, off the last shot's deposit: no tree near)
+	var spot: Vector3 = pl.to_local(w.global_position + side * 40.0)   # (open ground, off the last shot's deposit: no tree near - planet-local)
 	for tries in 12:
 		var clear := true
 		for rk in pl.rocks_near(spot, 26.0):
 			if float(rk[2]) > 2.0:
 				clear = false
-		if c.ship and (pl.global_position + spot).distance_to(c.ship.global_position) < 70.0:
+		if c.ship and pl.to_global(spot).distance_to(c.ship.global_position) < 70.0:
 			clear = false   # (nor your ship's hull at the edge of the picture)
 		if clear:
 			break
-		spot += side * 17.0
-	w.global_position = pl.global_position + spot.normalized() * (pl.radius + w.floor_at(spot) + 0.05)
+		spot += pl.dir_local(side) * 17.0
+	w.global_position = pl.to_global(spot.normalized() * (pl.radius + w.floor_at(spot) + 0.05))
 	w.velocity = Vector3.ZERO
 	for i in 30:
 		await process_frame
@@ -532,8 +607,9 @@ func _building3d(c: Node) -> void:
 	var w: Node3D = c.walker
 	var pl: Node3D = w.planet
 	var u: Vector3 = w.up()
-	var side: Vector3 = w.heading.cross(u).normalized()
-	var spot: Vector3 = w.global_position - side * 70.0 - pl.global_position
+	var side: Vector3 = pl.dir_local(w.heading.cross(u).normalized())   # (planet-local, as the spots)
+	u = pl.dir_local(u)
+	var spot: Vector3 = pl.to_local(w.global_position) - side * 70.0
 	var start := spot
 	var best_v := INF
 	var best := spot
@@ -560,7 +636,7 @@ func _building3d(c: Node) -> void:
 	var b: Node = c.builds
 	b._sync_t = 1e9
 	b.planet = pl
-	var at: Vector3 = pl.global_position + spot.normalized() * (pl.radius + pl.shape.height(spot.normalized()))
+	var at: Vector3 = pl.to_global(spot.normalized() * (pl.radius + pl.shape.height(spot.normalized())))
 	b.aim_frame = b.new_frame(at, w.heading)
 	b.aim_frame.origin += b.aim_frame.basis.y * b._new_top(at, b.aim_frame, "sq")
 	w.global_position = pl.global_transform * (b.aim_frame * Vector3(3.0, 1.0, 2.0))   # (in the middle of the plot while it's built: every piece within the builder's reach)
@@ -606,8 +682,8 @@ func _building3d(c: Node) -> void:
 	b.place(st, P.call("pithos", Vector3(9.0, BK.WALL_H, 5.0)), true)
 	b.place(st, P.call("lamp", Vector3(1.0, BK.WALL_H, 1.0)), true)
 	var fr: Transform3D = st.global_transform
-	var wl: Vector3 = fr * Vector3(-1.0, 0.0, -11.5) - pl.global_position
-	w.global_position = pl.global_position + wl.normalized() * (pl.radius + w.floor_at(wl) + 0.05)
+	var wl: Vector3 = pl.to_local(fr * Vector3(-1.0, 0.0, -11.5))
+	w.global_position = pl.to_global(wl.normalized() * (pl.radius + w.floor_at(wl) + 0.05))
 	w.velocity = Vector3.ZERO
 	w.heading = (fr.basis * Vector3(0.12, 0, 1)).normalized()
 	w.facing = w.heading
@@ -656,7 +732,37 @@ func _space3d() -> void:
 	c.ship.drive = {"throttle": 0.35}
 	c.target = c.planets[ocean]
 	await _snap("space3d", 3.0)
-	c.warp_to(ocean, 45.0, 0.75)
+	# (low over a coast by day: land under you, the sea ahead - the world turns, so looked for)
+	var gpl: Node3D = c.planets[ocean]
+	var coast := Vector3.ZERO
+	var coast_fw := Vector3.ZERO
+	var sd0: Vector3 = gpl.sun_dir
+	var ax0 := sd0.cross(Vector3.UP).normalized()
+	for ti in [0.5, 0.65, 0.8, 0.95]:
+		for k0 in 72:
+			var d: Vector3 = sd0.rotated(ax0.rotated(sd0, k0 * TAU / 72.0), ti).normalized()
+			var h: float = gpl.shape.height(gpl.dir_local(d))
+			if h < 2.0 or h > 40.0:
+				continue
+			var fw0 := d.cross(Vector3.UP).normalized()
+			for q in 8:   # (a way along the ground with the sea ahead)
+				var fw := fw0.rotated(d, q * TAU / 8.0)
+				var a4: float = gpl.shape.height(gpl.dir_local((d * gpl.radius + fw * 600.0).normalized()))
+				var a7: float = gpl.shape.height(gpl.dir_local((d * gpl.radius + fw * 1000.0).normalized()))
+				var a2: float = gpl.shape.height(gpl.dir_local((d * gpl.radius + fw * 220.0).normalized()))
+				if a2 > 3.0 and a4 < -3.0 and a7 < -3.0:   # (land ahead, the sea past it)
+					coast = d
+					coast_fw = fw
+					break
+			if coast != Vector3.ZERO:
+				break
+		if coast != Vector3.ZERO:
+			break
+	if coast != Vector3.ZERO:
+		c.warp_to(ocean, 45.0, 0.0, 0.0, coast)
+		c.ship.look_at(c.ship.global_position + coast_fw, coast)   # (the sea ahead)
+	else:
+		c.warp_to(ocean, 45.0, 0.75)
 	c.ship.drive = {"throttle": 0.5}
 	c.hud.show_help = false
 	await _snap("space3d_ground", 3.0)
@@ -670,15 +776,20 @@ func _space3d() -> void:
 	var wu: Vector3 = wk.up()
 	var away: Vector3 = wk.global_position - c.ship.global_position
 	away = (away - wu * away.dot(wu)).normalized()
-	var spot: Vector3 = wk.global_position + away * 140.0 - wk.planet.global_position   # (out past the landing field's bare ground, among the plants)
-	wk.global_position = wk.planet.global_position + spot.normalized() * (wk.planet.radius + wk.floor_at(spot) + 0.05)
+	var spot: Vector3 = wk.planet.to_local(wk.global_position + away * 140.0)   # (out past the landing field's bare ground, among the plants)
+	wk.global_position = wk.planet.to_global(spot.normalized() * (wk.planet.radius + wk.floor_at(spot) + 0.05))
 	wk.heading = away
 	c.cam.foot_zoom = 1.6
 	for i in 8:
 		c._life()
 	var w: Node3D = c.walker
 	var k := 0
+	var gi := 0
 	for cr in c.creatures:
+		if cr.reach > 4.0:   # (the mushroom mammoths: further off, side by side ahead)
+			cr.global_position = w.global_position + w.heading * (48.0 + gi * 14.0) + w.heading.cross(w.up()) * (12.0 - gi * 30.0)
+			gi += 1
+			continue
 		cr.global_position = w.global_position + w.heading * (14.0 + k * 3.0) + w.heading.cross(w.up()) * (k - 3) * 4.0
 		k += 1
 	c.hud.show_help = true
@@ -698,11 +809,17 @@ func _space3d() -> void:
 		await _vein3d(c)
 	if "space3d_underwater" in _want:
 		await _underwater3d(c)
+	if "space3d_river" in _want:
+		await _river3d(c)
+	if "space3d_underwater_up" in _want:
+		await _underwater_up3d(c)
 	var clock0: float = root.get_node("Galaxy").time   # (the weather's shots wind the clock: back after them)
 	if "space3d_storm" in _want:
 		await _weather3d(c, "ocean", "space3d_storm", true)
 	if "space3d_snow" in _want:
 		await _weather3d(c, "ice", "space3d_snow", false)
+	if "space3d_bridge" in _want:
+		await _bridge3d(c, c.walker)
 	if "space3d_road" in _want:   # (to another world maybe: after the shots that stay on this one)
 		await _road3d(c, c.walker)
 	if root.get_node("Galaxy").time != clock0:
@@ -715,7 +832,7 @@ func _space3d() -> void:
 	var best := -2.0
 	for pi in c.planets.size():
 		for n in c.planets[pi].towns.size():
-			var sun: float = (c.planets[pi].towns[n]["dir"] as Vector3).dot(c.planets[pi].sun_dir) + (2.0 if str(c.planets[pi].towns[n]["kind"]) == "city" else 0.0)   # (a city: its palace, its ore buyer)
+			var sun: float = (c.planets[pi].towns[n]["dir"] as Vector3).dot(c.planets[pi].sun_local) + (2.0 if str(c.planets[pi].towns[n]["kind"]) == "city" else 0.0)   # (a city: its palace, its ore buyer)
 			print("TOWN %s %s sun %.2f" % [c.planets[pi].name, c.planets[pi].towns[n]["name"], sun])
 			if sun > best:
 				best = sun
@@ -723,11 +840,15 @@ func _space3d() -> void:
 				tk = n
 	if ti >= 0:
 		var tpl: Node3D = c.planets[ti]
+		var gt: float = root.get_node("Galaxy").time   # (its world turned to put the town in the morning sun - the worlds held still meanwhile)
+		tpl.spin_phase += tpl.morning_turn(tpl.towns[tk]["dir"], gt, tpl.spin_angle(gt)) - tpl.spin_angle(gt)
+		for i in 5:
+			await process_frame
 		var txf: Transform3D = load("res://scripts/world/life/cosmos_town.gd").frame(tpl.towns[tk], tpl.radius)
 		w.drive = {}
 		w.set_deck(null)
 		w.planet = tpl
-		w.global_position = tpl.global_position + txf * Vector3(8, 0.3, 4)
+		w.global_position = tpl.to_global(txf * Vector3(8, 0.3, 4))
 		w.heading = (tpl.global_basis * txf.basis) * Vector3(-1, 0, -0.35).normalized()
 		w.velocity = Vector3.ZERO
 		for i in 300:
@@ -747,6 +868,29 @@ func _space3d() -> void:
 		c.sandbox.scan_marks = []   # (an earlier shot's scan: its labels not over the court)
 		c.target = null
 		await _snap("space3d_town", 3.0)
+		if "space3d_town_night" in _want:   # (the same city by night: its world turned on, its lamps lit along an avenue)
+			var sp0: float = tpl.spin_phase
+			var td: Vector3 = tpl.towns[tk]["dir"]
+			var b0: Basis = tpl.global_basis
+			var nbest := 0.0
+			var nbk := INF
+			for nk in 720:
+				var na := TAU * nk / 720.0
+				var ne: float = (b0 * (Basis(Vector3.UP, na) * td)).dot(tpl.sun_dir)
+				if absf(ne + 0.4) < nbk:
+					nbk = absf(ne + 0.4)
+					nbest = na
+			tpl.spin_phase += nbest
+			w.global_position = tw2.to_global(Vector3(1.5, 0.3, 78))
+			w.heading = (tw2.global_basis * Vector3(-0.04, 0, -1)).normalized()
+			w.velocity = Vector3.ZERO
+			c.cam.foot_zoom = 1.5
+			for i in 30:
+				await process_frame
+			await _snap("space3d_town_night", 3.5)
+			tpl.spin_phase = sp0
+			for i in 10:
+				await process_frame
 		# Its people up close: the ore buyer by the landing field, a guard, the androids.
 		var kil: Array = c.citizens.filter(func(x): return x.town == tw2 and x.role == "vendor")
 		if not kil.is_empty():
@@ -855,9 +999,9 @@ func _space3d() -> void:
 			var u := cm.normalized()
 			var t1 := u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized()
 			var me_l: Vector3 = c.cave_floor(tpl, cm - t1 * cr * 0.2)
-			w.global_position = tpl.global_position + me_l + u * 0.05
-			w.heading = t1
-			w.facing = t1
+			w.global_position = tpl.to_global(me_l + u * 0.05)
+			w.heading = tpl.dir_world(t1)
+			w.facing = w.heading
 			w.velocity = Vector3.ZERO
 			w.hp = 100000.0
 			c._cave_life(tpl, cm)
@@ -865,9 +1009,9 @@ func _space3d() -> void:
 			var picks: Array = foes.filter(func(x): return x.role == "skeleton").slice(0, 1) + foes.filter(func(x): return x.label == "Demon lord").slice(0, 1)
 			for n in picks.size():
 				var at: Vector3 = c.cave_floor(tpl, cm + t1 * cr * 0.25 + t1.cross(u) * (n - 0.5) * 3.6)
-				picks[n].global_position = tpl.global_position + at
-				picks[n].facing = (me_l - at - u * (me_l - at).dot(u)).normalized()
-				picks[n].global_basis = Basis.looking_at(picks[n].facing, u)
+				picks[n].global_position = tpl.to_global(at)
+				picks[n].facing = tpl.dir_world((me_l - at - u * (me_l - at).dot(u)).normalized())
+				picks[n].global_basis = Basis.looking_at(picks[n].facing, tpl.dir_world(u))
 				picks[n].set_process(false)   # (posed for the picture: on its floor, turned to you)
 			c.cam.foot_zoom = 0.85
 			for i in 120:   # (the cave's ground meshed round you)
@@ -1056,9 +1200,9 @@ func _road3d(c: Node, wk: Node3D) -> void:
 		if p.towns.size() < 2 or str(p.rec.get("type", "")) != "ocean":
 			continue
 		var net: Array = CR.network(p.shape, p.towns)
-		for k in 24:
-			var t: float = t0c + k * 450.0
-			var sun_t: Vector3 = -(c.planet_places(c.system_id, t)[str(p.rec["id"])] as Vector3).normalized()
+		for k in 48:   # (its turn: a day in some 20 min - looked at every 2)
+			var t: float = t0c + k * 120.0
+			var sun_t: Vector3 = p.sun_local_at(t, c.planet_places(c.system_id, t)[str(p.rec["id"])])
 			for r in net:
 				for f in [0.2, 0.35, 0.5, 0.65, 0.8]:
 					var sun: float = (CR.point(r, float(r["length"]) * f) as Vector3).dot(sun_t)
@@ -1075,7 +1219,7 @@ func _road3d(c: Node, wk: Node3D) -> void:
 	wk.planet = pl
 	var roads: Node = CR.of(c)
 	var tw: Vector3 = pl.towns[0]["dir"]
-	wk.global_position = pl.global_position + tw * (pl.radius + maxf(pl.shape.height(tw), 0.0) + 2.0)
+	wk.global_position = pl.to_global(tw * (pl.radius + maxf(pl.shape.height(tw), 0.0) + 2.0))
 	c._shift_origin(true)
 	var t0 := Time.get_ticks_msec()
 	while roads.roads_of(pl).is_empty() and Time.get_ticks_msec() - t0 < 20000:
@@ -1090,7 +1234,7 @@ func _road3d(c: Node, wk: Node3D) -> void:
 	for k in rl.size():
 		var L: float = rl[k]["length"]
 		for f in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
-			var sun: float = (CR.point(rl[k], L * f) as Vector3).dot(pl.sun_dir) - (1.0 if _tree_near(pl, pl.global_position + (CR.point(rl[k], L * f) as Vector3) * pl.radius, 14.0) else 0.0)
+			var sun: float = (CR.point(rl[k], L * f) as Vector3).dot(pl.sun_local) - (1.0 if _tree_near(pl, pl.to_global((CR.point(rl[k], L * f) as Vector3) * pl.radius), 14.0) else 0.0)
 			if sun > best:
 				best = sun
 				rk = k
@@ -1101,9 +1245,9 @@ func _road3d(c: Node, wk: Node3D) -> void:
 	along = (along - d0 * along.dot(d0)).normalized()
 	var side: Vector3 = d0.cross(along).normalized()
 	var put := func(d: Vector3, heading: Vector3) -> void:
-		wk.global_position = pl.global_position + d * (pl.radius + wk.floor_at(d * pl.radius) + 0.05)
-		wk.heading = heading
-		wk.facing = heading
+		wk.global_position = pl.to_global(d * (pl.radius + wk.floor_at(d * pl.radius) + 0.05))
+		wk.heading = pl.dir_world(heading)   # (planet-local, as the road)
+		wk.facing = wk.heading
 		wk.velocity = Vector3.ZERO
 		c._shift_origin(true)
 	put.call((d0 * pl.radius + side * 6.0).normalized(), along)
@@ -1125,24 +1269,120 @@ func _road3d(c: Node, wk: Node3D) -> void:
 		g = c.get_node("Caravans")._new_group(world, pl, rl, rk, 1, rs, "caravan")
 	if g["out"]:
 		c.get_node("Caravans")._put_away(g)
-	g["road"] = rk
-	g["dir"] = -1
-	g["s"] = rs + 22.0
-	g["halt"] = 0.0
-	g["ambush"] = -1.0
-	await _fine_ground(wk)
-	var lead: Node3D = null
-	for n in g["nodes"]:
-		if n != null and is_instance_valid(n):
-			lead = n
-			break
-	if lead:
-		var lpos: Vector3 = lead.global_position - pl.global_position
-		put.call((lpos + side * 11.0 + along * 4.0).normalized(), (-side - along * 0.4).normalized())
+	# (a stretch of the road with the camera clear of the trees' crowns: the walker off its side,
+	# looking back across it - then the caravan brought up to there)
 	c.cam.foot_zoom = 2.6
 	c.cam._pitch = 0.2
 	c.hud.show_help = false
+	var rs2 := rs
+	for off in [0.0, 18.0, -18.0, 36.0, -36.0, 54.0, -54.0, 72.0, -72.0, 90.0, -90.0, 120.0, -120.0]:
+		rs2 = clampf(rs + off, 30.0, float(road["length"]) - 30.0)
+		var dd: Vector3 = CR.point(road, rs2)
+		var al: Vector3 = CR.point(road, rs2 + 10.0) - dd
+		al = (al - dd * al.dot(dd)).normalized()
+		var sd: Vector3 = dd.cross(al).normalized()
+		along = al
+		side = sd
+		put.call((dd * pl.radius + sd * 11.0 + al * 4.0).normalized(), (-sd - al * 0.4).normalized())
+		await _fine_ground(wk, 300)
+		for i2 in 20:
+			await process_frame
+		var mid: Vector3 = (c.cam.global_position + wk.global_position) * 0.5
+		if not _tree_near(pl, c.cam.global_position, 10.0) and not _tree_near(pl, mid, 7.0):
+			break
+	g["road"] = rk
+	g["dir"] = -1
+	g["s"] = rs2 + 10.0
+	g["halt"] = 0.0
+	g["ambush"] = -1.0
+	for i3 in 150:   # (its people out and coming along)
+		await process_frame
 	await _snap("space3d_road", 4.0)
+	c.hud.show_help = true
+
+
+## A road's bridge over the sea (CosmosRoads' bridges - road_bridges.gd) on the walker's
+## world: from its beach by day - its arches on their piers, the parapets, the lamps at its end.
+func _bridge3d(c: Node, wk: Node3D) -> void:
+	var CR = load("res://scripts/world/life/cosmos_roads.gd")
+	var pl: Node3D = wk.planet
+	var roads: Node = CR.of(c)
+	var t0 := Time.get_ticks_msec()
+	while (roads.roads_of(pl).is_empty() or not CR._decks.has(CR._pid(pl))) and Time.get_ticks_msec() - t0 < 40000:
+		await process_frame
+	var rl: Array = roads.roads_of(pl)
+	var pick: Array = []   # (over the sea, a few arches long: the longest under 400 m)
+	for k in rl.size():
+		for br in rl[k].get("bridges", []):
+			var L: float = (rl[k]["cum"] as PackedFloat32Array)[int(br["i1"])] - (rl[k]["cum"] as PackedFloat32Array)[int(br["i0"])]
+			if absf(float(br["wl"])) < 0.05 and L < 400.0 and (br["piers"] as PackedFloat32Array).size() >= 3 and (pick.is_empty() or L > float(pick[2])):
+				pick = [k, br, L]
+	if pick.is_empty():
+		push_warning("space3d_bridge: no bridge over the sea on the walker's world")
+		return
+	var road: Dictionary = rl[pick[0]]
+	var br: Dictionary = pick[1]
+	var cum: PackedFloat32Array = road["cum"]
+	var R: float = pl.radius
+	var piers: PackedFloat32Array = br["piers"]
+	var sp: float = piers[1]   # (its second pier: an arch either side, the bank behind)
+	var dp: Vector3 = CR.point(road, sp)
+	var al: Vector3 = CR.point(road, sp + 6.0) - CR.point(road, sp - 6.0)
+	al = (al - dp * al.dot(dp)).normalized()
+	var sd: Vector3 = dp.cross(al).normalized()
+	var top: float = CR.deck_along(road, sp)
+	# (an hour it's in the sun, low enough for shadows under the arches)
+	var when: float = root.get_node("Galaxy").time
+	var best := -2.0
+	for k in 150:
+		var t: float = root.get_node("Galaxy").time + k * 600.0
+		var e: float = dp.dot(pl.sun_local_at(t, c.planet_places(c.system_id, t)[str(pl.rec["id"])]))
+		var score := -absf(e - 0.6)
+		if score > best:
+			best = score
+			when = t
+	root.get_node("Galaxy").time = when
+	for i in 10:
+		await process_frame
+	# (the walker on the beach at its end, the camera off its side, low, looking along its arches)
+	var side := 1.0
+	var start: Vector3 = CR.point(road, cum[int(br["i0"])] + 6.0)
+	for sg in [1.0, -1.0]:
+		var q: Vector3 = (start * R + sd * sg * 12.0).normalized()
+		if pl.shape.height(q) > 0.3:
+			side = sg
+			break
+	var foot: Vector3 = (start * R + sd * side * 12.0).normalized()
+	wk.drive = {}
+	wk.velocity = Vector3.ZERO
+	wk.global_position = pl.to_global(foot * (R + wk.floor_at(foot * R) + 0.05))
+	wk.heading = pl.dir_world(al)
+	wk.facing = wk.heading
+	c._shift_origin(true)
+	c.hud.show_help = false
+	await _fine_ground(wk, 300)
+	var cam: Camera3D = c.cam
+	cam.set_process(false)
+	cam.set_physics_process(false)
+	var at: Vector3 = (CR.point(road, sp + 12.0) as Vector3) * (R + top * 0.55)
+	var eye := Vector3.ZERO
+	for off in [30.0, 22.0, 40.0, 14.0, 50.0]:   # (a spot off its side with no tree in the way)
+		for dist in [32.0, 26.0, 40.0]:
+			var e: Vector3 = (CR.point(road, sp - off) * R + sd * side * dist).normalized()
+			e = e * (R + maxf(pl.shape.height(e), 0.0) + top * 0.6 + 1.5)
+			var clear := not _tree_near(pl, pl.to_global(e), 6.0)
+			for f in [0.12, 0.25, 0.38, 0.5, 0.62, 0.75]:
+				clear = clear and not _tree_near(pl, pl.to_global(e.lerp(at, f)), 5.0)
+			if clear and eye == Vector3.ZERO:
+				eye = e
+	if eye == Vector3.ZERO:
+		eye = (CR.point(road, sp - 30.0) * R + sd * side * 32.0).normalized()
+		eye = eye * (R + maxf(pl.shape.height(eye), 0.0) + top * 0.6 + 1.5)
+	cam.global_position = pl.to_global(eye)
+	cam.look_at(pl.to_global(at), pl.dir_world(eye.normalized()))
+	await _snap("space3d_bridge", 2.5)
+	cam.set_process(true)
+	cam.set_physics_process(true)
 	c.hud.show_help = true
 
 
@@ -1155,7 +1395,7 @@ func _fine_ground(wk: Node3D, most := 900) -> void:
 		await process_frame
 		if i % 10 != 0:
 			continue
-		var lp: Vector3 = wk.global_position - pl.global_position
+		var lp: Vector3 = pl.to_local(wk.global_position)
 		var fine := false
 		var stack: Array = pl._roots.duplicate()
 		while not stack.is_empty():
@@ -1168,3 +1408,66 @@ func _fine_ground(wk: Node3D, most := 900) -> void:
 			for k in 30:   # (its neighbours in too)
 				await process_frame
 			return
+
+
+## A city's landing pads (CosmosLandingField): on foot at its field's edge, morning -
+## a shuttle down on its pad, its pilot coming down the ramp, a trader and a courier
+## on theirs, the field's tower.
+func _field3d() -> void:
+	var CG = load("res://scripts/world/game/cosmos_game.gd")
+	CG.ensure()
+	var keep: Dictionary = CG.extra.duplicate(true)
+	CG.start_on_foot()
+	galaxy.current_system = galaxy.HOME
+	load("res://scripts/world/space/cosmos.gd").arrive_from = ""
+	await _set_scene(load("res://scenes/world/cosmos.tscn").instantiate())
+	var c: Node = _scene
+	while not c.build_settled():
+		await process_frame
+	for i in 300:
+		await process_frame
+		if c.citizens.filter(func(x): return is_instance_valid(x) and x.role in ["vendor", "courier", "pilot"]).size() >= 3:
+			break
+	var w: Node3D = c.walker
+	var pl: Node3D = w.planet
+	var t: Node3D = null
+	for list in c._towns.values():
+		for x in list:
+			if x != null and x.planet == pl and str(x.site["kind"]) == "city" and (t == null or x.global_position.distance_to(w.global_position) < t.global_position.distance_to(w.global_position)):
+				t = x
+	if t == null:
+		CG.extra = keep
+		return
+	var gt: float = galaxy.time   # (its world turned to put the town in the morning sun)
+	pl.spin_phase += pl.morning_turn(t.site["dir"], gt, pl.spin_angle(gt)) - pl.spin_angle(gt) + 0.35
+	var LF = load("res://scripts/world/life/cosmos_landing_field.gd")
+	var CH = load("res://scripts/world/space/cosmos_hull.gd")
+	var lf = LF.of(c)
+	for i in 600:
+		await process_frame
+		if t.has_node("LandingField") and CH.ready("shuttle", str(t.site["empire"])) and CH.ready("fighter", str(t.site["empire"])):
+			break
+	var pads: Array = LF.pads_of(t.site)
+	var s_down = lf.stage(t, pads[0], LF.APPROACH + 1.0)
+	for k in range(2, mini(pads.size(), 5)):
+		lf.stage(t, pads[k], LF.APPROACH + 60.0, "trader")
+	var key: String = LF.key_of(pl, t.site, pads[0])
+	var pilot: Node3D = null
+	for i in 900:   # (its pilot out of its door, down the ramp)
+		await process_frame
+		var r: Dictionary = lf.live.get(key, {})
+		var x = r.get("pilot") if not r.is_empty() else null
+		if x != null and is_instance_valid(x) and x.get("_off") == 1 and s_down.to_local(x.global_position).y < -1.0:
+			pilot = x
+			break
+	var at: Vector3 = t.to_local(pilot.global_position) if pilot else Vector3(88, 0, -50)
+	w.global_position = t.to_global(Vector3(at.x - 9.0, 0.3, at.z + 7.0))
+	w.heading = (t.global_basis * Vector3(1.0, 0, -0.75)).normalized()
+	w.velocity = Vector3.ZERO
+	c.cam.foot_zoom = 2.6
+	c.cam._pitch = 0.12
+	c.sandbox.scan_marks = []
+	c.target = null
+	await _snap("space3d_field", 1.0)
+	CG.extra = keep
+

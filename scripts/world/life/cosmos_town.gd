@@ -92,17 +92,23 @@ var planet: CosmosPlanet
 var spots: Array = []          # open ground (town-local): where people walk
 var port := Vector3.ZERO       # the landing field's middle (town-local)
 var doors: Array = []          # [threshold, out] (town-local): its buildings' doorways
+var lamps: Array = []          # [flame, kind, light's place, ground] (town-local): its lamps (TownLamps)
+var streets: Array = []        # its streets (TownStreets.pieces)
+var lit := -1.0                # its lamps' light now (TownLamps.night_of: 0 day .. 1 night)
 var built := false
 var _task := -1
 var _out := {}                 # the worker's: mesh, solids, grid, spots
+var _stop := [false]            # (its build told to stop: the town leaving)
 static var _mats := {}         # empire -> ShaderMaterial
 
 
 ## A planet's town sites: a city (with its palace) and a village or two, on
 ## dry ground level enough, apart. Ocean and ice worlds only (the inhabited
 ## kinds); none on a pirates' world.
-## `day`: towards its star (planets don't turn): the towns on the lit side -
-## the city near the middle of the day, the villages anywhere it's light.
+## All within CosmosPlanet.LIVED_LAT of its equator (its local Y its axis: there
+## a day and a night each at most 12 min - CosmosPlanet's day).
+## `day` (tests): a direction (planet-local) the towns are kept towards - the city
+## near it, the villages anywhere on that side.
 static func sites(shape: PlanetShape, rec: Dictionary, empire: String, day := Vector3.ZERO) -> Array:
 	var out: Array = []
 	var type := str(rec.get("type", ""))
@@ -119,6 +125,8 @@ static func sites(shape: PlanetShape, rec: Dictionary, empire: String, day := Ve
 		var kind := "city" if out.is_empty() else "village"
 		var r := 175.0 if kind == "city" else 130.0     # (the town, its landing field)
 		var d := Vector3(rng.randfn(), rng.randfn(), rng.randfn()).normalized()
+		if absf(d.y) > sin(CosmosPlanet.LIVED_LAT):   # (off its polar lands: within LIVED_LAT of the equator its days and nights each at most 12 min - CosmosPlanet's day)
+			continue
 		if day != Vector3.ZERO and d.dot(day) < (0.55 if kind == "city" else 0.15) - tries * 0.004:
 			continue
 		var far := true
@@ -149,6 +157,7 @@ static func sites(shape: PlanetShape, rec: Dictionary, empire: String, day := Ve
 		out.append({"dir": d, "h": h, "r": r, "kind": kind, "seed": rng.randi(), "yaw": rng.randf() * TAU,
 			"empire": empire, "name": name, "t1": t1, "t2": t2})
 	_more_sites(shape, rec, empire, day, out)   # (roads: more cities and villages - CosmosRoads)
+	_second_city(shape, rec, empire, out)   # (at least two cities a world, joined by a main road)
 	return out
 
 
@@ -175,6 +184,8 @@ static func _more_sites(shape: PlanetShape, rec: Dictionary, empire: String, day
 		var kind := "city" if cities > 0 else "village"
 		var r := 175.0 if kind == "city" else 130.0
 		var d := Vector3(rng.randfn(), rng.randfn(), rng.randfn()).normalized()
+		if absf(d.y) > sin(CosmosPlanet.LIVED_LAT):   # (off its polar lands, as the first)
+			continue
 		if day != Vector3.ZERO and d.dot(day) < (0.3 if kind == "city" else 0.05) - tries * 0.003:
 			continue
 		if out.any(func(o): return (o["dir"] as Vector3).dot(d) > cos(MORE_APART / shape.radius)):
@@ -213,6 +224,93 @@ static func _more_sites(shape: PlanetShape, rec: Dictionary, empire: String, day
 			villages -= 1
 
 
+## A world with only one city gets a second (appended - the others stay where they
+## were: saves, the maps), from a seed of its own: on the same kind of ground, apart
+## from the others, and on the same land as the first - dry ground all the way
+## between them (a main road joins them: CosmosRoads), or failing that, across a
+## strait narrow enough for a causeway (CAUSEWAY m of water), then a long one
+## (LONG_CAUSEWAY - the islands of an ocean world), then nearer, rougher ground.
+const CAUSEWAY := 420.0
+const LONG_CAUSEWAY := 1600.0
+
+
+static func _second_city(shape: PlanetShape, rec: Dictionary, empire: String, out: Array) -> void:
+	if out.is_empty():
+		return
+	var cities: Array = out.filter(func(o): return o["kind"] == "city")
+	for a in cities:   # (two cities a main road can join already: none needed)
+		for b in cities:
+			if a != b and _joinable(shape, a["dir"], b["dir"]):
+				return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(rec.get("seed", 1)) * 89 + 41
+	var used: Array = out.map(func(o): return str(o["name"]))
+	var names: Array = TOWN_NAMES.get(empire, NAMES)
+	# (each pass: [water allowed, the ground's unevenness allowed, nearest, furthest] - dry land first;
+	# by the first city, else by another - an island with no room for a second)
+	for anchor in cities:
+		var A: Vector3 = anchor["dir"]
+		for ps in [[0.0, 22.0, MORE_APART, 6500.0], [CAUSEWAY, 22.0, MORE_APART, 6500.0], [LONG_CAUSEWAY, 30.0, 1200.0, 9000.0], [LONG_CAUSEWAY, 34.0, 800.0, 9000.0]]:
+			var ax := A.cross(Vector3.UP if absf(A.y) < 0.9 else Vector3.RIGHT).normalized()
+			for tries in 1000:   # (round the anchor, between the nearest and the furthest: few wasted)
+				var d := A.rotated(ax.rotated(A, rng.randf() * TAU), rng.randf_range(float(ps[2]), float(ps[3])) / shape.radius).normalized()
+				if absf(d.y) > sin(CosmosPlanet.LIVED_LAT):
+					continue
+				var dist := acos(clampf(A.dot(d), -1.0, 1.0)) * shape.radius
+				if dist < float(ps[2]) or dist > float(ps[3]):
+					continue
+				if out.any(func(o): return (o["dir"] as Vector3).dot(d) > cos(float(ps[2]) / shape.radius)):
+					continue
+				var h0 := shape.raw_height(d)
+				if h0 < 4.0 or h0 > shape.amp * 1.5:
+					continue
+				var t1 := d.cross(Vector3.UP if absf(d.y) < 0.9 else Vector3.RIGHT).normalized()
+				var lo := h0
+				var hi := h0
+				var sum := h0
+				for k in 8:
+					var o := t1.rotated(d, k * TAU / 8.0) * 175.0 * (0.6 if k % 2 else 1.0)
+					var hh := shape.raw_height((d * shape.radius + o).normalized())
+					lo = minf(lo, hh)
+					hi = maxf(hi, hh)
+					sum += hh
+				if hi - lo > float(ps[1]) or lo < 2.5:
+					continue
+				if water_between(shape, A, d, float(ps[0])) > float(ps[0]):
+					continue
+				var name := ""
+				for k in names.size():
+					var nm: String = names[(int(rec.get("seed", 1)) * 5 + 3 + k) % names.size()]
+					if not nm in used:
+						name = nm
+						break
+				if name == "":
+					name = "%s Nea" % names[rng.randi() % names.size()]
+				out.append({"dir": d, "h": sum / 9.0, "r": 175.0, "kind": "city", "seed": rng.randi(), "yaw": rng.randf() * TAU,
+					"empire": empire, "name": name, "t1": t1, "t2": d.cross(t1), "second": true})
+				return
+
+
+## Can a main road join cities at a and b (unit dirs)? Near enough, a causeway's water at most between.
+static func _joinable(shape: PlanetShape, a: Vector3, b: Vector3) -> bool:
+	return acos(clampf(a.dot(b), -1.0, 1.0)) * shape.radius < 9000.0 and water_between(shape, a, b, LONG_CAUSEWAY) <= LONG_CAUSEWAY
+
+
+## Metres of sea (or a frozen sea's ice) along the great circle a..b (unit dirs), looked at every 40 m.
+static func water_between(shape: PlanetShape, a: Vector3, b: Vector3, stop := INF) -> float:
+	var L := acos(clampf(a.dot(b), -1.0, 1.0)) * shape.radius
+	if shape.sea == 0:
+		return 0.0
+	var n := maxi(2, ceili(L / 40.0))
+	var wet := 0.0
+	for i in n + 1:
+		if shape.raw_height(a.slerp(b, float(i) / n).normalized()) < 1.2:
+			wet += L / n
+			if wet > stop:
+				return wet   # (more than asked about: no need to count on)
+	return wet
+
+
 ## Its levelled ground: PlanetShape.flats entries.
 static func flats_of(towns: Array, radius: float) -> Array:
 	var out: Array = []
@@ -245,12 +343,17 @@ func want(on: bool) -> void:
 		var seed: int = site["seed"]
 		var kind: String = site["kind"]
 		var empire: String = site["empire"]
-		_task = Jobs.add(func(): _out = _make(kind, seed, empire), false, "town")
+		_stop = [false]
+		var stop := _stop
+		_task = Jobs.add(func(): _out = {} if stop[0] else _make(kind, seed, empire, stop), false, "town")
 	elif not on and built:
 		for ch in get_children():
-			ch.queue_free()
+			if not ch is OmniLight3D:
+				ch.queue_free()
 		_solids = []
 		_grid = {}
+		lamps = []
+		lit = -1.0
 		built = false
 
 
@@ -280,6 +383,9 @@ func poll() -> bool:
 	spots = _out["spots"]
 	port = _out["port"]
 	doors = _out["doors"]
+	lamps = _out.get("lamps", [])
+	streets = _out.get("streets", [])
+	_pools = _out.get("pools", [])
 	_out = {}
 	if not _blocks.is_empty():
 		_add_block()
@@ -290,6 +396,7 @@ func poll() -> bool:
 
 var _blocks: Array = []   # (the town's meshes still to put in - poll, one a frame)
 var _block_n := 0
+var _pools: Array = []    # (its lamps' glows on the ground: mesh arrays, made into a mesh here - with the last block)
 
 
 func _add_block() -> void:
@@ -299,11 +406,40 @@ func _add_block() -> void:
 	mi.mesh = m
 	mi.material_override = material(str(site["empire"]))
 	mi.visibility_range_end = 6000.0
+	if lit < 0.0:
+		lit = TownLamps.night_of(self)
+	mi.set_instance_shader_parameter("lamp_lit", lit)   # (its lamps' flames: lit by night)
 	add_child(mi)
 	_block_n += 1
+	if _blocks.is_empty() and not _pools.is_empty():
+		var pm := ArrayMesh.new()
+		pm.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, _pools)
+		_pools = []
+		var gi := MeshInstance3D.new()
+		gi.name = "LampPools"
+		gi.mesh = pm
+		gi.material_override = TownLamps.pool_material()
+		gi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		gi.visibility_range_end = 3000.0
+		gi.set_instance_shader_parameter("lamp_lit", lit)
+		gi.visible = lit > 0.005
+		add_child(gi)
+
+
+## Its lamps' light (TownLamps): 0 by day .. 1 by night - on its meshes' flames and its glows on the ground.
+func set_lit(v: float) -> void:
+	if absf(v - lit) < 0.004 and not (v == 0.0 and lit != 0.0) and not (v == 1.0 and lit != 1.0):
+		return
+	lit = v
+	for ch in get_children():
+		if ch is MeshInstance3D:
+			(ch as MeshInstance3D).set_instance_shader_parameter("lamp_lit", v)
+			if ch.name == "LampPools":
+				ch.visible = v > 0.005
 
 
 func _exit_tree() -> void:
+	_stop[0] = true   # (leaving: its build stops where it is - a wait on a job not begun runs it on this thread: a city 0.8 s)
 	if _task >= 0:
 		Jobs.wait(_task)
 		_task = -1
@@ -327,6 +463,11 @@ static func material(empire: String, kit := false) -> ShaderMaterial:
 			looks.append(Vector4(0.34 if i == TRIM else 0.45, 0.92 if i == TRIM else 0.8, 0.0, 0.0))
 			continue
 		looks.append(Vector4(0.4 if metal else ROUGH[i], 0.85 if metal else 0.0, 0.0, 0.0))
+	var lm: Array = TownLamps.METAL.get(empire, TownLamps.METAL[""])   # (12: the flames - lit, no colour of their own; 13: the lamps' metal)
+	cols.append(Color(0.02, 0.02, 0.02))
+	looks.append(Vector4(1.0, 0.0, 0.0, 0.0))
+	cols.append(Color(lm[0][0], lm[0][1], lm[0][2]).srgb_to_linear())
+	looks.append(Vector4(float(lm[1]), 0.92, 0.0, 0.0))
 	var m := ShaderMaterial.new()
 	m.shader = SHADER
 	m.set_shader_parameter("slot_color", cols)
@@ -359,7 +500,7 @@ func is_built() -> bool:
 # --- The layout and its mesh (on a worker) --------------------------------------------
 
 ## Everything built: {mesh, solids, grid, spots, port}.
-static func _make(kind: String, seed: int, empire: String) -> Dictionary:
+static func _make(kind: String, seed: int, empire: String, stop: Array = [false]) -> Dictionary:
 	var b := Builder.new()
 	b.rng.seed = seed
 	b.taper = float((LOOKS.get(empire, LOOKS[""]) as Array)[12])
@@ -368,13 +509,16 @@ static func _make(kind: String, seed: int, empire: String) -> Dictionary:
 	var half: float = lay["half"]
 	if kind == "city":
 		b.palace(Vector3.ZERO)
-		b.houses(half, Rect2(-46, -38, 92, 76))
-		b.shrine(lay["shrine"])
-		b.storehouse(lay["store"])
-	else:
-		b.shrine(lay["shrine"])
-		b.houses(half, Rect2(-14, -22, 28, 26))
-		b.storehouse(lay["store"])
+	if stop[0]:
+		return {}
+	b.shrine(lay["shrine"])
+	b.storehouse(lay["store"])
+	b.streets(kind)
+	if stop[0]:
+		return {}
+	b.blocks(kind)
+	if stop[0]:
+		return {}
 	# The paved square and the landing field beyond the houses.
 	var port: Vector3 = lay["port"]
 	b.box(Vector3(-half, -0.6, -half), Vector3(half, 0.04, half), PALE, false)
@@ -384,8 +528,17 @@ static func _make(kind: String, seed: int, empire: String) -> Dictionary:
 		b.box(c - Vector3(0.3, 0, 0.3), c + Vector3(0.3, 2.2, 0.3), BLACK)
 		b.box(c + Vector3(-0.4, 2.2, -0.4), c + Vector3(0.4, 2.6, 0.4), RED)
 	b.spots.append(port + Vector3(-36, 0, 0))
-	b.solids = CosmosSolids.merge_boxes(b.solids)   # (the kit's walls, piece by piece, made long blocks: fewer to look through)
-	return {"meshes": b.meshes_by(CHUNK), "solids": b.solids, "grid": b.grid(), "spots": b.spots, "port": port, "doors": b.doors}
+	var n0 := b.solids.size()
+	if stop[0]:
+		return {}
+	var lmp := TownLamps.place(b, kind, empire)   # (round what's built: its lamps)
+	if stop[0]:
+		return {}
+	var plan := CosmosSolids.merge_boxes(b.solids.slice(0, n0))   # (the kit's walls, piece by piece, made long blocks: fewer to look through)
+	b.solids = plan + b.solids.slice(n0)   # (and the lamps' posts, each its own)
+	return {"meshes": b.meshes_by(CHUNK), "solids": b.solids, "grid": b.grid(), "spots": b.spots, "port": port, "doors": b.doors,
+		"lamps": lmp["lamps"], "pools": lmp["pools"], "streets": TownStreets.pieces(kind, empire), "plan": plan}
+
 
 
 ## Where a town's parts stand (town-local, y up): its square's half-size,
@@ -393,9 +546,9 @@ static func _make(kind: String, seed: int, empire: String) -> Dictionary:
 ## them there; the planet map's town plans label them).
 static func layout(kind: String) -> Dictionary:
 	var half := 85.0 if kind == "city" else 45.0
-	if kind == "city":
-		return {"half": half, "port": Vector3(half + 38.0, 0, 0), "shrine": Vector3(-half + 16, 0, half - 16), "store": Vector3(half - 18, 0, -half + 14)}
-	return {"half": half, "port": Vector3(half + 38.0, 0, 0), "shrine": Vector3(0, 0, -10), "store": Vector3(half - 14, 0, half - 12)}
+	if kind == "city":   # (on blocks of their own between the streets - TownStreets)
+		return {"half": half, "port": Vector3(half + 38.0, 0, 0), "shrine": Vector3(-21, 0, 52), "store": Vector3(21, 0, -50)}
+	return {"half": half, "port": Vector3(half + 38.0, 0, 0), "shrine": Vector3(-15.5, 0, -19), "store": Vector3(15.5, 0, -20)}
 
 
 ## A town's points of interest for its map: [id, name, town-local position] -
@@ -420,7 +573,7 @@ static func places(kind: String) -> Array:
 ## A town's plan (for its map - on a worker): its buildings' solids (AABBs,
 ## town-local), as _make lays them out for its seed.
 static func plan_of(kind: String, seed: int, empire: String) -> Array:
-	return _make(kind, seed, empire)["solids"]
+	return _make(kind, seed, empire)["plan"]
 
 
 ## The pieces, as they're laid out: vertex arrays and solids.
@@ -446,6 +599,7 @@ class Builder:
 		arr[Mesh.ARRAY_INDEX] = idx
 		var m := ArrayMesh.new()
 		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+		LodKit.later(m, [arr])   # (its levels of detail - LodKit)
 		return m
 
 	## Its faces in blocks `size` m square (by where each quad stands): a mesh a block.
@@ -954,35 +1108,65 @@ class Builder:
 		spots.append(Vector3(c.x, 0, c.z + cz + 20))
 		spots.append(Vector3(c.x, 0, c.z - cz - 20))
 
-	## Houses on lots along lanes, within `half`, round what's taken.
-	func houses(half: float, keep_out: Rect2) -> void:
-		taken.append(keep_out)
-		var lot := 13.0
-		var x := -half + 4.0
-		while x + lot <= half - 2.0:
-			var z := -half + 4.0
-			while z + lot <= half - 2.0:
-				var r := Rect2(x, z, lot - 3.0, lot - 3.0)
-				var free := true
-				for t: Rect2 in taken:
-					if t.intersects(r.grow(2.0)):
-						free = false
-						break
-				if free and rng.randf() < 0.82:
-					_house(r)
-				elif free:
-					_garden(r)
-				spots.append(Vector3(x - 1.5, 0, z - 1.5))
-				z += lot
-			x += lot
+	## Its streets (TownStreets): paved, a little over the square - the people's spots along them.
+	func streets(kind: String) -> void:
+		for st in TownStreets.pieces(kind, emp):
+			var r: Rect2 = st["r"]
+			box(Vector3(r.position.x, -0.3, r.position.y), Vector3(r.end.x, 0.075, r.end.y), STONE, false, 2)
+			var ax: int = st["along"]
+			var n := maxi(1, int(r.size[ax] / 14.0))
+			for k in n:
+				var t := (k + 0.5) / n
+				var p := Vector2(r.position.x + r.size.x * t, r.get_center().y) if ax == 0 else Vector2(r.get_center().x, r.position.y + r.size.y * t)
+				spots.append(Vector3(p.x, 0, p.y))
 
-	func _house(r: Rect2) -> void:
+	## Houses on the lots of each block between the streets (TownStreets.cells),
+	## round what's taken (the palace, the shrine, the storehouse) - their doors
+	## onto a street where the lot has one.
+	func blocks(kind: String) -> void:
+		for cell in TownStreets.cells(kind, emp):
+			var r: Rect2 = cell["r"]
+			var sides: Array = cell["sides"]
+			var nx := mini(maxi(1, ceili((r.size.x + 2.0) / 15.0)), floori((r.size.x + 2.0) / 8.5))
+			var nz := mini(maxi(1, ceili((r.size.y + 2.0) / 15.0)), floori((r.size.y + 2.0) / 8.5))
+			if nx < 1 or nz < 1:
+				continue
+			var lw := (r.size.x - (nx - 1) * 2.0) / nx
+			var ld := (r.size.y - (nz - 1) * 2.0) / nz
+			for i in nx:
+				for j in nz:
+					var lot := Rect2(r.position.x + i * (lw + 2.0), r.position.y + j * (ld + 2.0), lw, ld)
+					if taken.any(func(t: Rect2): return t.intersects(lot.grow(1.5))):
+						continue
+					var ways: Array = []
+					if i == 0 and sides[0]:
+						ways.append(0)
+					if i == nx - 1 and sides[1]:
+						ways.append(1)
+					if j == 0 and sides[2]:
+						ways.append(2)
+					if j == nz - 1 and sides[3]:
+						ways.append(3)
+					var door: int = ways[rng.randi() % ways.size()] if not ways.is_empty() else rng.randi() % 4
+					if rng.randf() < 0.86:
+						_house(lot, door)
+					else:
+						_garden(lot)
+
+	func _house(r: Rect2, door := -1) -> void:
+		if door < 0:
+			door = rng.randi() % 4
 		var w := rng.randf_range(6.0, r.size.x)
 		var d := rng.randf_range(6.0, r.size.y)
 		var mn := r.position + Vector2(rng.randf() * (r.size.x - w), rng.randf() * (r.size.y - d))
+		match door:   # (its front on the lot's street side)
+			0: mn.x = r.position.x
+			1: mn.x = r.end.x - w
+			2: mn.y = r.position.y
+			3: mn.y = r.end.y - d
 		var mx := mn + Vector2(w, d)
 		var st := 1 if rng.randf() < 0.45 else (2 if rng.randf() < 0.8 else 3)
-		var top := block(mn, mx, st, 0.0, rng.randi() % 4)
+		var top := block(mn, mx, st, 0.0, door)
 		# A smaller storey on part of it, now and then; or a pergola on the roof.
 		if st < 3 and rng.randf() < 0.35:
 			block(mn + Vector2(0.5, 0.5), mn + Vector2(w * 0.5, d * 0.6), 1, top, -1, false, false, "none")
@@ -1040,7 +1224,7 @@ class Builder:
 	## a passage in to its door; the Cyclades' domed chapel, a marble figure
 	## before it; Sparta's plain hall hung with shields.
 	func shrine(c: Vector3) -> void:
-		taken.append(Rect2(c.x - 12, c.z - 8, 24, 18))
+		taken.append(TownStreets.shrine_rect(c))
 		match emp:
 			"athens", "ionia":
 				for k in 3:   # (the stepped platform)
@@ -1109,7 +1293,7 @@ class Builder:
 
 	## A storehouse: a long block, a loading porch, jars in rows.
 	func storehouse(c: Vector3) -> void:
-		taken.append(Rect2(c.x - 12, c.z - 9, 24, 20))
+		taken.append(TownStreets.store_rect(c))
 		block(Vector2(c.x - 10, c.z - 7), Vector2(c.x + 10, c.z + 1), 1, 0.0, 3, false, true, "wing")
 		for x in [-8.0, -4.0, 0.0, 4.0, 8.0]:
 			_jar(Vector3(c.x + x, 0, c.z + 4.0))

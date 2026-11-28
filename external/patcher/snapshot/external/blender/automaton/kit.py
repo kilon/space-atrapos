@@ -339,6 +339,11 @@ def _rest_bones(extra):
     for name, f in GUN_FOLD.items():   # (the rifle's folding pieces: on the gun bone, at their hinges, its axes)
         px, py, pz = f["pivot"]
         b[name] = (f.get("parent", "gun"), (-px, -0.4 - py, 1.2 + pz), (0, -1, 0), (0, 0, 1), 0.05)
+    if POD:                            # (the hip's compartment: its bones laid in the right thigh's axes at rest)
+        T = _m4(frame((0, 0, -1), (0, -1, 0)), Vector((-HIP_X, 0, HIP_Z)))
+        R = T.to_3x3()
+        for name, f in POD.items():
+            b[name] = (f["parent"], tuple(T @ _thigh(f["at"])), tuple(R @ _thigh(f["y"])), tuple(R @ _thigh(f["z"])), 0.05)
     b.update(extra or {})
     return b
 
@@ -572,6 +577,8 @@ DEFAULT = {
     "gun": None,
     # the rifle folded (a skin's GUN_FOLD pieces): 0 the whole rifle, 1 collapsed for its holster
     "fold": 0.0,
+    # the hip compartment's lid (a skin's POD): 0 shut, 1 open
+    "lid": 0.0,
     # lifted off the ground (m): taken off again when rendered (the game lifts the sprite)
     "air": 0.0,
     # in a seat: "" (not), "sit" (the game's chair), "stool" (its bar stool) - a skin's tail solver keeps
@@ -939,6 +946,9 @@ def solve(pose, extra=True):
         mats["shin" + sf] = _m4(frame(ankle - knee, pp), knee)
         fr2 = base @ _rz(P["fyaw" + s] * sx) @ _rx(P["fpitch" + s]) @ frame((0, -1, 0), (0, 0, 1))
         mats["foot" + sf] = _m4(fr2, ankle)
+    for name, spec in POD.items():     # (the hip compartment: riding its thigh, its lid opened by "lid")
+        par = spec["parent"]
+        mats[name] = mats[par] @ (REST[par].inverted() @ REST[name]) @ _moves(spec.get("moves", ()), P["lid"])
     # The rifle.
     gun = P["gun"]
     grip_pts = {}
@@ -1000,6 +1010,10 @@ def solve(pose, extra=True):
 # the barrel first as it folds, the stock last - unfolding the other way): turned "angle" degrees about "axis"
 # and slid by "slide" (the gun's axes). "parent": a piece riding on another (the barrel in the fore-end).
 GUN_FOLD = {}
+# A skin's compartment on the hip the folded rifle is put away in (POD, from the skin): bones riding the right thigh -
+# name: dict(parent, at (the bone's head: (out, forward, down) from the hip at rest, the thigh's axes), y / z (its
+# axes, the same way), moves (as a fold piece's: opened by the pose's "lid", 0 shut .. 1 open)).
+POD = {}
 
 
 def fold_k(f, span):
@@ -1008,16 +1022,39 @@ def fold_k(f, span):
     return t * t * (3 - 2 * t)
 
 
+def _moves(moves, f, piv=(0.0, 0.0, 0.0)):
+    """A piece's place from its hinge (`piv`, its parent's axes) at f: its moves in turn, each in its own share of
+    f ("span") - slides ("slide": summed) and turns ("axis", "angle": one after another)."""
+    off = Vector(piv)
+    rot = Matrix.Identity(4)
+    for m in moves:
+        t = fold_k(f, m["span"])
+        if t <= 0.0:
+            continue
+        if m.get("slide"):
+            off = off + Vector(m["slide"]) * t
+        if m.get("angle"):
+            rot = rot @ Matrix.Rotation(math.radians(m["angle"] * t), 4, Vector(m["axis"]))
+    return Matrix.Translation(off) @ rot
+
+
+def fold_moves(spec):
+    """A GUN_FOLD piece's moves: its "moves" list, or the one slide / turn its "span" times."""
+    if "moves" in spec:
+        return spec["moves"]
+    m = {"span": spec["span"]}
+    if spec.get("slide"):
+        m["slide"] = spec["slide"]
+    if spec.get("angle"):
+        m["axis"], m["angle"] = spec["axis"], spec["angle"]
+    return [m]
+
+
 def _fold_pieces(mats, f):
     for name, spec in GUN_FOLD.items():
-        t = fold_k(f, spec["span"])
         par = spec.get("parent", "gun")
         pp = GUN_FOLD[par]["pivot"] if par != "gun" else (0.0, 0.0, 0.0)
-        piv = Vector(spec["pivot"]) - Vector(pp)
-        loc = Matrix.Translation(piv + Vector(spec.get("slide", (0, 0, 0))) * t)
-        if spec.get("angle"):
-            loc = loc @ Matrix.Rotation(math.radians(spec["angle"] * t), 4, Vector(spec["axis"]))
-        mats[name] = mats[par] @ loc
+        mats[name] = mats[par] @ _moves(fold_moves(spec), f, Vector(spec["pivot"]) - Vector(pp))
 
 
 # ---------------------------------------------------------------- the pauldrons' fit

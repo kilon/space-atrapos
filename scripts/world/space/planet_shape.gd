@@ -102,6 +102,7 @@ const LAND_CAVES := 3       # caves into the hillsides of a rocky world
 const ABYSSES := 3          # abysses on a sea world's floor (a cave in the wall of each)
 const CAVE_CARVES := 6000   # (the caves' carves at most)
 const VALLEY_W := 0.11      # a valley's (~150 m)
+const SHELF := 0.21         # a sea's floor: how fast it drops off away from its shores (x the noise's depth squared)
 
 
 ## The shape of a planet record ({type, template, variant, size, seed}).
@@ -194,7 +195,8 @@ static func of(rec: Dictionary, with_caves := true) -> PlanetShape:
 		s._make_abysses(int(rec.get("seed", 1)) * 13 + 5)
 		s.cave_seed = int(rec.get("seed", 1)) * 29 + 11
 		s.dungeon_seed = int(rec.get("seed", 1)) * 17 + 3   # (the old sites' seed: Cosmos.dungeons_of's)
-		if with_caves:   # (else: make_caves on a worker - CosmosPlanet)
+		if with_caves:   # (else: make_caves on a worker - CosmosPlanet; its lakes and rivers first, PlanetWater)
+			s.water = PlanetWater.make(s)
 			s.make_caves()
 			s.merge_caves()
 	return s
@@ -224,7 +226,11 @@ func _make_abysses(seed: int) -> void:
 		_ab_dir.append(d)
 		_ab_cos.append(cos(r * 1.3 / radius))
 		_ab_r.append(r)
-		_ab_floor.append(-amp * rng.randf_range(1.8, 2.3))
+		var fl := -amp * rng.randf_range(1.8, 2.3)
+		var t1 := d.cross(Vector3.UP if absf(d.y) < 0.9 else Vector3.RIGHT).normalized()
+		for k in 8:   # (well below the sea floor round it, however deep that is)
+			fl = minf(fl, raw_height((d + t1.rotated(d, k * TAU / 8.0) * (r * 1.8 / radius)).normalized()) - amp * 1.1)
+		_ab_floor.append(fl)
 
 
 var cave_seed := 0
@@ -501,6 +507,9 @@ static func _empire_tint(L: Dictionary, empire: String, type: String) -> void:
 ## the ground as it was made (what's dug out of it: the carves, `density`).
 func height(d: Vector3) -> float:
 	var h := raw_height(d)
+	var wt := water
+	if wt != null:   # (its lakes' bowls, its rivers' beds)
+		h = wt.carve(d, h)
 	for i in _fdir.size():
 		var c := d.dot(_fdir[i])
 		if c > _fout[i]:   # (the town's plane, through its middle, flat - not round)
@@ -765,7 +774,30 @@ func cleared(d: Vector3) -> bool:
 	for i in _fdir.size():
 		if d.dot(_fdir[i]) > _fclear[i]:
 			return true
-	return false
+	var wt := water
+	return wt != null and wt.covered(d)   # (and its lakes and rivers, their very edges)
+
+
+## Its lakes and rivers (sea worlds: PlanetWater.make - a worker's, at the planet's
+## setup; null till then, and on the other worlds). Set once, whole: then only read.
+var water: PlanetWater = null
+
+
+## The water's surface at `d` (m above the radius): the sea's (0), a lake's or a
+## river's where one is - the highest of them - else -INF (no water: the ground's
+## the thing; where the ground's over it, it's dry land).
+func water_level(d: Vector3) -> float:
+	var lv := 0.0 if sea == 1 else -INF
+	var wt := water
+	if wt != null:
+		lv = maxf(lv, wt.level(d))
+	return lv
+
+
+## The current at `d` (m/s, planet-local, along the ground): a river's, a lake's drift.
+func water_flow(d: Vector3) -> Vector3:
+	var wt := water
+	return wt.flow(d) if wt != null else Vector3.ZERO
 
 
 ## The land as the noises make it (before the towns' levelling).
@@ -815,7 +847,13 @@ func raw_height(d: Vector3) -> float:
 		h += craters * amp * 0.9 * (bowl + rim)
 	h += mid * (2.5 + amp * 0.035)
 	h += _fine.get_noise_3dv(p) * 1.4
-	if sea > 0 and h < 0.0:
+	if sea == 1 and h < 0.0:
+		# (a sea of water: shallow only by its shores - a beach a few tens of metres out -
+		# then shelving down ever steeper to the deep, a few hundred metres at most)
+		var x := -h
+		var dd := 0.55 * x + SHELF * x * x
+		h = -dd / (1.0 + dd / (amp * 5.0))   # (eased off: never past ~5 amp)
+	elif sea > 0 and h < 0.0:
 		h *= 0.55          # (gentler sea floors)
 	elif sea > 0 and h < amp * 0.05:
 		h *= lerpf(0.4, 1.0, h / (amp * 0.05))   # (beaches: flat near the shore)

@@ -28,6 +28,7 @@ var life := 0.0                  # s (0: the kind's own)
 var slack := 0.0                 # m added to what it hits' reach
 var big := false                 # (a station's heavy gun's: drawn bigger)
 var _t := 0.0
+var _hit := Vector3.INF          # (where it struck, when it's known nearer than the segment's end: a hull)
 var _streak: MeshInstance3D
 
 
@@ -88,7 +89,7 @@ func _process(delta: float) -> void:
 		queue_free()
 		return
 	if step(a, b):
-		_impact(b)
+		_impact(_hit if _hit != Vector3.INF else b)
 		queue_free()
 		return
 	global_position = b
@@ -142,6 +143,7 @@ func step(a: Vector3, b: Vector3) -> bool:
 	var seg := b - a
 	var L := seg.length()
 	var dir := seg / maxf(L, 0.0001)
+	var hull_t: float = cosmos.hull_hit(a, dir, L) if not space and cosmos.has_method("hull_hit") else INF   # (a landed ship's hull in its way: CosmosHullGrid)
 	for t in targets:
 		if not is_instance_valid(t) or t.get("dead"):
 			continue
@@ -150,6 +152,8 @@ func step(a: Vector3, b: Vector3) -> bool:
 			r = 12.0   # (the orbs: your hitbox smaller than your hull - hard to dodge, but dodgeable)
 		var centre: Vector3 = t.global_position if space else t.global_position + (t.up() if t.has_method("up") else Vector3.UP) * maxf(r * 0.8, 0.9)
 		var tc := clampf((centre - a).dot(dir), 0.0, L)
+		if tc > hull_t:
+			continue   # (behind the hull: it takes it)
 		if (a + dir * tc).distance_to(centre) < r + 0.25 + slack:
 			if side == "player" and space and cosmos.law:
 				cosmos.law.player_hit(t)
@@ -158,6 +162,9 @@ func step(a: Vector3, b: Vector3) -> bool:
 			if calm and is_instance_valid(t):
 				t.hostile = false   # (a station's fire turns no one on you)
 			return true
+	if hull_t <= L:
+		_hit = a + dir * hull_t
+		return true   # (struck a ship's hull - sparks off it, no harm done)
 	# What's been built (yours): the piece it strikes worn (CosmosBuilds) - anyone's bolts.
 	if cosmos.get("builds") and cosmos.builds.bolt_hit(a, dir, L, damage):
 		return true
@@ -168,10 +175,12 @@ func step(a: Vector3, b: Vector3) -> bool:
 	# The ground.
 	var pl: CosmosPlanet = cosmos.planet_below(b, 50.0)
 	if pl:
-		var local := b - pl.global_position
+		var local := pl.to_local(b)   # (planet-local: its ground's frame)
 		if pl.shape.carved_near(local):   # (dug ground - a cave, a dungeon, a tunnel: its rock, not the face above)
 			if pl.shape.density(local) < 0.0:
 				return true
 		elif local.length() < pl.radius + pl.shape.surface(local.normalized()):
+			return true
+		if CosmosRoads.deck_solid(pl, local) or CosmosRoads.deck_solid(pl, pl.to_local(a.lerp(b, 0.5))):   # (a bridge's stone)
 			return true
 	return false

@@ -23,7 +23,7 @@ var group: Dictionary = {}      # its caravan's (CosmosCaravans)
 var goods := {}                 # what it carries: item id -> n (a trader's, a courier's...)
 var empire := ""
 var speed := 1.4                # m/s on the road
-var goal := Vector3.INF         # (global) where its caravan wants it now
+var goal := Vector3.INF         # (global) where its caravan wants it now (set again each frame: the world turns)
 var threat: Node3D = null       # what it's fighting or running from
 var _hits: Array = []           # (a raider's shots on their way: [s to go, target, damage])
 var _look := 0.0
@@ -196,7 +196,8 @@ func _think(delta: float) -> void:
 	global_position += move * spd * delta
 	var local := global_position - planet.global_position
 	var dn := local.normalized()
-	global_position = planet.global_position + dn * (planet.radius + maxf(planet.shape.height(dn), 0.0))
+	var gl := planet.dir_local(dn)
+	global_position = planet.global_position + dn * (planet.radius + maxf(maxf(planet.shape.height(gl), 0.0), CosmosRoads.deck_top(planet, gl * planet.radius)))   # (its ground in the world's own frame: it turns; a bridge's deck)
 	if cosmos and cosmos.get("builds") and cosmos.builds.planet == planet:
 		global_position += cosmos.builds.push_body(global_position, 0.45, false)
 	facing = (facing - dn * facing.dot(dn)).normalized()

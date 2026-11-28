@@ -10,14 +10,15 @@ shader_type spatial;
 // the ground.
 render_mode cull_back;
 
-uniform vec4 slot_color[12];
-uniform vec4 slot_look[12];   // x roughness, y metallic
+uniform vec4 slot_color[14];
+uniform vec4 slot_look[14];   // x roughness, y metallic (13: a town lamp's metal - TownLamps)
 uniform float ashlar = 1.0;
 uniform float cyclopean = 0.0;   // (Mycenae's: the cut stone in great many-sided blocks)
 uniform int band_style = 0;      // the fresco band: 0 running spirals, 1 the meander, 2 lambdas, 3 rosettes, 4 egg and dart
 uniform vec3 band_ink : source_color = vec3(0.93, 0.88, 0.74);
 uniform vec4 paint_color[9];     // (built pieces - BuildKit: COLOR.a = 1 - paint / 16, a paint over the plaster, wood, tiles)
 uniform vec3 glow_color : source_color = vec3(1.0, 0.55, 0.18);   // (slot 12: a lamp's flame, a kiln's mouth)
+instance uniform float lamp_lit = 1.0;   // (slot 14: a town lamp's flame - TownLamps: 0 by day (sunk into its bowl, out), 1 by night)
 uniform sampler3D noise_tex : filter_linear, repeat_enable;   // (the world's 3D noise: the plaster's mottling, three lookups)   // 1: the stone slot in courses; 2: the walls too (a dungeon); 0: rough (a cave)
 
 varying vec3 v_obj;
@@ -28,6 +29,18 @@ float hash(vec3 p) {
 }
 
 void vertex() {
+	if (int(COLOR.r * 255.0 + 0.5) == 14) {
+		// (a town lamp's flame: COLOR.g how far up it, COLOR.b its height - swaying, flickering
+		// taller and shorter; by day sunk to its foot: its bowl's oil)
+		float up = COLOR.g;
+		float h = COLOR.b;
+		float ph = VERTEX.x * 1.7 + VERTEX.z * 2.3;
+		float sway = up * up * h * 0.16 * lamp_lit;
+		VERTEX.x += sin(TIME * 5.3 + ph + up * 2.0) * sway;
+		VERTEX.z += cos(TIME * 4.1 + ph * 1.3 + up * 1.6) * sway;
+		VERTEX.y += up * h * (0.1 * sin(TIME * 9.0 + ph * 2.0) * lamp_lit - (1.0 - lamp_lit));
+		NORMAL = normalize(mix(vec3(0.0, 1.0, 0.0), NORMAL, lamp_lit));
+	}
 	v_obj = VERTEX;
 	v_n = NORMAL;
 }
@@ -94,7 +107,7 @@ vec2 face_uv(vec3 p, vec3 n) {
 
 void fragment() {
 	int raw = int(COLOR.r * 255.0 + 0.5);
-	int i = clamp(raw, 0, 11);
+	int i = clamp(raw, 0, 13);
 	float n = texture(noise_tex, v_obj * 0.22).r * 0.55 + texture(noise_tex, v_obj * 1.05).r * 0.3 + texture(noise_tex, v_obj * 4.6).r * 0.15;
 	vec3 c = slot_color[i].rgb * (0.86 + 0.24 * n) * (0.93 + 0.14 * COLOR.g);
 	int code = int((1.0 - COLOR.a) * 64.0 + 0.5);   // (built pieces: paint + 9 x wear)
@@ -141,7 +154,7 @@ void fragment() {
 		c *= 0.82 + 0.3 * gr;
 	}
 	c *= mix(0.72, 1.0, smoothstep(0.0, 1.6, v_obj.y));   // (grime splashed up from the ground)
-	if (wear > 0 && raw != 12) {   // (worn: soot and grime, then cracks across it - more, wider, the worse it is)
+	if (wear > 0 && raw != 12 && raw != 14) {   // (worn: soot and grime, then cracks across it - more, wider, the worse it is)
 		vec2 pg = polygons(face_uv(v_obj, v_n) / (0.55 - 0.1 * float(wear)) + vec2(float(i) * 3.1, 0.0));
 		float crack = (1.0 - smoothstep(0.0, 0.012 + 0.012 * float(wear), pg.x)) * step(0.45 - 0.15 * float(wear), pg.y);
 		float soot = texture(noise_tex, v_obj * 0.6).r;
@@ -149,14 +162,15 @@ void fragment() {
 		c = mix(c, vec3(0.02), crack * 0.85);
 		rough = mix(rough, 1.0, 0.15 * float(wear));
 	}
-	if (raw == 12) {   // (a flame: lit from within, flickering with the noise as it drifts)
+	if (raw == 12 || raw == 14) {   // (a flame: lit from within, flickering with the noise as it drifts; a town's by night)
 		float fl = texture(noise_tex, v_obj * 2.0 + vec3(0.0, -TIME * 1.3, 0.0)).r;
-		c = vec3(0.02);
-		EMISSION = glow_color * (2.2 + 2.4 * fl);
-		rough = 1.0;
+		float lit = raw == 14 ? lamp_lit : 1.0;
+		c = mix(vec3(0.035, 0.028, 0.02), vec3(0.02), lit);   // (out: dark oil)
+		EMISSION = glow_color * (2.2 + 2.4 * fl) * lit;
+		rough = mix(0.25, 1.0, lit);
 	}
 	ALBEDO = c;
 	ROUGHNESS = clamp(rough, 0.05, 1.0);
-	METALLIC = raw == 12 ? 0.0 : slot_look[i].y;
+	METALLIC = (raw == 12 || raw == 14) ? 0.0 : slot_look[i].y;
 	SPECULAR = 0.25;   // (plaster and stone: little of the sky mirrored - shaded sides not blue)
 }

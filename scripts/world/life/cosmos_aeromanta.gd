@@ -44,7 +44,9 @@ static func mesh() -> ArrayMesh:
 		WorkerThreadPool.wait_for_task_completion(_task)
 		_task = -1
 		var m := ArrayMesh.new()
-		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, _built.body.arrays())
+		var body: Array = _built.body.arrays()
+		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, body)
+		LodKit.later(m, [body])   # (its levels of detail - LodKit)
 		m.custom_aabb = AABB(Vector3(-SPAN - 0.2, -0.6, -1.0), Vector3(SPAN * 2.0 + 0.4, 1.2, TAIL + 1.8))   # (the waves and the tail inside)
 		made = {"stations": _built.stations, "tail_rings": _built.tail_rings, "fins": _built.fins, "eyes": _built.eyes, "build_ms": _built.ms}
 		_built = null

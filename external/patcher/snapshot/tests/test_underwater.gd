@@ -152,7 +152,7 @@ func test_streamed_round_the_camera_and_on_only_under_water() -> void:
 	c.cam.set_physics_process(false)
 	var d := _spot(pl.shape, 10.0, 25.0)
 	var depth := -pl.shape.height(d)
-	c.cam.global_position = pl.global_position + d * (pl.radius - depth * 0.5)
+	c.cam.global_position = pl.to_global(d * (pl.radius - depth * 0.5))
 	var ok := await _wait(func(): return uw.planet == pl and not uw.shown_cells.is_empty() and uw._apply.is_empty() and uw._area_task == -1)
 	check(ok, "the sea round the camera streamed in")
 	await tree.process_frame
@@ -168,7 +168,7 @@ func test_streamed_round_the_camera_and_on_only_under_water() -> void:
 	check(uw.counts.get("kelp", 0) + uw.counts.get("seagrass", 0) > 0, "kelp or sea grass")
 	check(uw._swimmers.size() >= 7, "fish schools, rays, an eel, jellyfish (%d groups)" % uw._swimmers.size())
 	# The animals keep to the water.
-	var local := c.cam.global_position - pl.global_position
+	var local := pl.to_local(c.cam.global_position)
 	for i in 300:
 		uw._swim(0.05, local)
 	var wet := 0
@@ -182,7 +182,7 @@ func test_streamed_round_the_camera_and_on_only_under_water() -> void:
 			wet += 1
 	check(shown > 0 and wet == shown, "every animal under the surface, over the floor (%d of %d)" % [wet, shown])
 	# Up out of the water: the look off, the life hidden (still kept - a dive's ready).
-	c.cam.global_position = pl.global_position + d * (pl.radius + 12.0)
+	c.cam.global_position = pl.to_global(d * (pl.radius + 12.0))
 	await tree.process_frame
 	await tree.process_frame
 	check(not uw.under and not uw._fx.visible and not uw._root.visible, "above the surface: nothing of it drawn")
@@ -192,11 +192,11 @@ func test_streamed_round_the_camera_and_on_only_under_water() -> void:
 	var before: Array = uw.shown_cells.duplicate()
 	var t := d.cross(Vector3.UP).normalized()
 	var d2 := (d * pl.radius + t * 60.0).normalized()
-	c.cam.global_position = pl.global_position + d2 * (pl.radius - 2.0)
+	c.cam.global_position = pl.to_global(d2 * (pl.radius - 2.0))
 	ok = await _wait(func(): return uw.shown_cells != before and uw._area_task == -1)
 	check(ok and uw.shown_cells.any(func(k): return not before.has(k)), "moved on 60 m: new cells streamed in")
 	# Far up: all of it let go.
-	c.cam.global_position = pl.global_position + d * (pl.radius + 3000.0)
+	c.cam.global_position = pl.to_global(d * (pl.radius + 3000.0))
 	ok = await _wait(func(): return uw.planet == null, 3000)
 	check(ok and uw.cells.is_empty() and uw._root == null, "flown away: the sea's life let go")
 	check(not uw._fx.visible, "...and no underwater look")

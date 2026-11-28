@@ -214,7 +214,7 @@ func _draw_readout(tgt: Node3D) -> void:
 	var line := ty + 32.0
 	var pl: CosmosPlanet = cosmos.nearest_planet(ship.global_position)
 	if pl and ship.global_position.distance_to(pl.global_position) < pl.radius * 3.0:
-		var u := (ship.global_position - pl.global_position).normalized()
+		var u := pl.to_local(ship.global_position).normalized()   # (in its own frame: fixed to its ground as it turns)
 		var lat := rad_to_deg(asin(clampf(u.y, -1.0, 1.0)))
 		var lon := rad_to_deg(atan2(u.x, u.z))
 		_text(Vector2(x, line), "%.2f° %s   %.2f° %s" % [absf(lat), "N" if lat >= 0.0 else "S", absf(lon), "E" if lon >= 0.0 else "W"], 17, ACCENT)
@@ -764,7 +764,7 @@ func _draw_scan(vs: Vector2, c: Vector2) -> void:
 		var pl: Node3D = m[1]
 		if not is_instance_valid(pl):
 			continue
-		var p: Vector3 = pl.global_position + (m[0] as Vector3)
+		var p: Vector3 = pl.to_global(m[0] as Vector3)   # (planet-local: on its turning ground)
 		if cam.is_position_behind(p):
 			continue
 		var vein: bool = m[3] == "ore" and str(m[2]).contains(" down")   # (a vein: the scanner's - seen through the ground)
@@ -815,7 +815,111 @@ func _draw_weather(vs: Vector2) -> void:
 	var rad := float(w.get("rad", 0.1))
 	var rc := Color(1.0, 0.35, 0.25) if rad > 50.0 else (WARN if rad > 5.0 else ACCENT)
 	_trefoil(Vector2(rx + s * 0.5, at.y + s * 0.5), s * 0.5, rc)
-	_text(Vector2(rx + s + 8.0, txt_y), ("%.2f µSv/h" if rad < 10.0 else "%.0f µSv/h") % rad, 17, rc)
+	var rs := ("%.2f µSv/h" if rad < 10.0 else "%.0f µSv/h") % rad
+	_text(Vector2(rx + s + 8.0, txt_y), rs, 17, rc)
+	# The sun: how long to its rising and to its setting here (the line under it).
+	if pl:
+		var sun := sun_times(pl)
+		var y2 := at.y + s + 10.0 * k
+		var sx := at.x
+		if cosmos.walker == null:   # (flying: on the same line - under it is the weapon's name)
+			y2 = at.y
+			sx = rx + s + 8.0 + _font.get_string_size(rs, HORIZONTAL_ALIGNMENT_LEFT, -1, 17).x + 18.0 * k
+		for e in [[true, sun[0]], [false, sun[1]]]:
+			var ic := Color(1.0, 0.72, 0.3) if e[0] else Color(1.0, 0.5, 0.32)
+			_horizon_icon(Vector2(sx + s * 0.5, y2 + s * 0.5), s, e[0], ic)
+			var tt := ("Sunrise " if e[0] else "Sunset ") + _span(float(e[1]))
+			_text(Vector2(sx + s + 8.0, y2 + s * 0.5 + 7.0), tt, 17, ACCENT)
+			sx += s + 8.0 + _font.get_string_size(tt, HORIZONTAL_ALIGNMENT_LEFT, -1, 17).x + 18.0 * k
+
+
+## The sunrise and the sunset where you stand on `pl`: [seconds to the next rising, seconds to
+## the next setting] (INF: none soon - a pole's long day or night). The worlds turn (CosmosPlanet's
+## day): the sun's height at your spot (planet-local - it turns with the ground) from where the
+## world will be and how far it'll have turned (Cosmos.planet_places, CosmosPlanet.sun_local_at),
+## stepped over the coming day and a half (no turning: its year), then narrowed; looked at every 2 s.
+var _sun_at := -1.0
+var _sun_cache := [INF, INF]
+var _sun_pl: Object
+
+
+func sun_times(pl: CosmosPlanet) -> Array:
+	var now: float = Galaxy.time
+	if pl == _sun_pl and _sun_at >= 0.0 and absf(now - _sun_at) < 2.0:
+		return [maxf(float(_sun_cache[0]) - (now - _sun_at), 0.0), maxf(float(_sun_cache[1]) - (now - _sun_at), 0.0)]
+	_sun_pl = pl
+	_sun_at = now
+	_sun_cache = [INF, INF]
+	var focus: Node3D = cosmos.focus() if cosmos.has_method("focus") else cam
+	if focus == null:
+		return _sun_cache
+	var u := pl.to_local(focus.global_position).normalized()
+	var id := str(pl.rec.get("id", pl.name))
+	var sid: String = cosmos.system_id
+	var el := func(t: float) -> float:   # (the sun's height here at time t)
+		var where: Dictionary = Cosmos.planet_places(sid, t)
+		if not where.has(id):
+			return 0.0
+		return u.dot(pl.sun_local_at(t, where[id]))
+	var span := pl.day_len * Settings.day_length * 1.5 if Settings.day_length > 0.0 else 0.0
+	if span <= 0.0:   # (not turning: a place's hour moves only with its year)
+		span = (pl.year_len if pl.year_len > 0.0 else 3600.0) * 1.1
+	var step := span / 72.0
+	var e0: float = el.call(now)
+	var t0 := now
+	for i in 72:
+		var t1 := t0 + step
+		var e1: float = el.call(t1)
+		if (e0 < 0.0) != (e1 < 0.0):
+			var lo := t0
+			var hi := t1
+			for j in 10:
+				var mid := (lo + hi) * 0.5
+				if (float(el.call(mid)) < 0.0) == (e0 < 0.0):
+					lo = mid
+				else:
+					hi = mid
+			var k := 0 if e0 < 0.0 else 1   # (night to day: a rising; day to night: a setting)
+			if _sun_cache[k] == INF:
+				_sun_cache[k] = hi - now
+			if _sun_cache[0] != INF and _sun_cache[1] != INF:
+				break
+		t0 = t1
+		e0 = e1
+	return _sun_cache
+
+
+## A time span for the readout: "1h 05m", "12m", "40s", "-" (never).
+static func _span(sec: float) -> String:
+	if sec == INF or sec > 360000.0:
+		return "-"
+	var m := int(sec / 60.0)
+	if m >= 60:
+		return "%dh %02dm" % [m / 60, m % 60]
+	if m >= 1:
+		return "%dm" % m
+	return "%ds" % int(sec)
+
+
+## The sun on the horizon: half a sun over a line, an arrow up (rising) or down (setting).
+func _horizon_icon(c: Vector2, s: float, rising: bool, col: Color) -> void:
+	var base := c + Vector2(-s * 0.08, s * 0.16)
+	draw_line(base + Vector2(-s * 0.42, 0), base + Vector2(s * 0.42, 0), col, 2.0)
+	var pts := PackedVector2Array()
+	for i in 13:
+		pts.append(base + Vector2.from_angle(PI + PI * i / 12.0) * s * 0.2)
+	draw_colored_polygon(pts, col)
+	for i in 5:
+		var d := Vector2.from_angle(PI + PI * (i + 0.5) / 5.0)
+		draw_line(base + d * s * 0.27, base + d * s * 0.37, col, 2.0)
+	var ax := c.x + s * 0.4
+	var y0 := c.y + (s * 0.2 if rising else -s * 0.3)
+	var y1 := c.y + (-s * 0.3 if rising else s * 0.2)
+	draw_line(Vector2(ax, y0), Vector2(ax, y1), col, 2.0)
+	var tip := Vector2(ax, y1)
+	var back := s * (0.12 if rising else -0.12)
+	draw_line(tip, tip + Vector2(-s * 0.09, back), col, 2.0)
+	draw_line(tip, tip + Vector2(s * 0.09, back), col, 2.0)
 
 
 func _cloud_shape(c: Vector2, s: float, col: Color) -> void:
@@ -902,8 +1006,8 @@ func _ground_between(a: Vector3, b: Vector3) -> bool:
 	var pl: CosmosPlanet = cosmos.planet_below(a, 30000.0) if cosmos.has_method("planet_below") else null
 	if pl == null or pl.shape.kind == "gas":
 		return false
-	var la := a - pl.global_position
-	var lb := b - pl.global_position
+	var la := pl.to_local(a)   # (in its own frame: its ground's)
+	var lb := pl.to_local(b)
 	var seg := lb - la
 	var L := seg.length()
 	if L < 1.0:
@@ -914,16 +1018,19 @@ func _ground_between(a: Vector3, b: Vector3) -> bool:
 	var t0 := -la.dot(dir)
 	if t0 > 0.0 and t0 < L and (la + dir * t0).length() < R:
 		return true
-	# (the ground near: samples along the line - not the last stretch, where the thing stands)
-	var reach := minf(L - 25.0, 5000.0)
-	if reach <= 0.0:
-		return false
-	var n := 20
-	for i in range(1, n + 1):
-		var q := la + dir * (reach * i / n)
-		var u := q.normalized()
-		if q.length() < pl.radius + pl.shape.height(u) - 1.5 and not pl.shape.carved_near(q):
+	# (the ground: samples along the line all the way, close together near you and further apart
+	# further out - a small rise near hides as much as a mountain far; to a point 1.5 m over the
+	# thing's foot, its own ground not counted)
+	lb += lb.normalized() * 1.5
+	seg = lb - la
+	L = seg.length()
+	dir = seg / L
+	var t := 2.0
+	while t < L - 3.0:
+		var q := la + dir * t
+		if q.length() < pl.radius + pl.shape.height(q.normalized()) - 0.5 and not pl.shape.carved_near(q):
 			return true
+		t += clampf(t * 0.05, 2.0, 400.0)
 	return false
 
 
@@ -944,8 +1051,9 @@ func _grab_hand(c: Vector2) -> void:
 # The heading (compass_heading / heading_at): degrees clockwise from north, 0-360, of where you
 # face projected on the local level:
 #  - near a world (within 6 of its radii; on foot always): "up" is away from its centre, north its
-#    pole - the world's +Y axis (worlds don't spin; latitude is measured the same way) - laid on the
-#    ground's level; east = north x up (so walking east, the longitude grows).
+#    pole - the +Y axis of its own frame, the axis it turns on (latitude and longitude are measured
+#    in that frame: fixed to its ground) - laid on the ground's level; east = north x up (so walking
+#    east, the longitude grows).
 #  - out in space: the system's plane - up is the system's +Y (its plane is XZ, as the maps draw it),
 #    north is -Z, east +X.
 # Facing: on foot the camera's (where you look), in the ship its nose. No compass inside things -
@@ -1064,9 +1172,9 @@ func compass_frame(pos: Vector3) -> Array:
 	var pl: CosmosPlanet = cosmos.nearest_planet(pos) if cosmos else null
 	if pl and pos.distance_to(pl.global_position) < pl.radius * 6.0:
 		up = (pos - pl.global_position).normalized()
-		north = Vector3.UP
-		if absf(up.y) > 0.999:
-			north = Vector3.FORWARD   # (right over a pole: every way is south / north)
+		north = pl.dir_world(Vector3.UP)   # (its pole: its own axis, turning with it)
+		if absf(up.dot(north)) > 0.999:
+			north = pl.dir_world(Vector3.FORWARD)   # (right over a pole: every way is south / north)
 	north = (north - up * north.dot(up)).normalized()
 	return [up, north, north.cross(up)]
 
@@ -1125,7 +1233,7 @@ func nearest_ground() -> Array:
 			bd = d
 			best = pl
 	if best and bd < best.radius * 0.6:
-		bd -= best.ground_at(ship.global_position - best.global_position)
+		bd -= best.ground_at(best.to_local(ship.global_position))
 	return [best, bd]
 
 
@@ -1233,7 +1341,7 @@ func _draw_compass(vs: Vector2, hd: float) -> void:
 	if on_world:
 		_text_c(Vector2(o.x, box.position.y + box.size.y * 0.5 + 8.0), "%03d°" % (roundi(hd) % 360), 22, gold, true)
 		# (where you are on it: latitude and longitude)
-		var u := (_compass_at() - _compass_world.global_position).normalized()
+		var u := _compass_world.to_local(_compass_at()).normalized()   # (its own frame: fixed to its ground)
 		var lat := rad_to_deg(asin(clampf(u.y, -1.0, 1.0)))
 		var lon := rad_to_deg(atan2(u.x, u.z))
 		_text_c(Vector2(o.x, below), "%.2f° %s   %.2f° %s" % [absf(lat), "N" if lat >= 0.0 else "S", absf(lon), "E" if lon >= 0.0 else "W"], 16, ACCENT, true)
@@ -1243,6 +1351,32 @@ func _draw_compass(vs: Vector2, hd: float) -> void:
 		var pitch := rad_to_deg(asin(clampf(fwd.normalized().y, -1.0, 1.0)))
 		_text_c(Vector2(o.x, box.position.y + box.size.y * 0.5 + 8.0), "Y %03d°" % (roundi(hd) % 360), 20, gold, true)
 		_text_c(Vector2(o.x, below), "P %+d°" % roundi(pitch), 18, gold, true)
+	# (a mark lined up with the heading: its name and how far)
+	var lined := lined_up_mark(hd)
+	if not lined.is_empty():
+		_text_c(Vector2(o.x, below + 24.0), "%s  -  %s" % [lined[7], _dist(float(lined[4]))], 18, lined[2], true)
+
+
+## The compass bar's mark nearest the heading, within LINE_UP degrees (the nearer one if
+## two are), or [] - [bearing, kind, colour, targeted, distance, cell, colour, name].
+const LINE_UP := 2.5
+var _lined_at := 0
+var _lined: Array = []
+
+
+func lined_up_mark(hd: float) -> Array:
+	var now := Time.get_ticks_msec()
+	if now - _lined_at < 100:   # (looked at ten times a second)
+		return _lined
+	_lined_at = now
+	_lined = []
+	var best := LINE_UP
+	for m: Array in compass_marks():
+		var off := absf(wrapf(float(m[0]) - hd, -180.0, 180.0))
+		if off < best or (is_equal_approx(off, best) and not _lined.is_empty() and float(m[4]) < float(_lined[4])):
+			best = off
+			_lined = m
+	return _lined
 
 
 ## The sights' fixed lines: the glass band and the rings -
@@ -1434,6 +1568,7 @@ func compass_marks() -> Array:
 	var at := _compass_at()
 	var fr := compass_frame(at)
 	var out := []
+	var names := []   # (each mark's name: shown under the heading when it's lined up)
 	for b: Node3D in cosmos.bodies():
 		if out.size() >= COMPASS_MARKS:
 			break
@@ -1446,6 +1581,7 @@ func compass_marks() -> Array:
 		if (b is CosmosNpcShip and b.hostile) or b is CosmosMonster:
 			col = WARN
 		out.append([brg, _kind_of(b), col, b == tgt, at.distance_to(b.global_position) - cosmos.radius_of(b)])
+		names.append(cosmos.label_of(b))
 	var sb: CosmosSandbox = cosmos.sandbox
 	if sb and cosmos.walker:
 		for m in sb.scan_marks:
@@ -1454,7 +1590,7 @@ func compass_marks() -> Array:
 			var pl: Node3D = m[1]
 			if not is_instance_valid(pl):
 				continue
-			var p: Vector3 = pl.global_position + (m[0] as Vector3)
+			var p: Vector3 = pl.to_global(m[0] as Vector3)
 			var brg := bearing(fr, p - at)
 			if brg < 0.0:
 				continue
@@ -1475,14 +1611,18 @@ func compass_marks() -> Array:
 					kind = "camp" if name == "Pirate camp" else ("lair" if name == "Bio-signature" else "creature")
 					col = WARN
 			out.append([brg, kind, col, false, at.distance_to(p)])
+			names.append(name)
 	var dest: Variant = package_dest()
 	if dest != null and out.size() < COMPASS_MARKS:
 		var brg := bearing(fr, (dest as Vector3) - at)
 		if brg >= 0.0:
 			out.append([brg, "package", ACCENT, false, at.distance_to(dest)])
-	for mk: Array in out:   # (its cell and colour: made once, drawn each time)
+			names.append("Package's destination")
+	for i in out.size():   # (its cell and colour: made once, drawn each time; then its name)
+		var mk: Array = out[i]
 		mk.append(CompassIcons.cell(CompassIcons.index(mk[1])))
 		mk.append(mk[2] if mk[3] else Color(mk[2], 0.8))
+		mk.append(str(names[i]))
 	return out
 
 
@@ -1526,7 +1666,7 @@ func package_dest() -> Variant:
 		if str(pl.rec.get("name", "")) == str(d.get("planet", "")):
 			for t in pl.towns:
 				if str(t["name"]) == str(d.get("town", "")):
-					return pl.global_position + (t["dir"] as Vector3) * (pl.radius + float(t["h"]))
+					return pl.to_global((t["dir"] as Vector3) * (pl.radius + float(t["h"])))   # (planet-local: where it stands on its turning ground)
 			return pl.global_position
 	return null
 

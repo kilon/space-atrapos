@@ -23,6 +23,7 @@ static var started := false
 ## A game from a save's state (SaveGame.load_slot: the slot's "state").
 static func begin_state(st: Dictionary) -> void:
 	_fresh_data()
+	CosmosPlanet.reset_spin(Settings.day_length)   # (the worlds' turn from the galaxy's clock: CosmosPlanet's day)
 	state = st
 	extra = st.get("cosmos3d", {}).duplicate(true)
 	from_save = not st.is_empty()
@@ -41,6 +42,7 @@ static func begin_state(st: Dictionary) -> void:
 ## A game for the 3D world: the latest save continued, or a new one.
 static func begin(continue_save: bool) -> void:
 	_fresh_data()
+	CosmosPlanet.reset_spin(Settings.day_length)
 	state = {}
 	extra = {}
 	from_save = false
@@ -123,7 +125,8 @@ static func snapshot(c: Node) -> Dictionary:
 	# (on foot on a world, your ship not with you - or none yet: where you stand)
 	if w and w.get("deck") == null and w.get("planet") and (c.ship_elsewhere or not has_ship()):
 		var pl: Node3D = w.planet
-		extra["on_planet"] = {"planet": str(pl.rec.get("name", "")), "at": [w.global_position.x - pl.global_position.x, w.global_position.y - pl.global_position.y, w.global_position.z - pl.global_position.z]}
+		var lat: Vector3 = pl.to_local(w.global_position)   # (planet-local: the same ground under you whenever it's loaded - the world's turned since)
+		extra["on_planet"] = {"planet": str(pl.rec.get("name", "")), "at": [lat.x, lat.y, lat.z]}
 		var wp: Vector3 = w.global_position + c.origin
 		ship["position"] = [wp.x / PlanetShape.PX_TO_M, wp.z / PlanetShape.PX_TO_M]
 		st["ship"] = ship

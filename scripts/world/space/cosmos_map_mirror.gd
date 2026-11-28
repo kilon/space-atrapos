@@ -148,10 +148,10 @@ func _sweep_planet() -> void:
 		if pl == null:
 			return
 		at = sh.global_position
-		var local := at - pl.global_position
+		var local := pl.to_local(at)
 		var alt := local.length() - pl.radius - maxf(pl.shape.surface(local.normalized()), 0.0)
 		reach = clampf(SIGHT_FOOT + alt * 0.8, SIGHT_FOOT, SIGHT_FLY)
-	var lp := at - pl.global_position
+	var lp := pl.to_local(at)   # (planet-local: what's been seen is its ground's)
 	var pid := str(pl.rec.get("id", pl.name))
 	if pid == _planet_id and lp.distance_to(_planet_at) < reach * 0.2:
 		return

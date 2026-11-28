@@ -134,7 +134,7 @@ func _process(_delta: float) -> void:
 	if _queue.is_empty() or _busy >= AT_ONCE:
 		return
 	var cam := get_viewport().get_camera_3d()
-	var here: Vector3 = cam.global_position - planet.global_position if cam else _at
+	var here: Vector3 = planet.to_local(cam.global_position) if cam else _at
 	_queue.sort_custom(func(a, b): return (Vector3(a) * CHUNK).distance_squared_to(here) < (Vector3(b) * CHUNK).distance_squared_to(here))
 	while not _queue.is_empty() and _busy < AT_ONCE:
 		var k: Vector3i = _queue.pop_front()

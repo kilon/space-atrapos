@@ -252,7 +252,8 @@ static func _merge(id: String, src: Mesh, hide: Array) -> ArrayMesh:
 	arr[Mesh.ARRAY_BONES] = bones
 	arr[Mesh.ARRAY_WEIGHTS] = weights
 	arr[Mesh.ARRAY_INDEX] = idx
-	out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT
-			| Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM1_SHIFT)
+	var fmt := Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT | Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM1_SHIFT
+	out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, fmt)
 	out.surface_set_name(0, "pbr")
+	LodKit.later(out, [arr], fmt)   # (its levels of detail: made on a worker, swapped in - LodKit)
 	return out

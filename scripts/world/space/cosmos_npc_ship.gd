@@ -58,6 +58,7 @@ var interior: CosmosNpcInterior   # (its insides, walkable - made when you come 
 ## state (arrive, wait, climb, out, transfer, in, descend, landed, leave), the planet and
 ## field it set out from (planet-local, as transforms), where it's going, its clock.
 var hire := {}
+var traffic: Object = null      # (a town's landing pad's ship: CosmosLandingField flies it - its round's schedule)
 
 static var _glow_mats := {}
 
@@ -77,7 +78,7 @@ func setup(k: String, c: Node, seed: int, empire: String, hull_as := "") -> void
 	hull_kind = hk
 	var whose := empire if k != "pirate" else "pirates"
 	var nozzles := CosmosHull.build(self, _rng, hk, whose)
-	reach = CosmosHull.SIZE.get(hk, 1.0) * 11.0
+	reach = CosmosHull.size_of(hk, whose) * 11.0
 	match k:
 		"trader":
 			max_shield = 80.0
@@ -153,6 +154,9 @@ func _process(delta: float) -> void:
 		shield = minf(max_shield, shield + 10.0 * delta)
 	if not hire.is_empty():
 		_hire_fly(delta)
+		return
+	if traffic != null:
+		traffic.call("fly", self, delta)
 		return
 	if pad.is_empty() and (_gear_k > 0.0 or _ramp_k > 0.0):
 		_gear_step(0.0, 0.0, delta)   # (off the pad: the ramp up, the legs in)
@@ -528,6 +532,14 @@ func make_interior() -> CosmosNpcInterior:
 	return interior
 
 
+## The doorway through its hull (ship space) while its ramp's down and its insides are in -
+## open to walk through, look through, shoot through (CosmosHullGrid's cut); else none.
+func door_box() -> AABB:
+	if interior == null or not interior.ok or _ramp_k < 0.3:
+		return AABB()
+	return interior.door
+
+
 ## Its time in port nearly out: its ramp about to close (anyone aboard walked off first).
 func leaving_soon() -> bool:
 	return _pad_phase != 3 or _pad_t > _pad_stay - Cosmos.LIFT_TIME - Cosmos.HATCH_TIME - 6.0
@@ -547,8 +559,8 @@ const PILOT_WAIT := 60.0        # s with you aboard it waits for its pilot to be
 func hire_ride(pl: CosmosPlanet, field: Transform3D, to: Dictionary) -> void:
 	_make_gear()
 	hire = {"state": "arrive", "t": 0.0, "pl": pl, "field": field, "to": to}
-	var u := field.basis.y
-	global_transform = Transform3D(field.basis, pl.global_position + field.origin + u * HIRE_ALT + field.basis.z * 600.0)
+	var wf := pl.global_transform * field   # (the field in the world's frame now: its world turns)
+	global_transform = Transform3D(wf.basis, wf.origin + wf.basis.y * HIRE_ALT + wf.basis.z * 600.0)
 
 
 func hire_state() -> String:
@@ -561,7 +573,8 @@ func hire_open() -> bool:
 
 
 func _rest_xf(pl: CosmosPlanet, field: Transform3D) -> Transform3D:
-	return Transform3D(field.basis, pl.global_position + field.origin + field.basis.y * rest_height())
+	var wf := pl.global_transform * field
+	return Transform3D(wf.basis, wf.origin + wf.basis.y * rest_height())
 
 
 func _hire_fly(delta: float) -> void:
@@ -580,8 +593,8 @@ func _hire_fly(delta: float) -> void:
 		"arrive", "descend":   # (down onto the field, legs out near the ground)
 			var k := smoothstep(0.0, 1.0, minf(t / 12.0, 1.0))
 			var rest := _rest_xf(pl, field)
-			var from := rest.origin + field.basis.y * HIRE_ALT + field.basis.z * 600.0
-			global_transform = Transform3D(field.basis, from.lerp(rest.origin, k))
+			var from := rest.origin + rest.basis.y * HIRE_ALT + rest.basis.z * 600.0
+			global_transform = Transform3D(rest.basis, from.lerp(rest.origin, k))
 			_gear_step(1.0 if k > 0.7 else 0.0, 0.0, delta)
 			_engines_glow(0.6)
 			if k >= 1.0:
@@ -597,7 +610,7 @@ func _hire_fly(delta: float) -> void:
 				pilot.board_ride(self)
 			if aboard and interior and interior.ok and interior.to_local(cosmos.walker.global_position).z < interior.z_aft - 1.5:
 				hire["aboard_t"] = float(hire.get("aboard_t", 0.0)) + delta
-				var ready: bool = pilot == null or pilot.seated() or float(hire["aboard_t"]) > PILOT_WAIT
+				var ready: bool = pilot == null or pilot.seated() or float(hire["aboard_t"]) > PILOT_WAIT + float(hire.get("pilot_walk", 0.0))   # (a pilot hired in the town: his walk back to it besides)
 				if float(hire["aboard_t"]) > 2.5 and ready:   # (you're in, clear of the ramp, its pilot in his seat: off)
 					if pilot:
 						pilot.drop_ride()   # (if he never made it aboard: back to his town)
@@ -612,14 +625,14 @@ func _hire_fly(delta: float) -> void:
 			_gear_step(0.0, 0.0, delta)
 			var k := smoothstep(0.0, 1.0, clampf((t - 2.5) / 9.0, 0.0, 1.0))
 			var rest := _rest_xf(pl, field)
-			global_transform = Transform3D(field.basis, rest.origin + field.basis.y * HIRE_ALT * k)
+			global_transform = Transform3D(rest.basis, rest.origin + rest.basis.y * HIRE_ALT * k)
 			_engines_glow(0.6)
 			if k >= 1.0:
 				hire["state"] = "out"
 				hire["t"] = 0.0
 		"out", "in":   # (round the planet, over its ground, to face the way it's going / from it)
 			var here: CosmosPlanet = pl if st == "out" else to["pl"]
-			var fu: Vector3 = (field if st == "out" else to["field"] as Transform3D).basis.y
+			var fu: Vector3 = here.global_basis * (field if st == "out" else to["field"] as Transform3D).basis.y
 			var aim := _hire_aim()
 			var dir := (aim - here.global_position).normalized() if st == "out" else (_hire_from() - here.global_position).normalized()
 			var k := smoothstep(0.0, 1.0, minf(t / 9.0, 1.0))
@@ -647,7 +660,14 @@ func _hire_fly(delta: float) -> void:
 			global_position = p
 			_engines_glow(0.8)
 			if k >= 1.0:
-				if to.has("station"):   # (a station: its pads and its port, as any trader's)
+				if to.has("gate"):   # (another system: through the gate - you aboard, with it; else gone)
+					hire["state"] = "jumped"
+					if cosmos and cosmos.riding() == self:
+						cosmos.ride_jump(self, str(to["sys"]))
+					else:
+						cosmos.npc_ships.erase(self)
+						queue_free()
+				elif to.has("station"):   # (a station: its pads and its port, as any trader's)
 					set_meta("home", pl)   # (stay aboard and it takes you back to its pilot's town)
 					hire = {}
 					dest = to["station"]
@@ -668,7 +688,7 @@ func _hire_fly(delta: float) -> void:
 			_gear_step(0.0, 0.0, delta)
 			var rest := _rest_xf(pl, field)
 			var k := clampf((t - 2.5) / 10.0, 0.0, 1.0)
-			global_transform = Transform3D(field.basis, rest.origin + field.basis.y * HIRE_ALT * 2.5 * k * k)
+			global_transform = Transform3D(rest.basis, rest.origin + rest.basis.y * HIRE_ALT * 2.5 * k * k)
 			_engines_glow(0.6)
 			if k >= 1.0 and not aboard:
 				if cosmos:
@@ -697,6 +717,9 @@ func hire_pilot() -> Variant:
 func _hire_aim() -> Vector3:
 	var to: Dictionary = hire["to"]
 	var from := _hire_from()
+	if to.has("gate"):   # (through its ring)
+		var g: Node3D = to["gate"]
+		return g.global_position if is_instance_valid(g) else from
 	if to.has("station"):
 		var st: Node3D = to["station"]
 		var r: float = cosmos.radius_of(st) + 2500.0 if cosmos else 3000.0

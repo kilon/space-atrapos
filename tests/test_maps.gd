@@ -400,6 +400,61 @@ func test_planet_map_page() -> void:
 	Galaxy.new_game(false, true)
 
 
+## The planet map's roads: the world's roads (made on a worker as the map opens,
+## if they weren't yet) drawn on its globe as lines - only where you've seen the
+## ground - simplified, a main road wider than a track; a town's plan with its
+## streets and the roads out of its gates.
+func test_planet_map_roads() -> void:
+	var rec: Dictionary = {}
+	for r in load("res://scripts/world/space/cosmos.gd").planet_records(Galaxy.HOME):
+		if str(r.get("type", "")) == "ocean" and str(r.get("moon_of", "")) == "":
+			rec = r
+	var shape := PlanetShape.of(rec)
+	var towns := CosmosTown.sites(shape, rec, Galaxy.owner_of(Galaxy.HOME))
+	shape.set_flats(CosmosTown.flats_of(towns, shape.radius))
+	var page: Control = load("res://scripts/ui/pages/planet_map_page.gd").new()
+	page.source = {"rec": rec, "shape": shape, "towns": towns}
+	page.size = Vector2(1500, 800)
+	tree.root.add_child(page)
+	await tree.process_frame
+	page.refresh()
+	var v: Node = page._view
+	var pid := str(rec["id"])
+	var key := CosmosRoads.key_of(rec)
+	for i in 1200:
+		await tree.process_frame
+		if PlanetMapPage._meshes.has(pid) and not v.road_lines.is_empty():
+			break
+	check(not v.road_lines.is_empty(), "its roads, made for the map (%d)" % v.road_lines.size())
+	var n := 0
+	var raw := 0
+	for r in CosmosRoads.cached(key):
+		raw += (r["pts"] as PackedVector3Array).size()
+	for rl in v.road_lines:
+		n += (rl[0] as PackedVector3Array).size()
+	check(n > 10 and n < raw / 2 and n < 3000, "simplified for the map (%d points of %d)" % [n, raw])
+	check(v.road_lines.any(func(rl): return rl[1]), "a main road among them (drawn wider)")
+	check_eq(v.road_segs, 0, "under the fog: no road shown")
+	var d: Vector3 = (v.road_lines[0][0] as PackedVector3Array)[0]
+	Galaxy.reveal_planet(pid, d, 400.0 / shape.radius)
+	v.follow()
+	var part: int = v.road_segs
+	check(part > 0, "the ground seen: the road there (%d stretches)" % part)
+	Galaxy.planet_fog(pid).reveal_all()
+	v.follow()
+	check(v.road_segs > part, "all seen: all of them (%d)" % v.road_segs)
+	# A town's plan: the roads out of its gates.
+	var ways: Array = page.town_ways(0)
+	check(not ways.is_empty(), "the roads out of the city on its plan (%d)" % ways.size())
+	var g0: Vector2 = (ways[0][0] as PackedVector2Array)[0]
+	var H: float = CosmosTown.layout(str(towns[0]["kind"]))["half"]
+	check(absf(maxf(absf(g0.x), absf(g0.y)) - H) < 0.6, "each from a gate on its edge")
+	var img: Image = PlanetMapPage.bake_plan(str(towns[0]["kind"]), int(towns[0]["seed"]), str(towns[0]["empire"]), ways)
+	check(img.get_width() > 100, "the plan drawn with them")
+	page.queue_free()
+	Galaxy.new_game(false, true)
+
+
 ## The worlds' orbits never sweep through a station or an asteroid field, in
 ## any system, at any time (those in a world's orbit band co-orbit it); a
 ## moon keeps round its world.

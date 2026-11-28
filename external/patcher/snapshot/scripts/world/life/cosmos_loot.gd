@@ -94,7 +94,7 @@ func drop_for(body: Node3D) -> Dictionary:
 	if pl and body.get("dungeon") == null and not body.get("in_cave"):
 		var local := at - pl.global_position
 		var d := local.normalized()
-		at = pl.global_position + d * (pl.radius + maxf(pl.shape.height(d), 0.0))   # (on the ground - a bird's fallen)
+		at = pl.global_position + d * (pl.radius + maxf(pl.shape.height(pl.dir_local(d)), 0.0))   # (on the ground - a bird's fallen)
 	var side := up.cross(Vector3.UP if absf(up.y) < 0.9 else Vector3.RIGHT).normalized()
 	at += side * 0.5
 	var g = body.get("goods")
@@ -121,8 +121,8 @@ func drop(parent: Node3D, at: Vector3, up: Vector3, title: String, contents: Dic
 ## A caravan's remains (CosmosCaravans: robbed where you didn't see): on planet-local `local`.
 func drop_wreck(pl: CosmosPlanet, local: Vector3, title: String, contents: Dictionary) -> Dictionary:
 	var d := local.normalized()
-	var at := pl.global_position + d * (pl.radius + maxf(pl.shape.height(d), 0.0))
-	return drop(pl, at, d, title, contents, LAST_WRECK, 1.5, pl)
+	var at := pl.to_global(d * (pl.radius + maxf(pl.shape.height(d), 0.0)))
+	return drop(pl, at, pl.dir_world(d), title, contents, LAST_WRECK, 1.5, pl)   # (its up the world's: the world's turned)
 
 
 ## The loot within your reach (the nearest), or {}.
@@ -400,6 +400,7 @@ static func mesh() -> ArrayMesh:
 	arr[Mesh.ARRAY_INDEX] = idx
 	_mesh = ArrayMesh.new()
 	_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	LodKit.later(_mesh, [arr])   # (its levels of detail - LodKit)
 	return _mesh
 
 

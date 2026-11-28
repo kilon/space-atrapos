@@ -142,15 +142,16 @@ static func build(model_path: String) -> PackedScene:
 		ps = load(p)   # (an exported game: the imported override)
 	if ps == null:
 		return load(model_path)
-	return _with_base_clips(ps, model_path)
+	return _with_base_clips(ps, model_path, p != model_path)
 
 
 ## An override with the game's own model's clips: an override's clips are the ones it
 ## was saved with - copies (the clips you edit are files of their own: Stage3D.custom_clips,
 ## over these) - so the model's, as they are now, take their place (a new draw, the folded
 ## rifle's holster...); its tracks for bones the override hasn't got left out. Its own
-## clips the model hasn't got kept. Its own scene untouched; a new one packed.
-static func _with_base_clips(ps: PackedScene, model_path: String) -> PackedScene:
+## clips the model hasn't got kept. Its own scene untouched; a new one packed. And the model's rifle
+## and hip compartment in place of its own (_graft).
+static func _with_base_clips(ps: PackedScene, model_path: String, graft := true) -> PackedScene:
 	if not ResourceLoader.exists(model_path):
 		return ps
 	var root := ps.instantiate()
@@ -158,7 +159,7 @@ static func _with_base_clips(ps: PackedScene, model_path: String) -> PackedScene
 	var ap: AnimationPlayer = root.find_child("AnimationPlayer", true, false)
 	var bap: AnimationPlayer = base.find_child("AnimationPlayer", true, false)
 	var sk: Skeleton3D = root.find_child("Skeleton3D", true, false)
-	var added := 0
+	var added := _graft(root, base) if graft else 0
 	if ap and bap:
 		if not ap.has_animation_library(""):
 			ap.add_animation_library("", AnimationLibrary.new())
@@ -190,6 +191,201 @@ static func _with_base_clips(ps: PackedScene, model_path: String) -> PackedScene
 	out.pack(root)
 	root.free()
 	return out
+
+
+## The bones whose parts always come from the game's own model, whatever an override has (by name: the bone or its
+## prefix) - the automaton's rifle and its folding pieces ("gun", "gun.*": automaton.py GUN_FOLD) and the hip's
+## compartment it's put away in ("holster.*": automaton.py POD): an override made before they changed shows them as
+## they are now - a model's mechanism, rebuilt with it, not a shape edited.
+const GRAFT := ["gun", "gun.", "holster."]
+
+
+static func grafted(bone: String) -> bool:
+	for g in GRAFT:
+		if bone == g or (g.ends_with(".") and bone.begins_with(g)):
+			return true
+	return false
+
+
+## The game's own model's rifle and hip compartment put in the override `root` in place of its own (GRAFT): the
+## bones it lacks added (as the model has them, under the same parents), its parts on those bones taken out (a
+## part all on them), the model's parts on them added - one mesh ("Grafted"), skinned to the override's skeleton
+## with the Body's skin (the binds it lacks added). The number of things changed (0: none).
+static func _graft(root: Node, base: Node) -> int:
+	var sk: Skeleton3D = root.find_child("Skeleton3D", true, false)
+	var bsk: Skeleton3D = base.find_child("Skeleton3D", true, false)
+	var body: MeshInstance3D = root.find_child("Body", true, false)
+	var bbody: MeshInstance3D = base.find_child("Body", true, false)
+	if sk == null or bsk == null or body == null or bbody == null or body.skin == null or bbody.skin == null \
+			or not bbody.mesh is ArrayMesh or bsk.find_bone("holster.R") < 0:
+		return 0   # (only a model whose rifle folds into its hip's compartment: the automaton)
+	var changed := 0
+	for b in bsk.get_bone_count():   # (its bones the override lacks: parents come first)
+		var n := bsk.get_bone_name(b)
+		if sk.find_bone(n) >= 0:
+			continue
+		var i := sk.get_bone_count()
+		sk.add_bone(n)
+		var par := bsk.get_bone_parent(b)
+		if par >= 0:
+			sk.set_bone_parent(i, sk.find_bone(bsk.get_bone_name(par)))
+		sk.set_bone_rest(i, bsk.get_bone_rest(b))
+		sk.set_bone_pose(i, bsk.get_bone_rest(b))
+		changed += 1
+	# The Body's skin with a bind for every bone the model's grafted parts use.
+	var skin: Skin = body.skin.duplicate()
+	var bind_of := {}
+	for k in skin.get_bind_count():
+		var nm := str(skin.get_bind_name(k))
+		bind_of[nm if nm != "" else sk.get_bone_name(skin.get_bind_bone(k))] = k
+	var bskin: Skin = bbody.skin
+	var map := PackedInt32Array()   # (the model's bind -> the override's; -1 not grafted)
+	for k in bskin.get_bind_count():
+		var nm := str(bskin.get_bind_name(k))
+		if nm == "":
+			nm = bsk.get_bone_name(bskin.get_bind_bone(k))
+		if not grafted(nm):
+			map.append(-1)
+			continue
+		if not bind_of.has(nm):
+			bind_of[nm] = skin.get_bind_count()
+			skin.add_named_bind(nm, bskin.get_bind_pose(k))
+		map.append(bind_of[nm])
+	# Its own parts on those bones out (its old rifle): a part all on them goes, the Body (or a part) partly on them
+	# keeps the rest.
+	for n in root.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		if mi.mesh == null or mi.skin == null:
+			continue
+		var kept = _without_grafted(mi.mesh, mi.skin, sk)
+		if kept == null:
+			continue
+		changed += 1
+		if (kept as ArrayMesh).get_surface_count() == 0 and mi != body:
+			mi.get_parent().remove_child(mi)
+			mi.free()
+		else:
+			mi.mesh = kept
+	# The model's parts on them in.
+	var src: ArrayMesh = bbody.mesh
+	var out := ArrayMesh.new()
+	for i in src.get_surface_count():
+		var a := src.surface_get_arrays(i)
+		var vs: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+		if a[Mesh.ARRAY_BONES] == null or vs.is_empty():
+			continue
+		var bs: PackedInt32Array = a[Mesh.ARRAY_BONES]
+		var ws: PackedFloat32Array = a[Mesh.ARRAY_WEIGHTS]
+		var per := bs.size() / vs.size()
+		var keep := PackedByteArray()
+		keep.resize(vs.size())
+		for v in vs.size():
+			var ok := true
+			for j in per:
+				if ws[v * per + j] > 0.0 and (bs[v * per + j] >= map.size() or map[bs[v * per + j]] < 0):
+					ok = false
+					break
+			keep[v] = 1 if ok else 0
+		var ix: PackedInt32Array = a[Mesh.ARRAY_INDEX]
+		var tri := PackedInt32Array()
+		for t in range(0, ix.size(), 3):
+			if keep[ix[t]] and keep[ix[t + 1]] and keep[ix[t + 2]]:
+				tri.append_array([ix[t], ix[t + 1], ix[t + 2]])
+		if tri.is_empty():
+			continue
+		var used := {}    # (old vertex -> new)
+		var ord := PackedInt32Array()
+		for v in tri:
+			if not used.has(v):
+				used[v] = ord.size()
+				ord.append(v)
+		var b := []
+		b.resize(Mesh.ARRAY_MAX)
+		for k in [Mesh.ARRAY_VERTEX, Mesh.ARRAY_NORMAL, Mesh.ARRAY_TEX_UV, Mesh.ARRAY_COLOR]:
+			if a[k] == null:
+				continue
+			var col = a[k].duplicate()
+			col.resize(ord.size())
+			for j in ord.size():
+				col[j] = a[k][ord[j]]
+			b[k] = col
+		var nb := PackedInt32Array()
+		var nw := PackedFloat32Array()
+		nb.resize(ord.size() * per)
+		nw.resize(ord.size() * per)
+		for j in ord.size():
+			for q in per:
+				var w := ws[ord[j] * per + q]
+				nb[j * per + q] = map[bs[ord[j] * per + q]] if w > 0.0 else 0
+				nw[j * per + q] = w
+		b[Mesh.ARRAY_BONES] = nb
+		b[Mesh.ARRAY_WEIGHTS] = nw
+		var ni := PackedInt32Array()
+		ni.resize(tri.size())
+		for j in tri.size():
+			ni[j] = used[tri[j]]
+		b[Mesh.ARRAY_INDEX] = ni
+		out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, b, [], {}, Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS if per == 8 else 0)
+		out.surface_set_material(out.get_surface_count() - 1, src.surface_get_material(i))
+	body.skin = skin
+	if out.get_surface_count() > 0:
+		var g := MeshInstance3D.new()
+		g.name = "Grafted"
+		g.mesh = out
+		g.skin = skin
+		body.get_parent().add_child(g)
+		g.owner = root
+		g.transform = body.transform
+		g.skeleton = g.get_path_to(sk)
+		changed += 1
+	return changed
+
+
+## `mesh` without its triangles all on GRAFT's bones (its skin's names) - null: it has none.
+static func _without_grafted(mesh: Mesh, skin: Skin, sk: Skeleton3D):
+	var g := PackedByteArray()   # (bind -> on a grafted bone)
+	var anyg := false
+	for k in skin.get_bind_count():
+		var nm := str(skin.get_bind_name(k))
+		if nm == "":
+			nm = sk.get_bone_name(skin.get_bind_bone(k))
+		g.append(1 if grafted(nm) else 0)
+		anyg = anyg or grafted(nm)
+	if not anyg:
+		return null
+	var out := ArrayMesh.new()
+	var cut := false
+	for i in mesh.get_surface_count():
+		var a := mesh.surface_get_arrays(i)
+		var vs: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+		var ix = a[Mesh.ARRAY_INDEX]
+		if a[Mesh.ARRAY_BONES] == null or vs.is_empty() or ix == null:
+			return null
+		var bs: PackedInt32Array = a[Mesh.ARRAY_BONES]
+		var ws: PackedFloat32Array = a[Mesh.ARRAY_WEIGHTS]
+		var per := bs.size() / vs.size()
+		var on := PackedByteArray()
+		on.resize(vs.size())
+		for v in vs.size():
+			var all := true
+			for j in per:
+				if ws[v * per + j] > 0.0 and (bs[v * per + j] >= g.size() or g[bs[v * per + j]] == 0):
+					all = false
+					break
+			on[v] = 1 if all else 0
+		var tri := PackedInt32Array()
+		for t in range(0, (ix as PackedInt32Array).size(), 3):
+			if on[ix[t]] and on[ix[t + 1]] and on[ix[t + 2]]:
+				cut = true
+			else:
+				tri.append_array([ix[t], ix[t + 1], ix[t + 2]])
+		if tri.is_empty():
+			continue
+		a[Mesh.ARRAY_INDEX] = tri
+		out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a, [], {}, Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS if per == 8 else 0)
+		out.surface_set_material(out.get_surface_count() - 1, mesh.surface_get_material(i))
+		out.surface_set_name(out.get_surface_count() - 1, mesh.surface_get_name(i))
+	return out if cut else null
 
 
 ## A scene build() made (on a worker) kept as `model_path`'s override.

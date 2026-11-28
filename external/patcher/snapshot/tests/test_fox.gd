@@ -73,7 +73,7 @@ func _ang(sk: Skeleton3D, b: int) -> float:
 
 func test_gaits_by_speed() -> void:
 	var a := await _fox()
-	var rig := a._rig
+	var rig: CosmosFox.Rig = a._rig
 	var size := float(a.kind["size"]) * float(a.kind["scale"])
 	# Trot: the diagonal pairs move together (left fore with right hind).
 	for i in 200:
@@ -102,7 +102,7 @@ func test_gaits_by_speed() -> void:
 
 func test_idle_acts_and_pounce() -> void:
 	var a := await _fox()
-	var rig := a._rig
+	var rig: CosmosFox.Rig = a._rig
 	var size := float(a.kind["size"]) * float(a.kind["scale"])
 	var seen := {}
 	var top := 0.0
