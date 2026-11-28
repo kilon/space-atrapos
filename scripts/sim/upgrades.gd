@@ -36,7 +36,7 @@ const STATS := {
 		"arms": [["damage_mult", "Damage", 0.04, 600, "%"], ["fire_rate_mult", "Rate of fire", -0.03, 550, "-%"], ["crit_mult", "Critical damage", 0.12, 450, "%"]],
 		"cooling": [["resist_heat", "Heat resistance", 0.03, 400, "%"], ["resist_cold", "Cold resistance", 0.03, 400, "%"], ["resist_energy", "Energy resistance", 0.03, 450, "%"]],
 		"legs": [["speed_mult", "Walking speed", 0.04, 500, "%"], ["evasion", "Evasion", 0.02, 550, "%"],
-			["jet_pack", "Jet pack", 1.0, 900, "lvl"]],
+			["jet_pack", "Jet thrusters", 1.0, 900, "lvl"]],
 		"frame": [["hurt_taken_mult", "Armour", -0.03, 550, "-%"], ["resist_kinetic", "Kinetic resistance", 0.03, 450, "%"],
 			["resist_explosive", "Explosive resistance", 0.03, 450, "%"], ["resist_electric", "Electric resistance", 0.03, 450, "%"],
 			["resist_beam", "Beam resistance", 0.03, 450, "%"]],

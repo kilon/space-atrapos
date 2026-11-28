@@ -340,7 +340,7 @@ static func ghost_material(k: String) -> StandardMaterial3D:
 ## what swings, its lights and uses: {solids, movers, lights, uses}.
 ## `at_origin`: at the frame's middle, unturned (a preview's mesh).
 ## `leaves`: its hinged leaves made too (a town's buildings: none - their doorways open).
-static func emit(out: CosmosTown.Builder, pc: Dictionary, at_origin := false, leaves := true) -> Dictionary:
+static func emit(out, pc: Dictionary, at_origin := false, leaves := true) -> Dictionary:
 	var id := str(pc["t"])
 	var s := str(pc.get("s", "minoa"))
 	var p := Vector3.ZERO if at_origin else vec(pc["p"])
@@ -364,8 +364,8 @@ static func emit(out: CosmosTown.Builder, pc: Dictionary, at_origin := false, le
 ## `src`'s faces turned by `r` round the vertical and moved to `p` (x, z: its
 ## heights are already the frame's), into `dst`; painted `paint` (COLOR.a).
 ## `wear`: how worn it is, 0 sound - 3 nearly broken (cracks, soot: the shader). COLOR.a = 1 - (paint + 9 wear) / 64.
-static func merge(dst: CosmosTown.Builder, src: CosmosTown.Builder, r: int, p: Vector3, paint := 0, wear := 0) -> void:
-	var base := dst.verts.size()
+static func merge(dst, src, r: int, p: Vector3, paint := 0, wear := 0) -> void:
+	var base: int = dst.verts.size()
 	var xf := Transform3D(turn(r), Vector3(p.x, 0.0, p.z))
 	dst.verts.append_array(xf * src.verts)
 	dst.norms.append_array(Transform3D(turn(r), Vector3.ZERO) * src.norms)
@@ -375,7 +375,7 @@ static func merge(dst: CosmosTown.Builder, src: CosmosTown.Builder, r: int, p: V
 		var a := 1.0 - (paint + 9 * wear) / 64.0
 		for c in src.cols:
 			dst.cols.append(Color(c.r, c.g, c.b, a))
-	var idx := src.idx.duplicate()
+	var idx: PackedInt32Array = src.idx.duplicate()
 	if base > 0:
 		for i in idx.size():
 			idx[i] += base
@@ -897,7 +897,7 @@ static func _pillar(lb: CosmosTown.Builder, at: Vector3, h: float, m: int, s: St
 
 
 ## A post where walls meet (one a corner, at `at`, `h` tall): a pilaster of the tier's.
-static func post(lb: CosmosTown.Builder, at: Vector3, h: float, m: int, s: String) -> Array:
+static func post(lb, at: Vector3, h: float, m: int, s: String) -> Array:
 	var S := slots(m, s)
 	var q := POST * 0.5
 	if m == 0:

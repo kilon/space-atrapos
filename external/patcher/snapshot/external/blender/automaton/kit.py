@@ -336,6 +336,9 @@ def _rest_bones(extra):
         b["thigh" + sf] = ("pelvis", (HIP_X * sx, 0, HIP_Z), (0, 0, -1), (0, -1, 0), THIGH)
         b["shin" + sf] = ("thigh" + sf, (HIP_X * sx, 0, HIP_Z - THIGH), (0, 0, -1), (0, -1, 0), SHIN)
         b["foot" + sf] = ("shin" + sf, (HIP_X * sx, 0, ANKLE_Z), (0, -1, 0), (0, 0, 1), FOOT)
+    for name, f in GUN_FOLD.items():   # (the rifle's folding pieces: on the gun bone, at their hinges, its axes)
+        px, py, pz = f["pivot"]
+        b[name] = (f.get("parent", "gun"), (-px, -0.4 - py, 1.2 + pz), (0, -1, 0), (0, 0, 1), 0.05)
     b.update(extra or {})
     return b
 
@@ -413,6 +416,8 @@ REGIONS = {
     "Leg.R": ["thigh.R", "shin.R", "foot.R"],
     "Rifle": ["gun"],
 }
+# Parts made into a main part of their own, by the start of their names (whatever their bone).
+OWN_REGIONS = ("Holster",)
 INK_MAX = 0.007          # the thickest outline (m, before INK): the "ink" vertex group's weight 1
 
 
@@ -448,7 +453,11 @@ def merge_parts():
         coll().objects.link(t)
         t.vertex_groups.new(name=ob.parent_bone).add(list(range(len(me.vertices))), 1.0, "REPLACE")
         t.vertex_groups.new(name="ink").add(list(range(len(me.vertices))), min(1.0, thick / INK_MAX), "REPLACE")
-        pieces.setdefault(region_of.get(ob.parent_bone, "Coat"), []).append(t)
+        reg = region_of.get(ob.parent_bone) or ("Rifle" if ob.parent_bone in GUN_FOLD else "Coat")
+        for own in OWN_REGIONS:              # (a part of its own: the holster, on the thigh - not the leg's, which may be overridden)
+            if ob.name.startswith(own):
+                reg = own
+        pieces.setdefault(reg, []).append(t)
         old = ob.data
         bpy.data.objects.remove(ob, do_unlink=True)
         if old.users == 0:
@@ -561,6 +570,8 @@ DEFAULT = {
     # the rifle: None (not there), or (space, grip (left, fwd, up), muzzle direction, top direction, hands)
     #   hands: "both" / "right" (the left hand free)
     "gun": None,
+    # the rifle folded (a skin's GUN_FOLD pieces): 0 the whole rifle, 1 collapsed for its holster
+    "fold": 0.0,
     # lifted off the ground (m): taken off again when rendered (the game lifts the sprite)
     "air": 0.0,
     # in a seat: "" (not), "sit" (the game's chair), "stool" (its bar stool) - a skin's tail solver keeps
@@ -863,7 +874,14 @@ def _space_point(space, p, mats):
         return mats["chest"] @ Vector((0, NECK_Z - CHEST_Z, 0)) + mats["chest"].to_3x3() @ _local(p)
     if space == "p":
         return mats["pelvis"].translation + mats["pelvis"].to_3x3() @ _local(p)
+    if space == "tR":
+        return mats["thigh.R"].translation + mats["thigh.R"].to_3x3() @ _thigh(p)
     return V(*p)
+
+
+def _thigh(p):
+    """(out, forward, down) from the right hip, in its thigh bone's axes (x = to its right - out, y = down the thigh, z = forward)."""
+    return Vector((p[0], p[2], p[1]))
 
 
 def _local(p):
@@ -876,6 +894,8 @@ def _space_dir(space, d, mats):
         return mats["chest"].to_3x3() @ _local(d)
     if space == "p":
         return mats["pelvis"].to_3x3() @ _local(d)
+    if space == "tR":
+        return mats["thigh.R"].to_3x3() @ _thigh(d)
     return V(*d)
 
 
@@ -901,6 +921,24 @@ def solve(pose, extra=True):
     hy = max(-85.0, min(85.0, P["hyaw"] - P["pyaw"] - P["twist"])) if P["hfree"] < 0.5 else P["hyaw"]
     hr = cr @ _ry(hy) @ _rx(P["hpitch"]) @ _rz(P["htilt"])
     mats["head"] = _m4(hr, cpos + cr @ Vector((0, NECK_Z - CHEST_Z, 0)))
+    # Legs (before the rifle: holstered, it rides on the right thigh).
+    for sx, sf, s in ((1.0, ".L", "L"), (-1.0, ".R", "R")):
+        hip = ppos + pr @ Vector((HIP_X * sx, HIP_Z - PELVIS_Z, 0))
+        space, p = P["foot" + s]
+        if space == "w":
+            ankle = V(p[0], p[1], p[2] + ANKLE_Z)
+            base = Matrix.Identity(3)
+        else:
+            ankle = hip + pr @ _local(p)
+            base = pr @ rest_r.inverted()
+        pole = _space_dir("p" if space == "p" else "w", P["knee" + s], mats)
+        if space == "w":       # (the knee follows the foot's turn and half the pelvis's)
+            pole = _rz(P["fyaw" + s] * sx * 0.7 + P["pyaw"] * 0.5) @ pole
+        knee, ankle, pp = _two_bone(hip, ankle, THIGH, SHIN, pole)
+        mats["thigh" + sf] = _m4(frame(knee - hip, pp), hip)
+        mats["shin" + sf] = _m4(frame(ankle - knee, pp), knee)
+        fr2 = base @ _rz(P["fyaw" + s] * sx) @ _rx(P["fpitch" + s]) @ frame((0, -1, 0), (0, 0, 1))
+        mats["foot" + sf] = _m4(fr2, ankle)
     # The rifle.
     gun = P["gun"]
     grip_pts = {}
@@ -909,12 +947,14 @@ def solve(pose, extra=True):
         gp = _space_point(space, grip, mats)
         gr = frame(_space_dir(space, fwd, mats), _space_dir(space, top, mats))
         mats["gun"] = _m4(gr, gp)
+        _fold_pieces(mats, P["fold"])
         if hands in ("both", "right"):   # ("none": carried - slung on the back, no hand on it)
             grip_pts["R"] = gp + gr @ Vector(GUN_HAND_R)
         if hands == "both":
             grip_pts["L"] = gp + gr @ Vector(GUN_HAND_L)
     else:
         mats["gun"] = _m4(frame((0, -1, 0), (0, 0, 1)), Vector((0, 0, -5.0)))   # (out of sight)
+        _fold_pieces(mats, 1.0)
     # Arms.
     for sx, sf, s in ((1.0, ".L", "L"), (-1.0, ".R", "R")):
         sh = cpos + cr @ Vector((SHOULDER.x * sx, SHOULDER.z - CHEST_Z, -SHOULDER.y))
@@ -943,24 +983,6 @@ def solve(pose, extra=True):
         mats["pauldron" + sf] = _m4(qa.slerp(qb, 0.4).to_matrix(), sh)
         if extra:                # (kept clear of the chest)
             mats["pauldron" + sf] = fit_pauldron(sf, sx, mats["pauldron" + sf], mats["chest"])
-    # Legs.
-    for sx, sf, s in ((1.0, ".L", "L"), (-1.0, ".R", "R")):
-        hip = ppos + pr @ Vector((HIP_X * sx, HIP_Z - PELVIS_Z, 0))
-        space, p = P["foot" + s]
-        if space == "w":
-            ankle = V(p[0], p[1], p[2] + ANKLE_Z)
-            base = Matrix.Identity(3)
-        else:
-            ankle = hip + pr @ _local(p)
-            base = pr @ rest_r.inverted()
-        pole = _space_dir("p" if space == "p" else "w", P["knee" + s], mats)
-        if space == "w":       # (the knee follows the foot's turn and half the pelvis's)
-            pole = _rz(P["fyaw" + s] * sx * 0.7 + P["pyaw"] * 0.5) @ pole
-        knee, ankle, pp = _two_bone(hip, ankle, THIGH, SHIN, pole)
-        mats["thigh" + sf] = _m4(frame(knee - hip, pp), hip)
-        mats["shin" + sf] = _m4(frame(ankle - knee, pp), knee)
-        fr2 = base @ _rz(P["fyaw" + s] * sx) @ _rx(P["fpitch" + s]) @ frame((0, -1, 0), (0, 0, 1))
-        mats["foot" + sf] = _m4(fr2, ankle)
     # A skin's extra bones.
     for name in (EXTRA if extra else ()):
         if name not in mats:          # (a tail solver may pose a whole chain at its root)
@@ -969,6 +991,33 @@ def solve(pose, extra=True):
         for k in mats:
             mats[k] = Matrix.Translation((0, 0, P["air"])) @ mats[k]
     return mats
+
+
+# ---------------------------------------------------------------- the folding rifle
+# A skin's rifle may collapse for its holster (GUN_FOLD, from the skin: build.skin_module): pieces of it on bones
+# of their own under the gun bone, each at its hinge ("pivot", the gun bone's axes: x side, y muzzle, z top),
+# folded by the pose's "fold" (0 the whole rifle .. 1 collapsed) - each in its own share of it ("span": from, to;
+# the barrel first as it folds, the stock last - unfolding the other way): turned "angle" degrees about "axis"
+# and slid by "slide" (the gun's axes). "parent": a piece riding on another (the barrel in the fore-end).
+GUN_FOLD = {}
+
+
+def fold_k(f, span):
+    a, b = span
+    t = max(0.0, min(1.0, (f - a) / (b - a)))
+    return t * t * (3 - 2 * t)
+
+
+def _fold_pieces(mats, f):
+    for name, spec in GUN_FOLD.items():
+        t = fold_k(f, spec["span"])
+        par = spec.get("parent", "gun")
+        pp = GUN_FOLD[par]["pivot"] if par != "gun" else (0.0, 0.0, 0.0)
+        piv = Vector(spec["pivot"]) - Vector(pp)
+        loc = Matrix.Translation(piv + Vector(spec.get("slide", (0, 0, 0))) * t)
+        if spec.get("angle"):
+            loc = loc @ Matrix.Rotation(math.radians(spec["angle"] * t), 4, Vector(spec["axis"]))
+        mats[name] = mats[par] @ loc
 
 
 # ---------------------------------------------------------------- the pauldrons' fit
@@ -1168,6 +1217,13 @@ def _lerp(a, b, t):
     return b
 
 
+def _gun_world(pose):
+    """A full pose's rifle as a root-space one (grip, muzzle way, top way: (left, forward, up))."""
+    g = solve(pose, extra=False)["gun"]
+    w, y, z = g.translation, g.to_3x3().col[1], g.to_3x3().col[2]
+    return ("w", (w.x, -w.y, w.z), (y.x, -y.y, y.z), (z.x, -z.y, z.z), pose["gun"][4])
+
+
 def _to_world(pose, key):
     """A hand / foot target of a full pose, as a root-space one."""
     mats = solve(pose, extra=False)
@@ -1193,6 +1249,8 @@ def blend(a, b, t):
         x, y = a[k], b[k]
         if k[:4] in ("hand", "foot") and x[0] != y[0]:
             x, y = _to_world(a, k), _to_world(b, k)
+        elif k == "gun" and x is not None and y is not None and x[0] != y[0]:
+            x, y = _gun_world(a), _gun_world(b)
         out[k] = _lerp(x, y, t)
     return out
 

@@ -3,14 +3,15 @@
  "id": "0.32",
  "title": "Make it yours",
  "date": "2026-11-24",
- "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024). Then ECurves (patch 0025): every model an ECurve object, fast enough for a whole character. Then quads along the edges (patch 0026): bakes in quads that follow their edges, and settings that fit. Then joined solids (patch 0027). Then clean topology (patch 0028).",
+ "summary": "Version 0.32 puts the game's own tools in your hands: everything in it can be changed - while it runs, in Talos, or in mods of your own - and the changes are shared as easily as they are made. Patch 0023 opened the whole game to change: mods that replace or merge into any of its files and a Mod Editor to make them; a full mesh editor in Talos (edit mode, 120 editable shapes, booleans, a knife, loop cuts, curve deform, materials, saves kept as overrides with variants, parts bound to a character's skeleton); an animation editor; particle effects as data with an Effects editor; and the Live Editor (F10), which edits anything in the world while the game runs. It also moved Patch Notes to the title screen, put a tooltip on every control, smoothed turning and animation, slung the rifle on the back and started the browser build in 6-7 seconds. Then curve modeling (patch 0024). Then ECurves (patch 0025): every model an ECurve object, fast enough for a whole character. Then quads along the edges (patch 0026): bakes in quads that follow their edges, and settings that fit. Then joined solids (patch 0027). Then clean topology (patch 0028). Then living worlds (patch 0029).",
  "patches": [
   "0023",
   "0024",
   "0025",
   "0026",
   "0027",
-  "0028"
+  "0028",
+  "0029"
  ],
  "steps": [
   {
@@ -613,8 +614,172 @@
   },
   {
    "patch": "0028",
-   "title": "Patch 0028 - Clean topology",
-   "text": "ECurves lays its meshes out the way a modeller would: written topology rules for every mesh it makes, a scorer to measure them, and a layout that grids each face along its edges' flow - grids, grids round one pole, rings, and a field-aligned fill for big organic faces, the better of two kept per face - the player character's meshes from a score of 34 to 76 (91% quads, a quarter of the slivers). Remesh runs in the background with a progress bar; bakes and knife cuts are laid out the same way, while moving vertices only settles.",
+   "title": "Clean topology",
+   "text": "ECurves lays its meshes out the way a modeller would: each face gridded along its edges' flow - grids, grids round one pole, rings, a field-aligned fill for big organic faces - the better kept by a topology score (the player's meshes 34 -> 76). Remesh in the background with a progress bar, Extrude face, a snapping knife, and Save / Save As with a full file browser.",
+   "diagram": [
+    {
+     "t": "text",
+     "at": [
+      500,
+      45
+     ],
+     "text": "CLEAN TOPOLOGY",
+     "size": 22,
+     "color": "gold",
+     "align": "center"
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      100,
+      280,
+      100
+     ],
+     "stroke": "cyan",
+     "label": "faces gridded\nalong their flow",
+     "size": 18,
+     "delay": 0.2
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      230,
+      280,
+      100
+     ],
+     "stroke": "purple",
+     "label": "field-aligned fill\nfor the rest",
+     "size": 18,
+     "delay": 0.4
+    },
+    {
+     "t": "arrow",
+     "from": [
+      330,
+      150
+     ],
+     "to": [
+      410,
+      200
+     ],
+     "color": "cyan",
+     "delay": 0.6
+    },
+    {
+     "t": "arrow",
+     "from": [
+      330,
+      280
+     ],
+     "to": [
+      410,
+      235
+     ],
+     "color": "purple",
+     "delay": 0.6
+    },
+    {
+     "t": "box",
+     "rect": [
+      420,
+      160,
+      200,
+      110
+     ],
+     "stroke": "gold",
+     "label": "the better\nscore kept",
+     "size": 18,
+     "delay": 0.8,
+     "pulse": true
+    },
+    {
+     "t": "bar",
+     "rect": [
+      660,
+      150,
+      300,
+      34
+     ],
+     "value": 0.343,
+     "label": "stored 34.3",
+     "color": "purple",
+     "delay": 1.0,
+     "size": 17
+    },
+    {
+     "t": "bar",
+     "rect": [
+      660,
+      220,
+      300,
+      34
+     ],
+     "value": 0.757,
+     "label": "laid out 75.7",
+     "color": "green",
+     "delay": 1.2,
+     "size": 17
+    },
+    {
+     "t": "box",
+     "rect": [
+      40,
+      380,
+      220,
+      80
+     ],
+     "stroke": "green",
+     "label": "Remesh + bar",
+     "size": 17,
+     "delay": 1.4
+    },
+    {
+     "t": "box",
+     "rect": [
+      280,
+      380,
+      200,
+      80
+     ],
+     "stroke": "green",
+     "label": "Extrude face",
+     "size": 17,
+     "delay": 1.5
+    },
+    {
+     "t": "box",
+     "rect": [
+      500,
+      380,
+      200,
+      80
+     ],
+     "stroke": "green",
+     "label": "knife snaps",
+     "size": 17,
+     "delay": 1.6
+    },
+    {
+     "t": "box",
+     "rect": [
+      720,
+      380,
+      240,
+      80
+     ],
+     "stroke": "green",
+     "label": "Save / Save As",
+     "size": 17,
+     "delay": 1.7
+    }
+   ]
+  },
+  {
+   "patch": "0029",
+   "title": "Patch 0029 - Living worlds",
+   "text": "The worlds come alive. The land has mountain chains, valleys, canyons and abysses, and you climb it - up and along cliffs and walls, each with its own move - and slide down it.",
    "diagram": [
     {
      "t": "box",
@@ -624,7 +789,7 @@
       600,
       80
      ],
-     "label": "PATCH 0028\nClean topology",
+     "label": "PATCH 0029\nLiving worlds",
      "size": 18,
      "stroke": "gold"
     },
@@ -634,7 +799,7 @@
       210,
       200
      ],
-     "text": "Rules for a clean mesh, and a scor",
+     "text": "Mountains, valleys, canyons - and ",
      "color": "cyan",
      "size": 15,
      "delay": 0.3
@@ -645,7 +810,7 @@
       500,
       200
      ],
-     "text": "Faces laid out along their flow",
+     "text": "Caves and dungeons in the ground",
      "color": "green",
      "size": 15,
      "delay": 0.44999999999999996
@@ -656,7 +821,7 @@
       790,
       200
      ],
-     "text": "Remesh, in the background, with a ",
+     "text": "Light: sunsets, nights, undergroun",
      "color": "purple",
      "size": 15,
      "delay": 0.6
@@ -667,7 +832,7 @@
       210,
       290
      ],
-     "text": "Extrude face, and a knife that sna",
+     "text": "Weather: local, moving, in layers",
      "color": "gold",
      "size": 15,
      "delay": 0.75
@@ -678,7 +843,7 @@
       500,
       290
      ],
-     "text": "Save and Save As, the way a modell",
+     "text": "Sun rays, the compass, markers",
      "color": "red",
      "size": 15,
      "delay": 0.8999999999999999
@@ -689,10 +854,21 @@
       790,
       290
      ],
-     "text": "Fixes: a remesh crash, a floating ",
+     "text": "Greek trees, grass and ground",
      "color": "blue",
      "size": 15,
      "delay": 1.05
+    },
+    {
+     "t": "text",
+     "at": [
+      500,
+      400
+     ],
+     "text": "... and 3 more steps",
+     "size": 15,
+     "color": "dim",
+     "align": "center"
     }
    ]
   }

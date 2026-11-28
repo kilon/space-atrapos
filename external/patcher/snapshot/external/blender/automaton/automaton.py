@@ -414,12 +414,14 @@ def hand(sx, sf):
 
 
 def rifle():
-    """On the gun bone: its head = the grip, its Y = the muzzle (world -Y at rest), Z = top."""
-    bone("gun")
+    """On the gun bone: its head = the grip, its Y = the muzzle (world -Y at rest), Z = top. It folds for
+    its holster (GUN_FOLD): the fore-end and the barrel telescoped back into the receiver, the scope swung
+    down along its side, the stock folded forward along the same side - each piece on a bone of its own."""
     g = Vector((0, -0.4, 1.2))
 
     def at(fwd, up, side=0.0):
         return (g.x + side, g.y - fwd, g.z + up)
+    bone("gun")
     box("Grip", (0.034, 0.045, 0.10), at(-0.012, -0.02), mat="gun", r=rot(-14), bevel=0.008)
     box("Guard", (0.016, 0.085, 0.012), at(0.035, -0.022), mat="gun", bevel=0.0)
     box("Lower", (0.056, 0.30, 0.05), at(0.06, 0.04), mat="gun", bevel=0.01)
@@ -429,21 +431,25 @@ def rifle():
     box("Rail", (0.03, 0.34, 0.016), at(0.09, 0.128), mat="gun", bevel=0.004)
     box("Mag", (0.04, 0.075, 0.13), at(0.11, -0.035), mat="gun", r=rot(10), bevel=0.008)
     box("MagBase", (0.046, 0.08, 0.02), at(0.122, -0.098), mat="gun_o", r=rot(10), bevel=0.004)
+    box("ForeGrip", (0.04, 0.11, 0.05), at(0.27, 0.012), mat="gun", bevel=0.008)
+    box("Hinge", (0.012, 0.03, 0.05), at(-0.105, 0.06, -0.034), mat="grey", bevel=0.003)   # (the stock's, on its side)
+    bone("gun.stock")
     box("Stock", (0.046, 0.22, 0.075), at(-0.215, 0.062), mat="gun", taper=(1.0, 0.8), bevel=0.012)
     box("Cheek", (0.05, 0.14, 0.03), at(-0.20, 0.105), mat="armor", bevel=0.008)
     box("StockPad", (0.052, 0.035, 0.12), at(-0.335, 0.048), mat="armor", bevel=0.008)
+    bone("gun.fore")
     box("Fore", (0.062, 0.27, 0.08), at(0.385, 0.072), mat="armor", bevel=0.012, taper=((1.0, 1.0), (0.8, 1.0)))
     box("ForeStripe", (0.066, 0.20, 0.02), at(0.385, 0.05), mat="gun_o", bevel=0.004, outline=0.003)
     for k in range(3):
         box("Vent", (0.066, 0.03, 0.012), at(0.32 + k * 0.06, 0.09), mat="gun", bevel=0.0)
-    box("ForeGrip", (0.04, 0.11, 0.05), at(0.27, 0.012), mat="gun", bevel=0.008)
+    bone("gun.barrel")
     tube("Barrel", at(0.50, 0.075), at(0.72, 0.075), 0.022, mat="gun", seg=12)
     tube("Shroud", at(0.50, 0.075), at(0.60, 0.075), 0.032, 0.028, mat="grey", seg=12)
     tube("Muzzle", at(0.68, 0.075), at(0.78, 0.075), 0.034, mat="gun", seg=12)
     tube("MuzzleBand", at(0.70, 0.075), at(0.72, 0.075), 0.037, mat="gun_o", seg=12)
     tube("MuzzleGlow", at(0.775, 0.075), at(0.785, 0.075), 0.016, mat="glow", seg=10, outline=0)
     tube("Barrel2", at(0.50, 0.046), at(0.64, 0.046), 0.013, mat="gun", seg=10)
-    # the scope
+    bone("gun.scope")
     tube("Scope", at(-0.03, 0.172), at(0.22, 0.172), 0.029, mat="gun", seg=14)
     tube("ScopeBack", at(-0.06, 0.172), at(-0.02, 0.172), 0.034, mat="gun", seg=14)
     tube("ScopeFront", at(0.20, 0.172), at(0.28, 0.172), 0.038, mat="armor", seg=14)
@@ -453,6 +459,47 @@ def rifle():
     box("ScopeMount", (0.03, 0.05, 0.03), at(0.16, 0.14), mat="gun", bevel=0.006)
 
 
+# The rifle's folding pieces (kit.GUN_FOLD): the gun bone's axes - x its side (out, holstered), y the muzzle,
+# z its top. Folding (the pose's "fold" 0 -> 1) the barrel slides into the fore-end first, the fore-end back
+# over the receiver, then the scope swings down along its side and the stock folds forward under it;
+# unfolding (drawn) the other way - the stock out first, the barrel last, as the rifle comes up.
+GUN_FOLD = {
+    "gun.fore": dict(pivot=(0.0, 0.25, 0.072), slide=(0.0, -0.14, 0.0), span=(0.12, 0.45)),
+    "gun.barrel": dict(parent="gun.fore", pivot=(0.0, 0.50, 0.075), slide=(0.0, -0.26, 0.0), span=(0.0, 0.3)),
+    "gun.scope": dict(pivot=(0.033, 0.0, 0.123), axis=(0, 1, 0), angle=90.0, span=(0.4, 0.72)),
+    "gun.stock": dict(pivot=(0.034, -0.105, 0.06), axis=(0, 0, 1), angle=180.0, span=(0.62, 1.0)),
+}
+
+
+def holster():
+    """The holster on the right thigh (its own part, "Holster": the legs may be overridden): a dark plate
+    against the thigh, a boot the folded fore-end sits in, a clip the receiver locks to, two bands round the
+    thigh - laid round the folded rifle where it rides (moves.HOLSTER), on the thigh's bone."""
+    import moves
+    grip, way, top = moves.HOLSTER
+    mats = {"thigh.R": kit.REST["thigh.R"]}
+    G = kit._m4(kit.frame(kit._space_dir("tR", way, mats), kit._space_dir("tR", top, mats)), kit._space_point("tR", grip, mats))
+    R = G.to_3x3()
+
+    def hb(name, size, c, mat="joint", bevel=0.006, rr=None):
+        box(name, size, G @ Vector(c), mat=mat, r=R @ rr if rr is not None else R, bevel=bevel)
+
+    def ht(name, a, b, r1, r2=None, mat="joint", seg=14):
+        tube(name, G @ Vector(a), G @ Vector(b), r1, r2, mat=mat, seg=seg)
+    bone("thigh.R")
+    hb("HolsterPlate", (0.012, 0.40, 0.17), (-0.042, 0.17, 0.05), mat="joint")
+    hb("HolsterPlateRim", (0.016, 0.36, 0.012), (-0.040, 0.17, 0.138), mat="grey", bevel=0.003)
+    hb("HolsterPlateRim", (0.016, 0.36, 0.012), (-0.040, 0.17, -0.036), mat="grey", bevel=0.003)
+    ht("HolsterBoot", (0.012, 0.25, 0.072), (0.012, 0.42, 0.072), 0.058, 0.05, mat="grey")
+    ht("HolsterBootLip", (0.012, 0.245, 0.072), (0.012, 0.265, 0.072), 0.063, mat="red", seg=16)
+    hb("HolsterClip", (0.03, 0.03, 0.10), (-0.028, 0.0, 0.07), mat="grey", bevel=0.004)   # (the clip the receiver's side locks to)
+    hb("HolsterClasp", (0.012, 0.02, 0.03), (-0.010, 0.0, 0.07), mat="red", bevel=0.003)
+    hx = -kit.HIP_X
+    for k, (z, a, b) in enumerate(((kit.HIP_Z - 0.20, 0.092, 0.101), (kit.HIP_Z - 0.34, 0.085, 0.094))):
+        kit.loft("HolsterBand", (hx - 0.014, -0.006, z + 0.016), (hx - 0.012, -0.006, z - 0.016),
+                 [(0, a, b, 3.8), (1, a - 0.002, b - 0.002, 3.8)], mat="joint", seg=20)
+
+
 def build():
     materials()
     mirror(legs)
@@ -460,6 +507,7 @@ def build():
     head()
     mirror(arms)
     rifle()
+    holster()
 
 
 # Where the hands hold the rifle (the gun bone's axes: x side, y muzzle, z top), for the wrists.

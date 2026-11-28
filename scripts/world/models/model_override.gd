@@ -141,8 +141,55 @@ static func build(model_path: String) -> PackedScene:
 	if ps == null and ResourceLoader.exists(p):
 		ps = load(p)   # (an exported game: the imported override)
 	if ps == null:
-		ps = load(model_path)
-	return ps
+		return load(model_path)
+	return _with_base_clips(ps, model_path)
+
+
+## An override with the game's own model's clips: an override's clips are the ones it
+## was saved with - copies (the clips you edit are files of their own: Stage3D.custom_clips,
+## over these) - so the model's, as they are now, take their place (a new draw, the folded
+## rifle's holster...); its tracks for bones the override hasn't got left out. Its own
+## clips the model hasn't got kept. Its own scene untouched; a new one packed.
+static func _with_base_clips(ps: PackedScene, model_path: String) -> PackedScene:
+	if not ResourceLoader.exists(model_path):
+		return ps
+	var root := ps.instantiate()
+	var base := (load(model_path) as PackedScene).instantiate()
+	var ap: AnimationPlayer = root.find_child("AnimationPlayer", true, false)
+	var bap: AnimationPlayer = base.find_child("AnimationPlayer", true, false)
+	var sk: Skeleton3D = root.find_child("Skeleton3D", true, false)
+	var added := 0
+	if ap and bap:
+		if not ap.has_animation_library(""):
+			ap.add_animation_library("", AnimationLibrary.new())
+		var lib := ap.get_animation_library("")
+		for n in bap.get_animation_list():
+			var a: Animation = bap.get_animation(n)
+			if sk:   # (its tracks for bones this skeleton hasn't got: left out)
+				var keep_all := true
+				for t in a.get_track_count():
+					var bone := str(a.track_get_path(t).get_concatenated_subnames())
+					if bone != "" and sk.find_bone(bone) < 0:
+						keep_all = false
+						break
+				if not keep_all:
+					a = a.duplicate(true)
+					for t in range(a.get_track_count() - 1, -1, -1):
+						var bone2 := str(a.track_get_path(t).get_concatenated_subnames())
+						if bone2 != "" and sk.find_bone(bone2) < 0:
+							a.remove_track(t)
+			if lib.has_animation(n):
+				lib.remove_animation(n)
+			lib.add_animation(n, a)
+			added += 1
+	base.free()
+	if added == 0:
+		root.free()
+		return ps
+	var out := PackedScene.new()
+	out.pack(root)
+	root.free()
+	return out
 
 
 ## A scene build() made (on a worker) kept as `model_path`'s override.

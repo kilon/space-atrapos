@@ -162,12 +162,16 @@ func step(a: Vector3, b: Vector3) -> bool:
 	if cosmos.get("builds") and cosmos.builds.bolt_hit(a, dir, L, damage):
 		return true
 	# A dungeon's walls.
-	if cosmos.dungeon and cosmos.dungeon.cam_hit(a, dir, L) < L:
-		return true
+	for d in cosmos.dungeons_live():
+		if d.cam_hit(a, dir, L) < L:
+			return true
 	# The ground.
 	var pl: CosmosPlanet = cosmos.planet_below(b, 50.0)
 	if pl:
 		var local := b - pl.global_position
-		if local.length() < pl.radius + pl.shape.surface(local.normalized()):
+		if pl.shape.carved_near(local):   # (dug ground - a cave, a dungeon, a tunnel: its rock, not the face above)
+			if pl.shape.density(local) < 0.0:
+				return true
+		elif local.length() < pl.radius + pl.shape.surface(local.normalized()):
 			return true
 	return false

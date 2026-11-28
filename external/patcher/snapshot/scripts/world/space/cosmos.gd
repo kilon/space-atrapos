@@ -52,6 +52,9 @@ var _env: Environment
 var _shells_on := true
 const AMBIENT_OUT := Color(0.11, 0.12, 0.15)
 const AMBIENT_SKY := Color(0.4, 0.42, 0.46)   # (on a world with air, by day: the sky's light in the shade)
+const AMBIENT_DUSK := Color(0.46, 0.33, 0.34)  # (by the dawn and the dusk: the sky's light warm and rosy)
+const AMBIENT_NIGHT := Color(0.2, 0.22, 0.3)  # (by night near the ground: the stars', the moons' - cool, dim; less where there's no air)
+const AMBIENT_UNDER := Color(0.4, 0.37, 0.34)  # (under the ground - a cave, a tunnel, a dungeon: never pitch black)
 const AMBIENT_IN := Color(0.42, 0.43, 0.46)    # (inside the ship: its lights all round)
 const AMBIENT_HALL := Color(0.46, 0.44, 0.42)  # (in a station's hangar: its light panels and lamps all round - its crew seen, not silhouettes)
 var _jumping := false
@@ -110,6 +113,8 @@ var tutor: Node                  # the interactive tutorial (CosmosTutor)
 var veins: CosmosVeins           # ore veins in the ground round you
 var builds: CosmosBuilds         # your buildings on the world you're on, and the builder (BuildKit's pieces)
 var underwater: CosmosUnderwater # the look under the sea and its life (kelp, corals, fish...)
+var _rays: CosmosGodRays          # (the sun's rays: _god_rays)
+var weather_fx: CosmosWeatherFx  # the weather (PlanetWeather): rain, snow, ash round you, storms - `now` where you are
 var _traffic_t := 0.0
 var _pirate_cd := 120.0
 const TRAFFIC_NEAR := 3500.0
@@ -167,7 +172,7 @@ func _build() -> void:
 	if OS.has_feature("web"):
 		while CosmosWarm.load_direct():
 			await _stage()   # (a browser: the scripts and the HUD loaded here, a thing a frame)
-		CosmosWarm.draw_in(self, ["_walker", "_citizen", "_town", "_flora", "_creature", "_deposit", "_fx", "_fx_smoke", "_fx_debris"])   # (and what's seen first drawn once, a thing a frame, while this builds)
+		CosmosWarm.draw_in(self, ["_walker", "_citizen", "_town", "_flora", "_creature", "_deposit", "_fx", "_fx_smoke", "_fx_debris", "_roads", "_loot"])   # (and what's seen first drawn once, a thing a frame, while this builds)
 	var have_ship := not bool(CosmosGame.extra.get("no_ship", false))
 	if have_ship or not OS.has_feature("web"):
 		CosmosShip.start_hull(have_ship)        # (your ship's hull and rooms: on workers meanwhile - soon if you have one; in a browser, none yet - not till you've one)
@@ -260,6 +265,11 @@ func _build() -> void:
 	ship.set_process(false)   # (it flies once everything's built: the last pieces come a frame each)
 	await _stage()
 	cam = CosmosCam.new()
+	if not CosmosPlanet.COMPAT:   # (the sun's rays through the clouds and the trees: a compute pass after the transparent things - not in the browser's renderer)
+		_rays = CosmosGodRays.new()
+		var comp := Compositor.new()
+		comp.compositor_effects = [_rays]
+		cam.compositor = comp
 	cam.target = ship
 	cam.cosmos = self
 	cam.process_priority = 10
@@ -278,19 +288,23 @@ func _build() -> void:
 	hud.visible = false
 	layer.add_child(hud)
 	sandbox = CosmosSandbox.new()
-	sandbox.cosmos = self
+	sandbox.set("cosmos", self)   # (set, not typed-assigned: the script reloads live - its own type is a new one then)
 	add_child(sandbox)
+	CosmosCaravans.attach(self)   # (the roads between the towns, their travellers, the loot of the dead: CosmosRoads, CosmosLoot)
 	builds = CosmosBuilds.new()   # (your buildings: raised on their world as you come to it)
 	builds.cosmos = self
 	add_child(builds)
 	veins = CosmosVeins.new()   # (ore veins in the ground: dug with the terrain digger, shown by the scanner)
 	veins.cosmos = self
 	world.add_child(veins)
+	weather_fx = CosmosWeatherFx.new()   # (the weather: the worlds' clouds and ground, what falls round you, storms)
+	weather_fx.cosmos = self
+	add_child(weather_fx)
 	underwater = CosmosUnderwater.new()   # (under a sea: the water's look, its plants, rocks and animals)
 	underwater.cosmos = self
 	add_child(underwater)
 	tutor = CosmosTutor.new()   # (the interactive tutorial: a new game's; hidden when there's none)
-	tutor.cosmos = self
+	tutor.set("cosmos", self)
 	add_child(tutor)
 	target_view = CosmosTargetView.new()
 	target_view.cosmos = self
@@ -900,29 +914,54 @@ func _process(delta: float) -> void:
 		var up := (focus().global_position - lp.global_position).normalized()
 		day = smoothstep(-0.12, 0.12, up.dot(lp.sun_dir))
 	light.light_energy = lerpf(0.04, 1.0, day) if not inside_ship else 0.9
+	# (under the weather: the sun dimmed through its clouds - a storm's gloom)
+	var wnow: Dictionary = weather_fx.now if weather_fx else {}
+	var overcast := float(wnow.get("cover", 0.0)) * (1.0 - smoothstep(300.0, 1500.0, float(wnow.get("alt", 0.0))))
+	if not inside_ship and not hall:
+		light.light_energy *= 1.0 - 0.6 * overcast - 0.2 * float(wnow.get("storm", 0.0))
+	# (the sun low, seen through the air: its light golden, orange, red - dawn and dusk)
+	var dusk := 0.0
+	if lp and not hall and not inside_ship and lp.atmo_radius > lp.radius:
+		var up0 := (focus().global_position - lp.global_position)
+		var near0 := 1.0 - smoothstep(0.2, 1.0, (up0.length() - lp.radius) / (lp.atmo_radius - lp.radius))
+		dusk = (1.0 - smoothstep(0.0, 0.4, up0.normalized().dot(lp.sun_dir))) * near0
+	var sun_col := Color(1.0, 0.97, 0.93).lerp(Color(1.0, 0.52, 0.28), dusk)
+	if not light.light_color.is_equal_approx(sun_col):
+		light.light_color = sun_col
 	light.shadow_enabled = not inside_ship and not hall   # (the hull would shade it all; in a port, its roof)
-	var below := dungeon != null and walker != null and walker.deck == dungeon
+	_god_rays(lp, wnow, inside_ship or hall)
+	var below := dungeon != null
 	if light.visible == below:
-		light.visible = not below   # (underground: no sun - nor its shadow maps; the torches light it)
-		for p: Node3D in planets:   # (nor the worlds and the star, out of sight above: not drawn)
-			p.visible = not below
+		light.visible = not below   # (in a dungeon: no sun - nor its shadow maps; the torches light it)
+		_surface_shown(not below)
 		star.visible = not below
 	var shells_on := not hall   # (in your ship too: the sky through its ramp and canopy - the air stops at its hull, the depth buffer's)
 	if shells_on != _shells_on:
 		_shells_on = shells_on   # (docked: no atmosphere or clouds drawn through the hangar)
 		for p: CosmosPlanet in planets:
-			for n in ["Atmosphere", "Clouds"]:
+			for n in ["Atmosphere", "Clouds", "CloudsLow", "CloudsHigh"]:
 				var sh := p.get_node_or_null(n)
 				if sh:
 					sh.visible = shells_on
 	if _env:
 		var amb := AMBIENT_IN if inside_ship else (AMBIENT_HALL if hall and hangar else AMBIENT_OUT)
-		if lp and not inside_ship and not hall and not below and lp.atmo_radius > lp.radius:
-			# (under a sky by day the shade is lit by it: the ambient brightens with the
-			# daylight, fading out as you climb out of the air)
+		if not inside_ship and not hall and (below or _under_ground()):
+			amb = AMBIENT_UNDER
+		elif lp and not inside_ship and not hall:
+			# (near the ground by night: the stars' and moons' light, dim and cool; under a
+			# sky by day the shade is lit by it - the ambient brightens with the daylight,
+			# both fading out as you climb away)
 			var alt := (focus().global_position - lp.global_position).length() - lp.radius
-			var k := day * (1.0 - smoothstep(0.2, 1.0, alt / (lp.atmo_radius - lp.radius)))
-			amb = AMBIENT_OUT.lerp(AMBIENT_SKY, k)
+			var air := lp.atmo_radius > lp.radius
+			var near := 1.0 - smoothstep(0.2, 1.0, alt / ((lp.atmo_radius - lp.radius) if air else 1500.0))
+			var night := AMBIENT_OUT.lerp(AMBIENT_NIGHT, near * (1.0 if air else 0.6))
+			amb = night.lerp(AMBIENT_SKY, day * near) if air else night.lerp(AMBIENT_OUT, day)
+			if air:   # (twilight: the sky's light in the shade warm and rosy)
+				var e := (focus().global_position - lp.global_position).normalized().dot(lp.sun_dir)
+				amb = amb.lerp(AMBIENT_DUSK, exp(-pow((e - 0.03) / 0.16, 2.0)) * near * 0.7)
+		if overcast > 0.0 and not inside_ship and not hall and not below:   # (overcast: the light in the shade even, grey)
+			amb = amb.lerp(Color(0.3, 0.32, 0.35) * (0.5 + 0.5 * day), overcast * 0.6)
+		_weather_fog(wnow, inside_ship or hall or below)
 		if not _env.ambient_light_color.is_equal_approx(amb):
 			_env.ambient_light_color = amb
 			_env.reflected_light_source = Environment.REFLECTION_SOURCE_DISABLED if inside_ship else Environment.REFLECTION_SOURCE_SKY
@@ -974,7 +1013,9 @@ func _update_lod(visit: bool) -> void:
 	for p: CosmosPlanet in planets:
 		var local := eye - p.global_position
 		# (a far planet stays as it is - a few coarse patches: only those near are visited)
-		if p.visiting() or (visit and (local.length() < p.radius * 25.0 or not p.settled() or p.deepest_hint > 1)):
+		if dungeon != null and p.settled():
+			p.collect_only()   # (in a dungeon: the ground overhead unseen - not refined meanwhile)
+		elif p.visiting() or (visit and (local.length() < p.radius * 25.0 or not p.settled() or p.deepest_hint > 1)):
 			p.update_lod(local)   # (a visit begun goes on, a slice a frame, till it's done)
 		else:
 			p.collect_only()
@@ -1300,7 +1341,7 @@ func camera_clear(pivot: Vector3, want: Vector3, skip: Node = null) -> Vector3:
 		return want
 	var dir := seg / L
 	var t := L
-	if walker and walker.planet and walker.planet.shape.carved_near(pivot - walker.planet.global_position):
+	if walker and walker.planet and dungeon == null and walker.planet.shape.carved_near(pivot - walker.planet.global_position):
 		# (dug ground: the camera stops short of a tunnel's or a pit's walls)
 		var pl: CosmosPlanet = walker.planet
 		var s := 0.25
@@ -1350,7 +1391,7 @@ func camera_clear(pivot: Vector3, want: Vector3, skip: Node = null) -> Vector3:
 			var p := pivot + dir * d
 			var lp := p - pl.global_position
 			var up := lp.normalized()
-			if lp.length() < pl.radius + pl.ground_at(lp) + 0.35:
+			if lp.length() < pl.radius + pl.ground_at(lp) + 0.35 and not pl.shape.carved_near(lp):   # (dug ground - a cave, a tunnel: its rock's own, above)
 				t = maxf(d - t / steps, 0.0)
 				break
 			var blocked := false
@@ -1413,6 +1454,8 @@ func keep_above_ground(p: Vector3, m: float) -> Vector3:
 		if r > pl.radius + pl.shape.top() + m + 10.0:
 			continue
 		if pl.shape.carved_near(local):
+			if dungeon != null and dungeon.planet == pl:
+				return p   # (in a dungeon: its walls and roof keep the camera in - camera_clear)
 			return pl.global_position + pl.shape.push_out(local, m)   # (dug ground: out of its walls - into a pit, a tunnel)
 		var under := walker != null and walker.diving and walker.planet == pl   # (diving: the camera goes under the sea with you - down to its floor)
 		var g := pl.radius + (pl.shape.height(local / r) if under else pl.ground_at(local)) + m
@@ -1493,7 +1536,7 @@ func system_title() -> String:
 func where_text() -> String:
 	if walker and walker.deck == ship.interior:
 		return "Aboard your ship" + ("" if ship.state == "landed" else " - in flight")
-	if walker and dungeon and walker.deck == dungeon:
+	if walker and dungeon:
 		return "Below %s - in %s" % [dungeon.planet.rec.get("name", ""), dungeon.site.get("name", "the dark")]
 	if walker and walker.deck is CosmosNpcInterior:
 		var inn := walker.deck as CosmosNpcInterior
@@ -2339,6 +2382,20 @@ func walker_bumps(w: CosmosWalker) -> void:
 				w.global_position += d.normalized() * (1.6 - d.length())
 	if w.deck:
 		return
+	var held_at := w.global_position   # (what holds you out from here on is a wall to climb - not people, not the ship's legs)
+	var in_dg := false
+	for d: CosmosDungeon in dungeons_live():   # (a dungeon's walls, its roof)
+		if d.planet == w.planet:
+			var dl := d.to_local(w.global_position)
+			if d.inside(dl):
+				in_dg = true
+				dl += d.push(dl, CosmosWalker.BODY_R)
+				var roof: float = d.ceiling_y(dl) - 1.85
+				if dl.y > roof:
+					dl.y = roof
+					if w.velocity.dot(u) > 0.0:
+						w.velocity -= u * w.velocity.dot(u)
+				w.global_position = d.to_global(dl)
 	var town := town_at(w.planet, w.global_position)
 	if town:
 		w.global_position += town.global_basis * town.push(town.to_local(w.global_position), CosmosWalker.BODY_R)
@@ -2347,12 +2404,21 @@ func walker_bumps(w: CosmosWalker) -> void:
 	if deposits and deposits.planet == w.planet:
 		deposits.push(w)
 	var lw := w.global_position - w.planet.global_position
-	if w.planet.shape.carved_near(lw):
+	if not in_dg and w.planet.shape.carved_near(lw):
 		# (dug ground: kept out of its walls and ceilings - the knees and the head)
 		for hgt: float in [0.55, 1.5]:
 			var pt: Vector3 = lw + u * hgt
 			var mv: Vector3 = w.planet.shape.push_out(pt, CosmosWalker.BODY_R * 0.8) - pt
 			lw += mv - u * mv.dot(u)   # (sideways: the floor's the floor's business - floor_at)
+		# (under the ground - a tunnel, a cave: its ceiling holds you down - a jump, the jet, swimming up)
+		var sh := w.planet.shape
+		if lw.length() - w.planet.radius < sh.height(u) - 0.5 and sh.density(lw + u * 1.75) < 0.0:
+			for k in 20:
+				lw -= u * 0.1
+				if sh.density(lw + u * 1.75) >= 0.0:
+					break
+			if w.velocity.dot(u) > 0.0:
+				w.velocity -= u * w.velocity.dot(u)
 		w.global_position = w.planet.global_position + lw
 	var local := w.global_position - w.planet.global_position
 	for rk in w.planet.rocks_near(local, 3.0, "walker"):   # (its last answer while fresh)
@@ -2363,6 +2429,8 @@ func walker_bumps(w: CosmosWalker) -> void:
 		# (low ones you step over; tall ones block)
 		if float(rk[2]) > 0.5 and flat.length() < need and d.dot(u) < float(rk[2]) and flat.length() > 0.001:
 			w.global_position += flat.normalized() * (need - flat.length())
+	var held := w.global_position - held_at
+	w.note_wall(held - u * held.dot(u))
 	if underwater and (w.swimming or w.diving):   # (the sea floor's boulders and corals: solid to a diver)
 		for rk in underwater.rocks_near(local, 3.0):
 			var d: Vector3 = w.global_position - w.planet.global_position - (rk[0] as Vector3)
@@ -2517,14 +2585,17 @@ func _ship_calling(delta: float) -> void:
 
 # --- Caves and dungeons ---------------------------------------------------------------
 
-## A planet's caves and dungeons: two of each on a rocky world, where its seed
-## puts them on dry, level ground away from the towns - their mouths built as
-## you come near (a cave's: a rock arch; a dungeon's: a stone gateway with
-## horns, steps going down), E at one goes in (CosmosDungeon).
-var dungeon: CosmosDungeon = null
-var _dungeon_from := {}          # {pl, site} - where you went down
+## A planet's caves and dungeons. Its dungeons: two on a rocky world, where its
+## seed puts them on dry, level ground away from the towns - a stone gateway
+## with horns, steps going down; E at one goes in (CosmosDungeon: a place of
+## its own). Its caves are its ground's own (PlanetShape.caves: tunnels carved
+## into a hillside, or into an abyss's wall under the sea) - walked or swum
+## straight in, their dead in their chambers, a chest in the deepest
+## (_cave_life); a rock arch round a hillside cave's mouth.
+var dungeon: CosmosDungeon = null   # (the one you're in - under the ground: no sun, no markers)
 var _dungeons := {}              # CosmosPlanet -> [[site, entrance node or null]]
 const CAVE_NAMES := ["Cave of Eileithyia", "Idaean Cave", "Dictaean Cave", "Cave of Skotino", "Cave of Melidoni", "Cave of Kamares"]
+const ABYSS_NAMES := ["Abyss of Poseidon", "Deeps of Nereus", "Pit of Charybdis", "Abyss of Okeanos", "Hollow of Thetis", "Deep of Proteus"]
 const DUNGEON_NAMES := ["Labyrinth of Asterion", "Tomb of Minos", "Crypt of Phaistos", "Halls of the Dead", "Vaults of Hades", "Pit of Tartarus"]
 
 
@@ -2533,23 +2604,22 @@ func dungeons_of(pl: CosmosPlanet) -> Array:
 		return _dungeons[pl]
 	var out: Array = []
 	if pl.shape.kind == "rocky":
-		var rng := RandomNumberGenerator.new()
-		rng.seed = int(pl.rec.get("seed", 1)) * 17 + 3
-		var tries := 0
-		while out.size() < 4 and tries < 300:
-			tries += 1
-			var d := Vector3(rng.randfn(), rng.randfn(), rng.randfn()).normalized()
-			var h := pl.shape.height(d)
-			if pl.shape.sea > 0 and h < 2.0 or pl.shape.cleared(d):
-				continue
-			var t := d.cross(Vector3.UP if absf(d.y) < 0.9 else Vector3.RIGHT).normalized()
-			if absf(pl.shape.height((d * pl.radius + t * 10.0).normalized()) - h) > 2.5:
-				continue
-			var kind := "cave" if out.size() % 2 == 0 else "dungeon"
-			var names: Array = CAVE_NAMES if kind == "cave" else DUNGEON_NAMES
-			var site := {"dir": d, "kind": kind, "seed": rng.randi(), "name": names[(int(pl.rec.get("seed", 1)) + out.size()) % names.size()]}
-			out.append([site, null])
-	_dungeons[pl] = out
+		var di := 0
+		for dg: Dictionary in pl.shape.dungeons:
+			var m: Vector3 = dg["mouth"]
+			out.append([{"dir": m.normalized(), "kind": "dungeon", "seed": int(dg["seed"]), "dungeon": dg,
+				"name": DUNGEON_NAMES[(int(pl.rec.get("seed", 1)) + di * 2 + 1) % DUNGEON_NAMES.size()]}, null])
+			di += 1
+		var ci := 0
+		for cave: Dictionary in pl.shape.caves:
+			var under := bool(cave["under"])
+			var names: Array = ABYSS_NAMES if under else CAVE_NAMES
+			var m: Vector3 = cave["mouth"]
+			out.append([{"dir": m.normalized(), "kind": "cave", "seed": int(cave["seed"]), "cave": cave, "under": under,
+				"name": names[(int(pl.rec.get("seed", 1)) + ci) % names.size()]}, null])
+			ci += 1
+	if pl.caves_ready:   # (kept once its caves and dungeons are in)
+		_dungeons[pl] = out
 	return out
 
 
@@ -2559,6 +2629,8 @@ func _dungeon_mouths(pl: CosmosPlanet, here: Vector3) -> void:
 		var site: Dictionary = e[0]
 		var at: Vector3 = (site["dir"] as Vector3) * (pl.radius + pl.shape.height(site["dir"]))
 		var dist := at.distance_to(here)
+		if site.get("under", false):
+			continue   # (an abyss's cave: its mouth in the abyss's wall, no arch)
 		if dist < 600.0 and e[1] == null:
 			e[1] = _build_mouth(pl, site)
 		elif dist > 900.0 and e[1] != null:
@@ -2574,7 +2646,13 @@ func _build_mouth(pl: CosmosPlanet, site: Dictionary) -> Node3D:
 	pl.add_child(n)   # (on its world: moves with it)
 	var u: Vector3 = site["dir"]
 	var f := u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized()
-	n.global_transform = Transform3D(Basis.looking_at(f, u), pl.global_position + u * (pl.radius + pl.shape.height(u)))
+	var at := u * (pl.radius + pl.shape.height(u))
+	var into: Dictionary = site.get("cave", site.get("dungeon", {}))
+	if not into.is_empty():   # (round its real opening: facing in along the passage)
+		var w: Vector3 = into["way"]
+		f = (w - u * w.dot(u)).normalized()
+		at = into["mouth"]
+	n.global_transform = Transform3D(Basis.looking_at(f, u), pl.global_position + at)
 	var stone := CosmosStation._mat(Color(0.45, 0.42, 0.38), 0.0, 0.9)
 	var dark := CosmosStation._mat(Color(0.01, 0.01, 0.01), 0.0, 1.0)
 	var red := CosmosStation._mat(Color(0.5, 0.1, 0.07), 0.0, 0.8)
@@ -2589,58 +2667,191 @@ func _build_mouth(pl: CosmosPlanet, site: Dictionary) -> Node3D:
 	if site["kind"] == "cave":
 		var rock: Mesh = CosmosPlanet.rock_mesh()
 		var rm := CosmosStation._mat(Color(0.36, 0.32, 0.28), 0.0, 0.95)
-		for k in 7:   # (an arch of boulders round a dark mouth)
+		for k in 7:   # (an arch of boulders round its opening)
 			var a := PI * k / 6.0
-			add.call(rock, rm, Vector3(cos(a) * 3.2, sin(a) * 3.2 - 0.6, 0.0), Vector3.ONE * (1.6 + 0.4 * sin(k * 2.0)))
-		add.call(CosmosStation._box(Vector3(4.6, 3.4, 0.3)), dark, Vector3(0, 1.3, 0.4))
+			add.call(rock, rm, Vector3(cos(a) * 3.6, sin(a) * 3.2 - 0.6, 0.6), Vector3.ONE * (1.6 + 0.4 * sin(k * 2.0)))
 	else:
 		for sx in [-1.0, 1.0]:
 			add.call(CosmosStation._box(Vector3(1.0, 4.2, 1.0)), stone, Vector3(2.0 * sx, 2.1, 0))
 		add.call(CosmosStation._box(Vector3(5.4, 0.8, 1.2)), stone, Vector3(0, 4.6, 0))
-		add.call(CosmosStation._box(Vector3(3.0, 3.8, 0.2)), dark, Vector3(0, 1.9, 0.35))
 		for sx in [-1.0, 1.0]:   # (horns of consecration on the lintel)
 			add.call(CosmosStation._box(Vector3(0.35, 0.9, 0.35)), red, Vector3(0.7 * sx, 5.45, 0))
 		add.call(CosmosStation._box(Vector3(2.2, 0.3, 0.4)), red, Vector3(0, 5.1, 0))
 	return n
 
 
-## The mouth you're at (within 4 m), or {} .
-func dungeon_mouth_here() -> Dictionary:
-	if walker == null or walker.planet == null or walker.deck != null:
-		return {}
-	var pl := walker.planet
+# (The caves in the ground: their dead and their chest, there while you're near.)
+const CAVE_NEAR := 150.0         # m from its mouth or a chamber: its dead wake, its chest's there
+var _cave_live := {}             # chest key -> {pl, site, foes: [CosmosNpc], chest: Node3D, at: planet-local chest}
+
+
+func _cave_life(pl: CosmosPlanet, here: Vector3) -> void:
 	for e in dungeons_of(pl):
 		var site: Dictionary = e[0]
-		var at: Vector3 = pl.global_position + (site["dir"] as Vector3) * (pl.radius + pl.shape.height(site["dir"]))
-		if at.distance_to(walker.global_position) < 5.0:
-			return site
+		if not site.has("cave"):
+			continue
+		var cave: Dictionary = site["cave"]
+		var dmin := (cave["mouth"] as Vector3).distance_to(here)
+		for ch in cave["chambers"]:
+			dmin = minf(dmin, (ch[0] as Vector3).distance_to(here))
+		var key := _chest_key(pl, site)
+		if dmin < CAVE_NEAR and not _cave_live.has(key):
+			_cave_wake(pl, site, key)
+		elif dmin > CAVE_NEAR * 2.0 and _cave_live.has(key):
+			_cave_sleep(key)
+	for key in _cave_live.keys():   # (another world now)
+		if _cave_live[key]["pl"] != pl:
+			_cave_sleep(key)
+
+
+## The floor in a cave at planet-local `p` (in its air): planet-local.
+static func cave_floor(pl: CosmosPlanet, p: Vector3) -> Vector3:
+	return p.normalized() * (pl.radius + pl.shape.floor_below(p))
+
+
+## Its dead in its chambers - skeleton warriors, demons deeper in, a demon lord
+## by the chest in the deepest - and the chest.
+func _cave_wake(pl: CosmosPlanet, site: Dictionary, key: String) -> void:
+	var cave: Dictionary = site["cave"]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(site["seed"]) + 9
+	var chambers: Array = cave["chambers"]
+	var deepest := int(cave["deepest"])
+	var foes: Array = []
+	var chest_at := Vector3.ZERO
+	for k in chambers.size():
+		var c: Vector3 = chambers[k][0]
+		var cr: float = chambers[k][1]
+		var u := c.normalized()
+		var t1 := u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized()
+		if k == deepest:
+			chest_at = cave_floor(pl, c + t1 * cr * 0.3)
+		for j in rng.randi_range(1, 2):
+			var kind := "demon" if k == deepest and rng.randf() < 0.5 else "skeleton"
+			var at := cave_floor(pl, c + t1.rotated(u, rng.randf() * TAU) * cr * 0.4)
+			foes.append(_cave_foe(pl, at, kind, rng.randi(), false))
+	if not chambers.is_empty():
+		foes.append(_cave_foe(pl, cave_floor(pl, (chambers[deepest][0] as Vector3)), "demon", rng.randi(), true))
+	var looted: bool = key in CosmosGame.extra.get("looted", [])
+	var chest := _cave_chest(pl, chest_at, looted)
+	_cave_live[key] = {"pl": pl, "site": site, "foes": foes, "chest": chest, "at": chest_at, "open": looted}
+
+
+func _cave_sleep(key: String) -> void:
+	var e: Dictionary = _cave_live[key]
+	for x in e["foes"]:
+		if is_instance_valid(x):
+			x.queue_free()
+	if is_instance_valid(e["chest"]):
+		(e["chest"] as Node).queue_free()
+	_cave_live.erase(key)
+
+
+func _cave_foe(pl: CosmosPlanet, at: Vector3, kind: String, seed: int, boss: bool) -> CosmosNpc:
+	var npc := CosmosNpc.new()
+	npc.cosmos = self
+	npc.cave_foe(pl, seed, kind, boss)
+	world.add_child(npc)
+	npc.global_position = pl.global_position + at
+	npcs.append(npc)
+	return npc
+
+
+## A bronze chest on a cave's floor (planet-local `at`), its lid up when it's been opened; a warm glow while it's shut.
+func _cave_chest(pl: CosmosPlanet, at: Vector3, open: bool) -> Node3D:
+	var n := Node3D.new()
+	n.name = "CaveChest"
+	pl.add_child(n)
+	var u := at.normalized()
+	var f := u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized()
+	n.global_transform = Transform3D(Basis.looking_at(f, u), pl.global_position + at)
+	var bronze := CosmosStation._mat(Color(0.55, 0.36, 0.14), 0.85, 0.35)
+	var body := MeshInstance3D.new()
+	body.mesh = CosmosStation._box(Vector3(1.1, 0.6, 0.7))
+	body.material_override = bronze
+	body.position = Vector3(0, 0.3, 0)
+	n.add_child(body)
+	var lid := MeshInstance3D.new()
+	lid.name = "Lid"
+	lid.mesh = CosmosStation._box(Vector3(1.14, 0.14, 0.74))
+	lid.material_override = bronze
+	n.add_child(lid)
+	_chest_lid(n, open)
+	return n
+
+
+func _chest_lid(n: Node3D, open: bool) -> void:
+	var lid := n.get_node("Lid") as Node3D
+	lid.transform = Transform3D(Basis(Vector3.RIGHT, -1.9), Vector3(0, 0.62, -0.35) + Basis(Vector3.RIGHT, -1.9) * Vector3(0, 0, 0.37)) if open else Transform3D(Basis(), Vector3(0, 0.67, 0))
+	var glow := n.get_node_or_null("Glow")
+	if not open and glow == null:
+		var l := OmniLight3D.new()
+		l.name = "Glow"
+		l.light_color = Color(1.0, 0.7, 0.3)
+		l.light_energy = 1.2
+		l.omni_range = 7.0
+		l.shadow_enabled = false
+		l.position = Vector3(0, 1.0, 0)
+		n.add_child(l)
+	elif open and glow:
+		glow.queue_free()
+
+
+## A shut cave chest within reach of you: its _cave_live entry, or {}.
+func cave_chest_here() -> Dictionary:
+	if walker == null or walker.deck != null:
+		return {}
+	for key in _cave_live:
+		var e: Dictionary = _cave_live[key]
+		if not e["open"] and e["pl"] == walker.planet and ((e["pl"] as CosmosPlanet).global_position + (e["at"] as Vector3)).distance_to(walker.global_position) < 2.2:
+			return e
 	return {}
 
 
-## Down into it: built (on a worker) far off out of sight, then you on its stairs.
-func enter_dungeon(site: Dictionary) -> void:
-	if dungeon or walker == null:
+func open_cave_chest() -> void:
+	var e := cave_chest_here()
+	if e.is_empty():
 		return
-	var pl := walker.planet
-	var d := CosmosDungeon.new()
-	d.setup(pl, site)
-	world.add_child(d)
-	var u: Vector3 = site["dir"]
-	var f := u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized()
-	d.global_transform = Transform3D(Basis.looking_at(f, u), pl.global_position + u * (pl.radius + 40000.0))
-	dungeon = d
-	_dungeon_from = {"pl": pl, "site": site}
-	hud.fade = 1.0
-	hud.flash("Down into %s..." % site["name"], 3.0)
-	while not d.poll():
-		await get_tree().process_frame
-	d.chest_open = _chest_key(pl, site) in CosmosGame.extra.get("looted", [])   # (once, ever: kept in the save)
-	walker.global_position = d.to_global(d.start + Vector3(0, 0.05, 0))
-	walker.set_deck(d)   # (after placing it: the deck keeps where you are on it)
-	walker.heading = d.global_basis.x
-	walker.velocity = Vector3.ZERO
-	cam.follow(1.0)
-	# Its dead: skeletons in the rooms, demons deeper in, the lord by the chest.
+	e["open"] = true
+	_chest_lid(e["chest"], true)
+	_loot(e["pl"], e["site"])
+
+
+# (The dungeons in the ground: built as you come near - its rooms, its dead, its chest.)
+const DUNGEON_NEAR := 260.0      # m from its gateway or its middle: built, its dead in it
+var _dungeon_live := {}          # chest key -> {pl, site, node: CosmosDungeon, foes: [], woke: bool}
+
+
+func _dungeon_life(pl: CosmosPlanet, here: Vector3) -> void:
+	for e in dungeons_of(pl):
+		var site: Dictionary = e[0]
+		if not site.has("dungeon"):
+			continue
+		var dg: Dictionary = site["dungeon"]
+		var dist := minf((dg["mouth"] as Vector3).distance_to(here), (dg["centre"] as Vector3).distance_to(here))
+		var key := _chest_key(pl, site)
+		if dist < DUNGEON_NEAR and not _dungeon_live.has(key):
+			var d := CosmosDungeon.new()
+			d.setup(pl, site)
+			pl.add_child(d)   # (on its world: in its ground, under its gateway)
+			d.transform = dg["frame"]
+			_dungeon_live[key] = {"pl": pl, "site": site, "node": d, "foes": [], "woke": false}
+		elif dist > DUNGEON_NEAR * 1.7 and _dungeon_live.has(key):
+			_dungeon_sleep(key)
+	for key in _dungeon_live.keys():
+		var e: Dictionary = _dungeon_live[key]
+		if e["pl"] != pl:
+			_dungeon_sleep(key)
+		elif not e["woke"] and (e["node"] as CosmosDungeon).poll():
+			e["woke"] = true
+			_dungeon_wake(e)
+
+
+## Its dead: skeletons in the rooms, demons deeper in, the lord by the chest.
+func _dungeon_wake(e: Dictionary) -> void:
+	var d: CosmosDungeon = e["node"]
+	var site: Dictionary = e["site"]
+	d.chest_open = _chest_key(e["pl"], site) in CosmosGame.extra.get("looted", [])   # (once, ever: kept in the save)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(site["seed"]) + 9
 	var deepest := 0
@@ -2651,49 +2862,138 @@ func enter_dungeon(site: Dictionary) -> void:
 		if depth == 0:
 			continue
 		var rect: Rect2 = r[0]
-		var count := rng.randi_range(1, 3)
-		for k in count:
+		for k in rng.randi_range(1, 3):
 			var kind := "demon" if depth > deepest / 2 and rng.randf() < 0.45 else "skeleton"
-			_dungeon_foe(d, kind, Vector3(rng.randf_range(rect.position.x + 1.5, rect.end.x - 1.5), 0.0, rng.randf_range(rect.position.y + 1.5, rect.end.y - 1.5)), rng.randi(), false)
-	_dungeon_foe(d, "demon", d.chest_at + Vector3(0, 0, 2.5), rng.randi(), true)
-	hud.fade = 0.0
-	hud.flash("%s - its dead stir. The stairs behind you lead back up." % site["name"], 4.0)
+			e["foes"].append(_dungeon_foe(d, kind, Vector3(rng.randf_range(rect.position.x + 1.5, rect.end.x - 1.5), 0.0, rng.randf_range(rect.position.y + 1.5, rect.end.y - 1.5)), rng.randi(), false))
+	e["foes"].append(_dungeon_foe(d, "demon", d.chest_at + Vector3(0, 0, 2.5), rng.randi(), true))
 
 
-func _dungeon_foe(d: CosmosDungeon, kind: String, at: Vector3, seed: int, boss: bool) -> void:
+func _dungeon_sleep(key: String) -> void:
+	var e: Dictionary = _dungeon_live[key]
+	for x in e["foes"]:
+		if is_instance_valid(x):
+			x.queue_free()
+	if is_instance_valid(e["node"]):
+		if dungeon == e["node"]:
+			dungeon = null
+		(e["node"] as Node).queue_free()
+	_dungeon_live.erase(key)
+
+
+func _dungeon_foe(d: CosmosDungeon, kind: String, at: Vector3, seed: int, boss: bool) -> CosmosNpc:
 	var npc := CosmosNpc.new()
 	npc.cosmos = self
 	npc.foe_of(d, seed, kind, boss)
 	world.add_child(npc)
 	npc.global_position = d.to_global(at)
 	npcs.append(npc)
+	return npc
 
 
-## Back up its stairs, out of its mouth (`walk`: on your feet; else carried, downed).
-func leave_dungeon(walk := true) -> void:
-	if dungeon == null:
+## In a dungeon: the worlds' surfaces (their ground, seas, skies, towns, plants)
+## and the star not drawn - out of sight overhead; the dungeon and the carved
+## rock (its passage up) are.
+func _surface_shown(on: bool) -> void:
+	var door := Vector3.INF
+	if dungeon and is_instance_valid(dungeon):
+		door = dungeon.to_global(dungeon.exit_at)
+	for p: CosmosPlanet in planets:
+		for ch in p.get_children():
+			if ch is CosmosVoxels:   # (the carved rock: only by its doorway - the passage up; the rest behind its walls)
+				for mi in ch.get_children():
+					if mi is Node3D:
+						var keep: bool = on or (mi as Node3D).global_position.distance_to(door) < 24.0
+						if (mi as Node3D).visible != keep:
+							(mi as Node3D).visible = keep
+			elif ch is Node3D and not ch is CosmosDungeon and (ch as Node3D).visible != on:
+				(ch as Node3D).visible = on
+	if star:
+		star.visible = on
+
+
+## The sun's rays (CosmosGodRays): where it is on screen; how strong - in a world's air by
+## day, the sun ahead of you (on screen or near it), less under cloud, none under a storm;
+## golden low.
+func _god_rays(lp: CosmosPlanet, w: Dictionary, inside: bool) -> void:
+	if _rays == null or star == null or cam == null:
 		return
-	for x in npcs:
-		if is_instance_valid(x) and x.get("dungeon") == dungeon:
-			x.queue_free()
-	npcs = npcs.filter(func(x): return is_instance_valid(x) and x.get("dungeon") != dungeon)
-	var pl: CosmosPlanet = _dungeon_from["pl"]
-	var site: Dictionary = _dungeon_from["site"]
-	dungeon.queue_free()
-	dungeon = null
-	if walker:
-		walker.set_deck(null)
-		walker.planet = pl
-		var u: Vector3 = site["dir"]
-		var f := u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized()
-		var d := (u * pl.radius - f * 4.0).normalized()
-		walker.global_position = pl.global_position + d * (pl.radius + walker.floor_at(d * pl.radius) + 0.1)
-		walker.heading = -f
-		walker.velocity = Vector3.ZERO
-		cam.follow(1.0)
-	_shift_origin(true)
-	if walk:
-		hud.flash("Out of %s, into the daylight" % site["name"])
+	var k := 0.0
+	var e := 1.0
+	var sp := star.global_position
+	var to_sun := (sp - cam.global_position).normalized()
+	var facing := to_sun.dot(-cam.global_basis.z)
+	if lp and not inside and dungeon == null and facing > 0.05 and lp.atmo_radius > lp.radius:
+		var local := cam.global_position - lp.global_position
+		var near := 1.0 - smoothstep(0.3, 1.0, (local.length() - lp.radius) / (lp.atmo_radius - lp.radius))
+		e = local.normalized().dot(to_sun)
+		var uv := cam.unproject_position(sp) / get_viewport().get_visible_rect().size
+		var on := 1.0 - smoothstep(0.25, 0.7, maxf(maxf(-uv.x, uv.x - 1.0), maxf(-uv.y, uv.y - 1.0)))   # (the sun on screen, or not far off it)
+		k = 0.65 * near * smoothstep(-0.04, 0.1, e) * smoothstep(0.05, 0.45, facing) * on
+		k *= 1.0 - 0.55 * float(w.get("cover", 0.0)) - 0.4 * float(w.get("storm", 0.0)) - 0.3 * float(w.get("precip", 0.0))
+		_rays.sun_uv = uv
+	_rays.strength = maxf(k, 0.0)
+	_rays.tint = Color(1.0, 0.94, 0.82).lerp(Color(1.0, 0.6, 0.3), 1.0 - smoothstep(0.0, 0.35, e))
+
+
+## The weather's veil: rain, snow, ash falling round you close the distance in - a grey
+## wall of rain, a blizzard's whiteout, an ash storm's murk (the environment's fog).
+func _weather_fog(w: Dictionary, indoors: bool) -> void:
+	var p := 0.0 if indoors or weather_fx == null or weather_fx.sheltered else float(w.get("precip", 0.0))
+	var falls := str(w.get("falls", "rain"))
+	var storm := float(w.get("storm", 0.0))
+	var dens := p * (0.004 + 0.012 * storm) * (2.2 if falls == "snow" else (1.6 if falls == "ash" else 1.0))
+	var on := dens > 0.0004
+	if _env.fog_enabled != on:
+		_env.fog_enabled = on
+	if not on:
+		return
+	var col := Color(0.62, 0.65, 0.7) if falls == "rain" else (Color(0.85, 0.88, 0.93) if falls == "snow" else Color(0.38, 0.35, 0.32))
+	_env.fog_light_color = col * (0.35 + 0.65 * light.light_energy)
+	_env.fog_density = dens
+	_env.fog_sky_affect = 0.85
+	_env.fog_sun_scatter = 0.0
+
+
+## You on foot under the ground: down in what's carved (a cave, a tunnel, a pit) more
+## than a couple of metres under the ground's face.
+func _under_ground() -> bool:
+	if walker == null or walker.deck != null or walker.planet == null:
+		return false
+	var local := walker.global_position - walker.planet.global_position
+	var sh := walker.planet.shape
+	return sh.carved_near(local) and sh.height(local.normalized()) - (local.length() - walker.planet.radius) > 2.0
+
+
+## The built dungeons round you (their walls: the camera's, your bolts', the sights').
+func dungeons_live() -> Array:
+	var out: Array = []
+	for key in _dungeon_live:
+		var d = _dungeon_live[key]["node"]
+		if is_instance_valid(d) and (d as CosmosDungeon).built:
+			out.append(d)
+	return out
+
+
+## The floor in a built dungeon under planet-local `local` (m above the radius),
+## or -INF if it's not in one - its own floors, walls and roof stand for the rock
+## there (the walker's floor, the camera: none of the carved ground's sums).
+func dungeon_floor(pl: CosmosPlanet, local: Vector3) -> float:
+	for d: CosmosDungeon in dungeons_live():
+		if d.planet == pl:
+			var dl: Vector3 = d.to_local(pl.global_position + local)
+			if d.inside(dl):
+				return (d.to_global(Vector3(dl.x, d.floor_top(dl), dl.z)) - pl.global_position).length() - pl.radius
+	return -INF
+
+
+## The dungeon you're in (its rooms, its corridors, its doorway), or null.
+func _dungeon_here() -> CosmosDungeon:
+	if walker == null or walker.deck != null:
+		return null
+	for d: CosmosDungeon in dungeons_live():
+		if d.planet == walker.planet and d.inside(d.to_local(walker.global_position)):
+			return d
+	return null
 
 
 ## A cave's or dungeon's chest, by its world and its seed (CosmosGame.extra "looted").
@@ -2703,14 +3003,31 @@ static func _chest_key(pl: CosmosPlanet, site: Dictionary) -> String:
 
 ## The chest in its deepest room: drachmas, once.
 func open_dungeon_chest() -> void:
-	if dungeon == null or dungeon.chest_open:
+	var d := dungeon_chest_here()
+	if d == null:
 		return
-	dungeon.chest_open = true
+	d.chest_open = true
+	_loot(d.planet, d.site)
+
+
+## The dungeon whose shut chest is within reach of you, or null.
+func dungeon_chest_here() -> CosmosDungeon:
+	if walker == null or walker.deck != null:
+		return null
+	for d: CosmosDungeon in dungeons_live():
+		var hl := d.to_local(walker.global_position)
+		if not d.chest_open and absf(hl.y - d.chest_at.y) < 2.0 and Vector2(hl.x - d.chest_at.x, hl.z - d.chest_at.z).length() < 2.2:
+			return d
+	return null
+
+
+## A chest's drachmas, once ever (its key in the save's "looted").
+func _loot(pl: CosmosPlanet, site: Dictionary) -> void:
 	var looted: Array = CosmosGame.extra.get("looted", [])
-	looted.append(_chest_key(dungeon.planet, dungeon.site))
+	looted.append(_chest_key(pl, site))
 	CosmosGame.extra["looted"] = looted
 	var dr := 800 + _life_rng.randi_range(0, 1200)
-	if str(dungeon.site.get("kind", "")) == "dungeon":
+	if str(site.get("kind", "")) == "dungeon":
 		dr *= 2
 	CosmosGame.data.add_credits(dr)
 	hud.flash("The chest: %d drachmas" % dr, 4.0)
@@ -3237,7 +3554,7 @@ var _lamp: OmniLight3D
 
 
 func _indoor_light() -> void:
-	var inside := dungeon != null and walker != null and walker.deck == dungeon
+	var inside := dungeon != null and is_instance_valid(walker)   # (the lamp over you on foot - aboard, none)
 	if not inside and walker and walker.deck == null and walker.planet:
 		var t := town_at(walker.planet, walker.global_position)
 		inside = t != null and t.indoors(t.to_local(walker.global_position))
@@ -3273,6 +3590,13 @@ func town_floor(pl: CosmosPlanet, local: Vector3) -> float:
 			best = maxf(best, (t.to_global(Vector3(tl.x, top, tl.z)) - pl.global_position).length() - pl.radius)
 	if builds:   # (and what you've built)
 		best = maxf(best, builds.floor_at(pl, local))
+	for d: CosmosDungeon in dungeons_live():   # (a dungeon's floors: its dais, its steps)
+		if d.planet == pl:
+			var dl: Vector3 = d.to_local(pl.global_position + local)
+			if d.inside(dl):
+				var top: float = d.floor_top(dl)
+				if top > -49.0:
+					best = maxf(best, (d.to_global(Vector3(dl.x, top, dl.z)) - pl.global_position).length() - pl.radius)
 	return best
 
 
@@ -3337,12 +3661,16 @@ func _life() -> void:
 		for x in list:
 			if pl == null or x.get("planet") != pl or x.global_position.distance_to(f.global_position) > LIFE_GONE * 1.3:
 				x.queue_free()
-	if dungeon:
-		return   # (below: the surface's life waits)
 	if pl == null or pl.shape.kind == "gas":
 		return
 	var here := f.global_position - pl.global_position
 	_dungeon_mouths(pl, here)
+	_cave_life(pl, here)
+	_dungeon_life(pl, here)
+	dungeon = _dungeon_here()
+	if dungeon:
+		_surface_shown(false)   # (the ground's patches made since: not drawn either)
+		return   # (below: the surface's life waits)
 	# Animals.
 	var kinds := fauna_of(pl)
 	var cap: int = LIFE_CAP.get(str(pl.rec.get("type", "")), 4)
@@ -3452,8 +3780,8 @@ func aim() -> Array:
 	var dir := -cam.global_basis.z
 	var best: Node3D = null
 	var bt := 400.0
-	if dungeon:
-		bt = minf(bt, dungeon.cam_hit(o, dir, bt))   # (its walls)
+	for d: CosmosDungeon in dungeons_live():
+		bt = minf(bt, d.cam_hit(o, dir, bt))   # (a dungeon's walls)
 	for list in [creatures, npcs]:
 		for x in list:
 			if not is_instance_valid(x) or x.get("dead"):
@@ -3470,10 +3798,21 @@ func aim() -> Array:
 		while t < bt:
 			var p := o + dir * t
 			var local := p - pl.global_position
+			if pl.shape.carved_near(local):   # (dug ground - a cave, a tunnel, a dungeon: its rock, not the face above)
+				if pl.shape.density(local) < 0.0:
+					bt = t
+					break
+				t += 0.5
+				continue
 			if local.length() < pl.radius + pl.shape.surface(local.normalized()):
 				bt = t
 				break
 			t += 2.0 + t * 0.03
+	if walker and walker.deck == null:   # (never between the camera and you: the rifle doesn't turn round to fire behind you)
+		var past := (walker.global_position - o).dot(dir) + 1.5
+		if bt < past:
+			bt = past
+			best = null
 	return [best, o + dir * bt, bt]
 
 
@@ -3485,12 +3824,14 @@ func walker_fire(w: CosmosWalker) -> void:
 
 
 func creature_died(c: CosmosCreature) -> void:
+	CosmosLoot.of(self).drop_for(c)   # (what it leaves: a pouch by the body)
 	kills += 1
 	if hud:
 		hud.flash("%s down" % c.kind["name"], 2.0)
 
 
 func npc_died(n: CosmosNpc) -> void:
+	CosmosLoot.of(self).drop_for(n)
 	kills += 1
 	if hud:
 		hud.flash("%s down" % (n.label if n.label != "" else "Pirate"), 2.0)
@@ -3503,8 +3844,6 @@ func walker_downed() -> void:
 	get_tree().create_timer(2.5, false).timeout.connect(func():
 		if walker == null or not is_instance_valid(walker):
 			return
-		if dungeon:
-			leave_dungeon(false)   # (carried out of it)
 		var pl := walker.planet
 		if pl == null:
 			walker.revive(walker.global_position)
@@ -3789,13 +4128,8 @@ func terminal_here() -> Array:
 		if t.is_empty():
 			return []
 		return [t[0], ("device:%s" % t[1]) if t[1] is String else ("computer:%d" % int(t[1]))]
-	if dungeon and walker.deck == dungeon:
-		var hl := dungeon.to_local(walker.global_position)
-		if Vector2(hl.x - dungeon.exit_at.x, hl.z - dungeon.exit_at.z).length() < 3.0:
-			return ["Climb out", "leave_dungeon"]
-		if not dungeon.chest_open and Vector2(hl.x - dungeon.chest_at.x, hl.z - dungeon.chest_at.z).length() < 2.2:
-			return ["Open the chest", "chest"]
-		return []
+	if dungeon_chest_here() != null:
+		return ["Open the chest", "chest"]
 	if walker.deck is CosmosNpcInterior:   # (aboard a trader: the passenger seat beside its pilot's - and nothing outside its hull: not the townsfolk on the field under it)
 		var inn := walker.deck as CosmosNpcInterior
 		if not walker.seat.is_empty():
@@ -3805,9 +4139,11 @@ func terminal_here() -> Array:
 			if Vector2(l.x - inn.seat_pos.x, l.z - inn.seat_pos.z).length() < 1.4:
 				return ["Sit in the passenger seat", "npc_sit"]
 		return []
-	var mouth := dungeon_mouth_here()
-	if not mouth.is_empty():
-		return ["Enter %s" % mouth["name"], "enter_dungeon"]
+	if not cave_chest_here().is_empty():
+		return ["Open the chest", "cave_chest"]
+	var lp := CosmosLoot.prompt(self)   # (the loot of the dead in reach)
+	if not lp.is_empty():
+		return lp
 	if sandbox.box_near():
 		return ["Pick up the package", "pkg_pick"]
 	if builds and walker.deck == null:   # (a door, a gate, a chest, a bed of what you've built)
@@ -3852,6 +4188,8 @@ func use_terminal(t: Array) -> void:
 			sandbox.talk(x)
 	elif id == "pkg_pick":
 		sandbox.drop_or_pick()
+	elif id == "loot":
+		CosmosLoot.of(self).take()
 	elif id.begins_with("sit:") and hangar and walker:
 		var st: Dictionary = hangar.seats[int(id.trim_prefix("sit:"))]
 		walker.sit(st, hangar.sit_point(st))
@@ -3868,12 +4206,10 @@ func use_terminal(t: Array) -> void:
 		talk_person(id.trim_prefix("talk:person:"))
 	elif id.begins_with("talk:port:"):
 		talk_port(int(id.trim_prefix("talk:port:")))
-	elif id == "enter_dungeon":
-		enter_dungeon(dungeon_mouth_here())
-	elif id == "leave_dungeon":
-		leave_dungeon()
 	elif id == "chest":
 		open_dungeon_chest()
+	elif id == "cave_chest":
+		open_cave_chest()
 	elif id.begins_with("build:"):
 		builds.use(id)
 	elif str(t[1]) == "8" and not sandbox.port_choices("officer", "The harbour office").is_empty():
@@ -4556,7 +4892,7 @@ func _gauge_on_walker(on: bool) -> void:
 		g.silhouette = outline
 		g.hull_name = "HEALTH"
 		g.shield_name = "SHIELD"
-		g.read = func(): return [walker.hp if walker else 100.0, CosmosWalker.MAX_HP, 0.0, 0.0] if is_instance_valid(walker) else [100.0, 100.0, 0.0, 0.0]
+		g.read = func(): return [walker.hp, CosmosWalker.MAX_HP, walker.shield, walker.max_shield] if is_instance_valid(walker) else [100.0, 100.0, 60.0, 60.0]   # (its shield the ring round it, as the ship's)
 		g.fuel = func(): return [CosmosGame.data.stamina, Stamina.MAX, 0.0]
 		g.fuel_name = "Stamina"
 	else:

@@ -236,7 +236,7 @@ func _shells(show: bool) -> void:
 	if planet == null or not is_instance_valid(planet):
 		_shells_hid = {}
 		return
-	for n in ["Atmosphere", "Clouds"]:
+	for n in ["Atmosphere", "Clouds", "CloudsLow", "CloudsHigh"]:
 		var sh := planet.get_node_or_null(n) as Node3D
 		if sh == null:
 			continue

@@ -19,7 +19,7 @@
 		]
 	},
 	"dust_jet": {
-		"about": "The jet pack's blast raising dust off the ground under it (CosmosWalker: a few puffs every 0.12 s while it fires low, tinted the ground's colour).",
+		"about": "The jet thrusters' blast raising dust off the ground under the boots (CosmosWalker: a few puffs every 0.12 s while it fires low, tinted the ground's colour).",
 		"emitters": [
 			{"name": "puffs", "material": "smoke", "amount": 3, "lifetime": 1.2, "lifetime_random": 0.3, "explosiveness": 1.0, "shape": "ring", "size": 0.3, "spread": 20.0, "velocity": [0.3, 0.8], "radial": [2.0, 4.0], "damping": [2.0, 3.0], "scale": [0.8, 1.2], "scale_curve": [[0.0, 0.6], [1.0, 1.7]], "spin": [-30.0, 30.0], "colors": [[0.0, "#ffffff00"], [0.1, "#ffffff80"], [1.0, "#ffffff00"]], "emissive": 1.0}
 		]

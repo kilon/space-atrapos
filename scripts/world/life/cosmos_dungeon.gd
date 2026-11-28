@@ -1,11 +1,13 @@
 class_name CosmosDungeon
 extends Node3D
-## A cave system or a dungeon under a planet (the 3D game), entered from its
-## mouth on the surface (Cosmos.dungeons_of / enter_dungeon): a world of its
-## own, set far off out of sight, walked as a deck (the walker's floor_y /
-## ceiling_y / confine - like the station's hangar). Laid out by its seed on a
-## grid: rooms joined by corridors (a tree from the entrance - its stairs back
-## up - to the deepest room, where its chest waits). Built from the towns'
+## A dungeon under a planet's ground (the 3D game): built under its gateway on
+## the surface, in the planet's own ground (PlanetShape.dungeons: its rooms and
+## corridors carved out of it as boxes - `boxes_of` - and a passage down to it
+## from the gateway), walked straight into: its floors, its walls (`push`,
+## `floor_top` - Cosmos.walker_bumps / town_floor) and the planet's carved
+## ground round it. Laid out by its seed on a grid: rooms joined by corridors
+## (a tree from the entrance - its west doorway, the passage - to the deepest
+## room, where its chest waits). Built from the towns'
 ## pieces (CosmosTown.Builder: one mesh, the building shader in its own
 ## palette - "dungeon": the old labyrinths, dressed stone, red pillars,
 ## horns; "cave": rough rock, boulders, stalagmites), its walls solid (you,
@@ -34,6 +36,7 @@ var _grid := {}
 var _task := -1
 var _out := {}
 var _lamps: Array = []         # the torches' lights: on the torches nearest you
+var _boxes: Array = []         # its insides (boxes_of): where you're in it
 var _lamp_t := 0.0
 
 
@@ -47,6 +50,7 @@ func setup(pl: CosmosPlanet, s: Dictionary) -> void:
 	var seed: int = s["seed"]
 	set_meta("edit_key", "dungeon/%s/%d" % [style, seed])   # (the Live Editor's edits: this one - its seed lays it out)
 	var st := style
+	_boxes = boxes_of(seed)
 	_task = Jobs.add(func(): _out = _make(st, seed), false, "dungeon")
 
 
@@ -214,9 +218,21 @@ func indoors(_p: Vector3) -> bool:
 	return true
 
 
+## Whether local `p` is in its rooms, its corridors or its doorway (in its ground: under its roof).
+func inside(p: Vector3) -> bool:
+	if p.y < -1.0 or p.y > H + 0.5:
+		return false
+	for b: AABB in _boxes:
+		if b.grow(0.2).has_point(p):
+			return true
+	return false
+
+
 # --- The layout (on a worker) ----------------------------------------------------------
 
-static func _make(st: String, seed: int) -> Dictionary:
+## Its plan by its seed (the rooms' grid cells, their depth from the entrance,
+## the tree's links, the rooms' rects) - the same for its mesh and its carving.
+static func layout(seed: int) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
 	var n := 5
@@ -244,6 +260,50 @@ static func _make(st: String, seed: int) -> Dictionary:
 	for c in depth:
 		if int(depth[c]) > int(depth[deepest]):
 			deepest = c
+	var rects := {}
+	for c in depth:
+		var size := Vector2(rng.randf_range(8.0, 12.0), rng.randf_range(8.0, 12.0)) if c != start_c else Vector2(9, 9)
+		var ctr := Vector2((c.x + 0.5) * CELL, (c.y + 0.5) * CELL)
+		rects[c] = Rect2(ctr - size * 0.5, size)
+	var sr: Rect2 = rects[start_c]
+	return {"n": n, "depth": depth, "parent": parent, "start_c": start_c, "deepest": deepest, "rects": rects, "rng": rng,
+		"door": Vector3(sr.position.x - WALL, 0.0, sr.get_center().y)}
+
+
+## Its insides as boxes (dungeon-local): each room, each corridor from room to
+## room, the entrance's doorway - a little into its walls (the carved rock's face
+## behind them). PlanetShape carves them out of the ground.
+static func boxes_of(seed: int) -> Array:
+	var L := layout(seed)
+	var rects: Dictionary = L["rects"]
+	var out: Array = []
+	var g := 0.3
+	for c in rects:
+		var r: Rect2 = rects[c]
+		out.append(AABB(Vector3(r.position.x - g, -g, r.position.y - g), Vector3(r.size.x + g * 2.0, H + g * 2.0, r.size.y + g * 2.0)))
+	for c in L["parent"]:
+		var a: Rect2 = rects[c]
+		var b: Rect2 = rects[L["parent"][c]]
+		var lo := Vector2(minf(a.get_center().x, b.get_center().x), minf(a.get_center().y, b.get_center().y))
+		var hi := Vector2(maxf(a.get_center().x, b.get_center().x), maxf(a.get_center().y, b.get_center().y))
+		var half := 1.5 + g   # (the corridor's 3 m, into its walls)
+		if absf(a.get_center().y - b.get_center().y) < 0.01:
+			out.append(AABB(Vector3(lo.x, -g, lo.y - half), Vector3(hi.x - lo.x, H + g * 2.0, half * 2.0)))
+		else:
+			out.append(AABB(Vector3(lo.x - half, -g, lo.y), Vector3(half * 2.0, H + g * 2.0, hi.y - lo.y)))
+	var d: Vector3 = L["door"]
+	out.append(AABB(Vector3(d.x - 1.5, -g, d.z - 1.5 - g), Vector3(2.5, H + g * 2.0, 3.0 + g * 2.0)))   # (the doorway west: the passage comes in there)
+	return out
+
+
+static func _make(st: String, seed: int) -> Dictionary:
+	var L := layout(seed)
+	var rng: RandomNumberGenerator = L["rng"]
+	var n: int = L["n"]
+	var depth: Dictionary = L["depth"]
+	var parent: Dictionary = L["parent"]
+	var start_c: Vector2i = L["start_c"]
+	var deepest: Vector2i = L["deepest"]
 	var b := CosmosTown.Builder.new()
 	b.rng.seed = seed + 1
 	b.taper = 1.35
@@ -251,14 +311,10 @@ static func _make(st: String, seed: int) -> Dictionary:
 	# The floor and the roof over all of it.
 	b.box(Vector3(-2, -0.6, -2), Vector3(W + 2, 0.0, W + 2), CosmosTown.STONE)
 	b.box(Vector3(-2, H, -2), Vector3(W + 2, H + 0.6, W + 2), CosmosTown.ROOF)
-	var rects := {}
+	var rects: Dictionary = L["rects"]
 	var out_rooms: Array = []
 	for c in depth:
-		var size := Vector2(rng.randf_range(8.0, 12.0), rng.randf_range(8.0, 12.0)) if c != start_c else Vector2(9, 9)
-		var ctr := Vector2((c.x + 0.5) * CELL, (c.y + 0.5) * CELL)
-		var r := Rect2(ctr - size * 0.5, size)
-		rects[c] = r
-		out_rooms.append([r, int(depth[c])])
+		out_rooms.append([rects[c], int(depth[c])])
 	# Walls round every room, a doorway where a corridor meets it; the corridors' walls.
 	var links := {}
 	for c in parent:
@@ -271,7 +327,7 @@ static func _make(st: String, seed: int) -> Dictionary:
 		var r: Rect2 = rects[c]
 		for side in 4:
 			var d: Vector2i = [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)][side]
-			var open := links.has([c, c + d])
+			var open: bool = links.has([c, c + d]) or (c == start_c and side == 0)   # (the entrance: its west doorway, the passage down from the gateway)
 			_room_wall(b, r, side, open)
 			if open and (side == 1 or side == 3):
 				_corridor(b, r, rects[c + d], side == 1)
@@ -325,11 +381,10 @@ static func _make(st: String, seed: int) -> Dictionary:
 				var p := Vector3(r.position.x + r.size.x * (0.3 if k % 2 == 0 else 0.7), 0, r.position.y + r.size.y * (0.3 if k < 2 else 0.7))
 				b.column(p, H, 0.35)
 		b.spots.append(Vector3(r.get_center().x, 0, r.get_center().y))
-	# The entrance: stairs up against the west wall of the first room.
+	# The entrance: the west doorway of the first room (the passage up to the gateway beyond it).
 	var sr: Rect2 = rects[start_c]
-	b.stairs(Vector3(sr.position.x + WALL + 0.3, 0.0, sr.get_center().y), Vector3(1, 0, 0), 6, 2.4, 0.4, 0.5)
-	var exit := Vector3(sr.position.x + WALL + 3.6, 0.0, sr.get_center().y)
-	var start := Vector3(sr.position.x + WALL + 4.5, 0.0, sr.get_center().y)
+	var exit: Vector3 = L["door"]
+	var start := Vector3(sr.position.x + WALL + 2.0, 0.0, sr.get_center().y)
 	# The chest in the deepest room, on a dais; horns on it in the labyrinth.
 	var dr: Rect2 = rects[deepest]
 	var chest := Vector3(dr.get_center().x, 0.3, dr.get_center().y)

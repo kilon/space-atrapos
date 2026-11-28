@@ -341,18 +341,28 @@ func _space3d() -> void:
 		c.walker.drive = {}
 		c.walker.set_deck(null)
 		c.walker.planet = dpl
-		c.enter_dungeon(ds[1][0] if ds.size() > 1 else ds[0][0])
-		for i in 300:
-			await process_frame
-			if c.dungeon and c.dungeon.built and c.walker.deck == c.dungeon:
+		var site: Dictionary = {}
+		for e in ds:
+			if e[0]["kind"] == "dungeon":
+				site = e[0]
+		if site.is_empty():
+			continue
+		var key: String = c._chest_key(dpl, site)
+		for i in 300:   # (in its world's ground: built as you come near)
+			c._dungeon_life(dpl, site["dungeon"]["mouth"])
+			if c._dungeon_live.has(key) and c._dungeon_live[key]["woke"]:
 				break
+			await process_frame
+		var dg = c._dungeon_live[key]["node"]
+		var room: Rect2 = dg.rooms[0][0]
+		c.walker.global_position = dg.to_global(Vector3(room.get_center().x, 0.05, room.get_center().y))
+		c.walker.heading = dg.global_basis.x
 		c.walker.hp = 100000.0
 		c.walker.drive = {"move": Vector2(0.0, 0.7), "fire": true}
 		for i in 60:
 			await process_frame
 		await _measure("3d space: in a dungeon")
 		c.walker.drive = {}
-		c.leave_dungeon(false)
 		break
 	c.walker.set_deck(null)
 	c.walker.planet = c.planets[ocean]

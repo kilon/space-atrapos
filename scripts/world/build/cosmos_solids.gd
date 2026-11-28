@@ -276,6 +276,12 @@ func _push_prism(pr: Prism, q: Vector3, r: float, feet: float) -> Vector3:
 
 ## Under a roof or an upper floor (local `p`): indoors.
 func indoors(p: Vector3) -> bool:
+	return covered(p, 1.9, 6.0)
+
+
+## Whether a block's foot is over local `p`, between `lo` and `hi` m above it (a
+## roof, an upper floor, a window's lintel: covered - not the open top of a wall).
+func covered(p: Vector3, lo: float, hi: float) -> bool:
 	for i in _cell(p):
 		var s = _solids[i]
 		var foot: float
@@ -289,7 +295,7 @@ func indoors(p: Vector3) -> bool:
 			if not pr.has(p.x, p.z):
 				continue
 			foot = pr.y0
-		if foot > p.y + 1.9 and foot < p.y + 6.0:
+		if foot > p.y + lo and foot < p.y + hi:
 			return true
 	return false
 

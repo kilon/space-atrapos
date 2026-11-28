@@ -75,6 +75,13 @@ const BASE_ITEMS := {
 		"desc": "Fits a component upgrade yourself (the Fabricator's KITS, aboard your ship): raises a stat from level 2 or 3 a level."},
 	"upkit_3": {"name": "Upgrade Kit Mk III", "kind": "kit", "value": 6500,
 		"desc": "Fits a component upgrade yourself (the Fabricator's KITS, aboard your ship): raises a stat from level 4 to the top."},
+	# What the worlds' animals leave (CosmosLoot): sold at any market.
+	"game_meat": {"name": "Game Meat", "kind": "cargo", "value": 11,
+		"desc": "Fresh meat from a hunted beast, salted and wrapped. Towns and stations buy it for their kitchens."},
+	"raw_hide": {"name": "Raw Hide", "kind": "cargo", "value": 18,
+		"desc": "An untanned hide off a hunted beast. The tanners turn it into leather."},
+	"beast_bone": {"name": "Beast Bones", "kind": "cargo", "value": 9,
+		"desc": "Bones of a hunted beast - for glue, tools, carving and the bone-meal of the agri-domes."},
 	"missile": {
 		"name": "Missile", "kind": "ammo", "value": 10, "price": 20,
 		"desc": "Homing missile for the Missile Launcher.",
@@ -657,6 +664,26 @@ static func draw_icon(ci: CanvasItem, id: String, rect: Rect2, dim := false) -> 
 				var sz: Vector2 = b[1]
 				ci.draw_rect(Rect2(c + o * s, sz * s), Color(0.62, 0.6, 0.56, a))
 				ci.draw_rect(Rect2(c + o * s, sz * s), Color(0.3, 0.29, 0.27, a), false, 1.5)
+		"game_meat":   # (a joint of meat, its bone)
+			ci.draw_line(c + Vector2(0.25, -0.25) * s, c + Vector2(0.72, -0.72) * s, Color(0.92, 0.88, 0.8, a), s * 0.16, true)
+			ci.draw_circle(c + Vector2(0.75, -0.75) * s, s * 0.12, Color(0.92, 0.88, 0.8, a))
+			ci.draw_circle(c + Vector2(-0.12, 0.12) * s, s * 0.52, Color(0.62, 0.16, 0.12, a))
+			ci.draw_circle(c + Vector2(-0.18, 0.18) * s, s * 0.32, Color(0.82, 0.32, 0.26, a))
+		"raw_hide":    # (a stretched hide)
+			var hide := PackedVector2Array()
+			for k in 12:
+				var ang := TAU * k / 12.0
+				var rr := (0.72 if k % 3 == 0 else 0.55) * s
+				hide.append(c + Vector2(cos(ang), sin(ang) * 0.8) * rr)
+			ci.draw_colored_polygon(hide, Color(0.58, 0.4, 0.25, a))
+			ci.draw_polyline(_closed(hide), Color(0.3, 0.18, 0.1, a), 1.5, true)
+			ci.draw_circle(c, s * 0.2, Color(0.68, 0.5, 0.33, a))
+		"beast_bone":  # (two crossed bones)
+			for dd in [Vector2(0.62, 0.62), Vector2(0.62, -0.62)]:
+				ci.draw_line(c - dd * s, c + dd * s, Color(0.9, 0.86, 0.76, a), s * 0.18, true)
+				for e in [-1.0, 1.0]:
+					ci.draw_circle(c + dd * s * e + Vector2(dd.y, -dd.x).normalized() * s * 0.1, s * 0.12, Color(0.9, 0.86, 0.76, a))
+					ci.draw_circle(c + dd * s * e - Vector2(dd.y, -dd.x).normalized() * s * 0.1, s * 0.12, Color(0.9, 0.86, 0.76, a))
 		"credits":
 			ci.draw_circle(c, s * 0.62, Color(0.75, 0.55, 0.1, a))
 			ci.draw_circle(c, s * 0.52, Color(1.0, 0.82, 0.3, a))

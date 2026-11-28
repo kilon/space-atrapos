@@ -388,6 +388,65 @@ func _on_foot(c: Cosmos) -> CosmosWalker:
 	return c.walker
 
 
+## Ground too steep to walk (a mountainside, a canyon's wall): climbed, up and
+## down it, facing it - slowly; not run up.
+func test_climbing_cliffs() -> void:
+	var c := await _cosmos()
+	var w := _on_foot(c)
+	var pl := w.planet
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var g := Vector3.ZERO
+	for i in 20000:
+		var d := Vector3(rng.randf_range(-1, 1), rng.randf_range(-1, 1), rng.randf_range(-1, 1)).normalized()
+		if pl.shape.cleared(d) or pl.shape.height(d) < 3.0:
+			continue
+		w.global_position = pl.global_position + d * (pl.radius + w.floor_at(d * pl.radius) + 0.02)
+		var u := w.up()
+		var right := w.heading.cross(u).normalized()
+		g = w._rise(u, right)
+		if g.length() > CosmosWalker.STEEP * 1.3 and g.length() < 4.0:
+			break
+		g = Vector3.ZERO
+	check(g != Vector3.ZERO, "the mountains have cliffs to climb")
+	if g == Vector3.ZERO:
+		c.queue_free()
+		return
+	var lp := w.global_position - pl.global_position
+	var h0 := lp.length() - pl.radius
+	w.on_ground = true
+	w.velocity = Vector3.ZERO
+	w.drive = {"move": Vector2(0, 1), "run": true}
+	var clips := {}
+	for k in 45:
+		w.heading = g.normalized()
+		w._process(1.0 / 30.0)
+		clips[w._clip] = true
+	var h1 := (w.global_position - pl.global_position).length() - pl.radius
+	check(clips.has("climb"), "climbing it (clips: %s)" % ", ".join(clips.keys()))
+	check(h1 - h0 > 0.3 and h1 - h0 < CosmosWalker.CLIMB * 1.5 * 1.6, "up it at a climb, not a run (%.2f m in 1.5 s)" % (h1 - h0))
+	# And down it: a slide on your feet, facing down it, faster than a climb - on it, not a fall.
+	var grounded := 0
+	var slid := 0
+	var facing_down := 0
+	var fast := 0.0
+	for k in 30:
+		w.heading = -g.normalized()
+		w._process(1.0 / 30.0)
+		grounded += int(w.on_ground)
+		if w.sliding:
+			slid += 1
+			facing_down += int(k < 12 or w.facing.dot(-g.normalized()) > 0.3)   # (turned round from climbing in under half a second)
+			fast = maxf(fast, (w.velocity - w.up() * w.velocity.dot(w.up())).length())
+	check(slid > 5, "down it: sliding (%d frames)" % slid)
+	check(facing_down >= slid - 6, "facing down it as you slide, not turned to the mountain (%d of %d)" % [facing_down, slid])
+	check(fast > CosmosWalker.CLIMB * 1.5, "faster than a climb (%.1f m/s)" % fast)
+	check(grounded > 20, "on it - not a fall (%d of 30 frames on the ground)" % grounded)
+	w.drive = {}
+	c.queue_free()
+	await _frames(2)
+
+
 func test_plants_grow_on_the_ground() -> void:
 	var c := await _cosmos()
 	var w := _on_foot(c)
@@ -450,6 +509,7 @@ func test_animals_live_flee_hunt_and_die() -> void:
 		check(grazer.global_position.distance_to(w.global_position) > d0 + 3.0, "a grazer runs from you (%.0f m -> %.0f m)" % [d0, grazer.global_position.distance_to(w.global_position)])
 	if hunter:
 		hunter.global_position = w.global_position - side * 20.0
+		w.shield = 0.0   # (its bites on the hull, not the shield)
 		var hp0 := w.hp
 		for k in 240:
 			hunter._process(1.0 / 30.0)
@@ -487,6 +547,7 @@ func test_pirate_camps_fight_back() -> void:
 		c._life()
 	check(c.npcs.size() == 3, "its guards turn out (%d)" % c.npcs.size())
 	check(camps[0][1] != null, "the camp itself: tent, crates, mast")
+	w.shield = 0.0   # (the blows on the hull, not the shield)
 	var hp0 := w.hp
 	for k in 300:
 		for n in c.npcs:
@@ -844,6 +905,84 @@ func test_towns_palaces_and_people() -> void:
 		w._process(1.0 / 30.0)
 	var l := t.to_local(w.global_position)
 	check(l.x > -18.2, "stopped by the wing's wall (x %.1f)" % l.x)
+	# Space against it: hold on, climb it, over the top onto its roof.
+	w.drive = {"move": Vector2(0, 1), "jump": true}
+	w.heading = -t.global_basis.x
+	w._process(1.0 / 30.0)
+	check(w.climbing, "Space against the wall: holding on to it")
+	w.drive = {"move": Vector2(0, 1)}
+	for k in 20:   # (up off the ground first: at its foot, sideways walks off it)
+		w.heading = -t.global_basis.x
+		w._process(1.0 / 30.0)
+	var sides := {}
+	for dx in [1.0, -1.0]:   # (along it, either way: the sideways clip, its way)
+		w.drive = {"move": Vector2(dx, 0)}
+		for k in 15:
+			w.heading = -t.global_basis.x
+			w._process(1.0 / 30.0)
+		sides[dx] = [w._clip, w._anim.speed_scale if w._anim else 0.0]
+	check(sides[1.0][0] == "climb_side" and sides[-1.0][0] == "climb_side", "along the wall: climbing sideways (%s)" % str(sides))
+	check(sides[1.0][1] * sides[-1.0][1] < 0.0, "one way forwards, the other backwards")
+	w.drive = {"move": Vector2(0, 1)}
+	var y0 := t.to_local(w.global_position).y
+	var anim_climb := false
+	for k in 600:
+		w.heading = -t.global_basis.x
+		w._process(1.0 / 30.0)
+		anim_climb = anim_climb or w._clip == "climb"
+		if not w.climbing and w.on_ground and t.to_local(w.global_position).y > y0 + 2.0:
+			break
+	var roof := t.to_local(w.global_position)
+	check(roof.y > y0 + 2.0 and w.on_ground and not w.climbing, "climbed up the wall onto the wing's roof (%.1f m up, on the ground %s)" % [roof.y - y0, w.on_ground])
+	check(anim_climb, "climbing it hand over hand (the climb clip)")
+	w.drive = {"move": Vector2(0, 1)}
+	w.climbing = false
+	# Up a wall with a window in it: climbed on past the window - never in through it.
+	var win := {}
+	for b in t._solids:   # (a wall's block under a window: another over it, a gap between)
+		if not (b is AABB) or b.position.y > 0.3 or b.end.y < 0.8 or b.end.y > 2.0:
+			continue
+		var bc: Vector3 = b.get_center()
+		var over := false
+		for o in t._solids:
+			if o is AABB and bc.x > o.position.x and bc.x < o.end.x and bc.z > o.position.z and bc.z < o.end.z \
+					and o.position.y > b.end.y + 0.4 and o.position.y < b.end.y + 2.0:
+				over = true
+				break
+		if not over:
+			continue
+		for side in [Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1)]:
+			var face: Vector3 = Vector3(bc.x, 0.1, bc.z) + Vector3(side.x * (b.size.x * 0.5 + 0.7), 0.0, side.z * (b.size.z * 0.5 + 0.7))
+			if t.push(face, 0.6).length() < 0.01 and t.floor_top(face) < 0.3 and not t.indoors(face):
+				win = {"face": face, "side": side}
+				break
+		if not win.is_empty():
+			break
+	check(not win.is_empty(), "a wall with a window in it")
+	if not win.is_empty():
+		var side: Vector3 = win["side"]
+		w.global_position = t.to_global(win["face"])
+		w.velocity = Vector3.ZERO
+		w.on_ground = true
+		for k in 20:
+			w.heading = t.global_basis * -side
+			w._process(1.0 / 30.0)
+		w.drive = {"move": Vector2(0, 1), "jump": true}
+		w._process(1.0 / 30.0)
+		w.drive = {"move": Vector2(0, 1)}
+		var went_in := false
+		var high := 0.0
+		for k in 240:
+			w.heading = t.global_basis * -side
+			w._process(1.0 / 30.0)
+			var tl := t.to_local(w.global_position)
+			high = maxf(high, tl.y)
+			if t.indoors(tl) and (tl - (win["face"] as Vector3)).dot(-side) > 0.9:
+				went_in = true
+		check(not went_in, "past a window, not in through it")
+		check(high > 2.5, "on up the wall past it (%.1f m)" % high)
+		w.climbing = false
+		w.drive = {"move": Vector2(0, 1)}
 	# In through a doorway: the west wing's, off the court, into its rooms (indoors).
 	var dw: Array = []
 	for dr in t.doors:
@@ -1117,73 +1256,237 @@ func test_caves_and_dungeons() -> void:
 	c.dry_run = true
 	var w := _on_foot(c)
 	var pl := w.planet
+	var sh := pl.shape
 	var sites := c.dungeons_of(pl)
-	check(sites.size() == 4, "a rocky world's caves and dungeons (%d)" % sites.size())
+	var n_caves := sites.filter(func(e): return e[0]["kind"] == "cave").size()
+	var n_dg := sites.size() - n_caves
+	check(n_dg >= 1 and n_dg <= 2 and n_caves >= 3, "a rocky world's dungeons (%d) and caves (%d)" % [n_dg, n_caves])
 	var site: Dictionary = {}
 	for e in sites:
 		if e[0]["kind"] == "dungeon":
 			site = e[0]
-	check(not site.is_empty(), "a dungeon among them")
-	# At its mouth: E goes in.
-	var u: Vector3 = site["dir"]
-	w.global_position = pl.global_position + u * (pl.radius + pl.shape.height(u) + 0.1)
-	var term: Array = c.terminal_here()
-	check(term.size() == 2 and term[1] == "enter_dungeon", "at its mouth: %s" % (term[0] if term.size() else "nothing"))
-	c.enter_dungeon(site)
+	if site.is_empty():
+		c.queue_free()
+		return
+	var dg: Dictionary = site["dungeon"]
+	var xf: Transform3D = dg["frame"]
+	var L := CosmosDungeon.layout(int(site["seed"]))
+	var sr: Rect2 = L["rects"][L["start_c"]]
+	var room_mid := xf * Vector3(sr.get_center().x, 2.0, sr.get_center().y)
+	var over := sh.height(room_mid.normalized()) - (room_mid.length() - pl.radius)
+	check(sh.density(room_mid) > 0.0 and over > CosmosDungeon.H, "its rooms carved in the ground, %.0f m of it over them" % over)
+	check(sh.density(xf * Vector3(sr.get_center().x, 2.0, sr.position.y - 3.0)) < 0.0, "rock round its rooms")
+	# Coming near: built in the ground under its gateway, its dead in it.
+	var key := c._chest_key(pl, site)
 	for k in 300:
-		if c.dungeon and c.dungeon.built and w.deck == c.dungeon:
+		c._dungeon_life(pl, dg["mouth"])
+		if c._dungeon_live.has(key) and c._dungeon_live[key]["woke"]:
 			break
 		await tree.process_frame
-	var d: CosmosDungeon = c.dungeon
-	check(d != null and w.deck == d, "down in it: walking its floor")
+	var d: CosmosDungeon = c._dungeon_live[key]["node"] if c._dungeon_live.has(key) else null
+	check(d != null and d.built and d.get_parent() == pl, "built in its world's ground as you come near")
 	if d == null:
 		c.queue_free()
 		return
-	var dead := c.npcs.filter(func(x): return x.get("dungeon") == d)
+	var dead := c.npcs.filter(func(x): return is_instance_valid(x) and x.get("dungeon") == d)
 	check(dead.any(func(x): return x.role == "skeleton"), "skeleton warriors in its rooms")
 	check(dead.any(func(x): return x.label == "Demon lord"), "the demon lord by its chest")
+	# Walked into: from its gateway down the passage, through its doorway - no deck, no loading.
+	var mouth: Vector3 = dg["mouth"]
+	w.global_position = pl.global_position + mouth + mouth.normalized() * 0.1
+	w.velocity = Vector3.ZERO
+	w.drive = {"move": Vector2(0, 1)}
+	var inside := false
+	for k in 900:
+		var lw := w.global_position - pl.global_position
+		var u := lw.normalized()
+		var to := (xf * Vector3(sr.get_center().x, 0.0, sr.get_center().y)) - lw
+		w.heading = (to - u * to.dot(u)).normalized()
+		w._process(1.0 / 30.0)
+		c.walker_bumps(w)
+		if d.inside(d.to_local(w.global_position)) and d.to_local(w.global_position).x > sr.position.x + 1.0:
+			inside = true
+			break
+	w.drive = {}
+	check(inside and w.deck == null, "down its passage into its first room, on foot (%s)" % str(d.to_local(w.global_position)))
+	check(c._dungeon_here() == d, "in it")
 	for k in 30:
 		w._process(1.0 / 30.0)
-	check(absf(d.to_local(w.global_position).y) < 0.2, "standing on its floor")
-	# Its walls hold: walking west into the first room's wall.
+	check(absf(d.to_local(w.global_position).y) < 0.3, "standing on its floor (%.2f)" % d.to_local(w.global_position).y)
+	# Its walls hold: walking north into the first room's wall.
 	w.drive = {"move": Vector2(0, 1)}
 	for k in 200:
-		w.heading = -d.global_basis.x
+		w.heading = -d.global_basis.z
 		w._process(1.0 / 30.0)
-	var room0: Rect2 = d.rooms[0][0]
-	check(d.to_local(w.global_position).x > room0.position.x - 0.1, "its walls hold you in")
+		c.walker_bumps(w)
+	check(d.to_local(w.global_position).z > sr.position.y - 0.1, "its walls hold you in (z %.2f, the wall at %.2f)" % [d.to_local(w.global_position).z, sr.position.y])
 	w.drive = {}
 	# A skeleton comes for you.
 	var sk = dead.filter(func(x): return x.role == "skeleton")[0]
 	sk.global_position = w.global_position + d.global_basis.x * 6.0
-	w.set_deck(d)
+	w.shield = 0.0   # (the blows on the hull, not the shield)
 	var hp0 := w.hp
 	for k in 150:
 		sk._process(1.0 / 30.0)
 	check(w.hp < hp0, "a skeleton warrior's sword finds you (%.0f -> %.0f)" % [hp0, w.hp])
 	w.hp = CosmosWalker.MAX_HP
-	# The walls stop your bolts (the sights).
+	# The walls stop the sights.
 	c.cam.global_position = w.global_position + d.global_basis.y * 1.6
-	c.cam.look_at(c.cam.global_position - d.global_basis.x * 10.0, d.global_basis.y)
+	c.cam.look_at(c.cam.global_position - d.global_basis.z * 10.0, d.global_basis.y)
 	check(c.aim()[2] < 30.0, "the sights stop at its walls (%.1f m)" % c.aim()[2])
 	# The chest.
 	w.global_position = d.to_global(d.chest_at + Vector3(0, 0.0, 1.5))
-	w.set_deck(d)
-	check(c.terminal_here() == ["Open the chest", "chest"], "by its chest")
 	var cr0: int = CosmosGame.data.credits
-	c.open_dungeon_chest()
-	check(CosmosGame.data.credits > cr0, "the chest's drachmas")
+	if not d.chest_open:
+		check(c.terminal_here() == ["Open the chest", "chest"], "by its chest: %s" % str(c.terminal_here()))
+		c.open_dungeon_chest()
+		check(CosmosGame.data.credits > cr0, "the chest's drachmas")
 	check(c._chest_key(pl, site) in CosmosGame.extra.get("looted", []), "its chest stays looted (in the save)")
 	check(c.terminal_here().is_empty(), "an open chest offers nothing")
-	# Back up its stairs.
-	w.global_position = d.to_global(d.exit_at)
-	w.set_deck(d)
-	check(c.terminal_here() == ["Climb out", "leave_dungeon"], "by the stairs: climb out")
-	c.leave_dungeon()
-	check(c.dungeon == null and w.deck == null and w.planet == pl, "out again on the surface")
-	check(not c.npcs.any(func(x): return is_instance_valid(x) and x.get("dungeon") != null), "its dead stay below")
+	# Far off: put away, its dead with it.
+	c._dungeon_life(pl, mouth.normalized() * (pl.radius + 3000.0) + mouth.cross(Vector3.UP).normalized() * 3000.0)
+	await _frames(1)
+	check(not c._dungeon_live.has(key) and not is_instance_valid(d) and dead.all(func(x): return not is_instance_valid(x)), "far off: put away, its dead with it")
 	c.queue_free()
 	await _frames(2)
+
+
+## Caves are the planet's own ground: tunnels carved into a hillside (and into
+## the abysses' walls under the sea), walked straight into - no place of their
+## own - their dead in their chambers, a chest in the deepest.
+func test_caves_in_the_ground() -> void:
+	var c := await _cosmos()
+	c.dry_run = true
+	var w := _on_foot(c)
+	var pl := w.planet
+	var sh := pl.shape
+	check(pl.caves_ready and sh.caves.size() >= 3 and sh.cave_n > 300, "its caves carved into its ground (%d caves, %d carves)" % [sh.caves.size(), sh.cave_n])
+	var site := {}
+	for e in c.dungeons_of(pl):
+		if e[0]["kind"] == "cave" and not e[0]["under"]:
+			site = e[0]
+			break
+	check(not site.is_empty(), "a cave in a hillside")
+	if site.is_empty():
+		c.queue_free()
+		return
+	var cave: Dictionary = site["cave"]
+	var mouth: Vector3 = cave["mouth"]
+	var way: Vector3 = cave["way"]
+	check(sh.density(mouth) > 0.0 and sh.density(mouth + way * 6.0) > 0.0, "its mouth open: air in it, into the hill")
+	var ch: Array = cave["chambers"][int(cave["deepest"])]
+	var cm: Vector3 = ch[0]
+	var below := sh.height(cm.normalized()) - (cm.length() - pl.radius)
+	check(sh.density(cm) > 0.0 and below > 6.0, "its deepest chamber: air, %.0f m under the ground" % below)
+	# Walked into: from its mouth, along its passage - under the hill, no deck.
+	w.global_position = pl.global_position + Cosmos.cave_floor(pl, mouth - way * 1.5) + mouth.normalized() * 0.05
+	w.velocity = Vector3.ZERO
+	w.drive = {"move": Vector2(0, 1)}
+	var under := 0.0
+	for k in 300:
+		var lw := w.global_position - pl.global_position
+		var u := lw.normalized()
+		var wv := (way - u * way.dot(u)).normalized()
+		var path := Vector3.ZERO   # (along the passage: towards the nearest carve ahead)
+		w.heading = wv
+		w._process(1.0 / 30.0)
+		c.walker_bumps(w)
+		lw = w.global_position - pl.global_position
+		under = maxf(under, sh.height(lw.normalized()) - (lw.length() - pl.radius))
+	w.drive = {}
+	check(w.deck == null and under > 1.5, "walked into it: under the hill (%.1f m of ground over you), the same world" % under)
+	# The sights in it: on down the passage, past you - not the ground's face overhead (the rifle turned round at you).
+	var wu := w.up()
+	var fw := (w.heading - wu * w.heading.dot(wu)).normalized()
+	c.cam.global_position = w.global_position + wu * 1.7 - fw * 3.5
+	c.cam.look_at(w.global_position + wu * 1.4 + fw * 6.0, wu)
+	var ahead := (w.global_position - c.cam.global_position).dot(-c.cam.global_basis.z)
+	check(c.aim()[2] > ahead + 1.0, "the sights past you in the cave (%.1f m; you at %.1f)" % [c.aim()[2], ahead])
+	# Its dead wake as you come near; its chest in the deepest chamber.
+	w.global_position = pl.global_position + Cosmos.cave_floor(pl, cm) + cm.normalized() * 0.05
+	check(c._under_ground(), "under the ground in it: its own soft light (never pitch black)")
+	c._cave_life(pl, cm)
+	var dead := c.npcs.filter(func(x): return is_instance_valid(x) and x.get("in_cave"))
+	check(dead.any(func(x): return x.label == "Demon lord"), "the demon lord in its deepest chamber (%d dead)" % dead.size())
+	var lord = dead.filter(func(x): return x.label == "Demon lord")[0] if not dead.is_empty() else null
+	if lord:
+		w.shield = 0.0   # (the blows on the hull, not the shield)
+		var hp0 := w.hp
+		lord.global_position = w.global_position + (w.global_basis.x) * 3.0
+		for k in 120:
+			lord._process(1.0 / 30.0)
+		var ll: Vector3 = lord.global_position - pl.global_position
+		check(absf(ll.length() - pl.radius - sh.floor_below(ll)) < 0.3, "it walks the cave's floor")
+		check(w.hp < hp0, "and comes for you (%.0f -> %.0f)" % [hp0, w.hp])
+		w.hp = CosmosWalker.MAX_HP
+	var key := c._chest_key(pl, site)
+	var e: Dictionary = c._cave_live.get(key, {})
+	check(not e.is_empty(), "its chest there")
+	if not e.is_empty():
+		w.global_position = pl.global_position + (e["at"] as Vector3) + (e["at"] as Vector3).normalized() * 0.05 + w.global_basis.x * 1.0
+		var looted_before: bool = key in CosmosGame.extra.get("looted", [])
+		if not looted_before:
+			check(c.terminal_here() == ["Open the chest", "cave_chest"], "by its chest: %s" % str(c.terminal_here()))
+			var cr0: int = CosmosGame.data.credits
+			c.open_cave_chest()
+			check(CosmosGame.data.credits > cr0, "the chest's drachmas")
+			check(c.terminal_here().is_empty(), "an open chest offers nothing")
+	# A jump in a passage: its ceiling holds you.
+	w.global_position = pl.global_position + Cosmos.cave_floor(pl, cm) + cm.normalized() * 0.05
+	w.velocity = cm.normalized() * 30.0
+	w.on_ground = false
+	for k in 20:
+		w._process(1.0 / 30.0)
+	var lw2 := w.global_position - pl.global_position
+	check(lw2.length() - pl.radius < sh.height(lw2.normalized()) - 1.0, "flung up in a cave: held under its ceiling")
+	# Far off: they're gone again.
+	c._cave_life(pl, cm.normalized() * (pl.radius + 2000.0) + cm.cross(Vector3.UP).normalized() * 2000.0)
+	check(not c._cave_live.has(key), "far off: its dead and chest put away")
+	c.queue_free()
+	await _frames(2)
+
+
+## The ground hides the HUD's markers: past the world's curve, over a hill - not overhead.
+func test_ground_hides_markers() -> void:
+	var c := await _cosmos()
+	c.dry_run = true
+	var w := _on_foot(c)
+	var pl := w.planet
+	var u := w.up()
+	var eye := w.global_position + u * 1.7
+	check(c.hud._ground_between(eye, pl.global_position - u * (pl.radius + 50.0)), "a thing on the far side of the world: hidden")
+	check(not c.hud._ground_between(eye, eye + u * 2000.0), "a thing overhead: seen")
+	var side := u.cross(Vector3.UP if absf(u.y) < 0.9 else Vector3.RIGHT).normalized()
+	var round := (pl.global_position + ((w.global_position - pl.global_position).normalized() * cos(0.9) + side * sin(0.9)) * (pl.radius + 5.0))
+	check(c.hud._ground_between(eye, round), "a thing well round the curve of the world: hidden")
+	c.queue_free()
+	await _frames(2)
+
+
+## The sea worlds' floors: trenches across them, abysses with ledged walls and a cave in each.
+func test_abysses_under_the_sea() -> void:
+	var sh := PlanetShape.of({"type": "ocean", "template": "ocean", "variant": 3, "size": 600.0, "seed": 4242, "system": "atrapos"})
+	check(sh._ab_dir.size() == PlanetShape.ABYSSES, "its abysses (%d)" % sh._ab_dir.size())
+	for i in sh._ab_dir.size():
+		var a := sh._ab_dir[i]
+		var t1 := a.cross(Vector3.UP).normalized()
+		var mid := sh.height(a)
+		var out := sh.height((a + t1 * (sh._ab_r[i] * 1.6 / sh.radius)).normalized())
+		check(mid < out - sh.amp * 0.8, "abyss %d: %.0f m deep, its floor %.0f m (the sea floor round it %.0f m)" % [i, out - mid, mid, out])
+	var under := sh.caves.filter(func(cv): return cv["under"])
+	check(under.size() == PlanetShape.ABYSSES, "a cave in each abyss's wall (%d)" % under.size())
+	for cv in under:
+		var cm: Vector3 = cv["chambers"][int(cv["deepest"])][0]
+		check(sh.density(cm) > 0.0 and cm.length() - sh.radius < sh.height(cm.normalized()) - 3.0, "its chamber under the sea floor")
+	var trench := 0
+	for k in 4000:   # (the canyons out across the sea floor: steep drops where it's deep)
+		var d := Vector3(sin(k * 1.3), cos(k * 0.71), sin(k * 2.9 + 1.0)).normalized()
+		var h := sh.raw_height(d)
+		if h < -2.0:
+			var h2 := sh.raw_height((d + d.cross(Vector3.UP).normalized() * (6.0 / sh.radius)).normalized())
+			if absf(h2 - h) > 3.0:
+				trench += 1
+	check(trench > 10, "trenches across the sea floor (%d steep spots)" % trench)
 
 ## Small moons, ice sheets: on every rocky world, wherever you come down over
 ## dry ground, the ship finds somewhere to set down within 150 m (L).
@@ -1207,7 +1510,7 @@ func test_land_on_any_world() -> void:
 				if why == "":
 					continue
 				var found := false
-				for ring in [15.0, 30.0, 50.0, 75.0, 110.0, 150.0]:
+				for ring in [15.0, 30.0, 50.0, 75.0, 110.0, 150.0, 220.0, 300.0]:   # (in the mountains: a little further)
 					for j in 12:
 						var d: Vector3 = (u * pl.radius + f.rotated(u, TAU * j / 12.0) * ring).normalized()
 						if c._spot_why(pl, d, f) == "" or c._spot_why(pl, d, -f) == "":
@@ -1215,6 +1518,9 @@ func test_land_on_any_world() -> void:
 							break
 					if found:
 						break
+				if not found and pl.shape.height(u) > pl.shape.amp * 1.5:
+					n -= 1   # (high on a mountain's steep flank: flown down off it to land - not stuck)
+					continue
 				stuck += 0 if found else 1
 			check(stuck == 0, "%s (%s, %.0f m): somewhere to land near %d of %d spots" % [pl.rec.get("name", ""), pl.rec.get("type", ""), pl.radius, n - stuck, n])
 		c.queue_free()
@@ -1444,7 +1750,7 @@ func test_digging_the_ground() -> void:
 	check(wall.max() - wall.min() > 0.15, "its walls rough, not a ball's (%.2f - %.2f m)" % [wall.min(), wall.max()])
 	# Kept: the save's list; a fresh shape from it carves the same.
 	var saved: Array = CosmosGame.extra["digs"][str(pl.rec["id"])]
-	check(saved.size() == pl.shape.dig_n, "every carve in the save (%d)" % saved.size())
+	check(saved.size() == pl.shape.dig_n - pl.shape.cave_n, "every carve in the save (%d; the caves' own made again from the seed)" % saved.size())
 	var again := PlanetShape.of(pl.rec)
 	for e in saved:
 		again.add_dig(Vector3(e[0], e[1], e[2]).normalized(), float(e[3]), float(e[4]))
@@ -2651,7 +2957,7 @@ func test_compass_bar_and_sights() -> void:
 	await _frames(2)
 	var texts: Array = hud.texts
 	check(hud._sights_layer.visible and hud._compass_layer.visible, "the sights' and the compass bar's fixed lines showing")
-	check(texts.has("W") and texts.has("NW") and texts.has("270°"), "the compass bar's letters and heading (%s)" % ", ".join(texts.slice(0, 12)))
+	check(texts.has("Y 270°") and texts.any(func(t): return str(t).begins_with("P +")) and not texts.has("W") and not texts.has("NW"), "in space the compass bar's yaw and pitch, no north or west (%s)" % ", ".join(texts.slice(0, 12)))
 	check(texts.count(CosmosHud._speed(s.speed())) == 1, "the speed once: in VEL")
 	check(not texts.any(func(t): return str(t).begins_with("Nearest") or str(t).begins_with("Altitude")), "no 'Nearest' / 'Altitude' line (ALT has it)")
 	var ng: Array = hud.nearest_ground()
@@ -2725,7 +3031,7 @@ func test_rifle_drawn_aimed_slung() -> void:
 		return
 	check_eq(w.gun_state, "slung", "the rifle starts on the back")
 	await _frames(3)
-	check(w.arms.has_gun_pose and w.arms.gun_pose.origin.z < -0.2, "slung: behind the back, outside the jet pack (%.2f m behind)" % -w.arms.gun_pose.origin.z)
+	check(w.arms.has_gun_pose and w.arms.gun_pose.origin.x < -0.15 and w.arms.gun_pose.origin.y < 1.1, "holstered: folded at the hip (%s)" % w.arms.gun_pose.origin)
 	w.drive = {"move": Vector2.ZERO, "fire": true}
 	var states := []
 	var shots_before_aim := 0

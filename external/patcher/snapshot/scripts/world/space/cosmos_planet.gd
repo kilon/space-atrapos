@@ -60,8 +60,16 @@ var _rock_mat: ShaderMaterial
 var flora: Array = []           # the species (CosmosFlora.design), built on a worker at setup
 var flora_ready := false
 var _flora_task := -1
+var _cave_task := -1
+var caves_ready := false        # (its caves carved in: PlanetShape.caves)
+static var _caves_frame := -1
 var _flora_meshes: Array = []
+var _flora_far: Array = []      # (each species' far mesh: the coarser patches draw it)
+var _flora_near: Array = []     # (each tree's near mesh - every branch and leaf - or null: drawn up close)
+var _flora_mk := -1             # (the species whose meshes are made next)
+const FLORA_NEAR := 32.0       # (m: a patch nearer than this draws its trees' near meshes)
 var _flora_mat: ShaderMaterial
+var _leaf_mat: ShaderMaterial
 static var _rock_mesh: Mesh
 
 
@@ -105,8 +113,9 @@ var sun_hint := Vector3.ZERO    # (towards the star, before it's placed - the to
 func setup(record: Dictionary, noise: Texture3D) -> void:
 	rec = record
 	name = str(rec.get("name", "Planet")).replace(" ", "_")
-	shape = PlanetShape.of(rec)
+	shape = PlanetShape.of(rec, false)
 	radius = shape.radius
+
 	# (the ground dug before: the save's list, the shape's own from now on)
 	var all_digs: Dictionary = CosmosGame.extra.get("digs", {})
 	var pid := str(rec.get("id", name))
@@ -140,6 +149,8 @@ func setup(record: Dictionary, noise: Texture3D) -> void:
 			"lava", "lava_color", "lava_hot", "water_shallow", "water_deep"]:
 		if L.has(k):
 			material.set_shader_parameter(k, L[k])
+	# (its ground close up: Greece's on the green worlds - terra rossa, limestone, dry grass; a touch of it elsewhere)
+	material.set_shader_parameter("greek", {"ocean": 1.0, "ice": 0.25, "volcanic": 0.3, "moon": 0.4}.get(str(rec.get("type", "")), 0.5))
 	material.set_shader_parameter("amp", shape.amp)
 	material.set_shader_parameter("radius", radius)
 	material.set_shader_parameter("sea", shape.sea)
@@ -152,8 +163,13 @@ func setup(record: Dictionary, noise: Texture3D) -> void:
 	# The towns (CosmosTown): where they stand, their ground levelled - before any ground is built.
 	towns = CosmosTown.sites(shape, rec, Galaxy.owner_of(str(rec.get("system", Galaxy.current_system))), sun_hint)
 	shape.set_flats(CosmosTown.flats_of(towns, radius))
+	if shape.kind == "rocky":   # (its caves and dungeons: made on a worker - its towns known: kept clear of them - carved in when done, _caves_in)
+		var sh := shape
+		_cave_task = WorkerThreadPool.add_task(func(): sh.make_caves(), true, "planet caves")
 	_flora_mat = ShaderMaterial.new()
 	_flora_mat.shader = preload("res://shaders/world/flora.gdshader")
+	_leaf_mat = ShaderMaterial.new()   # (the trees: their leaf cards cut into leaves - CosmosFlora)
+	_leaf_mat.shader = preload("res://shaders/world/leaf_flora.gdshader")
 	var fseed := int(rec.get("seed", 1))
 	var ftype := str(rec.get("type", "rocky"))
 	_flora_task = WorkerThreadPool.add_task(func(): flora = CosmosFlora.design(shape, fseed, ftype), true, "planet flora")
@@ -168,14 +184,20 @@ func setup(record: Dictionary, noise: Texture3D) -> void:
 		_start(p)
 	if shape.sea > 0:
 		_add_sea(L, noise)
-	if float(L.get("clouds", 0.0)) > 0.05 and atmo_k > 0.3:
-		_add_clouds(L, noise)
 	atmo_radius = radius + maxf(shape.top() * 2.5, radius * 0.06)
+	var has_air := shape.kind == "rocky" and atmo_k > 0.3
+	if has_air or float(L.get("clouds", 0.0)) > 0.05 and atmo_k > 0.3:
+		_add_clouds(L, noise)
+	weather = PlanetWeather.of(rec, shape, has_air)
 	_add_atmosphere(atmo_col, atmo_k)
 
 
 ## Built enough to be seen: every face's first patch is in.
 func settled() -> bool:
+	if not caves_ready:
+		_caves_in()
+		if not caves_ready:
+			return false
 	for p: Patch in _roots:
 		if not p.ready:
 			return false
@@ -192,8 +214,33 @@ func _place(p: Patch) -> void:
 func _start(p: Patch) -> void:
 	tasks += 1
 	_busy.append(p)
-	p.digs = shape.digs_near(p.centre, p.size * 0.8) if p.level >= max_level - DIG_LEVELS and shape.dig_n > 0 else PackedFloat64Array()
+	p.digs = shape.digs_near(p.centre, p.size * 0.8, true) if p.level >= max_level - DIG_LEVELS and shape.dig_n > 0 else PackedFloat64Array()   # (those that open its face)
 	p.task = WorkerThreadPool.add_task(_build.bind(p, p.face, p.a0, p.b0, p.span, p.centre), true, "planet patch")
+
+
+## The caves made (a worker): carved in - the ground where they open built again
+## (its plants and boulders out of the way), the shader's cuts and the voxels
+## round you told.
+func _caves_in() -> void:
+	if _cave_task == -1 or not WorkerThreadPool.is_task_completed(_cave_task):
+		if _cave_task == -1 and shape.kind != "rocky":
+			caves_ready = true
+		return
+	if Engine.get_process_frames() == _caves_frame:
+		return   # (another world's caves carved in this frame: one a frame)
+	_caves_frame = Engine.get_process_frames()
+	WorkerThreadPool.wait_for_task_completion(_cave_task)
+	_cave_task = -1
+	shape.merge_caves()
+	caves_ready = true
+	if voxels == null:
+		voxels = CosmosVoxels.new()
+		voxels.planet = self
+		add_child(voxels)
+	for c in shape.caves:
+		_rebuild_near(c["mouth"], 12.0)
+	_cuts_at = Vector3(INF, INF, INF)   # (the shader's cuts and the voxels made again at the next visit)
+	voxels._at = Vector3(INF, INF, INF)
 
 
 ## The finest levels that know of the carves near them (their plants and
@@ -395,33 +442,22 @@ func _scatter_cell(p: Patch, n: Vector3, u: Vector3, v: Vector3, a0: float, b0: 
 		p.rocks_new.append([at, size * 0.8, size * 0.7])
 	if not flora_ready:
 		return
-	var step := 1.2 / radius
-	for k in flora.size():
-		var sp: Dictionary = flora[k]
-		var dens: float = sp["density"]
-		var patchy := rng.randf()
-		var m := int(dens * area * (0.3 + patchy * 1.4) + rng.randf())
-		for i in m:
-			var ua := a0 + rng.randf() * span
-			var vb := b0 + rng.randf() * span
-			var d := PlanetShape.face_dir(n, u, v, ua, vb)
-			var sc: float = rng.randf_range(sp["size"].x, sp["size"].y)
-			var turn := rng.randf() * TAU
-			if coarse and float(sp["solid"]) <= 0.0:
-				continue
-			if shape.cleared(d) or shape.dug_here(d, p.digs) or shape.bare(d):
-				continue
-			var h := shape.height(d)
-			var t := d.cross(Vector3.UP if absf(d.y) < 0.9 else Vector3.RIGHT).normalized()
-			var slope := absf(shape.height((d + t * step).normalized()) - h) / 1.2
-			if not CosmosFlora.grows(sp, shape, h, slope):
-				continue
-			var x := t.rotated(d, turn)
-			var b := Basis(x, d, x.cross(d)).scaled(Vector3.ONE * sc)
-			var at := d * (radius + h - 0.08 * sc)
-			p.flora_xf[k] = p.flora_xf.get(k, []) + [Transform3D(b, at - centre)]
-			if float(sp["solid"]) > 0.0:
-				p.rocks_new.append([at, float(sp["solid"]) * sc, 6.0 * sc])
+	# (the plants - groves and meadows, sizes, each species its own seed: CosmosFlora.scatter)
+	CosmosFlora.scatter(flora, shape, radius, rng.seed, n, u, v, a0, b0, span, centre, coarse, p.digs, p.flora_xf, p.rocks_new)
+
+
+## (The plants designed) The finest patches built before - bare - built again with their plants.
+func _replant() -> void:
+	var stack := _roots.duplicate()
+	while not stack.is_empty():
+		var p: Patch = stack.pop_back()
+		stack.append_array(p.kids)
+		if p.level < max_level - 1:
+			continue
+		if p.task != -1:
+			p.again = true
+		elif p.ready:
+			_start(p)
 
 
 ## Called by Cosmos a few times a second: the camera's planet-local position.
@@ -430,7 +466,7 @@ func update_lod(cam_local: Vector3) -> void:
 		return
 	if shape.dig_n > 0 and cam_local.distance_to(_cuts_at) > 30.0:
 		_cuts_at = cam_local   # (the carves nearest you, for the shader)
-		_cuts = shape.cuts_near(cam_local, 600.0, CUTS)
+		_cuts = shape.cuts_near(cam_local, 600.0, CUTS, true)   # (those that open the ground's face: the rest are under it)
 		if not _cuts_wait.is_empty():   # (not the ones still waiting for their dug ground)
 			_cuts = _cuts.filter(func(c): return _cuts_wait.all(func(w): return (w[0] as Vector3).distance_to(c[1]) > 0.01))
 		_send_cuts()
@@ -500,14 +536,32 @@ func collect_only() -> void:
 
 
 func _collect() -> void:
+	_caves_in()
 	if _flora_task != -1 and WorkerThreadPool.is_task_completed(_flora_task):
 		WorkerThreadPool.wait_for_task_completion(_flora_task)
 		_flora_task = -1
-		for sp: Dictionary in flora:
-			var m := ArrayMesh.new()
-			m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, sp["arrays"])
-			_flora_meshes.append(m)
-		flora_ready = true
+		_flora_mk = 0 if not flora.is_empty() else -1
+		flora_ready = flora.is_empty()
+	if _flora_mk >= 0:   # (the species' meshes made, one species a frame - their near, mid and far meshes: CosmosFlora)
+		var sp: Dictionary = flora[_flora_mk]
+		var m := ArrayMesh.new()
+		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, sp["arrays"])
+		_flora_meshes.append(m)
+		var fm := m
+		if not is_same(sp.get("far", sp["arrays"]), sp["arrays"]):
+			fm = ArrayMesh.new()
+			fm.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, sp["far"])
+		_flora_far.append(fm)
+		var nm: ArrayMesh = null
+		if sp.has("near"):
+			nm = ArrayMesh.new()
+			nm.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, sp["near"])
+		_flora_near.append(nm)
+		_flora_mk += 1
+		if _flora_mk >= flora.size():
+			_flora_mk = -1
+			flora_ready = true
+			_replant()
 	var i := 0
 	while i < _busy.size():
 		var p: Patch = _busy[i]
@@ -561,19 +615,30 @@ func _collect() -> void:
 				continue
 			var fm := MultiMesh.new()
 			fm.transform_format = MultiMesh.TRANSFORM_3D
-			fm.mesh = _flora_meshes[k]
+			fm.mesh = _flora_meshes[k] if p.level >= max_level or k >= _flora_far.size() else _flora_far[k]   # (far mesh on the coarser patches)
 			fm.instance_count = buf.size() / 12
 			fm.buffer = buf
 			var fmi := MultiMeshInstance3D.new()
 			fmi.multimesh = fm
-			fmi.material_override = _flora_mat
+			fmi.material_override = _leaf_mat if flora[k].get("cards", false) else _flora_mat
 			var solid: bool = float(flora[k]["solid"]) > 0.0
-			fmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if solid else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			fmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if solid and p.level >= max_level else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF   # (shadows: the near trees')
 			# (draw distances: the small plants only near - their patches' draw calls go)
-			fmi.visibility_range_end = {"grass": 42.0, "flower": 38.0, "bush": 80.0, "fungus": 100.0}.get(str(flora[k]["kind"]), 0.0)
-			if solid and p.level >= max_level:
-				fmi.visibility_range_end = 0.0
+			fmi.visibility_range_end = float(flora[k].get("range", 0.0))   # (each species' own: CosmosFlora - grass and flowers fade out before it)
 			mi.add_child(fmi)
+			if FLORA_NEAR > 0.0 and p.level >= max_level and k < _flora_near.size() and _flora_near[k] != null:   # (up close: the trees' every branch and leaf)
+				fmi.visibility_range_begin = FLORA_NEAR
+				var nmm := MultiMesh.new()
+				nmm.transform_format = MultiMesh.TRANSFORM_3D
+				nmm.mesh = _flora_near[k]
+				nmm.instance_count = fm.instance_count
+				nmm.buffer = buf
+				var nmi := MultiMeshInstance3D.new()
+				nmi.multimesh = nmm
+				nmi.material_override = _leaf_mat
+				nmi.cast_shadow = fmi.cast_shadow
+				nmi.visibility_range_end = FLORA_NEAR
+				mi.add_child(nmi)
 		p.flora_buf = {}
 		if p.again:
 			p.again = false
@@ -733,16 +798,60 @@ func _add_sea(L: Dictionary, noise: Texture3D) -> void:
 	_sea_mi = _ball(radius, 64, 32, m, "Sea")
 
 
+## Its cloud layers: [name, height (x its highest ground, + m), scale, speed, stretch,
+## edge softness, opacity, its share of the world's cover, how much the weather
+## thickens it, how dark a storm makes it] - low and heavy (the weather's own),
+## heaped mid, thin high streaks racing.
+const CLOUD_LAYERS := [
+	["CloudsLow", 0.85, 25.0, 1.3, 1.0, Vector3(0.6, 1.0, 0.6), 0.2, 0.88, 0.45, 1.25, 0.8],
+	["Clouds", 1.3, 40.0, 1.0, 0.65, Vector3(0.55, 1.0, 0.55), 0.14, 0.92, 1.0, 0.75, 0.5],
+	["CloudsHigh", 2.0, 120.0, 0.75, 2.6, Vector3(0.2, 1.0, 1.0), 0.3, 0.5, 0.55, 0.25, 0.15],
+]
+var weather: PlanetWeather       # (its weather: local, moving - PlanetWeather; weather_tick)
+var _cloud_mats: Array = []      # (its cloud layers' materials, low to high)
+
+
 func _add_clouds(L: Dictionary, noise: Texture3D) -> void:
-	var m := ShaderMaterial.new()
-	m.shader = CLOUDS
-	m.render_priority = 1
-	m.set_shader_parameter("cover", float(L.get("clouds", 0.5)))
-	m.set_shader_parameter("scale", float(L.get("cloud_scale", 2.2)))
-	m.set_shader_parameter("tint", L.get("cloud_color", Color.WHITE))
-	m.set_shader_parameter("seed", float(L.get("seed", 0.0)))
-	m.set_shader_parameter("noise_tex", noise)
-	_ball(radius + shape.top() * 1.3 + 40.0, 128, 64, m, "Clouds")
+	var base := float(L.get("clouds", 0.4))
+	var span := atmo_radius - radius
+	for ly in CLOUD_LAYERS:
+		var m := ShaderMaterial.new()
+		m.shader = CLOUDS
+		m.render_priority = 1 + _cloud_mats.size()
+		m.set_shader_parameter("cover", base * float(ly[8]))
+		m.set_shader_parameter("scale", float(L.get("cloud_scale", 2.2)) * float(ly[3]))
+		m.set_shader_parameter("tint", L.get("cloud_color", Color.WHITE))
+		m.set_shader_parameter("seed", float(L.get("seed", 0.0)) + _cloud_mats.size() * 37.0)
+		m.set_shader_parameter("noise_tex", noise)
+		m.set_shader_parameter("speed", float(ly[4]))
+		m.set_shader_parameter("stretch", ly[5])
+		m.set_shader_parameter("soft", float(ly[6]))
+		m.set_shader_parameter("opacity", float(ly[7]))
+		m.set_shader_parameter("weather_k", float(ly[9]))
+		m.set_shader_parameter("storm_dark", float(ly[10]))
+		var h := minf(shape.top() * float(ly[1]) + float(ly[2]), span * 0.92)
+		_ball(radius + h, 128, 64, m, str(ly[0]))
+		_cloud_mats.append(m)
+
+
+## The weather now (the galaxy's clock `t`): its cells to the clouds and the ground; the
+## layers drawn in the right order for where you are (under them: the low one last).
+func weather_tick(t: float, eye_local: Vector3) -> void:
+	if weather == null or weather.cells.is_empty():
+		return
+	var sc: Array = weather.shader_cells(t, sun_dir)
+	for m: ShaderMaterial in _cloud_mats:
+		m.set_shader_parameter("cell_a", sc[0])
+		m.set_shader_parameter("cell_b", sc[1])
+	if material:
+		material.set_shader_parameter("cell_a", sc[0])
+		material.set_shader_parameter("cell_b", sc[1])
+	var n := _cloud_mats.size()
+	var r := eye_local.length()
+	for i in n:   # (the nearest layer drawn last: from under them the low one, from over them the high one)
+		var hi := (get_node_or_null(str(CLOUD_LAYERS[i][0])) as Node3D)
+		var under := hi != null and r < hi.scale.x
+		(_cloud_mats[i] as ShaderMaterial).render_priority = 1 + (n - 1 - i if under else i)
 
 
 func _add_atmosphere(col: Color, k: float) -> void:
@@ -846,6 +955,9 @@ func _exit_tree() -> void:
 	if _flora_task != -1:
 		WorkerThreadPool.wait_for_task_completion(_flora_task)
 		_flora_task = -1
+	if _cave_task != -1:
+		WorkerThreadPool.wait_for_task_completion(_cave_task)
+		_cave_task = -1
 	for p: Patch in _busy:
 		if p.task != -1:
 			WorkerThreadPool.wait_for_task_completion(p.task)

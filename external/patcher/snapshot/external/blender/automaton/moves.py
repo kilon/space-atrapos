@@ -8,7 +8,7 @@ Without the rifle: idle, guard (the fighting stance), walk, run, the martial
 arts - jab, cross, hook, uppercut, elbow, knee, front (kick), side (kick),
 round (house kick), spin (back kick), sweep, flykick, palm - leap (a flip
 through the air), cast_bolt / cast_sky / cast_dome / cast_summon (spells),
-hit, block, ko, sit (on a 0.46 m chair), stool (on a 0.80 m bar stool, the
+hit, block, ko, climb (up a wall or a cliff, hands and feet in turn - CLIMB_STRIDE a cycle), climb_side (along a wall, to its left - backwards: to its right), slide (down a steep slope on its feet), sit (on a 0.46 m chair), stool (on a 0.80 m bar stool, the
 forearms on the counter), carry / carry_idle (a crate in both hands, the palms on its sides), put_down /
 pick_up (squatting to set the crate on the floor / take it up - 1.4 s each; see PUT_RELEASE, PICK_GRIP), console (at a terminal:
 typing on its panel, touching its screen), swim / swim_idle (at the surface: a head-up crawl, treading water - the
@@ -332,7 +332,7 @@ def leap():
     return K((0, G), (4, crouch), (7, launch, "o"), (11, tuck1, "l"), (14, tuck2, "l"), (17, open_, "l"), (19, land, "i"), (23, end, "o"))
 
 
-# ------------------------------------------------------------------ jumping, falling, the jet pack
+# ------------------------------------------------------------------ jumping, falling, the jet thrusters
 # (on foot in the 3D game: the walker rises and falls by itself - no "air" in
 # these, the feet hang from the pelvis ("p") instead of standing on the ground)
 
@@ -373,14 +373,14 @@ def fall(n=24):
 
 
 def jet(n=30):
-    """Hovering on the jet pack: upright, the legs together and hanging a little back
-    (the toes pointed), the arms down and out from the sides, palms back - steering;
-    a slow bob and sway as the thrust breathes."""
-    base = dict(pelvis=(0.0, 0.0, 0.0), lean=6, hpitch=-6,
-                footL=("p", (0.07, -0.10, -0.86)), fpitchL=48, fyawL=2, kneeL=(0.05, 1.0, 0.2),
-                footR=("p", (-0.07, -0.14, -0.85)), fpitchR=50, fyawR=2, kneeR=(-0.05, 1.0, 0.2),
-                handL=("c", (0.42, -0.10, -0.50)), elbowL=(1.0, 0.2, -0.3), wristL=20,
-                handR=("c", (-0.42, -0.10, -0.50)), elbowR=(-1.0, 0.2, -0.3), wristR=20, gripL=0.15, gripR=0.15)
+    """Hovering on the jet thrusters in the soles of its boots: upright, the legs straight down and
+    together, the feet flat under it (the soles - the thrusters - toward the ground), the arms out
+    and a little forward, palms down - steering; a slow bob and sway as the thrust breathes."""
+    base = dict(pelvis=(0.0, 0.0, 0.0), lean=3, hpitch=-4,
+                footL=("p", (0.085, 0.0, -0.865)), fpitchL=6, fyawL=4, kneeL=(0.05, 1.0, 0.1),
+                footR=("p", (-0.085, -0.02, -0.86)), fpitchR=8, fyawR=4, kneeR=(-0.05, 1.0, 0.1),
+                handL=("c", (0.46, 0.06, -0.42)), elbowL=(1.0, 0.0, -0.2), wristL=-25,
+                handR=("c", (-0.46, 0.06, -0.42)), elbowR=(-1.0, 0.0, -0.2), wristR=-25, gripL=0.2, gripR=0.2)
     out = []
     for i in range(n):
         s = math.sin(TAU * i / n)
@@ -388,14 +388,117 @@ def jet(n=30):
         p = kit.full(base)
         p["pelvis"] = (0.006 * c, 0.0, 0.012 * s)
         p["proll"] = 2.0 * c
-        p["lean"] = 6 + 1.5 * s
-        p["handL"] = ("c", (0.42 + 0.02 * c, -0.10, -0.50 + 0.03 * s))
-        p["handR"] = ("c", (-0.42 + 0.02 * c, -0.10, -0.50 - 0.03 * s))
-        p["footL"] = ("p", (0.07, -0.10 - 0.02 * s, -0.86))
-        p["footR"] = ("p", (-0.07, -0.14 + 0.02 * s, -0.85))
+        p["lean"] = 3 + 1.5 * s
+        p["handL"] = ("c", (0.46 + 0.02 * c, 0.06, -0.42 + 0.03 * s))
+        p["handR"] = ("c", (-0.46 + 0.02 * c, 0.06, -0.42 - 0.03 * s))
+        p["footL"] = ("p", (0.085, 0.0 - 0.015 * s, -0.865))
+        p["footR"] = ("p", (-0.085, -0.02 + 0.015 * s, -0.86))
         out.append(p)
     return out
 
+
+
+CLIMB_STRIDE = 1.2       # m climbed a cycle (1 s): the game plays "climb" at its speed / this
+
+
+def climb(n=30):
+    """Climbing a wall or a cliff, facing it (its face ~0.45 m ahead): the hands and feet in turn, the left hand
+    with the right foot - a planted hand pulls down to the shoulder as the body rises, the other reaches up off
+    the face to its next hold; the feet step up the same, the knees out; leaning in, the head up. One
+    CLIMB_STRIDE a cycle: the holds keep still on the face while the body climbs past them. 1 s."""
+    def smooth(t):
+        return t * t * (3 - 2 * t)
+    out = []
+    for i in range(n):
+        u = i / n
+        a = TAU * u
+        p = dict(pelvis=(0.0, 0.10, -0.10 + 0.03 * math.sin(2 * a)), lean=10, hpitch=-22, twist=5 * math.sin(a))
+        for s, sx, ph in (("L", 1.0, 0.0), ("R", -1.0, 0.5)):
+            q = (u + ph) % 1.0
+            if q < 0.5:                                         # (holding on: down past the shoulder as it rises)
+                up, off, grip = 2.0 - CLIMB_STRIDE * q, 0.0, 1.0
+            else:                                               # (reaching up to the next hold, off the face)
+                t = smooth((q - 0.5) / 0.5)
+                up, off, grip = 1.4 + 0.6 * t, 0.10 * math.sin(math.pi * t), 0.35
+            p["hand" + s] = ("w", (0.24 * sx, 0.36 - off, up))
+            p["elbow" + s] = (1.0 * sx, -0.3, -0.6)
+            p["wrist" + s] = -10
+            p["grip" + s] = grip
+            fq = (u + ph + 0.5) % 1.0                           # (the other side's foot)
+            if fq < 0.5:
+                fup, foff = 0.6 - CLIMB_STRIDE * fq, 0.0
+            else:
+                t = smooth((fq - 0.5) / 0.5)
+                fup, foff = 0.6 * t, 0.12 * math.sin(math.pi * t)
+            fs = "R" if s == "L" else "L"
+            fx = -sx
+            p["foot" + fs] = ("w", (0.17 * fx, 0.24 - foff, fup))
+            p["knee" + fs] = (0.6 * fx, 1.0, 0.0)
+            p["fpitch" + fs] = 18
+            p["fyaw" + fs] = 10
+        out.append(kit.full(p))
+    return out
+
+
+CLIMB_SIDE_STRIDE = 0.72  # m along a wall a cycle (1 s): the game plays "climb_side" at its speed / this (+ to its left)
+
+
+def climb_side(n=30):
+    """Climbing along a wall, to its left (played backwards: to its right), facing it: the hands on the face at
+    shoulder height and above, one reaching along while the other holds; the feet stepping along under them, a
+    quarter of a cycle behind; the body swaying a little towards the way it goes. The holds keep still on the
+    face while the body moves past them: one CLIMB_SIDE_STRIDE a cycle. 1 s."""
+    def smooth(t):
+        return t * t * (3 - 2 * t)
+    half = CLIMB_SIDE_STRIDE * 0.5
+    out = []
+    for i in range(n):
+        u = i / n
+        a = TAU * u
+        p = dict(pelvis=(0.03 * math.sin(a), 0.10, -0.12 + 0.02 * math.cos(2 * a)), lean=10, hpitch=-14,
+                 proll=3 * math.sin(a), twist=4 * math.sin(a))
+        for s, sx, ph, hy in (("L", 1.0, 0.0, 1.78), ("R", -1.0, 0.5, 1.6)):
+            q = (u + ph) % 1.0
+            if q < 0.5:                                         # (reaching along to its next hold, off the face)
+                t = smooth(q / 0.5)
+                x, off, grip = 0.06 * sx + (half * t if sx > 0 else -half * (1 - t)), 0.08 * math.sin(math.pi * t), 0.35
+            else:                                               # (holding on: sliding past as the body goes along)
+                t = (q - 0.5) / 0.5
+                x, off, grip = 0.06 * sx + (half * (1 - t) if sx > 0 else -half * t), 0.0, 1.0
+            p["hand" + s] = ("w", (x, 0.36 - off, hy + 0.05 * math.sin(math.pi * q)))
+            p["elbow" + s] = (1.0 * sx, -0.3, -0.6)
+            p["wrist" + s] = -10
+            p["grip" + s] = grip
+            fq = (u + ph + 0.25) % 1.0                          # (the foot on its side: a quarter behind its hand)
+            if fq < 0.5:
+                t = smooth(fq / 0.5)
+                fx, foff, fup = 0.10 * sx + (half * t if sx > 0 else -half * (1 - t)), 0.10 * math.sin(math.pi * t), 0.42 + 0.12 * math.sin(math.pi * t)
+            else:
+                t = (fq - 0.5) / 0.5
+                fx, foff, fup = 0.10 * sx + (half * (1 - t) if sx > 0 else -half * t), 0.0, 0.42
+            p["foot" + s] = ("w", (fx, 0.24 - foff, fup))
+            p["knee" + s] = (0.6 * sx, 1.0, 0.0)
+            p["fpitch" + s] = 18
+            p["fyaw" + s] = 10
+        out.append(kit.full(p))
+    return out
+
+def slide(n=30):
+    """Sliding down a steep slope on its feet, facing down it: crouched low and leaning back into the slope,
+    the leading foot well down the slope ahead, the trailing one up behind (the ground falls away ahead), the
+    knees bent and out, the arms out wide for balance, swaying a little as the ground shifts under it. 1 s."""
+    out = []
+    for i in range(n):
+        a = TAU * i / n
+        s, c = math.sin(a), math.cos(a)
+        p = dict(pelvis=(0.03 * s, -0.06, -0.30 + 0.02 * c), pyaw=-22, lean=-14 + 2 * s, twist=14, proll=3 * s, hpitch=10,
+                 footL=("w", (0.15, 0.32, -0.16)), fyawL=-12, fpitchL=-18, kneeL=(0.15, 1.0, 0.0),
+                 footR=("w", (-0.16, -0.24, 0.12)), fyawR=30, fpitchR=-12, kneeR=(-0.15, 1.0, 0.0),
+                 handL=("c", (0.58 + 0.03 * s, 0.22, -0.12 + 0.05 * c)), elbowL=(1.0, -0.2, -0.3), wristL=-10,
+                 handR=("c", (-0.55 - 0.03 * s, -0.12, -0.18 - 0.05 * c)), elbowR=(-1.0, 0.2, -0.3), wristR=-10,
+                 gripL=0.15, gripR=0.15)
+        out.append(kit.full(p))
+    return out
 
 # ------------------------------------------------------------------ sitting, carrying
 # (the pelvis comes down onto the seat over the root; the feet and the resting hands
@@ -868,15 +971,16 @@ GUNS = {
 }
 
 
-# The automaton's rifle slung across its back when it isn't in its hands (in every clip
-# without it - was 5 m under the floor, out of sight, so it rose out of the ground into
-# its hands): the grip low on the left of its back, the barrel up past the right
-# shoulder, outside the jet pack (0.33 m deep); its top facing out.
-STOW = {"automaton": ("c", (0.06, -0.40, -0.10), (-0.55, -0.05, 0.83), (0.0, -1.0, 0.0), "none")}
+# The automaton's rifle holstered on its right hip when it isn't in its hands (in every clip without it),
+# folded (automaton.GUN_FOLD - "fold" 1): the grip up by the hip, the collapsed rifle down the outside of the
+# thigh, muzzle down and a little back, its top forward - riding the thigh ("tR": (out, forward, down) from the
+# hip joint, the thigh's axes). The holster (automaton.holster) is made round it there.
+HOLSTER = ((0.165, -0.03, 0.20), (0.0, -0.30, 1.0), (0.0, 1.0, 0.30))
+STOW = {"automaton": ("tR",) + HOLSTER + ("none",)}
 
 
 def stow(c, skin):
-    """Every clip without the rifle up: the rifle on the back (the automaton's)."""
+    """Every clip without the rifle up: the rifle folded in its holster (the automaton's)."""
     g = STOW.get(skin)
     if g is None:
         return
@@ -886,23 +990,39 @@ def stow(c, skin):
         for pose in clip["poses"]:
             if pose.get("gun") is None:
                 pose["gun"] = g
+                pose["fold"] = 1.0
+
+
+def _w(m, local):
+    """The point `local` (the gun bone's axes) of a solved rifle, as a root-space target."""
+    from mathutils import Vector
+    p = m @ Vector(local)
+    return ("w", (p.x, -p.y, p.z))
 
 
 def draw_clips(skin):
-    """Taking the rifle off the back and bringing it to hand (draw, 0.53 s), and slinging
-    it back (holster, 0.6 s): the right hand up behind the right shoulder, the rifle drawn
-    up and swung over it to the front, the left hand meeting it; holster the other way."""
+    """Drawing the rifle from the hip (draw, 0.6 s) and holstering it (holster, 0.6 s): the right hand
+    down to the grip, the folded rifle pulled up out of the holster, swung forward and up - unfolding
+    as it comes (the stock out, the scope up, the fore-end and the barrel sliding out last) - the left
+    hand meeting it at its fore-grip; holstered the other way, folding as it goes down."""
     g = GUNS.get(skin, GUNS["automaton"])
     s = STOW[skin]
+    hold = s[:4] + ("right",)
     idle = kit.full(g["idle"])
-    base = kit.full(P(STAND, gun=s))
-    reach = P(base, handR=("c", (-0.20, -0.22, 0.10)), twist=-10, hyaw=-12)
-    # (the rifle slid up along its own slant into the hand behind the shoulder, then swung over it)
-    grab = P(reach, gun=("c", (-0.12, -0.36, 0.06), (-0.55, -0.05, 0.83), (0.0, -1.0, 0.0), "right"))
-    over = P(base, gun=("c", (-0.28, 0.00, 0.06), (0.05, 0.75, 0.66), (0.0, -0.60, 0.80), "right"),
-             handL=("c", (0.10, 0.25, -0.15)), twist=-8, hyaw=-6)
-    draw = K((0, base), (5, reach, "io"), (7, grab, "io"), (11, over, "io"), (16, idle, "o"))
-    holster = K((0, idle), (5, over, "io"), (10, grab, "io"), (13, reach, "io"), (18, base, "o"))
+    base = kit.full(P(STAND, gun=s, fold=1.0))
+    m0 = kit.solve(base, extra=False)["gun"]
+    reach = P(base, handR=_w(m0, kit.GUN_HAND_R), elbowR=(-1.0, -0.6, -0.2), twist=-6, hyaw=-14, hpitch=12, lean=4, bend=-3)
+    grab = P(reach, gun=hold)
+    # (pulled straight up out of the holster, still folded - the stock starting to swing out)
+    pull = P(grab, gun=("tR", (0.21, 0.0, -0.06), (0.0, -0.10, 1.0), (0.0, 1.0, 0.10), "right"), fold=0.82,
+             twist=-4, hyaw=-8, hpitch=6, lean=2, bend=-1)
+    over = P(STAND, gun=("c", (-0.25, 0.20, -0.38), (0.35, 0.75, -0.45), (0.10, 0.45, 1.0), "right"), fold=0.3,
+             twist=-8, hyaw=-4)
+    mo = kit.solve(over, extra=False)["gun"]
+    over["handL"] = _w(mo, (0.0, kit.GUN_HAND_L[1], kit.GUN_HAND_L[2] - 0.07))   # (the left hand coming to the fore-grip)
+    idle = P(idle, handL=_w(kit.solve(idle, extra=False)["gun"], kit.GUN_HAND_L))   # (blended toward it: on it at the end)
+    draw = K((0, base), (4, reach, "io"), (6, grab, "io"), (9, pull, "io"), (13, over, "io"), (17, idle, "o"))
+    holster = K((0, idle), (4, over, "io"), (8, pull, "io"), (11, grab, "io"), (13, reach, "io"), (17, base, "o"))
     return {"draw": dict(poses=draw, gun=True), "holster": dict(poses=holster, gun=True)}
 
 
@@ -958,6 +1078,9 @@ def clips(skin="automaton"):
             "jump": dict(poses=jump()),
             "fall": dict(poses=fall(), loop=True),
             "jet": dict(poses=jet(), loop=True),
+            "climb": dict(poses=climb(), loop=True),
+            "slide": dict(poses=slide(), loop=True),
+            "climb_side": dict(poses=climb_side(), loop=True),
             "swim": dict(poses=swim(), loop=True),
             "swim_idle": dict(poses=swim_idle(), loop=True),
             "dive": dict(poses=dive(), loop=True),

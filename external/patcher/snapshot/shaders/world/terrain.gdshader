@@ -43,8 +43,11 @@ uniform vec4 land_mid : source_color = vec4(0.5, 0.4, 0.3, 1.0);
 uniform vec4 land_high : source_color = vec4(0.3, 0.28, 0.27, 1.0);
 uniform vec4 land_peak : source_color = vec4(0.75, 0.73, 0.7, 1.0);
 uniform float biome = 0.0;
+uniform float greek = 0.5;               // how much its ground is Greek ground close up: terra rossa, limestone, stones, dry grass (the green worlds 1)
 uniform vec4 biome_color : source_color = vec4(0.7, 0.35, 0.15, 1.0);
 uniform float ice_cover = 0.0;
+uniform vec4 cell_a[8];                  // the weather (PlanetWeather): each cell's middle xyz, reach (rad)
+uniform vec4 cell_b[8];                  // strength, how wet it's left the ground, how much snow lies, storm
 uniform vec4 ice_color : source_color = vec4(0.9, 0.95, 1.0, 1.0);
 uniform float lava = 0.0;
 uniform vec4 lava_color : source_color = vec4(1.0, 0.3, 0.05, 1.0);
@@ -55,6 +58,8 @@ uniform vec4 water_deep : source_color = vec4(0.02, 0.1, 0.25, 1.0);
 varying vec3 v_local;
 varying float v_h;
 varying vec4 v_ore;                      // (to light(): the ore's sheen - its tint, how much)
+varying float v_gloss;                   // (to light(): how wet and glossy - a puddle a mirror)
+varying vec2 v_wx;                       // (the weather on the ground here: how wet, how much snow lies - a vertex's: the cells span kilometres)
 
 void vertex() {
 	v_vox = UV.y;
@@ -73,6 +78,15 @@ void vertex() {
 	v_cut = patch_info.w;
 #endif
 	v_h = UV.x;
+	vec3 wup = normalize(v_local);
+	v_wx = vec2(0.0);
+	for (int i = 0; i < 8; i++) {
+		vec4 ca = cell_a[i];
+		vec4 cb = cell_b[i];
+		float cd = ca.w > 0.0 ? dot(wup, ca.xyz) : -1.0;
+		v_wx.x = max(v_wx.x, smoothstep(cos(ca.w * 1.25), cos(ca.w * 0.5), cd) * cb.y);
+		v_wx.y = max(v_wx.y, smoothstep(cos(ca.w * 1.2), cos(ca.w * 0.5), cd) * cb.z);
+	}
 }
 
 float nz(vec3 p) {
@@ -205,7 +219,36 @@ void fragment() {
 	}
 	// Bare rock on the steep slopes, the ground's grain close up.
 	vec3 rock = mix(land_high.rgb, land_low.rgb, 0.4) * (0.7 + 0.4 * n1);
+	// (its strata: layers by height, wavering a little - canyon walls, cliffs)
+	float strata = sin(v_h * 0.55 + n1 * 5.0) * 0.5 + 0.5;
+	rock *= mix(vec3(0.82, 0.8, 0.78), vec3(1.12, 1.04, 0.94), strata * strata);
 	col = mix(col, rock, smoothstep(0.25, 0.55, slope + (n2 - 0.5) * 0.15 * near));
+	// The ground close up, as Greece's: red terra rossa showing through, pale limestone
+	// breaking out (more on the slopes), stones scattered, dry golden grass on the gentle
+	// sunny ground - at 3 m and half a metre, fading in as you come near.
+	float near2 = 1.0 - smoothstep(40.0, 320.0, dist);
+	if (sea != 3 && (sea != 1 || v_h > 0.3)) {
+		float nf = nz(v_local / 3.1);
+		float nff = mix(0.5, nz(v_local / 0.55), near2);
+		vec3 rossa = mix(vec3(0.5, 0.24, 0.13), vec3(0.64, 0.38, 0.22), n1);
+		float soil = smoothstep(0.56, 0.74, nf * 0.6 + n2 * 0.4) * (1.0 - smoothstep(0.2, 0.55, slope));
+		col = mix(col, rossa * (0.82 + 0.3 * nff), soil * 0.55 * greek);
+		float straw = smoothstep(0.52, 0.7, n1 * 0.65 + nf * 0.35) * (1.0 - smoothstep(0.18, 0.45, slope)) * (1.0 - hl * 0.8);
+		col = mix(col, vec3(0.74, 0.62, 0.36) * (0.82 + 0.32 * nff), straw * 0.5 * greek);
+		vec3 limec = mix(mix(land_high.rgb, vec3(0.8), 0.4), vec3(0.8, 0.78, 0.73), greek) * (0.78 + 0.28 * nff);
+		float lime = smoothstep(0.74, 0.86, nf * 0.7 + n2 * 0.3 + slope * 0.9);   // (outcrops: mostly where it's steep)
+		col = mix(col, limec, lime * mix(0.45, 0.8, greek));
+		float stones = smoothstep(0.8, 0.84, nff) * near2 * (0.4 + 0.6 * smoothstep(0.4, 0.7, nf));
+		col = mix(col, limec * (0.72 + 0.35 * nf), stones * 0.55);
+		col *= 0.9 + 0.2 * mix(nf, nff, near2);
+		// (its grain in the light: a bump at half a metre, near)
+		if (near2 > 0.01) {
+			vec3 bw = vec3(nz(v_local / 0.7 + 0.31) - 0.5, 0.0, nz(v_local / 0.7 + 1.73) - 0.5);
+			vec3 t1 = normalize(cross(up, vec3(0.0, 0.0, 1.0) + up.yzx * 0.1));
+			vec3 t2 = cross(up, t1);
+			NORMAL = normalize(NORMAL + (VIEW_MATRIX * vec4((t1 * bw.x + t2 * bw.z) * 0.55 * near2 * (0.5 + lime + stones), 0.0)).xyz);
+		}
+	}
 	col *= 0.82 + 0.36 * mix(n1, n2, near);
 	// Under the sea: its floor, darker with depth.
 	if (sea == 1 && v_h < 0.0) {
@@ -222,6 +265,34 @@ void fragment() {
 	vec3 emit = vec3(0.0);
 	float rough = 0.95;
 	v_ore = vec4(0.0);
+	v_gloss = 0.0;
+	// The weather on the ground: where it's rained, dark and glossy, mud on the bare flats,
+	// puddles in the hollows; where it's snowed, snow lying on all but the steep - lingering
+	// a while after the weather's gone on.
+	float wet = v_wx.x;
+	float snowl = v_wx.y;
+	if (sea > 0 && v_h < 0.0) {
+		wet = 0.0;
+		snowl = 0.0;
+	}
+	if (wet > 0.01) {
+		float flat_ = 1.0 - smoothstep(0.15, 0.45, slope);
+		float mud = wet * flat_ * smoothstep(0.38, 0.6, n1 + (n2 - 0.5) * 0.2 * near);
+		col = mix(col, col * vec3(0.5, 0.4, 0.3) + vec3(0.05, 0.035, 0.02), mud * 0.85);
+		col *= mix(1.0, 0.6, wet);
+		rough = mix(rough, 0.6, wet);   // (damp, not a mirror)
+		float pud = wet * (1.0 - smoothstep(0.02, 0.06, slope)) * smoothstep(0.7, 0.74, n1 * 0.5 + n2 * 0.5) * near;   // (puddles: small, in the flat hollows near you)
+		col = mix(col, col * 0.35 + vec3(0.02, 0.03, 0.04), pud);
+		rough = mix(rough, 0.03, pud);
+		v_gloss = max(wet * 0.15, pud);
+	}
+	if (snowl > 0.01) {
+		float sl = snowl * (1.0 - smoothstep(0.35, 0.62, slope + (n2 - 0.5) * 0.18 * near));
+		sl = clamp(sl * 1.5 - (0.5 - n1) * 0.35, 0.0, 1.0);
+		col = mix(col, vec3(0.93, 0.95, 0.99) * (0.9 + 0.12 * n2), sl);
+		rough = mix(rough, 0.8, sl);
+		v_gloss *= 1.0 - sl;
+	}
 	// Dug into a vein: its ore in the walls - the mineral's colour, banded
 	// and veined, metal glinting or crystals catching the light.
 	if (v_vox > 0.5 && vein_n > 0) {   // (the carved ground)
@@ -267,9 +338,16 @@ void fragment() {
 }
 
 void light() {
-	vec3 L = normalize((VIEW_MATRIX * vec4(sun_dir, 0.0)).xyz);
+	// (the sun: this world's own way to it - the one light aimed for the world you're at; the
+	// rest - your lamp, a torch, a chest's glow - from where they are)
+	vec3 L = LIGHT_IS_DIRECTIONAL ? normalize((VIEW_MATRIX * vec4(sun_dir, 0.0)).xyz) : LIGHT;
 	float d = clamp(dot(NORMAL, L), 0.0, 1.0);
 	DIFFUSE_LIGHT += d * ATTENUATION * LIGHT_COLOR / PI;
+	if (v_gloss > 0.0) {   // (wet ground, a puddle: the light's glint on it)
+		vec3 H = normalize(L + VIEW);
+		float sh = 2.0 / max(ROUGHNESS * ROUGHNESS, 0.002);
+		SPECULAR_LIGHT += pow(clamp(dot(NORMAL, H), 0.0, 1.0), sh) * (sh + 2.0) / 8.0 * v_gloss * d * ATTENUATION * LIGHT_COLOR / PI;
+	}
 	if (v_ore.a > 0.0) {   // (the ore's sheen: a highlight of the sun, tinted)
 		vec3 H = normalize(L + VIEW);
 		float sh = 2.0 / max(ROUGHNESS * ROUGHNESS, 0.01);

@@ -114,7 +114,7 @@ static func sites(shape: PlanetShape, rec: Dictionary, empire: String, day := Ve
 	rng.seed = int(rec.get("seed", 1)) * 31 + 7
 	var want := rng.randi_range(3, 5)
 	var tries := 0
-	while out.size() < want and tries < 120:
+	while out.size() < want and tries < 400:   # (rugged worlds: few level spots - looked for longer)
 		tries += 1
 		var kind := "city" if out.is_empty() else "village"
 		var r := 175.0 if kind == "city" else 130.0     # (the town, its landing field)
@@ -128,7 +128,7 @@ static func sites(shape: PlanetShape, rec: Dictionary, empire: String, day := Ve
 		if not far:
 			continue
 		var h0 := shape.raw_height(d)
-		if h0 < 4.0 or h0 > shape.amp * 0.6:
+		if h0 < 4.0 or h0 > shape.amp * 1.5:   # (lowlands and level highlands - the flatness below keeps them off the ranges)
 			continue
 		var t1 := d.cross(Vector3.UP if absf(d.y) < 0.9 else Vector3.RIGHT).normalized()
 		var t2 := d.cross(t1)
@@ -141,14 +141,76 @@ static func sites(shape: PlanetShape, rec: Dictionary, empire: String, day := Ve
 			lo = minf(lo, hh)
 			hi = maxf(hi, hh)
 			sum += hh
-		if hi - lo > 14.0 or lo < 2.5:
+		if hi - lo > 22.0 or lo < 2.5:   # (its ground levelled - PlanetShape.flats - blended back over 60 m)
 			continue
 		var h := sum / 9.0
 		var names: Array = TOWN_NAMES.get(empire, NAMES)
 		var name: String = names[(int(rec.get("seed", 1)) + out.size() * 7) % names.size()]
 		out.append({"dir": d, "h": h, "r": r, "kind": kind, "seed": rng.randi(), "yaw": rng.randf() * TAU,
 			"empire": empire, "name": name, "t1": t1, "t2": t2})
+	_more_sites(shape, rec, empire, day, out)   # (roads: more cities and villages - CosmosRoads)
 	return out
+
+
+# --- Roads (CosmosRoads): a world's further cities and villages -----------------------
+## Up to two more cities and two more villages, appended after the first sites
+## (those stay where they were: saves, the maps), from a seed of their own, on the
+## same kind of ground - nearer each other (MORE_APART m): the road network's
+## stops. A city's on the day side, a village anywhere it's light.
+const MORE_APART := 1700.0
+
+
+static func _more_sites(shape: PlanetShape, rec: Dictionary, empire: String, day: Vector3, out: Array) -> void:
+	if out.is_empty():
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(rec.get("seed", 1)) * 53 + 19
+	var cities := rng.randi_range(0, 2)
+	var villages := rng.randi_range(1, 2)
+	var used: Array = out.map(func(o): return str(o["name"]))
+	var names: Array = TOWN_NAMES.get(empire, NAMES)
+	var tries := 0
+	while (cities > 0 or villages > 0) and tries < 300:
+		tries += 1
+		var kind := "city" if cities > 0 else "village"
+		var r := 175.0 if kind == "city" else 130.0
+		var d := Vector3(rng.randfn(), rng.randfn(), rng.randfn()).normalized()
+		if day != Vector3.ZERO and d.dot(day) < (0.3 if kind == "city" else 0.05) - tries * 0.003:
+			continue
+		if out.any(func(o): return (o["dir"] as Vector3).dot(d) > cos(MORE_APART / shape.radius)):
+			continue
+		var h0 := shape.raw_height(d)
+		if h0 < 4.0 or h0 > shape.amp * 1.5:
+			continue
+		var t1 := d.cross(Vector3.UP if absf(d.y) < 0.9 else Vector3.RIGHT).normalized()
+		var lo := h0
+		var hi := h0
+		var sum := h0
+		for k in 8:
+			var o := t1.rotated(d, k * TAU / 8.0) * r * (0.6 if k % 2 else 1.0)
+			var hh := shape.raw_height((d * shape.radius + o).normalized())
+			lo = minf(lo, hh)
+			hi = maxf(hi, hh)
+			sum += hh
+		if hi - lo > 22.0 or lo < 2.5:
+			if tries > 200 and kind == "city":
+				cities -= 1   # (no room for another city: villages then)
+			continue
+		var name := ""
+		for k in names.size():
+			var nm: String = names[(int(rec.get("seed", 1)) * 3 + out.size() * 11 + k) % names.size()]
+			if not nm in used:
+				name = nm
+				break
+		if name == "":
+			name = "%s %s" % [names[rng.randi() % names.size()], ["Kato", "Ano", "Nea"][out.size() % 3]]
+		used.append(name)
+		out.append({"dir": d, "h": sum / 9.0, "r": r, "kind": kind, "seed": rng.randi(), "yaw": rng.randf() * TAU,
+			"empire": empire, "name": name, "t1": t1, "t2": d.cross(t1)})
+		if kind == "city":
+			cities -= 1
+		else:
+			villages -= 1
 
 
 ## Its levelled ground: PlanetShape.flats entries.
@@ -393,8 +455,8 @@ class Builder:
 			var v0 := verts[q * 4]
 			var key := Vector2i(floori(v0.x / size), floori(v0.z / size))
 			if not bins.has(key):
-				bins[key] = CosmosTown.Builder.new()
-			var o: CosmosTown.Builder = bins[key]
+				bins[key] = Builder.new()
+			var o: Builder = bins[key]
 			var base := o.verts.size()
 			for j in 4:
 				o.verts.append(verts[q * 4 + j])
@@ -404,7 +466,7 @@ class Builder:
 				o.idx.append(idx[q * 6 + j] - q * 4 + base)
 		var out := []
 		for key in bins:
-			out.append((bins[key] as CosmosTown.Builder).mesh())
+			out.append((bins[key] as Builder).mesh())
 		return out
 
 	func grid() -> Dictionary:
@@ -727,19 +789,23 @@ class Builder:
 		var pcs := []
 		var pc := func(t: String, p: Vector3, r: int) -> void:
 			pcs.append({"t": t, "p": [p.x, p.y, p.z], "r": r, "m": 1, "s": emp, "c": 0})
+		var o3 := BuildKit.WALL_T * 0.5   # (the slabs out to the walls' outer faces: no slit round it between its storeys)
 		for st in storeys + 1:   # (its floors and its roof: the kit's slabs, one a storey - the stairwell's cell left open)
 			var y := base + st * BuildKit.WALL_H
 			var sl: int = ROOF if st == storeys else PALE
-			var a0: Vector3 = at.call(0, 0, y)
-			var a1: Vector3 = at.call(nx, nz, y)
+			var a0: Vector3 = at.call(0, 0, y) - Vector3(o3, 0, o3)
+			var a1: Vector3 = at.call(nx, nz, y) + Vector3(o3, 0, o3)
 			if st == 0 or st == storeys:
 				box(Vector3(a0.x, y - BuildKit.SLAB, a0.z), a1, sl, true, 2 if st == 0 else 0)
 			elif stair_r == 0:
-				box(Vector3(a0.x + C, y - BuildKit.SLAB, a0.z), a1, sl)
-				box(Vector3(a0.x, y - BuildKit.SLAB, a0.z + C), Vector3(a0.x + C, y, a1.z), sl)
+				box(Vector3(a0.x + o3 + C, y - BuildKit.SLAB, a0.z), a1, sl)
+				box(Vector3(a0.x, y - BuildKit.SLAB, a0.z + o3 + C), Vector3(a0.x + o3 + C, y, a1.z), sl)
 			else:
-				box(Vector3(a0.x, y - BuildKit.SLAB, a0.z + C), a1, sl)
-				box(Vector3(a0.x + C, y - BuildKit.SLAB, a0.z), Vector3(a1.x, y, a0.z + C), sl)
+				box(Vector3(a0.x, y - BuildKit.SLAB, a0.z + o3 + C), a1, sl)
+				box(Vector3(a0.x + o3 + C, y - BuildKit.SLAB, a0.z), Vector3(a1.x, y, a0.z + o3 + C), sl)
+			if st > 0 and st < storeys:   # (the stairwell's cell open, but not under its outer walls: their floor line closed)
+				box(Vector3(a0.x, y - BuildKit.SLAB, a0.z), Vector3(a0.x + o3 * 2.0, y, a0.z + o3 + C), sl)
+				box(Vector3(a0.x, y - BuildKit.SLAB, a0.z), Vector3(a0.x + o3 + C, y, a0.z + o3 * 2.0), sl)
 		for st in storeys:
 			var y := base + st * BuildKit.WALL_H
 			if st < storeys - 1:
@@ -773,7 +839,7 @@ class Builder:
 			for so in res["solids"]:
 				solids.append(so)
 		for pt in BuildPlan.new(pcs, false).posts():
-			var lb := CosmosTown.Builder.new()
+			var lb := Builder.new()
 			lb.rng.seed = rng.randi()
 			BuildKit.post(lb, Vector3(0, (pt[0] as Vector3).y, 0), float(pt[1]), int(pt[2]), emp)
 			BuildKit.merge(self, lb, int(pt[4]), pt[0])   # (no block of its own: the walls either side, merged, cover it)

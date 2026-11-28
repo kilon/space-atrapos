@@ -38,6 +38,23 @@ var reach := 1.0                 # its size (collisions, bites, hits)
 var _wings: Array = []           # [pivot, side] (birds, moths, rays)
 var _tentacles: Array = []       # [pivot, phase] (drifting jellies)
 var _alt := 0.0                  # (how high it flies or floats now)
+var _fly: MeshInstance3D         # (a dragonfly: its own model - CosmosDragonfly)
+var _wmat: ShaderMaterial        # (... its wings, beaten in their shader)
+var _fly_wait := false           # (... its mesh still being made on a worker)
+var _beat := 0.0
+var _dart_t := 0.0
+var _darting := false
+var _hover := 0.0
+var _last_flat := Vector3.ZERO
+var _ray: MeshInstance3D         # (an aeromanta: its own model - CosmosAeromanta)
+var _ray_wait := false
+var _wave := 0.3                 # (... how deep its wing waves are now)
+var _stroking := false
+var _bend := 0.0
+var _fox: MeshInstance3D         # (a red fox: its own model - CosmosFox - on its own rig)
+var _rig: CosmosFox.Rig
+var _fox_wait := false
+var _pace := 1.0
 
 static var _ball: SphereMesh
 static var _limb: CapsuleMesh
@@ -89,6 +106,21 @@ func setup(k: Dictionary, pl: CosmosPlanet, seed: int) -> void:
 	_body = Node3D.new()
 	_body.position.y = hip + b.y * 0.35
 	root.add_child(_body)
+	if str(k.get("model", "")) == "dragonfly":
+		_dragonfly(k)
+		reach = maxf(b.z, b.x) * 0.55 * s + 0.2
+		_new_goal()
+		return
+	if str(k.get("model", "")) == "fox":
+		_fox_build(k)
+		reach = maxf(b.z, b.x) * 0.55 * s + 0.2
+		_new_goal()
+		return
+	if str(k.get("model", "")) == "aeromanta":
+		_aeromanta(k)
+		reach = maxf(b.z, b.x) * 0.55 * s + 0.2
+		_new_goal()
+		return
 	_part(_ball, _body, Vector3.ZERO, b)
 	if k["crest"]:
 		_part(_cone, _body, Vector3(0, b.y * 0.5, 0), Vector3(0.12, b.y * 0.6, b.z * 0.6))
@@ -179,6 +211,126 @@ func setup(k: Dictionary, pl: CosmosPlanet, seed: int) -> void:
 	_new_goal()
 
 
+## A dragonfly: one mesh (its body and four wings - two surfaces), shared by
+## them all; its own two materials (the flash, the beat). The mesh is made on a
+## worker - until it's ready nothing shows.
+func _dragonfly(k: Dictionary) -> void:
+	var mats := CosmosDragonfly.materials(k["c1"], k["c2"])
+	_mat = mats[0]
+	_wmat = mats[1]
+	_fly = MeshInstance3D.new()
+	_fly.visibility_range_end = 220.0
+	_body.add_child(_fly)
+	_head = Node3D.new()   # (its head part of the one mesh: nothing to turn)
+	_body.add_child(_head)
+	_beat = _rng.randf() * TAU
+	_dart_t = _rng.randf_range(0.3, 1.5)
+	_hover = _rng.randf() * 10.0
+	if CosmosDragonfly.is_ready():
+		_fly_attach()
+	else:
+		CosmosDragonfly.start()
+		_fly_wait = true
+
+
+func _fly_attach() -> void:
+	_fly_wait = false
+	_fly.mesh = CosmosDragonfly.mesh()
+	_fly.set_surface_override_material(0, _mat)
+	_fly.set_surface_override_material(1, _wmat)
+
+
+## A red fox: one skinned mesh (one surface) shared by them all - made on a
+## worker, nothing shown until it's ready - on its own skeleton, which its Rig poses.
+func _fox_build(k: Dictionary) -> void:
+	_mat = CosmosFox.material(k["c1"], k["c2"])
+	_body.position.y = 0.0   # (its model stands on the ground)
+	var sk := CosmosFox.skeleton()
+	_body.add_child(sk)
+	_fox = MeshInstance3D.new()
+	_fox.visibility_range_end = 220.0
+	sk.add_child(_fox)
+	_fox.skeleton = NodePath("..")
+	_fox.skin = CosmosFox.skin()
+	_head = Node3D.new()
+	_body.add_child(_head)
+	_rig = CosmosFox.Rig.new(sk, _rng.randi())
+	if CosmosFox.is_ready():
+		_fox_attach()
+	else:
+		CosmosFox.start()
+		_fox_wait = true
+
+
+func _fox_attach() -> void:
+	_fox_wait = false
+	_fox.mesh = CosmosFox.mesh()
+	_fox.material_override = _mat
+
+
+## An aeromanta: one mesh of one surface, shared by them all (made on a worker -
+## nothing shows until it's ready), its own material (the flash, the waves).
+func _aeromanta(k: Dictionary) -> void:
+	_mat = CosmosAeromanta.material(k["c1"], k["c2"])
+	_ray = MeshInstance3D.new()
+	_ray.visibility_range_end = 260.0
+	_body.add_child(_ray)
+	_head = Node3D.new()
+	_body.add_child(_head)
+	_beat = _rng.randf() * TAU
+	_dart_t = _rng.randf_range(1.0, 4.0)
+	_hover = _rng.randf() * 10.0
+	if CosmosAeromanta.is_ready():
+		_ray_attach()
+	else:
+		CosmosAeromanta.start()
+		_ray_wait = true
+
+
+func _ray_attach() -> void:
+	_ray_wait = false
+	_ray.mesh = CosmosAeromanta.mesh()
+	_ray.material_override = _mat
+
+
+## The aeromanta swimming the air: bouts of strokes - waves rolling out along
+## its wings - and long glides between them (fleeing, strokes all the way);
+## banking into its turns, pitching a little with the beat, its tail trailing
+## the turn.
+func _ray_motion(delta: float, flat: Vector3, d: Vector3) -> void:
+	_dart_t -= delta
+	if _dart_t <= 0.0:
+		_stroking = not _stroking
+		_dart_t = _rng.randf_range(2.5, 5.0) if _stroking else _rng.randf_range(3.0, 7.0)
+	var hard := state == "flee"
+	var want_wave := 1.0 if hard else (0.75 if _stroking else 0.12)
+	_wave = lerpf(_wave, want_wave, 1.0 - exp(-delta * 0.8))
+	_beat = fmod(_beat + delta * lerpf(1.0, 2.6 if hard else 2.0, clampf(_wave, 0.0, 1.0)), TAU * 64.0)
+	var acc := (flat - _last_flat) / maxf(delta, 1e-4)
+	_last_flat = flat
+	var lat := facing.cross(d).dot(acc)
+	var k := 1.0 - exp(-delta * 1.8)
+	_body.rotation.z = lerpf(_body.rotation.z, clampf(lat * 0.09, -0.6, 0.6), k)
+	_body.rotation.x = lerpf(_body.rotation.x, sin(_beat - 0.6) * 0.06 * _wave + clampf(facing.dot(acc) * -0.02, -0.15, 0.15), k)
+	_bend = lerpf(_bend, clampf(-lat * 0.06, -0.5, 0.5), 1.0 - exp(-delta * 1.2))
+	_mat.set_shader_parameter("phase", _beat)
+	_mat.set_shader_parameter("wave", _wave)
+	_mat.set_shader_parameter("bend", _bend)
+
+
+## A dragonfly's pace: hovering still (a slow creep), then a dart - fast, short -
+## and hovering again; fleeing, the hovers short.
+func _fly_speed(delta: float, want: Vector3, speed: float) -> float:
+	_dart_t -= delta
+	if _dart_t <= 0.0:
+		_darting = not _darting
+		var hurry := 0.35 if state == "flee" else 1.0
+		_dart_t = _rng.randf_range(0.25, 0.55) if _darting else _rng.randf_range(0.5, 2.0) * hurry
+	if want == Vector3.ZERO:
+		return 0.0
+	return maxf(speed, 1.0) * (4.0 if _darting else 0.12)
+
+
 func _part(mesh: Mesh, parent: Node3D, at: Vector3, size: Vector3) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
@@ -246,12 +398,22 @@ var _flash_on := false
 
 func _process(delta: float) -> void:
 	delta = minf(delta, 0.05)
+	if _fly_wait and CosmosDragonfly.is_ready():
+		_fly_attach()
+	if _ray_wait and CosmosAeromanta.is_ready():
+		_ray_attach()
+	if _fox_wait and CosmosFox.is_ready():
+		_fox_attach()
 	if planet == null:
 		return
 	var u := up()
 	if dead:
 		_dead_t += delta
 		_body.rotation.z = lerpf(_body.rotation.z, PI * 0.5, 1.0 - exp(-delta * 5.0))
+		if _wmat and _dead_t < 0.1:
+			_wmat.set_shader_parameter("flap", 0.0)
+		if _ray and _dead_t < 0.1:
+			_mat.set_shader_parameter("wave", 0.0)
 		if _dead_t > 4.0:
 			_body.position.y -= delta * 0.6
 		if _dead_t > 7.0:
@@ -315,8 +477,24 @@ func _process(delta: float) -> void:
 						_bite_cd = 1.2
 						player.hurt(float(kind["bite"]), self)
 						_head.position.z -= 0.15
+	if _fly:
+		speed = _fly_speed(delta, want, speed)
+	if _rig:   # (a fox: wandering, now trotting, now walking with its nose down; leaping when it pounces)
+		if state == "wander" and _rng.randf() < delta * 0.12:
+			_pace = 0.4 if _pace > 0.5 else 1.0
+		if state == "wander":
+			speed *= _pace
+		var leap := _rig.leap_speed()
+		if leap >= 0.0:
+			want = facing
+			speed = leap
+	if _ray:   # (a manta never stops: it cruises on, gliding)
+		if want == Vector3.ZERO:
+			want = facing
+		if state != "flee":
+			speed = maxf(speed, 2.2)
 	var flat := velocity - u * velocity.dot(u)
-	flat = flat.move_toward(want * speed, 10.0 * delta)
+	flat = flat.move_toward(want * speed, (30.0 if _fly else 10.0) * delta)
 	velocity = flat
 	global_position += velocity * delta
 	# Stand on the ground (out of the sea: grazers don't swim - turn back).
@@ -338,6 +516,12 @@ func _process(delta: float) -> void:
 		fly_to = 7.0
 	_alt = lerpf(_alt, fly_to, 1.0 - exp(-delta * 1.5))
 	var bob := sin(_phase * 0.3) * 0.25 if fly_to > 0.0 else 0.0
+	if _fly:   # (a dragonfly hovers steady: tiny bobs)
+		_hover += delta
+		bob = sin(_hover * 5.3) * 0.025 + sin(_hover * 1.9) * 0.06
+	if _ray:   # (rising a little with each stroke, sinking in the glides)
+		_hover += delta
+		bob = sin(_beat) * 0.12 * _wave + sin(_hover * 0.3) * 0.5
 	global_position = planet.global_position + d * (planet.radius + h + _alt + bob)
 	if cosmos and cosmos.get("builds") and cosmos.builds.planet == planet:   # (kept out of what's built - a hunter pushes an unlocked door open)
 		global_position += cosmos.builds.push_body(global_position, 0.5, state == "hunt")
@@ -347,6 +531,16 @@ func _process(delta: float) -> void:
 	if facing.length() < 0.5:
 		facing = d.cross(Vector3.RIGHT).normalized()
 	global_basis = Basis.looking_at(facing, d)
+	if _fly:
+		_fly_motion(delta, flat, d)
+		return
+	if _ray:
+		_ray_motion(delta, flat, d)
+		return
+	if _rig:
+		_rig.step(delta, flat.length(), float(kind["size"]) * float(kind["scale"]), state == "idle", state == "flee")
+		_body.position.y = _rig.leap_height()
+		return
 	# The gait.
 	var v := flat.length()
 	_phase += delta * (2.0 + v * 2.2 / maxf(float(kind["size"]) * float(kind["scale"]), 0.5))
@@ -363,6 +557,24 @@ func _process(delta: float) -> void:
 		(t[0] as Node3D).rotation = Vector3(sin(_phase * 0.8 + float(t[1])) * 0.3, 0, cos(_phase * 0.7 + float(t[1])) * 0.3)
 	_head.rotation.x = sin(_phase * 0.5) * 0.08 + (0.25 if state == "idle" else 0.0)
 	_head.position.z = lerpf(_head.position.z, -float(kind["body"].z) * 0.5 - float(kind["neck"]) * 0.3, delta * 4.0)
+
+
+## The dragonfly's wings beating (faster darting), its body pitching with how it
+## speeds up or slows, rolling a little in turns, the abdomen held straight with a slight flex.
+func _fly_motion(delta: float, flat: Vector3, d: Vector3) -> void:
+	var acc := (flat - _last_flat) / maxf(delta, 1e-4)
+	_last_flat = flat
+	var fwd := facing.dot(acc)
+	var lat := facing.cross(d).dot(acc)
+	var k := 1.0 - exp(-delta * 6.0)
+	_body.rotation.x = lerpf(_body.rotation.x, clampf(-fwd * 0.02, -0.35, 0.3) + sin(_hover * 1.3) * 0.02, k)
+	_body.rotation.z = lerpf(_body.rotation.z, clampf(lat * 0.015, -0.3, 0.3), k)
+	var hz := 18.0 if _darting and flat.length() > 1.0 else 13.0
+	_beat = fmod(_beat + delta * hz * TAU, TAU * 64.0)
+	_wmat.set_shader_parameter("phase", _beat)
+	_wmat.set_shader_parameter("flap", 1.0 if _alt > 0.3 else 0.15)
+	_mat.set_shader_parameter("flex", sin(_hover * 0.9) * 0.25 + clampf(fwd * 0.01, -0.4, 0.4))
+	_mat.set_shader_parameter("sway", sin(_hover * 0.7 + 1.0) * 0.2)
 
 
 func _body_base() -> float:

@@ -29,6 +29,7 @@ def skin_module(name):
     importlib.reload(mod)
     kit.GUN_HAND_R = mod.GUN_HAND_R
     kit.GUN_HAND_L = mod.GUN_HAND_L
+    kit.GUN_FOLD = dict(getattr(mod, "GUN_FOLD", {}))   # (a rifle that folds for its holster: its pieces' bones)
     return mod
 
 

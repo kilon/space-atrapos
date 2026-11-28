@@ -122,6 +122,8 @@ func _draw_all() -> void:
 		var p := b.global_position
 		var d := cam.global_position.distance_to(p)
 		var is_t := b == tgt
+		if not b is CosmosPlanet and _behind_ground(p, b.get_instance_id()):
+			continue   # (over the hill, round the world: out of sight)
 		if cam.is_position_behind(p):
 			if is_t:
 				_edge_arrow(c, -(cam.unproject_position(p) - c), vs)
@@ -149,6 +151,7 @@ func _draw_all() -> void:
 		_want_compass = true
 		_draw_compass(vs, hd)
 	draw_usec = Time.get_ticks_usec() - t0
+	_draw_weather(vs)
 	if cosmos.walker:
 		_draw_scan(vs, c)
 		_draw_foot(vs, c)
@@ -234,7 +237,7 @@ func _draw_readout(tgt: Node3D) -> void:
 	# (the target: its own window under this - CosmosTargetView)
 
 
-## The jet pack's charge (on foot, while it's not full or firing): a bar under the
+## The jet thrusters' charge (on foot, while it's not full or firing): a bar under the
 ## sights - its level; at the top level, the height and the speed instead.
 func _draw_jet(vs: Vector2, c: Vector2, w: Node3D) -> void:
 	if not w is CosmosWalker or w.deck != null:
@@ -764,6 +767,9 @@ func _draw_scan(vs: Vector2, c: Vector2) -> void:
 		var p: Vector3 = pl.global_position + (m[0] as Vector3)
 		if cam.is_position_behind(p):
 			continue
+		var vein: bool = m[3] == "ore" and str(m[2]).contains(" down")   # (a vein: the scanner's - seen through the ground)
+		if not vein and _behind_ground(p, hash(m[0])):
+			continue
 		var s := cam.unproject_position(p)
 		if not area.has_point(s):
 			continue
@@ -773,6 +779,152 @@ func _draw_scan(vs: Vector2, c: Vector2) -> void:
 		_text(s + Vector2(10, -6), str(m[2]), 16, col)
 		_text(s + Vector2(10, 12), _dist(cam.global_position.distance_to(p)), 15, Color(col, 0.8))
 
+
+
+## The weather where you are (CosmosWeatherFx.now), top left under your gauge:
+## its icon (sun or moon, cloud, rain, a storm's bolt, snow, ash), the
+## temperature (a thermometer), the radioactivity (the trefoil) - on a world, in its air.
+func _draw_weather(vs: Vector2) -> void:
+	var fx = cosmos.get("weather_fx")
+	if fx == null or (fx.now as Dictionary).is_empty() or cosmos.docked:
+		return
+	var w: Dictionary = fx.now
+	var k := vs.y / 1080.0
+	var at := Vector2(22.0 * k, 258.0 * k)   # (under your gauge: clear of the compass bar, over a target's panel)
+	var s := 28.0 * k
+	var st := str(w.get("state", "clear"))
+	var pl: CosmosPlanet = fx.planet
+	var day := true
+	if pl and cam:
+		day = (cam.global_position - pl.global_position).normalized().dot(pl.sun_dir) > -0.05
+	_weather_icon(at + Vector2(s * 0.5, s * 0.5), s, st, day)
+	var col := ACCENT
+	var txt_y := at.y + s * 0.5 + 7.0
+	var label: String = {"clear": "Clear", "cloudy": "Cloudy", "rain": "Rain", "storm": "Storm", "snow": "Snow",
+		"blizzard": "Blizzard", "ash": "Ash fall", "ash storm": "Ash storm"}.get(st, st.capitalize())
+	_text(Vector2(at.x + s + 8.0, txt_y), label, 17, col)
+	# The temperature.
+	var tx := at.x + s + 8.0 + _font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 17).x + 14.0 * k
+	var temp := float(w.get("temp", 15.0))
+	var tc := Color(0.55, 0.8, 1.0) if temp < 0.0 else (WARN if temp > 38.0 else ACCENT)
+	_thermo_icon(Vector2(tx + s * 0.25, at.y + s * 0.5), s, tc, clampf((temp + 40.0) / 100.0, 0.05, 1.0))
+	var ts := "%d°C" % roundi(temp)
+	_text(Vector2(tx + s * 0.55, txt_y), ts, 17, tc)
+	# The radioactivity.
+	var rx := tx + s * 0.55 + _font.get_string_size(ts, HORIZONTAL_ALIGNMENT_LEFT, -1, 17).x + 14.0 * k
+	var rad := float(w.get("rad", 0.1))
+	var rc := Color(1.0, 0.35, 0.25) if rad > 50.0 else (WARN if rad > 5.0 else ACCENT)
+	_trefoil(Vector2(rx + s * 0.5, at.y + s * 0.5), s * 0.5, rc)
+	_text(Vector2(rx + s + 8.0, txt_y), ("%.2f µSv/h" if rad < 10.0 else "%.0f µSv/h") % rad, 17, rc)
+
+
+func _cloud_shape(c: Vector2, s: float, col: Color) -> void:
+	draw_circle(c + Vector2(-s * 0.18, -s * 0.02), s * 0.2, col)
+	draw_circle(c + Vector2(s * 0.06, -s * 0.12), s * 0.26, col)
+	draw_circle(c + Vector2(s * 0.27, s * 0.02), s * 0.17, col)
+	draw_rect(Rect2(c + Vector2(-s * 0.38, 0.0), Vector2(s * 0.82, s * 0.19)), col)
+
+
+func _weather_icon(c: Vector2, s: float, st: String, day: bool) -> void:
+	var sunc := Color(1.0, 0.82, 0.35)
+	if st == "clear":
+		if day:
+			draw_circle(c, s * 0.22, sunc)
+			for i in 8:
+				var d := Vector2.from_angle(i * TAU / 8.0)
+				draw_line(c + d * s * 0.3, c + d * s * 0.45, sunc, 2.0)
+		else:
+			draw_circle(c, s * 0.3, Color(0.85, 0.88, 1.0))
+			draw_circle(c + Vector2(s * 0.13, -s * 0.08), s * 0.26, Color(0.05, 0.07, 0.1))
+		return
+	var ash := st.begins_with("ash")
+	var cc := Color(0.55, 0.52, 0.5) if ash else (Color(0.62, 0.66, 0.72) if st in ["storm", "blizzard"] else Color(0.86, 0.9, 0.95))
+	if st == "cloudy" and day:
+		draw_circle(c + Vector2(s * 0.18, -s * 0.2), s * 0.17, sunc)
+	_cloud_shape(c + Vector2(0, -s * 0.1), s, cc)
+	match st:
+		"rain", "storm":
+			for i in 3:
+				var x := -s * 0.22 + i * s * 0.22
+				draw_line(c + Vector2(x, s * 0.2), c + Vector2(x - s * 0.08, s * 0.42), Color(0.5, 0.75, 1.0), 2.0)
+		"snow", "blizzard":
+			for i in 3:
+				draw_circle(c + Vector2(-s * 0.22 + i * s * 0.22, s * 0.3 + (i % 2) * s * 0.08), s * 0.05, Color.WHITE)
+		_:
+			for i in 4:
+				draw_circle(c + Vector2(-s * 0.27 + i * s * 0.18, s * 0.3 + (i % 2) * s * 0.07), s * 0.04, Color(0.35, 0.33, 0.3))
+	if st in ["storm", "blizzard", "ash storm"]:
+		var z := PackedVector2Array([c + Vector2(s * 0.06, s * 0.05), c + Vector2(-s * 0.06, s * 0.27), c + Vector2(s * 0.05, s * 0.27), c + Vector2(-s * 0.05, s * 0.5)])
+		draw_polyline(z, WARN, 2.5)
+
+
+func _thermo_icon(c: Vector2, s: float, col: Color, level: float) -> void:
+	var w := s * 0.16
+	var top := c + Vector2(0, -s * 0.42)
+	var bulb := c + Vector2(0, s * 0.3)
+	draw_rect(Rect2(top - Vector2(w * 0.5, 0), Vector2(w, bulb.y - top.y)), Color(col, 0.35), false, 1.5)
+	draw_circle(bulb, s * 0.15, col)
+	var fill := lerpf(bulb.y, top.y + 2.0, level)
+	draw_rect(Rect2(Vector2(c.x - w * 0.3, fill), Vector2(w * 0.6, bulb.y - fill)), col)
+
+
+func _trefoil(c: Vector2, r: float, col: Color) -> void:
+	for i in 3:   # (three blades round a dot)
+		var a0 := -PI * 0.5 + i * TAU / 3.0 - PI / 6.0
+		var pts := PackedVector2Array([c + Vector2.from_angle(a0) * r * 0.3])
+		for j in 7:
+			pts.append(c + Vector2.from_angle(a0 + PI / 3.0 * j / 6.0) * r)
+		pts.append(c + Vector2.from_angle(a0 + PI / 3.0) * r * 0.3)
+		draw_colored_polygon(pts, col)
+	draw_circle(c, r * 0.17, col)
+
+
+## Whether the ground is between the camera and global `p` - a hill near, or the
+## world's own curve (a thing past the horizon): its marker hidden. Looked at a few
+## times a second a marker (`key`), not every frame.
+var _occ := {}
+const OCC_MS := 250
+
+
+func _behind_ground(p: Vector3, key: int) -> bool:
+	var now := Time.get_ticks_msec()
+	var e = _occ.get(key)
+	if e != null and now - int(e[0]) < OCC_MS:
+		return e[1]
+	var r := _ground_between(cam.global_position, p)
+	_occ[key] = [now, r]
+	if _occ.size() > 400:
+		_occ.clear()
+	return r
+
+
+func _ground_between(a: Vector3, b: Vector3) -> bool:
+	var pl: CosmosPlanet = cosmos.planet_below(a, 30000.0) if cosmos.has_method("planet_below") else null
+	if pl == null or pl.shape.kind == "gas":
+		return false
+	var la := a - pl.global_position
+	var lb := b - pl.global_position
+	var seg := lb - la
+	var L := seg.length()
+	if L < 1.0:
+		return false
+	var dir := seg / L
+	# (the world itself: the line through its body, under its lowest ground)
+	var R := pl.radius + minf(0.0, -pl.shape.amp) * 0.5
+	var t0 := -la.dot(dir)
+	if t0 > 0.0 and t0 < L and (la + dir * t0).length() < R:
+		return true
+	# (the ground near: samples along the line - not the last stretch, where the thing stands)
+	var reach := minf(L - 25.0, 5000.0)
+	if reach <= 0.0:
+		return false
+	var n := 20
+	for i in range(1, n + 1):
+		var q := la + dir * (reach * i / n)
+		var u := q.normalized()
+		if q.length() < pl.radius + pl.shape.height(u) - 1.5 and not pl.shape.carved_near(q):
+			return true
+	return false
 
 
 ## The grab hand: a palm and four fingers and a thumb, at the crosshair - the left click takes, talks, sits, uses.
@@ -936,6 +1088,17 @@ func heading_at(pos: Vector3, fwd: Vector3) -> float:
 	return _last_hd
 
 
+var _compass_world: CosmosPlanet = null
+
+
+## The world whose compass holds at `pos` (within six of its radii), or null: in space.
+func _world_at(pos: Vector3) -> CosmosPlanet:
+	var pl: CosmosPlanet = cosmos.nearest_planet(pos) if cosmos else null
+	if pl and pos.distance_to(pl.global_position) < pl.radius * 6.0:
+		return pl
+	return null
+
+
 ## Where the compass stands: you on foot, else the ship.
 func _compass_at() -> Vector3:
 	return cosmos.walker.global_position if cosmos.walker else ship.global_position
@@ -1038,6 +1201,8 @@ static func _compass_box(vs: Vector2) -> Rect2:
 ## The compass bar's moving parts: the headings scrolling on it (letters every 45°, ticks every
 ## 5°, 135° either side), the heading in its box.
 func _draw_compass(vs: Vector2, hd: float) -> void:
+	_compass_world = _world_at(_compass_at())
+	var on_world := _compass_world != null
 	var g := _compass_geo(vs)
 	var half: float = g[1]
 	var th: float = g[2]
@@ -1055,14 +1220,29 @@ func _draw_compass(vs: Vector2, hd: float) -> void:
 		ticks.append(o + dir * (rb + 2.0))
 		ticks.append(o + dir * (rb + 2.0 + len))
 		if m % 45 == 0:
-			var lbl: String = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][m / 45]
+			# (on a world its compass points; in space no north - the yaw's degrees)
+			var lbl: String = (["N", "NE", "E", "SE", "S", "SW", "W", "NW"][m / 45]) if on_world else "%03d" % m
 			var fade := clampf(1.6 - absf(dx) / half * 1.6, 0.0, 1.0)
-			_text_c(o + dir * (rb + th * 0.38), lbl, 20, Color(WARN if m == 0 else ACCENT, fade), true)
+			_text_c(o + dir * (rb + th * 0.38), lbl, 20 if on_world else 17, Color(WARN if m == 0 and on_world else ACCENT, fade), true)
 		k += 5
 	draw_multiline(ticks, Color(ACCENT, 0.8), 1.0)
 	_compass_marks(o, rb, th, half, ppd, rc, hd)
 	var box := _compass_box(vs)
-	_text_c(Vector2(o.x, box.position.y + box.size.y * 0.5 + 8.0), "%03d°" % (roundi(hd) % 360), 22, Color(1.0, 0.85, 0.6), true)
+	var gold := Color(1.0, 0.85, 0.6)
+	var below := box.end.y + 22.0
+	if on_world:
+		_text_c(Vector2(o.x, box.position.y + box.size.y * 0.5 + 8.0), "%03d°" % (roundi(hd) % 360), 22, gold, true)
+		# (where you are on it: latitude and longitude)
+		var u := (_compass_at() - _compass_world.global_position).normalized()
+		var lat := rad_to_deg(asin(clampf(u.y, -1.0, 1.0)))
+		var lon := rad_to_deg(atan2(u.x, u.z))
+		_text_c(Vector2(o.x, below), "%.2f° %s   %.2f° %s" % [absf(lat), "N" if lat >= 0.0 else "S", absf(lon), "E" if lon >= 0.0 else "W"], 16, ACCENT, true)
+	else:
+		# (in space: the yaw round the system's plane and the pitch off it)
+		var fwd := -ship.global_basis.z if cosmos.walker == null else -cam.global_basis.z
+		var pitch := rad_to_deg(asin(clampf(fwd.normalized().y, -1.0, 1.0)))
+		_text_c(Vector2(o.x, box.position.y + box.size.y * 0.5 + 8.0), "Y %03d°" % (roundi(hd) % 360), 20, gold, true)
+		_text_c(Vector2(o.x, below), "P %+d°" % roundi(pitch), 18, gold, true)
 
 
 ## The sights' fixed lines: the glass band and the rings -

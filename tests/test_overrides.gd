@@ -29,3 +29,29 @@ func test_exported_overrides_have_no_problems() -> void:
 		for c in o.get("clips", {}):
 			check(clips.has(c), "%s: the clip %s is in the model" % [d, c])
 	check(seen >= 0, "exported characters looked at: %d" % seen)
+
+
+## An override saved before a clip was made (the climb, the slide) gets it from
+## the game's own model - its own clips kept.
+func test_override_gets_the_models_new_clips() -> void:
+	var MO: GDScript = load("res://scripts/world/models/model_override.gd")
+	var path := "res://art/player_3d/player.glb"
+	var root: Node = (load(path) as PackedScene).instantiate()
+	var ap: AnimationPlayer = root.find_child("AnimationPlayer", true, false)
+	var lib := AnimationLibrary.new()   # (an older save: no climb, its own walk)
+	var own_walk: Animation = ap.get_animation("walk").duplicate()
+	own_walk.length = 9.0   # (its own: told apart)
+	for n in ap.get_animation_list():
+		if n != "climb":
+			lib.add_animation(n, own_walk if n == "walk" else ap.get_animation(n))
+	ap.remove_animation_library("")
+	ap.add_animation_library("", lib)
+	var old := PackedScene.new()
+	old.pack(root)
+	root.free()
+	var ps: PackedScene = MO._with_base_clips(old, path)
+	var inst: Node = ps.instantiate()
+	var ap2: AnimationPlayer = inst.find_child("AnimationPlayer", true, false)
+	check(ap2.has_animation("climb"), "the model's climb added to it")
+	check(not is_equal_approx(ap2.get_animation("walk").length, 9.0), "its old walk replaced by the model's current one (the moves follow the model)")
+	inst.free()

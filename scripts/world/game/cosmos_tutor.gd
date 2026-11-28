@@ -5,7 +5,7 @@ extends CanvasLayer
 ## right - never in the way: nothing stops, nothing pops up, each step done in
 ## whatever order you happen to do it (the panel shows the first not done yet),
 ## each paid for as you do it - its drachmas toward your first ship. First on
-## foot (walking, the jet pack, the maps, the scanner, mining, building, selling ore,
+## foot (walking, the jet thrusters, the maps, the scanner, mining, building, selling ore,
 ## couriering a package, a ride with a local pilot, your first ship), then your
 ## ship (the controls, undocking, the Hyperion drive, docking, raiders, their
 ## bounties). Got a ship another way? Once you've flown, docked and fought, it
@@ -15,7 +15,7 @@ extends CanvasLayer
 ## [id, title, what to do, reward (dr), part]
 const STEPS := [
 	["walk", "Find your feet", "Walk about (W A S D, the mouse to look; Shift to run).", 40, 1],
-	["jet", "The jet pack", "Jump (Space), then hold Space in the air: the jet pack lifts you.", 40, 1],
+	["jet", "The jet thrusters", "Jump (Space), then hold Space in the air: the thrusters in your boots lift you.", 40, 1],
 	["map", "The maps", "Open the Automaton (Tab): its MAP tab - the planet, the solar system and the galaxy; turn and zoom them.", 40, 1],
 	["scan", "The scanner", "Z (or the scanner in hand - 4 - and a click): ore deposits and veins in the ground near you and the places round you are marked for a minute.", 50, 1],
 	["mine", "Mine a deposit", "Walk to a deposit and fire at it (left button): the mining beam cuts its ore. Get 5 units.", 80, 1],
@@ -155,7 +155,7 @@ func on_event(e: String) -> void:
 				complete("build")
 
 
-## Polled twice a second: what's seen rather than told - walking, the jet pack,
+## Polled twice a second: what's seen rather than told - walking, the jet thrusters,
 ## ore in your pack, the drive, a ship got some other way.
 func _process(delta: float) -> void:
 	if not active():

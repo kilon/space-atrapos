@@ -59,6 +59,9 @@ func _ready() -> void:
 	if not OS.has_feature("web"):
 		_ask(_later())   # (the desktop: all at once, as ever - it takes them in its stride)
 	Cosmos.start_noise()
+	CosmosDragonfly.start()   # (its shared mesh on a worker now: ready when _creature draws it)
+	CosmosAeromanta.start()
+	CosmosFox.start()
 	if not OS.has_feature("web"):   # (in a browser: started by the game, when it needs them - not sharing the threads with the first loads)
 		CosmosShip.start_hull()                 # (your ship's hull and rooms: made on workers now)
 		CosmosShipInterior.start_dress()
@@ -102,7 +105,7 @@ func _ready() -> void:
 		_queue.append(_text)
 		return
 	_queue.append(_sky)
-	for f in [_terrain, _water, _atmosphere, _clouds, _gas, _ring, _star, _glow, _gate, _engine, _fx, _fx_smoke, _fx_debris, _rocks, _deposit, _minoan, _flora, _creature, _veins, _underwater, _hulls, _walker, _pirate, _citizen, _town, _builds, _maps, _text]:
+	for f in [_terrain, _water, _atmosphere, _clouds, _weather, _gas, _ring, _star, _glow, _gate, _engine, _fx, _fx_smoke, _fx_debris, _rocks, _deposit, _minoan, _flora, _creature, _veins, _underwater, _hulls, _walker, _pirate, _citizen, _town, _roads, _loot, _builds, _maps, _text]:
 		_queue.append(f)
 
 
@@ -287,6 +290,16 @@ func _clouds() -> void:
 	_put(CosmosPlanet.unit_sphere(128, 64), _shader("res://shaders/world/clouds.gdshader"), Vector3(0, 1, 0))
 
 
+func _weather() -> void:   # (the rain, the snow, the ash, a bolt of lightning: their particles' and looks' shaders)
+	for k in CosmosWeatherFx.KINDS:
+		var gp := CosmosWeatherFx.make_particles(k)
+		gp.amount = 8
+		gp.position = Vector3(0, 0, 2)
+		gp.emitting = true
+		_vp.add_child(gp)
+	_put(QuadMesh.new(), CosmosWeatherFx.bolt_mat(), Vector3(0.5, 0.5, 0))
+
+
 func _gas() -> void:
 	_put(CosmosPlanet.unit_sphere(128, 64), _shader("res://shaders/world/gas_giant.gdshader"), Vector3(0, -1, 0))
 
@@ -398,6 +411,17 @@ func _flora() -> void:
 	mat.shader = load("res://shaders/world/flora.gdshader")
 	mmi.material_override = mat
 	_vp.add_child(mmi)
+	# (the trees' own shader - their leaf cards cut into leaves - and their vertex layout: UV2)
+	var lm := ArrayMesh.new()
+	lm.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, CosmosFlora.warm_arrays())
+	var lmi := MeshInstance3D.new()
+	lmi.mesh = lm
+	var lmat := ShaderMaterial.new()
+	lmat.shader = load("res://shaders/world/leaf_flora.gdshader")
+	lmi.material_override = lmat
+	lmi.scale = Vector3.ONE * 0.4
+	lmi.position = Vector3(0.5, -0.5, 0.5)
+	_vp.add_child(lmi)
 
 
 func _veins() -> void:
@@ -434,7 +458,8 @@ func _walker() -> void:
 	# (its landing dust, its jet's heat haze; a port's glass, seen from both sides)
 	_put(CosmosWalker.puff_mesh(), CosmosWalker.shimmer_mat(), Vector3(0.3, 0.2, 0.4))
 	_put(QuadMesh.new(), CosmosHangar._glass_mat(), Vector3(0.0, -0.2, 0.4))
-	_put(CosmosWalker.pack_mesh(), CosmosWalker.pack_mat(), Vector3(0.0, 0.3, 0.4))   # (the jet pack: its hull look marking the stencil)
+	_put(CylinderMesh.new(), CosmosWalker._flame_mat(), Vector3(0.0, 0.3, 0.4))   # (the boots' jet thrusters: their flames)
+	_put(CosmosWalker.shield_mesh(), CosmosWalker.shield_mat(), Vector3(0.3, 0.3, 0.4))   # (the automaton's shield: its bubble on a hit)
 	_put(BoxMesh.new(), LiveEditor.box_material(), Vector3(0.0, -0.5, 0.4))   # (the Live Editor's lines: what's picked)
 	_put(BoxMesh.new(), SelectOutline.material(), Vector3(-0.6, -0.5, 0.4))   # (the outline round what's picked)
 	var ct: GDScript = load("res://scripts/world/live/tabs/collision_tab.gd")
@@ -445,6 +470,24 @@ func _walker() -> void:
 func _creature() -> void:
 	var m := _shader("res://shaders/world/creature.gdshader")
 	_put(CosmosPlanet.unit_sphere(64, 32), m, Vector3(0.3, -0.3, 0.5), true)
+	# The dragonfly's own model (CosmosDragonfly): its body and glassy wings (two shaders), the shared mesh made now.
+	var dm := CosmosDragonfly.materials(Color(0.2, 0.45, 0.7), Color(0.6, 0.85, 0.9))
+	var df := _put(CosmosDragonfly.mesh(), null, Vector3(-0.3, -0.3, 0.5), true)
+	df.set_surface_override_material(0, dm[0])
+	df.set_surface_override_material(1, dm[1])
+	# The aeromanta's own model (CosmosAeromanta): its skin and wave shader, the shared mesh made now.
+	_put(CosmosAeromanta.mesh(), CosmosAeromanta.material(Color(0.2, 0.35, 0.6), Color(0.85, 0.9, 1.0)), Vector3(0.0, -0.4, 0.6), true)
+	# The red fox's own model (CosmosFox): its fur shader on a skinned mesh, the shared mesh made now.
+	var fox_sk := CosmosFox.skeleton()
+	fox_sk.position = Vector3(-0.6, -0.6, 0.5)
+	fox_sk.scale = Vector3.ONE * 0.5
+	_vp.add_child(fox_sk)
+	var fox := MeshInstance3D.new()
+	fox.mesh = CosmosFox.mesh()
+	fox.skin = CosmosFox.skin()
+	fox.material_override = CosmosFox.material(Color(0.85, 0.42, 0.15), Color(0.95, 0.92, 0.88))
+	fox_sk.add_child(fox)
+	fox.skeleton = NodePath("..")
 
 
 func _pirate() -> void:
@@ -572,3 +615,15 @@ func _text() -> void:
 			l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		l.set_meta("keep", true)
 		_vp.add_child(l)
+
+
+## The roads between the towns (CosmosRoads: their ribbons' shader).
+func _roads() -> void:
+	var m := ShaderMaterial.new()
+	m.shader = preload("res://shaders/world/road.gdshader")
+	_put(CosmosRoads.warm_mesh(), m, Vector3(0, -1, 0))
+
+
+## The loot of the dead (CosmosLoot: the pouch).
+func _loot() -> void:
+	_put(CosmosLoot.mesh(), CosmosLoot.material(), Vector3(0.8, -0.6, 0))

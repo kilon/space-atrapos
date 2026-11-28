@@ -1,6 +1,6 @@
 class_name CosmosVoxels
 extends Node3D
-## A planet's ground where it's been carved (digging), as voxels: the ground
+## A planet's ground where it's been carved (digging, its caves), as voxels: the ground
 ## is solid below the heightfield except inside the carves (PlanetShape.
 ## density), sampled every VOXEL m in CHUNK m cubes on a grid fixed to the
 ## planet, and meshed by surface nets (a vertex in each voxel the surface
@@ -19,6 +19,7 @@ const N := 16                   # voxels a chunk side
 const NEAR := 220.0             # m: the carves round you whose chunks are made
 const KEEP := 320.0
 const AT_ONCE := 3              # chunks building at once
+const DEEP_SEEN := 60.0        # m: a chunk deep under the ground (a cave's) drawn within this
 const RIM := 0.9                # m: a quad kept within this of a carve's sphere (past its roughest and the shader's cut: overlapping the heightfield)
 
 var planet: CosmosPlanet
@@ -120,6 +121,9 @@ func _process(_delta: float) -> void:
 			mi.mesh = m
 			mi.material_override = planet.material
 			mi.position = Vector3(k) * CHUNK
+			var mid := mi.position + Vector3.ONE * CHUNK * 0.5
+			if planet.radius + planet.shape.height(mid.normalized()) - mid.length() > CHUNK * 1.5:
+				mi.visibility_range_end = DEEP_SEEN   # (all of it under the ground - a cave's: drawn only from near)
 			add_child(mi)
 			if not CosmosPlanet.COMPAT:
 				mi.set_instance_shader_parameter("patch_info", Vector4(mi.position.x, mi.position.y, mi.position.z, 0.0))   # (its centre; the dug ground says so in its UVs)

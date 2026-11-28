@@ -233,7 +233,7 @@ func card(t: Node3D) -> Dictionary:
 		if sh.kind == "gas":
 			rows.append(["Surface", "None - clouds all the way down"])
 		else:
-			rows.append(["Surface", ["Dry ground", "Seas", "Ice sheets", "Lava seas"][clampi(sh.sea, 0, 3)] + ", relief %s" % CosmosHud._dist(sh.amp * 3.0)])
+			rows.append(["Surface", ["Dry ground", "Seas", "Ice sheets", "Lava seas"][clampi(sh.sea, 0, 3)] + ", relief %s" % CosmosHud._dist(sh.top())])
 		rows.append(["Air", "Atmosphere" if t.atmo_radius > t.radius else "None"])
 		if not t.towns.is_empty():
 			rows.append(["Towns", str(t.towns.size())])

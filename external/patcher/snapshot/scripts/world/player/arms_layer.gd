@@ -1,8 +1,9 @@
 class_name ArmsLayer
 extends SkeletonModifier3D
 ## The automaton's upper body played over whatever its legs are doing (a child of
-## its Skeleton3D, after the AnimationPlayer's pose): taking the rifle off its
-## back (draw) and slinging it back (holster), raising it to aim, a shot's recoil
+## its Skeleton3D, after the AnimationPlayer's pose): drawing the rifle from its
+## holster on the hip, unfolding it (draw) and folding it back into the holster
+## (holster), raising it to aim, a shot's recoil
 ## - the spine, chest, head, arms and the rifle from those clips, the legs and
 ## hips from the walk / run / stand below. And the aim: the chest (and the rifle
 ## with it, round the chest) pitched up or down to where the shot goes.
@@ -11,7 +12,7 @@ extends SkeletonModifier3D
 ## cross-fades from the last (`blend` s). CosmosWalker drives it.
 
 const BONES := ["spine", "chest", "head", "pauldron.L", "pauldron.R", "upper.L", "fore.L", "hand.L", "fingers.L",
-	"upper.R", "fore.R", "hand.R", "fingers.R", "gun"]
+	"upper.R", "fore.R", "hand.R", "fingers.R", "gun", "gun.stock", "gun.fore", "gun.barrel", "gun.scope"]   # (the rifle's folding pieces: automaton.py GUN_FOLD)
 ## The rifle's muzzle from its grip, in its bone's axes (its Y the barrel, Z its top): automaton.py rifle().
 const MUZZLE := Vector3(0.0, 0.78, 0.075)
 

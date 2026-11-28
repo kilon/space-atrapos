@@ -171,10 +171,10 @@
       1450,
       560
      ],
-     "text": "A herd of mushroom mammoths",
+     "text": "Olives and planes: the Greek woods",
      "to": [
-      1200,
-      330
+      1250,
+      300
      ]
     },
     {
@@ -397,6 +397,157 @@
     }
    ]
   },
+  "space3d_sunset": {
+   "caption": "Dusk on an ocean world, along the line between day and night: the sun low and golden, the sky deep blue overhead and orange round the horizon, the clouds lit from below.",
+   "sources": [
+    "shaders/world/atmosphere.gdshader",
+    "shaders/world/clouds.gdshader",
+    "scripts/world/space/cosmos.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1520,
+      420
+     ],
+     "text": "The sun setting, its glow round it",
+     "to": [
+      960,
+      590
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      420,
+      470
+     ],
+     "text": "The clouds lit from below",
+     "to": [
+      960,
+      300
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1500,
+      140
+     ],
+     "text": "Deep blue overhead",
+     "to": [
+      1300,
+      260
+     ]
+    }
+   ]
+  },
+  "space3d_rays": {
+   "caption": "The sun's rays: shafts of light through the gaps in the trees and the clouds, by day in a world's air.",
+   "sources": [
+    "shaders/world/god_rays.glsl",
+    "scripts/world/space/cosmos_god_rays.gd",
+    "scripts/world/space/cosmos.gd"
+   ],
+   "notes": []
+  },
+  "space3d_storm": {
+   "caption": "A storm on an ocean world: its cell heavy and dark overhead, the rain slanting in its wind, lightning, the ground dark and wet, puddles in the hollows - the HUD's weather, temperature and radioactivity by your gauge.",
+   "sources": [
+    "scripts/world/space/planet_weather.gd",
+    "scripts/world/space/cosmos_weather_fx.gd",
+    "shaders/world/clouds.gdshader",
+    "shaders/world/terrain.gdshader",
+    "scripts/world/player/cosmos_hud.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      700,
+      330
+     ],
+     "text": "The weather, temperature, radioactivity",
+     "to": [
+      230,
+      273
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1450,
+      200
+     ],
+     "text": "Rain slanting in the storm's wind",
+     "to": [
+      1150,
+      420
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1450,
+      880
+     ],
+     "text": "The ground dark and wet",
+     "to": [
+      1250,
+      720
+     ]
+    }
+   ]
+  },
+  "space3d_snow": {
+   "caption": "Snow on an ice world: the cell's snow falling and lying on the ground.",
+   "sources": [
+    "scripts/world/space/planet_weather.gd",
+    "scripts/world/space/cosmos_weather_fx.gd",
+    "shaders/world/clouds.gdshader",
+    "shaders/world/terrain.gdshader",
+    "scripts/world/player/cosmos_hud.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      700,
+      330
+     ],
+     "text": "A blizzard, -30 °C",
+     "to": [
+      230,
+      273
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1500,
+      250
+     ],
+     "text": "Snow falling all round you",
+     "to": [
+      1362,
+      597
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1450,
+      880
+     ],
+     "text": "Snow lying on the ground",
+     "to": [
+      1250,
+      760
+     ]
+    }
+   ]
+  },
   "space3d_town": {
    "caption": "A town on an ocean world: the palace's court and its red columns, the wings round it, its people about their day - in its empire's colours.",
    "sources": [
@@ -576,6 +727,75 @@
     }
    ]
   },
+  "space3d_climb": {
+   "caption": "Climbing a palace wall: Space against it takes hold, W up it, hand over hand - over the top onto its roof.",
+   "sources": [
+    "scripts/world/player/cosmos_walker.gd",
+    "art/player_3d/model.json",
+    "scripts/world/life/cosmos_town.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      420,
+      260
+     ],
+     "text": "Hand over hand, feet in turn",
+     "to": [
+      760,
+      540
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1480,
+      820
+     ],
+     "text": "Space again lets go",
+     "to": [
+      1000,
+      640
+     ]
+    }
+   ]
+  },
+  "space3d_road": {
+   "caption": "A road between the towns: packed earth winding over the land, a caravan on it - its guards, its traders, a pack donkey with the goods.",
+   "sources": [
+    "scripts/world/life/cosmos_roads.gd",
+    "shaders/world/road.gdshader",
+    "scripts/world/life/cosmos_caravans.gd",
+    "scripts/world/life/cosmos_traveller.gd"
+   ],
+   "notes": [
+    {
+     "t": "label",
+     "at": [
+      1000,
+      780
+     ],
+     "text": "A caravan: guards, traders, a pack donkey",
+     "to": [
+      700,
+      450
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      1250,
+      600
+     ],
+     "text": "The road between the towns",
+     "to": [
+      1330,
+      470
+     ]
+    }
+   ]
+  },
   "space3d_dungeon": {
    "caption": "Below a world: an old labyrinth's halls, its torches, its dead - skeleton warriors and a demon.",
    "sources": [
@@ -595,8 +815,8 @@
      ],
      "text": "Skeleton warriors: sword and shield",
      "to": [
-      640,
-      470
+      420,
+      520
      ]
     },
     {
@@ -626,9 +846,10 @@
    ]
   },
   "space3d_cave": {
-   "caption": "A cave system: rough rock, boulders, stalagmites, torches - and what lives down there.",
+   "caption": "A cave in the ground: its passages carved into the hill, walked straight into - your lamp on, its dead in its chambers, a chest in the deepest.",
    "sources": [
-    "scripts/world/life/cosmos_dungeon.gd",
+    "scripts/world/space/planet_shape.gd",
+    "scripts/world/space/cosmos_voxels.gd",
     "scripts/world/player/cosmos_hud.gd",
     "scripts/world/life/cosmos_npc.gd",
     "scripts/world/player/compass_icons.gd"
@@ -637,37 +858,49 @@
     {
      "t": "label",
      "at": [
-      300,
-      300
+      330,
+      330
      ],
      "text": "A skeleton warrior",
      "to": [
-      500,
-      560
+      795,
+      500
      ]
     },
     {
      "t": "label",
      "at": [
-      1500,
-      230
+      1560,
+      200
      ],
-     "text": "Something worse, deeper in",
+     "text": "The demon lord, deepest in",
      "to": [
-      1160,
-      370
+      1150,
+      400
+     ]
+    },
+    {
+     "t": "label",
+     "at": [
+      380,
+      130
+     ],
+     "text": "A passage on, deeper into the hill",
+     "to": [
+      680,
+      250
      ]
     },
     {
      "t": "label",
      "at": [
       1450,
-      760
+      820
      ],
-     "text": "Rough rock, stalactites, stalagmites",
+     "text": "Its chest: drachmas, once",
      "to": [
-      1130,
-      500
+      960,
+      545
      ]
     }
    ]

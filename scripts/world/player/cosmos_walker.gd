@@ -8,9 +8,9 @@ extends Node3D
 ## from), seas are waded (shallows) or swum (head above water), an ice sheet
 ## walked on. W A S D move relative to the camera, Shift runs, Space jumps;
 ## it turns to face where it goes. Boulders and the landed ship are solid.
-## The jet pack on its back: Space held after a jump fires it - a climb while
-## its charge lasts (refilled on the ground), the arms out, the legs hanging,
-## flames from its nozzles. Upgraded (Leg Servos: Jet pack, five levels) it
+## The jet thrusters in the soles of its boots: Space held after a jump fires them -
+## a climb while their charge lasts (refilled on the ground), the arms out, the legs
+## straight down, a flame from under each foot. Upgraded (Leg Servos: Jet thrusters, five levels) they
 ## burns longer and harder - and at the top for as long as you like: out of
 ## the air into space, hovering when Space is let go, F / Ctrl to come down,
 ## W A S D faster the higher you are (Shift: faster still) - to another world,
@@ -31,7 +31,18 @@ const BODY_R := 0.45
 const CLIPS := {"idle": "idle", "walk": "walk", "run": "run", "air": "fall", "jump": "jump", "jet": "jet", "down": "ko",
 	"gun_idle": "gun_idle", "gun_walk": "gun_walk", "gun_run": "gun_run", "sit": "sit", "stool": "stool",
 	"carry": "carry", "carry_idle": "carry_idle", "put_down": "put_down", "pick_up": "pick_up",
-	"swim": "swim", "swim_idle": "swim_idle", "dive": "dive", "dive_idle": "dive_idle"}
+	"swim": "swim", "swim_idle": "swim_idle", "dive": "dive", "dive_idle": "dive_idle", "climb": "climb", "climb_side": "climb_side", "slide": "slide"}
+## Climbing: Space against a wall (a building's, a boulder's, what you've built,
+## a dug pit's) takes hold of it - W / S up and down it, A / D along it, Space
+## again jumps off; over its top you pull yourself up onto it. Ground too
+## steep to walk (a cliff, a canyon's wall: steeper than STEEP) you climb up,
+## facing it - and slide down on your feet, facing down it, faster as you go.
+const CLIMB := 1.2              # m/s up or down (the "climb" clip's stride a second - moves.py CLIMB_STRIDE)
+const CLIMB_SIDE := CLIMB * 0.6 # m/s along a wall (the "climb_side" clip's - moves.py CLIMB_SIDE_STRIDE)
+const STEEP := 1.1              # the ground's rise a metre (~48 degrees): steeper is climbed
+const WALL_HOLD := 0.2          # s without touching the wall: let go (or over the top)
+const SLIDE := 7.5              # m/s along the ground: the fastest down a steep slope on your feet
+const SLIDE_ACCEL := 9.0
 const DIVE_SPEED := 3.2         # m/s under water (Shift: faster)
 const DIVE_RISE := 2.6          # m/s up (Space) or down (F / Ctrl)
 const DIVE_DRIFT := 0.3         # m/s: a slow drift up when you neither rise nor sink
@@ -39,12 +50,18 @@ const DIVE_DRIFT := 0.3         # m/s: a slow drift up when you neither rise nor
 const CARRY_AT := Vector3(0, 1.06, -0.33)
 const PUT_DOWN_LET_GO := 0.733  # s into "put_down" the hands let go (moves.py: frame 22)
 const PICK_UP_GRIP := 0.6       # s into "pick_up" the hands take hold
-## The jet pack by its level (0: as it comes): [charge (s of burn), thrust (m/s2), its top climb (m/s)].
+## The jet thrusters by their level (0: as it comes): [charge (s of burn), thrust (m/s2), its top climb (m/s)].
 const JET := [[0.7, 17.0, 6.0], [1.6, 20.0, 9.0], [3.2, 24.0, 14.0], [6.5, 30.0, 22.0], [14.0, 38.0, 40.0], [INF, 46.0, 60.0]]
 const JET_DELAY := 0.22          # s after the jump before holding Space fires it
 const SPACE_TOP := 2600.0        # m/s: the top level's speed across, far out (W A S D; Shift x2)
 const MAX_HP := 100.0
 const REGEN := 6.0              # health a second, 5 s after the last hit
+## The energy shield (as a ship's): it takes an attack's damage before health - a hit's
+## shimmer on a bubble round you, a crackle when it gives out - and comes back
+## SHIELD_REGEN a second, SHIELD_DELAY s after the last hit. Falls go through it.
+const MAX_SHIELD := 60.0
+const SHIELD_REGEN := 15.0
+const SHIELD_DELAY := 3.0
 const FIRE_EVERY := 0.17        # s between bolts, the trigger held
 const BOLT_DAMAGE := 18.0
 
@@ -61,13 +78,16 @@ var facing := Vector3.FORWARD   # world, along the ground
 var drive := {}                 # (tests: {move: Vector2 (x right, y forward), run, jump})
 var heading := Vector3.FORWARD  # the camera's way along the ground (CosmosCam keeps it)
 var hp := MAX_HP
+var shield := MAX_SHIELD
+var max_shield := MAX_SHIELD
 var downed := false
 var trigger := false            # (the fire button held: Cosmos sets it)
 var _scan_was := false          # (the fire button held last frame, the scanner in hand)
 var reach := 0.6
 var _cool := 0.0
 var _gun_t := 0.0               # (the rifle out for a while after firing)
-## The rifle: "slung" on the back, "drawing" it off, "carry" in hand, "aiming" (shooting), "holstering" it back.
+## The rifle: "slung" - folded in its holster on the right hip (the state's old name kept), "drawing" it (it unfolds
+## as it comes up), "carry" in hand, "aiming" (shooting), "holstering" it (folding as it goes down).
 var gun_state := "slung"
 var arms: ArmsLayer = null
 var _shot_t := 9.0              # (since the last shot)
@@ -80,11 +100,16 @@ var _model: Node3D
 var jet_level := 0
 var jet_fuel := 0.7              # s of burn left
 var jetting := false
-var _flying := false             # (the top level's pack on: flying, hovering)
+var _flying := false             # (the top level's thrusters on: flying, hovering)
 var _air_t := 0.0                # (s since it left the ground)
 var _jet_t := 0.0                # (the level re-read now and then)
-var _pack: Node3D
-var _plumes: Array = []
+var _plumes: Array = []          # (the soles' thrusters: [holder, flame] a foot)
+var climbing := false            # (holding on to a wall)
+var _wall := Vector3.ZERO        # (its face's way out, along the ground - walker_bumps: note_wall)
+var _wall_t := 9.0               # (s since it last held you out)
+var _jump_was := false           # (Space last frame: a press grabs or lets go, holding it doesn't)
+var _steep := Vector3.ZERO       # (the ground's rise a metre, uphill, where it's too steep to walk; else zero)
+var sliding := false             # (down a steep slope on your feet)
 
 
 func _ready() -> void:
@@ -100,11 +125,11 @@ func _ready() -> void:
 			Stage3D.loop_clips(_anim, "player", ["idle", "walk", "run", "gun_idle", "gun_walk", "gun_run"])   # (every clip model.json marks a loop - swim, dive, carry too - a whole cycle long: no jump at the seam)
 			var sks := _model.find_children("*", "Skeleton3D", true, false)
 			if not sks.is_empty() and _anim.has_animation("draw"):
-				arms = ArmsLayer.new()   # (the upper body over the legs: drawing, slinging and aiming the rifle)
+				arms = ArmsLayer.new()   # (the upper body over the legs: drawing, holstering and aiming the rifle)
 				arms.name = "Arms"
 				arms.setup(_anim)
 				(sks[0] as Skeleton3D).add_child(arms)
-		_pack_on()
+		_thrusters_on()
 	else:
 		var cap := MeshInstance3D.new()
 		var cm := CapsuleMesh.new()
@@ -141,7 +166,7 @@ func _lamp_step(delta: float) -> void:
 	if _lamp_t <= 0.0:
 		_lamp_t = 0.3   # (looked at a few times a second)
 		lamp_on = false
-		if planet and deck == null:
+		if planet and deck == null and not (cosmos and cosmos.get("dungeon") != null):   # (in a dungeon: its torches, the light that goes with you indoors)
 			var local := global_position - planet.global_position
 			var u := local.normalized()
 			if planet.shape.carved_near(local) and planet.shape.height(u) - (local.length() - planet.radius) > 1.2:
@@ -179,9 +204,13 @@ func set_deck(d: Node3D) -> void:
 func floor_at(local: Vector3) -> float:
 	if deck:
 		return 0.0
-	var h := planet.shape.floor_below(local) if planet.shape.carved_near(local) else planet.shape.height(local.normalized())   # (dug: the voxels' floor - a pit's, a tunnel's)
+	var dgf: float = cosmos.dungeon_floor(planet, local) if cosmos and cosmos.get("dungeon") != null else -INF
+	var h := dgf if dgf > -INF else (planet.shape.floor_below(local) if planet.shape.carved_near(local) else planet.shape.height(local.normalized()))   # (in a dungeon: its floor; dug: the voxels' floor - a pit's, a tunnel's)
 	if cosmos:
 		h = maxf(h, cosmos.town_floor(planet, local))   # (a town's steps and roofs)
+		h = maxf(h, _rock_top(local))                   # (a boulder climbed)
+	if planet.shape.sea > 0 and planet.shape.height(local.normalized()) >= 0.0:
+		return h   # (under dry land - a cave, a dungeon: no sea over you)
 	match planet.shape.sea:
 		1:
 			return h if diving else maxf(h, -SWIM_DEPTH)   # (diving: the sea floor; else afloat at swimming depth)
@@ -192,12 +221,78 @@ func floor_at(local: Vector3) -> float:
 	return h
 
 
+## The ground's rise a metre under you (uphill; its length the gradient), from
+## the heightfield either side - where it's dug, flat (its own walls: walker_bumps).
+func _rise(u: Vector3, right: Vector3) -> Vector3:
+	var lp := global_position - planet.global_position
+	if planet.shape.carved_near(lp) or (cosmos and cosmos.town_at(planet, global_position)):
+		return Vector3.ZERO
+	var fwd := u.cross(right)
+	var s := 0.8
+	var h0 := planet.shape.height(lp.normalized())
+	var hf := planet.shape.height((lp + fwd * s).normalized())
+	var hr := planet.shape.height((lp + right * s).normalized())
+	return (fwd * (hf - h0) + right * (hr - h0)) / s
+
+
+## Whether something built is over global `p` (0.3 to 8 m above it: a town's roof
+## or upper floor, a window's lintel, what you've built) - not open sky: a
+## climber's ledge is a wall's top, not a window's sill.
+func _covered(p: Vector3) -> bool:
+	if cosmos == null:
+		return false
+	var t = cosmos.town_at(planet, p)
+	if t and t.covered(t.to_local(p), 0.3, 8.0):
+		return true
+	var b = cosmos.get("builds")
+	if b and b.planet == planet:
+		for st in b.structures:
+			var l: Vector3 = st.to_local(p)
+			if st.near(l) and st.covered(l, 0.3, 8.0):
+				return true
+	return false
+
+
+## Cosmos.walker_bumps: how far a wall held you out this frame (world, along
+## the ground) - something to climb.
+func note_wall(push: Vector3) -> void:
+	if push.length() > 0.002:
+		if not climbing or push.normalized().dot(_wall) > 0.3:   # (holding on: the same face - not flipped by what's past its top)
+			_wall = push.normalized()
+		_wall_t = 0.0
+
+
+## The top of a tall boulder under `local` (planet-local), if it's within a
+## step of the feet (climbed onto: stood on) - metres above the radius, or -INF.
+func _rock_top(local: Vector3) -> float:
+	var best := -INF
+	var feet := local.length() - planet.radius
+	var u := local.normalized()
+	for rk in planet.rocks_near(local, 3.0, "walker"):
+		if float(rk[2]) <= 0.5:
+			continue   # (low ones you step over)
+		var d: Vector3 = local - (rk[0] as Vector3)
+		var fl := (d - u * d.dot(u)).length()
+		var rr: float = rk[1]
+		if fl >= rr * 0.85:
+			continue
+		var top: float = ((rk[0] as Vector3) + u * float(rk[2]) * sqrt(1.0 - pow(fl / rr, 2.0))).length() - planet.radius
+		if top <= feet + 0.7:
+			best = maxf(best, top)
+	return best
+
+
 ## A hit (a bite, a bolt).
 func hurt(dmg: float, _from: Variant = null) -> void:
 	if downed:
 		return
-	hp -= dmg
 	_since_hit = 0.0
+	if _from != null and shield > 0.0:   # (an attack - not a fall: the shield first)
+		var sh := minf(shield, dmg)
+		shield -= sh
+		dmg -= sh
+		_shield_hit(_from, shield <= 0.0)
+	hp -= dmg
 	if cosmos and cosmos.hud:
 		cosmos.hud.hit_flash = 0.5
 	if hp <= 0.0:
@@ -226,6 +321,9 @@ func _process(delta: float) -> void:
 	_since_hit += delta
 	if _since_hit > 5.0:
 		hp = minf(MAX_HP, hp + REGEN * delta)
+	if _since_hit > SHIELD_DELAY:
+		shield = minf(max_shield, shield + SHIELD_REGEN * delta)
+	_shield_step(delta)
 	_cool -= delta
 	_gun_t -= delta
 	var firing := (trigger or bool(drive.get("fire", false))) and not carrying and _hands == ""   # (hands full: no rifle, no beam)
@@ -279,7 +377,28 @@ func _process(delta: float) -> void:
 		running = false   # (a package in both hands: walking)
 	mv = mv.limit_length(1.0)
 	var top := (RUN if running else WALK) * (0.45 if swimming else 1.0)
-	# The jet pack: its level, its charge (refilled on the ground), how high above the ground and the air.
+	var jump_press := jump and not _jump_was
+	_jump_was = jump
+	_wall_t += delta
+	var into := -_wall
+	var reach_in := (heading * mv.y + right * mv.x).dot(into)   # (how much you press into the wall)
+	if climbing and (_wall_t > WALL_HOLD or deck != null or swimming or carrying or (on_ground and reach_in <= 0.0)):
+		climbing = false   # (let go: over the top, down at its foot, or off it)
+		if _wall_t > WALL_HOLD and reach_in > 0.0 and not on_ground:
+			velocity = into * 1.6 + u * maxf(velocity.dot(u), 1.6)   # (over the top: pulled up onto it)
+	elif not climbing and jump_press and _wall_t < 0.15 and reach_in > 0.3 and deck == null and not swimming and not carrying and _hands == "":
+		climbing = true    # (Space against a wall: hold on)
+		jump = false
+		jump_press = false
+	_steep = Vector3.ZERO
+	if deck == null and planet and on_ground and not swimming and not climbing and mv.length() > 0.05:
+		_steep = _rise(u, right)
+		var up_k := (heading * mv.y + right * mv.x).dot(_steep)
+		if _steep.length() < STEEP and up_k > 0.4:
+			top *= lerpf(1.0, 0.55, clampf((up_k - 0.4) / (STEEP - 0.4), 0.0, 1.0))   # (uphill steep: slower)
+		if _steep.length() < STEEP:
+			_steep = Vector3.ZERO
+	# The jet thrusters: their level, its charge (refilled on the ground), how high above the ground and the air.
 	_jet_t -= delta
 	if _jet_t <= 0.0:
 		_jet_t = 1.0
@@ -303,7 +422,7 @@ func _process(delta: float) -> void:
 		diving = true   # (under: F / Ctrl at the surface)
 	# (the top level: once fired it flies on - hovering when Space is let go - till you're down again)
 	_flying = _flying and unlimited and not on_ground and not swimming and deck == null
-	jetting = deck == null and not swimming and not on_ground and _air_t > JET_DELAY and (jump or _flying) and (unlimited or jet_fuel > 0.0)
+	jetting = deck == null and not swimming and not on_ground and not climbing and _air_t > JET_DELAY and (jump or _flying) and (unlimited or jet_fuel > 0.0)
 	if jetting and unlimited:
 		_flying = true
 	if jetting:
@@ -314,7 +433,43 @@ func _process(delta: float) -> void:
 	var flat := velocity - u * vert
 	var acc := ACCEL if on_ground or swimming else (maxf(14.0, top * 0.6) if jetting else AIR_ACCEL)
 	flat = flat.move_toward(want, acc * delta)
-	if jump and (on_ground or swimming) and vert <= 0.5:
+	sliding = false
+	if _steep != Vector3.ZERO:
+		var way := heading * mv.y + right * mv.x
+		if way.dot(_steep) < -0.05:   # (down it: a slide on your feet, faster as you go - steered across it a little)
+			sliding = true
+			var down := -_steep.normalized()
+			var across := way - down * way.dot(down)
+			var along := 1.0 / sqrt(1.0 + _steep.length_squared())   # (SLIDE along the slope itself: steeper, less of it across the ground)
+			flat = flat.move_toward((down * SLIDE + across * 2.0) * along, SLIDE_ACCEL * along * delta)
+		else:   # (up it, or across: climbed, a metre and a bit a second)
+			flat = flat.limit_length(CLIMB / _steep.length() + 0.15)
+	if climbing:   # (on the wall: up and down it, along it; pressed to it - walker_bumps holds you out)
+		var along := into.cross(u)
+		vert = CLIMB * clampf(reach_in * 1.4, -1.0, 1.0) if absf(reach_in) > 0.2 else 0.0   # (towards it: up; away: down)
+		flat = into * 0.8 + along * (heading * mv.y + right * mv.x).dot(along) * CLIMB_SIDE
+		if jump_press:     # (Space: off it - a push back and up)
+			climbing = false
+			flat = _wall * 3.5
+			vert = JUMP * 0.7
+		elif deck == null:
+			var lp := global_position - planet.global_position
+			var ahead := lp + into * (BODY_R + 0.35)
+			var feet := lp.length() - planet.radius
+			var roofed := _covered(planet.global_position + ahead.normalized() * (planet.radius + feet + 0.2))
+			if roofed and _wall_t > 0.02:
+				# (a window, a doorway in the wall: under its lintel - held on its frame, climbing on past it, not in)
+				_wall_t = 0.0
+				flat = along * (heading * mv.y + right * mv.x).dot(along) * CLIMB_SIDE
+			# (a ledge just ahead within a step of the feet, above the floor below, open to the sky - its top: pulled up onto it)
+			var ledge := floor_at(ahead.normalized() * (planet.radius + feet)) if vert > 0.0 and not roofed else -INF
+			if ledge > feet - 0.05 and ledge > floor_at(lp.normalized() * (planet.radius + feet)) + 0.3:
+				global_position = planet.global_position + ahead.normalized() * (planet.radius + ledge)
+				climbing = false
+				flat = into * 0.5
+				vert = 0.0
+				on_ground = true
+	elif jump and (on_ground or swimming) and vert <= 0.5:
 		vert = JUMP * (0.6 if swimming else 1.0)
 		on_ground = false
 		_air_t = 0.0
@@ -335,7 +490,7 @@ func _process(delta: float) -> void:
 			flat = flat.move_toward(Vector3.ZERO, 3.0 * delta)
 		var want_v := DIVE_RISE if jump else (-DIVE_RISE if descend else DIVE_DRIFT)
 		vert = move_toward(vert, want_v, 6.0 * delta)
-	elif not (jetting and unlimited and not descend):
+	elif not (jetting and unlimited and not descend) and not climbing:
 		vert -= GRAVITY * gk * delta
 	velocity = flat + u * vert
 	global_position += velocity * delta
@@ -366,7 +521,8 @@ func _process(delta: float) -> void:
 		if diving and (not swimming or (r >= planet.radius - SWIM_DEPTH and velocity.dot(u) >= 0.0)):
 			diving = false   # (back up at swimming depth, or into the shallows: afloat again)
 			stand = planet.radius + floor_at(local)
-		if r < stand or (r <= stand + 0.02 and velocity.dot(u) <= 0.0):   # (not while rising: a jump's first frames at a high frame rate are within the 2 cm)
+		if r < stand or (r <= stand + 0.02 and velocity.dot(u) <= 0.0) \
+				or (_steep != Vector3.ZERO and was_ground and r < stand + maxf(0.8, (velocity - u * velocity.dot(u)).length() * _steep.length() * delta * 1.5) and velocity.dot(u) <= 0.0):   # (not while rising: a jump's first frames at a high frame rate are within the 2 cm; climbing down a cliff: kept on it)
 			global_position = planet.global_position + u * stand
 			if velocity.dot(u) < 0.0:
 				velocity -= u * velocity.dot(u)
@@ -386,7 +542,11 @@ func _process(delta: float) -> void:
 		cosmos.walker_bumps(self)
 	# Face the way it goes; stand along the local up.
 	var go := velocity - u * velocity.dot(u)
-	if _gun_t > 0.0:
+	if climbing or (_steep != Vector3.ZERO and not sliding):
+		facing = _turn.step(facing, into if climbing else _steep, u, delta)   # (facing the wall, the cliff)
+	elif sliding:
+		facing = _turn.step(facing, go if go.length() > 0.3 else -_steep, u, delta)   # (facing down it, the way you go)
+	elif _gun_t > 0.0:
 		var aim_way := _aim_flat if gun_state == "aiming" and _aim_flat.length() > 0.5 else heading
 		facing = _aim_turn.step(facing, aim_way, u, delta)   # (the rifle out: facing where the camera looks; aiming, where the shots go - quicker)
 		_turn.w = _aim_turn.w
@@ -400,7 +560,7 @@ func _process(delta: float) -> void:
 	# Animation.
 	var speed := go.length()
 	var gun := "gun_" if (gun_state in ["carry", "aiming", "holstering"] if arms else _gun_t > 0.0) else ""
-	_pack_step(delta, go)
+	_thrust_step(delta, go)
 	if _hands_step(delta):
 		pass   # (setting a package down or picking one up)
 	elif (diving or swimming) and deck == null:
@@ -410,6 +570,16 @@ func _process(delta: float) -> void:
 			_play(k, maxf(speed, 1.0) / 2.0)
 		else:
 			_play("walk" if stroke else "idle", speed / WALK)
+	elif sliding:
+		_play("slide" if _anim and _anim.has_animation("slide") else "run", 1.0)
+	elif climbing and absf(velocity.dot(u.cross(facing))) > maxf(absf(velocity.dot(u)), 0.15) and _anim and _anim.has_animation("climb_side"):
+		_play("climb_side", velocity.dot(u.cross(facing)) / CLIMB_SIDE)   # (along the wall: to its left forwards, to its right backwards)
+	elif climbing or _steep != Vector3.ZERO:
+		var rate := velocity.dot(u) / CLIMB if climbing else go.dot(_steep) / CLIMB   # (the holds keep still: up forwards, down backwards)
+		if _anim and _anim.has_animation("climb"):
+			_play("climb", rate)
+		else:
+			_play("walk", absf(rate))
 	elif carrying and on_ground and _anim and _anim.has_animation("carry"):
 		if speed > 0.3:
 			_play("carry", speed / WALK)
@@ -486,9 +656,9 @@ func _hands_step(delta: float) -> bool:
 	return true
 
 
-## The rifle's states each frame: drawn off the back when it's wanted (shooting, mining),
+## The rifle's states each frame: drawn from the hip holster (unfolding) when it's wanted (shooting, mining),
 ## raised to aim while shooting (the chest pitched to where the shots go), lowered to
-## carry a moment after, slung back when it's no longer wanted - each over the legs'
+## carry a moment after, folded back into the holster when it's no longer wanted - each over the legs'
 ## walk or stand (ArmsLayer), each move eased in and out of.
 func _gun_step(delta: float, aim_req: bool) -> void:
 	_shot_t += delta
@@ -566,10 +736,13 @@ func _play(kind: String, rate := 1.0) -> void:
 	if clip != _clip:
 		_anim.play(clip, BLENDS.get(kind, 0.3))   # (cross-faded: locomotion and poses a third of a second, a jump's spring quicker)
 		_clip = clip
+	if kind.begins_with("climb"):
+		_anim.speed_scale = clampf(rate, -1.6, 1.6)   # (stopped on the wall: still, holding on)
+		return
 	_anim.speed_scale = clampf(rate, 0.5, 1.6) if kind.ends_with("walk") or kind.ends_with("run") or kind == "carry" or kind == "swim" or kind == "dive" else 1.0
 
 
-## The jet pack's level: its upgrade (the automaton's Leg Servos), as much as they work.
+## The jet thrusters' level: their upgrade (the automaton's Leg Servos), as much as they work.
 func _read_jet() -> void:
 	var lv := 0
 	var data = CosmosGame.data if Engine.get_main_loop() and CosmosGame.data else null
@@ -597,85 +770,63 @@ func _nearer_world() -> void:
 			cosmos.hud.flash("Over %s" % best.rec.get("name", ""), 3.0)
 
 
-## The jet pack on its back (the chest's bone carries it): a frame, two tanks,
-## two nozzles in the Minoan look; each nozzle's flame (the ship's engine shader).
-func _pack_on() -> void:
+## The jet thrusters in the soles of its boots (each foot's bone carries one): a flame
+## out of the sole (the ship's engine shader), a glowing vent ring round it and the heat's
+## shimmer under it - shown while they fire (_thrust_step).
+const SOLE := Vector3(0.0, 0.07, -0.105)   # (the sole's middle: the foot bone's axes - y toward the toes, z up)
+
+
+func _thrusters_on() -> void:
 	var sk: Skeleton3D = _model.find_child("Skeleton3D", true, false)
-	if sk == null or sk.find_bone("chest") < 0:
+	if sk == null:
 		return
-	var att := BoneAttachment3D.new()
-	att.bone_name = "chest"
-	sk.add_child(att)
-	_pack = Node3D.new()
-	_pack.name = "JetPack"
-	_pack.position = Vector3(0, 0.06, -0.2)   # (the model faces +z: its back is -z)
-	att.add_child(_pack)
-	var mi := MeshInstance3D.new()
-	mi.mesh = pack_mesh()
-	mi.material_override = pack_mat()
-	_pack.add_child(mi)
-	for sx in [-1.0, 1.0]:
-		var holder := Node3D.new()
-		holder.position = Vector3(sx * 0.12, -0.28, -0.05)
-		_pack.add_child(holder)
+	_plumes = []   # (made again: only its own)
+	for b in ["foot.L", "foot.R"]:
+		if sk.find_bone(b) < 0:
+			continue
+		var att := BoneAttachment3D.new()
+		att.bone_name = b
+		att.name = "Thruster_" + b
+		sk.add_child(att)
+		var holder := Node3D.new()   # (its -Y out of the sole: the bone's -z)
+		holder.transform = Transform3D(Basis(Vector3(1, 0, 0), Vector3(0, 0, 1), Vector3(0, -1, 0)), SOLE)
+		att.add_child(holder)
 		var c := CylinderMesh.new()
-		c.top_radius = 0.055
-		c.bottom_radius = 0.005
-		c.height = 0.7
+		c.top_radius = 0.065
+		c.bottom_radius = 0.008
+		c.height = 0.45
 		c.radial_segments = 10
 		c.rings = 1
 		var pl := MeshInstance3D.new()
 		pl.mesh = c
 		pl.material_override = _flame_mat()
-		pl.position = Vector3(0, -0.35, 0)
+		pl.position = Vector3(0, -0.225, 0)
 		pl.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		holder.add_child(pl)
+		var vent := MeshInstance3D.new()   # (the sole's vent, glowing)
+		var vc := CylinderMesh.new()
+		vc.top_radius = 0.058
+		vc.bottom_radius = 0.058
+		vc.height = 0.012
+		vc.radial_segments = 12
+		vc.rings = 1
+		vent.mesh = vc
+		vent.material_override = _flame_mat()
+		vent.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		holder.add_child(vent)
 		var hz := MeshInstance3D.new()   # (the heat haze below it)
 		var q := QuadMesh.new()
-		q.size = Vector2(0.32, 0.5)
+		q.size = Vector2(0.3, 0.45)
 		hz.mesh = q
 		hz.material_override = shimmer_mat()
-		hz.position = Vector3(0, -0.8, 0)
+		hz.position = Vector3(0, -0.6, 0)
 		hz.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		holder.add_child(hz)
 		holder.visible = false
-		_plumes.append([holder, pl])
+		_plumes.append([holder, pl, vent])
 
 
-static var _pack_mesh: ArrayMesh
-static var _pack_mat: ShaderMaterial
-
-
-## The jet pack's look: its empire's hull material, its shader marking the stencil as a
-## character's does (pbr_vc) - the scanned veins' hologram never drawn over it. Made once.
-static func pack_mat() -> ShaderMaterial:
-	if _pack_mat == null:
-		var base: ShaderMaterial = EmpireKit.mat("hull", "minoa")
-		_pack_mat = base.duplicate()
-		var sh := Shader.new()
-		var code: String = base.shader.code
-		var at := code.find("render_mode")
-		at = code.find(";", at) + 1
-		sh.code = code.substr(0, at) + "\nstencil_mode write, compare_always, 1;" + code.substr(at)
-		_pack_mat.shader = sh
-	return _pack_mat
 static var _flame: ShaderMaterial
-
-
-static func pack_mesh() -> ArrayMesh:
-	if _pack_mesh == null:
-		var m := EmpireKit.Mesher.new()
-		m.boxat(Vector3(0.34, 0.42, 0.05), Vector3(0, 0, 0.02), EmpireKit.IRON)          # (the frame against its back)
-		for sx in [-1.0, 1.0]:
-			m.cyl(Vector3(sx * 0.12, -0.2, -0.05), Vector3(sx * 0.12, 0.2, -0.05), 0.075, 0.075, EmpireKit.MAIN, 14)   # (a tank)
-			m.cyl(Vector3(sx * 0.12, 0.06, -0.05), Vector3(sx * 0.12, 0.1, -0.05), 0.079, 0.079, EmpireKit.ACCENT, 14, false)
-			m.cyl(Vector3(sx * 0.12, 0.2, -0.05), Vector3(sx * 0.12, 0.24, -0.05), 0.05, 0.03, EmpireKit.STEEL, 10)
-			m.cyl(Vector3(sx * 0.12, -0.2, -0.05), Vector3(sx * 0.12, -0.28, -0.05), 0.045, 0.065, EmpireKit.IRON, 12)   # (its nozzle)
-			m.boxat(Vector3(0.012, 0.22, 0.012), Vector3(sx * 0.21, -0.02, -0.05), EmpireKit.LAMP)
-		m.boxat(Vector3(0.1, 0.12, 0.04), Vector3(0, 0.05, -0.04), EmpireKit.STEEL)
-		m.disc(Vector3(0, 0.05, -0.062), Vector3(0, 0, -1), Vector3.UP, 0.04, EmpireKit.ROUNDEL, 16)
-		_pack_mesh = m.commit()
-	return _pack_mesh
 
 
 static func _flame_mat() -> ShaderMaterial:
@@ -732,7 +883,7 @@ func _seated() -> void:
 
 
 ## Down on the ground (or a deck) at `v` m/s: a thud, dust kicked up, and from
-## higher than a few storeys a hurt (FALL_SAFE m/s and up - the jet pack held
+## higher than a few storeys a hurt (FALL_SAFE m/s and up - the jet thrusters held
 ## on the way down brakes it).
 const FALL_SAFE := 13.0          # m/s (a fall of ~7.7 m)
 const FALL_HURT := 7.0           # hp a m/s over it
@@ -814,18 +965,21 @@ func _jet_sound(delta: float) -> void:
 		_roar = null
 
 
-## The flames with the thrust; the body leaning into its flight across.
-func _pack_step(delta: float, go: Vector3) -> void:
+## The soles' flames with the thrust; the body leaning into its flight across.
+func _thrust_step(delta: float, go: Vector3) -> void:
 	var k := 0.0
 	if jetting:
 		k = 1.0 if velocity.dot(up()) > 0.5 or jet_level >= JET.size() - 1 else 0.6
 	for e in _plumes:
+		if not is_instance_valid(e[0]) or not is_instance_valid(e[1]):
+			continue   # (made again: its old plumes gone)
 		var holder: Node3D = e[0]
 		holder.visible = k > 0.0
 		if k > 0.0:
 			holder.scale = Vector3(1.0, 0.6 + k * (0.8 + 0.25 * sin(Time.get_ticks_msec() * 0.03)), 1.0)
 			if not _headless():
 				(e[1] as MeshInstance3D).set_instance_shader_parameter("level", 0.8 + k)
+				(e[2] as MeshInstance3D).set_instance_shader_parameter("level", 0.6 + k * 0.5)
 	if _model:
 		var lean := clampf(go.length() / 30.0, 0.0, 0.75) if jetting else 0.0
 		var cur := _model.get_meta("lean", 0.0) as float
@@ -833,6 +987,72 @@ func _pack_step(delta: float, go: Vector3) -> void:
 		_model.set_meta("lean", cur)
 		var b := Basis(Vector3.RIGHT, -cur) * Basis(Vector3.UP, PI)
 		_model.transform = Transform3D(b, Vector3(0, 1.0, 0) - b * Vector3(0, 1.0, 0))
+
+
+## The shield's bubble round the body: shown for a moment where a hit lands (walker_shield.gdshader -
+## a hex lattice lit round the hit, a ripple out from it), all of it flaring red as it gives out.
+const SHIELD_SHOW := 0.45        # s a hit's shimmer lasts
+var _bubble: MeshInstance3D
+var _bubble_t := 9.0
+
+
+func _shield_hit(from: Variant, broke: bool) -> void:
+	if _headless():
+		return
+	if broke:
+		Sfx.play("space/hazard_zap", -4.0, 0.06)   # (the shield down: its crackle)
+	else:
+		Sfx.play("space/hit_shield", -8.0, 0.08)
+	if _bubble == null:
+		_bubble = MeshInstance3D.new()
+		_bubble.name = "Shield"
+		_bubble.mesh = shield_mesh()
+		_bubble.material_override = shield_mat()
+		_bubble.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_bubble.position = Vector3(0, 0.98, 0)
+		_bubble.scale = Vector3(0.62, 1.12, 0.62)
+		add_child(_bubble)
+	var at: Vector3 = global_position - global_basis.z
+	if from is Vector3:
+		at = from
+	elif from is Node3D and is_instance_valid(from):
+		at = (from as Node3D).global_position
+	var way := _bubble.global_basis.inverse() * (at - _bubble.global_position)
+	_bubble.set_instance_shader_parameter("hit_dir", way.normalized() if way.length() > 0.01 else Vector3.BACK)
+	_bubble.set_instance_shader_parameter("broke", 1.0 if broke else 0.0)
+	_bubble.set_instance_shader_parameter("age", 0.0)
+	_bubble_t = 0.0
+	_bubble.visible = true
+
+
+func _shield_step(delta: float) -> void:
+	if _bubble == null or not _bubble.visible:
+		return
+	_bubble_t += delta
+	var a := _bubble_t / SHIELD_SHOW
+	_bubble.set_instance_shader_parameter("age", a)
+	_bubble.visible = a < 1.0
+
+
+static var _shield_mesh: SphereMesh
+static var _shield_mat: ShaderMaterial
+
+
+static func shield_mesh() -> SphereMesh:
+	if _shield_mesh == null:
+		_shield_mesh = SphereMesh.new()
+		_shield_mesh.radius = 1.0
+		_shield_mesh.height = 2.0
+		_shield_mesh.radial_segments = 32
+		_shield_mesh.rings = 16
+	return _shield_mesh
+
+
+static func shield_mat() -> ShaderMaterial:
+	if _shield_mat == null:
+		_shield_mat = ShaderMaterial.new()
+		_shield_mat.shader = preload("res://shaders/world/walker_shield.gdshader")
+	return _shield_mat
 
 
 static func _headless() -> bool:
@@ -843,6 +1063,7 @@ static func _headless() -> bool:
 func revive(at: Vector3) -> void:
 	downed = false
 	hp = MAX_HP
+	shield = max_shield
 	velocity = Vector3.ZERO
 	global_position = at
 	_clip = ""

@@ -526,6 +526,12 @@ func _describe_planet() -> String:
 		var towns: Array = _t["towns"]
 		var seen := _view.all.keys().filter(func(k): return str(k).begins_with("town:")).size()
 		lines.append("Towns known: %d of %d" % [seen, towns.size()] if not towns.is_empty() else "No towns.")
+		var me: Dictionary = _view.all.get("you", _view.all.get("ship", {}))
+		if not me.is_empty():   # (where you are on it: latitude and longitude - the globe's grid every 30 degrees)
+			var d: Vector3 = me["dir"]
+			var lat := rad_to_deg(asin(clampf(d.y, -1.0, 1.0)))
+			var lon := rad_to_deg(atan2(d.x, d.z))
+			lines.append("You: %.2f° %s, %.2f° %s" % [absf(lat), "N" if lat >= 0.0 else "S", absf(lon), "E" if lon >= 0.0 else "W"])
 	lines.append("")
 	lines.append("[color=#%s]Pick a mark for its details. A town you've walked into shows its plan.[/color]" % UI.TEXT_DIM.to_html(false))
 	return "\n".join(lines)

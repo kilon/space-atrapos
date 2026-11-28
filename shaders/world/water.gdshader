@@ -50,7 +50,9 @@ void fragment() {
 }
 
 void light() {
-	vec3 L = normalize((VIEW_MATRIX * vec4(sun_dir, 0.0)).xyz);
+	// (the sun: this world's own way to it - the one light aimed for the world you're at; the
+	// rest - your lamp, a torch, a chest's glow - from where they are)
+	vec3 L = LIGHT_IS_DIRECTIONAL ? normalize((VIEW_MATRIX * vec4(sun_dir, 0.0)).xyz) : LIGHT;
 	float d = clamp(dot(NORMAL, L), 0.0, 1.0);
 	DIFFUSE_LIGHT += d * ATTENUATION * LIGHT_COLOR / PI;
 	if (kind != 3) {

@@ -91,6 +91,7 @@ static func dress(model: Node3D, id: String, empire: String, weapon := "") -> vo
 
 
 var dungeon: CosmosDungeon = null   # (the dead's: a skeleton's, a demon's)
+var in_cave := false                # (the dead of a cave in the ground - PlanetShape.caves: walking its carved floor)
 var scale_k := 1.0
 
 
@@ -99,6 +100,17 @@ var scale_k := 1.0
 func foe_of(d: CosmosDungeon, seed: int, kind: String, boss := false) -> void:
 	dungeon = d
 	planet = d.planet
+	_as_foe(seed, kind, boss)
+
+
+## One of a cave's dead (a cave in the planet's ground: Cosmos._cave_wake).
+func cave_foe(pl: CosmosPlanet, seed: int, kind: String, boss := false) -> void:
+	in_cave = true
+	planet = pl
+	_as_foe(seed, kind, boss)
+
+
+func _as_foe(seed: int, kind: String, boss: bool) -> void:
 	_rng.seed = seed
 	role = kind
 	model_id = kind
@@ -159,7 +171,7 @@ func _ready() -> void:
 		model.rotation.y = PI
 		model.scale = Vector3.ONE * scale_k
 		add_child(model)
-		if dungeon:
+		if dungeon or in_cave:
 			CosmosModels.apply(model, id)
 		elif town:
 			dress(model, id, str(town.site["empire"]), weapon if weapon != "" else "rifle")
@@ -176,7 +188,7 @@ func _ready() -> void:
 		cap.mesh = cm
 		cap.position.y = 0.95
 		add_child(cap)
-	_play("guard" if dungeon else (("gun_idle" if weapon != "" else "idle") if town else "guard"))
+	_play("guard" if dungeon or in_cave else (("gun_idle" if weapon != "" else "idle") if town else "guard"))
 
 
 func up() -> Vector3:
@@ -250,6 +262,9 @@ func _process(delta: float) -> void:
 		return
 	if dungeon:
 		_dungeon_fight(delta)
+		return
+	if in_cave:
+		_cave_fight(delta)
 		return
 	var u := up()
 	var me := global_position - planet.global_position
@@ -558,10 +573,11 @@ func _dungeon_fight(delta: float) -> void:
 	var me: Node3D = cosmos.walker if cosmos else null
 	var to := Vector3.ZERO
 	var d := INF
-	if me and me.get("deck") == dungeon and not me.get("downed"):
+	if me and me.get("deck") == null and me.get("planet") == dungeon.planet and not me.get("downed"):
 		to = dungeon.to_local(me.global_position) - _tl
-		to.y = 0.0
-		d = to.length()
+		if absf(to.y) < 3.0:   # (in its rooms with it - not up on the ground over them)
+			to.y = 0.0
+			d = to.length()
 	# (rooms away, behind its walls: not drawn, not animated - nor moving, it waits)
 	var far := d > 36.0 * scale_k
 	if visible == far:
@@ -610,6 +626,70 @@ func _dungeon_fight(delta: float) -> void:
 		global_basis = Basis.looking_at(f, u)
 
 
+## A cave's dead: as a dungeon's (they come for you when you're near, the
+## skeletons' swords, the demons' fire and claws), on the planet's carved
+## ground - its floor, kept out of its walls; out of sight, still.
+func _cave_fight(delta: float) -> void:
+	var me: Node3D = cosmos.walker if cosmos else null
+	var u := up()
+	var to := Vector3.ZERO
+	var d := INF
+	var far := true
+	if me and me.get("deck") == null and me.get("planet") == planet and not me.get("downed"):
+		to = me.global_position - global_position
+		far = to.length() > 40.0 * scale_k
+		var vd := to.dot(u)
+		if absf(vd) < 3.5 * scale_k:   # (about its level: a passage above or below isn't the way to you)
+			to -= u * vd
+			d = to.length()
+	if visible == far:
+		visible = not far
+		if _anim:
+			_anim.active = not far
+	if far:
+		return
+	var move := Vector3.ZERO
+	var speed := 1.0
+	var demon := role == "demon"
+	_fire -= delta
+	var busy := _anim != null and _clip in ["jab", "cross", "hook", "hit"] and _anim.is_playing()
+	if d < (30.0 if scale_k > 1.5 else 22.0):
+		facing = to.normalized() if d > 0.1 else facing
+		if d > 1.7 * scale_k:
+			move = facing
+			speed = 3.9 if demon else 3.3
+			if demon and d > 5.0 and _fire <= 0.0:
+				_fire = _rng.randf_range(2.2, 3.2)
+				var muzzle := global_position + u * 1.6 * scale_k + facing * 0.6 * scale_k
+				var b := CosmosBolt.fire(cosmos, muzzle, me.global_position + me.up() * 1.0 - muzzle, "enemy", 12.0 * (2.0 if scale_k > 1.5 else 1.0))
+				b.tint = Color(1.0, 0.45, 0.1)
+				_play("cross", true)
+			elif not busy:
+				_play("run")
+		else:
+			if _fire <= 0.0:
+				_fire = 1.1 if demon else 1.3
+				me.hurt((16.0 if demon else 10.0) * (2.0 if scale_k > 1.5 else 1.0), self)
+				_play(["jab", "cross", "hook"][_rng.randi() % 3], true)
+			elif not busy:
+				_play("guard")
+	elif not busy:
+		_play("guard")
+	var sh := planet.shape
+	var local := global_position - planet.global_position + move * speed * delta
+	for hgt: float in [0.55, 1.5]:   # (its walls: the knees and the head kept out of them, along the ground)
+		var pt: Vector3 = local + u * hgt * scale_k
+		var mv: Vector3 = sh.push_out(pt, 0.4 * scale_k) - pt
+		local += mv - u * mv.dot(u)
+	local = local.normalized() * (planet.radius + sh.floor_below(local))
+	global_position = planet.global_position + local
+	u = local.normalized()
+	var f := (facing - u * facing.dot(u)).normalized()
+	if f.length() > 0.5:
+		facing = f
+		global_basis = Basis.looking_at(f, u)
+
+
 ## The nearest pirate or hunting beast within `reach` m.
 func _nearest_foe(reach: float) -> Node3D:
 	var best: Node3D = null
@@ -618,6 +698,8 @@ func _nearest_foe(reach: float) -> Node3D:
 		for x in list:
 			if not is_instance_valid(x) or x.get("dead") or x == self:
 				continue
+			if x.get("friendly"):
+				continue   # (roads: the travellers - CosmosTraveller - aren't the town's foes; their raiders are)
 			if x is CosmosCreature and (x as CosmosCreature).kind.get("temper") != "predator":
 				continue
 			var d: float = x.global_position.distance_to(global_position)
